@@ -20,8 +20,13 @@ export default function Home() {
         <Button type="success">Click</Button>
         <Button type="cuation">Click</Button>
       </div>
-      <div className="flex items-center justify-center m-4 gap-4 flex-col">
-        <Input />
+      <div className="flex items-center justify-center m-4 gap-4 flex-col w-60">
+        <Input label={"username"} />
+        <Input
+          label={"username"}
+          htmlType="select"
+          options={["hello", "test", "fdjjd", "dfjjfdjfd", "fjdjffjdj"]}
+        />
       </div>
     </div>
   );
