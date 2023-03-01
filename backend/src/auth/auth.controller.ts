@@ -1,5 +1,4 @@
 import { Controller, Get, UseGuards, Req } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { FourtyTwoGuard, JwtAuthGuard } from './guards';
 
@@ -9,7 +8,11 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Get('42')
-  async fortyTwoLogin() {}
+  async fortyTwoLogin() {
+    return {
+      msg: 'done',
+    };
+  }
 
   @UseGuards(FourtyTwoGuard)
   @Get('42/callback')

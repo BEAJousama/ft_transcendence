@@ -10,44 +10,129 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id            Int             @id @default(autoincrement())
-  password      String
-  name          String?
-  email         String          @unique
-  username      String          @unique
-  Message       Message[]
-  ChannelMember ChannelMember[]
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
+enum UserStatus {
+  ONLINE
+  INGAME
+  OFFLINE
 }
 
-model Message {
-  id        Int      @id @default(autoincrement())
-  content   String
-  author    User     @relation(fields: [authorId], references: [id])
-  authorId  Int
-  Channel   Channel? @relation(fields: [channelId], references: [id])
-  channelId Int?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+enum Ladder {
+  BEGINNER
+  AMATEUR
+  SEMI_PROFESSIONAL
+  PROFESSIONAL
+  WORLD_CLASS
+  LEGENDARY
+}
+
+// enum Achievements {
+// Perfect Game Comeback King Sharpshooter Iron Paddle Marathon Match Master of Spin Speed Demon Trickster Streaker Grand Slam
+// PERFECT_GAME // : Achieve a score of 11-0 in a single game against the computer or another player.
+// COMEBACK_KING // : Win a game after being down by 5 or more points.
+// SHARPSHOOTER // : Score 10 or more points in a row without missing a shot.
+// IRON_PADDLE // : Block 50 or more shots in a single game.
+// MARATHON_MATCH // : Play a game that lasts more than 10 minutes.
+// MASTER_OF_SPIN // : Score a point with a spin shot that confuses the opponent.
+// SPEED_DEMON // : Score a point within 10 seconds of the start of a game.
+// TRICKSTER // : Score a point by bouncing the ball off the wall or the paddle.
+// STREAKER // : Win 10 or more games in a row against the computer or other players.
+// GRAND_SLAM // : Win all four game modes (e.g. Classic, Time Attack, Survival, etc.) in a row.
+// }
+
+model User {
+  id               Int             @id @default(autoincrement())
+  login            String          @unique
+  nickname         String          @unique
+  avatar           String
+  twoFactorAuth    Boolean         @default(false)
+  tfaSecret        String
+  status           UserStatus      @default(OFFLINE)
+  ladder           Ladder          @default(BEGINNER)
+  rating           Int             @default(0)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  achievement      Achievement[]   @relation("AchievementPlayers")
+  blocking         Block[]         @relation("blocking")
+  blockers         Block[]         @relation("blocker")
+  wins             Int             @default(0)
+  losses           Int             @default(0)
+  ownedChannels    Channel[]
+  memberInChannels ChannelMember[]
+  sentMessages     Message[]       @relation("send")
+}
+
+model Achievement {
+  id          Int     @id @default(autoincrement())
+  name        String
+  description String
+  image       String?
+  players     User[]  @relation("AchievementPlayers")
+}
+
+model Block {
+  blocker    User @relation("blocker", fields: [blockerId], references: [id])
+  blockerId  Int
+  blocking   User @relation("blocking", fields: [blockingId], references: [id])
+  blockingId Int
+
+  @@id([blockerId, blockingId])
+}
+
+enum Visiblity {
+  PUBLIC
+  PRIVATE
+  PROTECTED
+}
+
+enum ChannelType {
+  GROUP
+  CONVERSATION
 }
 
 model Channel {
-  id            Int             @id @default(autoincrement())
-  name          String
-  Message       Message[]
-  ChannelMember ChannelMember[]
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
+  id             Int             @id @default(autoincrement())
+  name           String
+  avatar         String
+  visiblity      Visiblity       @default(PUBLIC)
+  password       String?
+  owner          User            @relation(fields: [userId], references: [id])
+  userId         Int
+  type           ChannelType     @default(GROUP)
+  channelMembers ChannelMember[]
+  createAt       DateTime        @default(now())
+  messages       Message[]       @relation("receive")
+}
+
+enum Role {
+  MEMEBER
+  ADMIN
+}
+
+enum MemberStatus {
+  MUTED
+  BANNED
+  ACTIVE
 }
 
 model ChannelMember {
-  id        Int      @id @default(autoincrement())
-  user      User     @relation(fields: [userId], references: [id])
-  userId    Int
-  channel   Channel  @relation(fields: [channelId], references: [id])
-  channelId Int
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  user         User         @relation(fields: [userId], references: [id])
+  userId       Int
+  channel      Channel      @relation(fields: [channelId], references: [id])
+  channelId    Int
+  role         Role         @default(MEMEBER)
+  status       MemberStatus @default(ACTIVE)
+  banStartTime DateTime?
+  banDuration  Int? // time in seconds
+
+  @@id([userId, channelId])
+}
+
+model Message {
+  id         Int      @id @default(autoincrement())
+  content    String
+  receiver   Channel  @relation("receive", fields: [receiverId], references: [id])
+  receiverId Int
+  sender     User     @relation("send", fields: [senderId], references: [id])
+  senderId   Int
+  date       DateTime @default(now())
 }
