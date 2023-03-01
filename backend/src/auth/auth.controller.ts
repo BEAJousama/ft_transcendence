@@ -1,18 +1,19 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Controller, Get, UseGuards, Req } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
-import { SigninDto, SignupDto } from './dto';
+import { FourtyTwoGuard, JwtAuthGuard } from './guards';
 
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  @Post('signup')
-  async signup(@Body() body: SignupDto) {
-    return this.authService.signup(body);
-  }
+  @UseGuards(JwtAuthGuard)
+  @Get('42')
+  async fortyTwoLogin() {}
 
-  @Post('signin')
-  async signin(@Body() body: SigninDto) {
-    return this.authService.signin(body);
+  @UseGuards(FourtyTwoGuard)
+  @Get('42/callback')
+  async fortyTwoLoginCallback(@Req() req) {
+    return this.authService.callback(req.user);
   }
 }
