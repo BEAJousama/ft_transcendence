@@ -3,16 +3,22 @@ import { User } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
-export class UserService {
+export class UsersService {
   constructor(private prisma: PrismaService) {}
 
-  async createUser(data: User) {
+  async createUser(data) {
     try {
       const user = await this.prisma.user.create({
-        data: data,
+        data: {
+          login: data.login,
+          avatar: data.avatar,
+          tfaSecret: '',
+        },
       });
-    } catch (e) {
-      return e;
+      console.log(user);
+      return user;
+    } catch (error) {
+      return error;
     }
   }
 
@@ -23,8 +29,9 @@ export class UserService {
           id,
         },
       });
-    } catch (e) {
-      return e;
+      return user;
+    } catch (error) {
+      return null;
     }
   }
 
@@ -32,11 +39,48 @@ export class UserService {
     try {
       const user = await this.prisma.user.findUnique({
         where: {
-          //   login: {},
+          login,
         },
       });
-    } catch (e) {
-      return e;
+      return user;
+    } catch (error) {
+      return error;
+    }
+  }
+
+  async findAllUsers() {
+    try {
+      const users = await this.prisma.user.findMany();
+      return users;
+    } catch (error) {
+      return error;
+    }
+  }
+
+  async updateUser(id: number, data: User) {
+    try {
+      const user = await this.prisma.user.update({
+        where: {
+          id,
+        },
+        data,
+      });
+      return user;
+    } catch (error) {
+      return error;
+    }
+  }
+
+  async deleteUser(id: number) {
+    try {
+      const user = await this.prisma.user.delete({
+        where: {
+          id,
+        },
+      });
+      return user;
+    } catch (error) {
+      return error;
     }
   }
 }
