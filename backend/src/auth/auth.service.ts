@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { User } from '@prisma/client';
+import { authenticator } from 'otplib';
 import { UsersService } from 'src/users/users.service';
-
 @Injectable()
 export class AuthService {
   constructor(
@@ -19,10 +20,12 @@ export class AuthService {
       const data = req.user;
       let user = await this.usersService.findUserByLogin(data.login);
       if (!user) {
+        const secret = authenticator.generateSecret();
+        console.log(secret);
         user = await this.usersService.createUser({
           login: data.login,
           avatar: data.avatar,
-          tfaSecret: '',
+          tfaSecret: secret,
         });
       }
       const payload = { login: user.login, sub: user.id };
@@ -34,6 +37,48 @@ export class AuthService {
     } catch (error) {
       return error;
     }
-    // console.log(access_token);
+  }
+
+  async turnOnTwoFactorAuthentication(login: string) {
+    try {
+      const user: User = await this.usersService.findUserByLogin(login);
+      if (user) {
+        user.twoFactorAuth = true;
+        await this.usersService.updateUser(user.id, user);
+      }
+    } catch (error) {}
+  }
+
+  async turnOffTwoFactorAuthentication(login: string) {
+    try {
+      const user: User = await this.usersService.findUserByLogin(login);
+      if (user) {
+        user.twoFactorAuth = false;
+        await this.usersService.updateUser(user.id, user);
+      }
+    } catch (error) {}
+  }
+
+  verifyTwoFactorAuthentication(
+    twoFactorAuthenticationCode: string,
+    user: User,
+  ) {
+    return authenticator.verify({
+      token: twoFactorAuthenticationCode,
+      secret: user.tfaSecret,
+    });
+  }
+
+  async generateQrCodeDataURl(user: User) {
+    const otpauthUrl = authenticator.keyuri(
+      user.login,
+      'FT_TRANSCENDENCE',
+      user.tfaSecret,
+    );
+    return otpauthUrl;
+  }
+
+  async activateTfa(user: User) {
+    // activate tfa here
   }
 }
