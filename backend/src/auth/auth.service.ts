@@ -18,7 +18,7 @@ export class AuthService {
   async callback(req, res) {
     try {
       const data = req.user;
-      let user = await this.usersService.findUserByLogin(data.login);
+      let user: User = await this.usersService.findUserByLogin(data.login);
       if (!user) {
         const secret = authenticator.generateSecret();
         console.log(secret);
@@ -27,6 +27,15 @@ export class AuthService {
           avatar: data.avatar,
           tfaSecret: secret,
         });
+      }
+      if (user.twoFactorAuth) {
+        const payload = { login: user.login, sub: user.id };
+        const access_token = this.jwtService.sign(payload);
+        res.cookie('2fa_access_token', access_token, {
+          httpOnly: true,
+        });
+        // redirect to 2tf front end url
+        res.status(302).redirect('http://localhost:5500/index.html');
       }
       const payload = { login: user.login, sub: user.id };
       const access_token = this.jwtService.sign(payload);
@@ -46,17 +55,32 @@ export class AuthService {
         user.twoFactorAuth = true;
         await this.usersService.updateUser(user.id, user);
       }
-    } catch (error) {}
+      return {
+        message: 'success',
+      };
+    } catch (error) {
+      return {
+        message: 'error',
+      };
+    }
   }
 
   async turnOffTwoFactorAuthentication(login: string) {
     try {
       const user: User = await this.usersService.findUserByLogin(login);
+
       if (user) {
         user.twoFactorAuth = false;
         await this.usersService.updateUser(user.id, user);
       }
-    } catch (error) {}
+      return {
+        message: 'success',
+      };
+    } catch (error) {
+      return {
+        message: 'error',
+      };
+    }
   }
 
   verifyTwoFactorAuthentication(
@@ -76,9 +100,5 @@ export class AuthService {
       user.tfaSecret,
     );
     return otpauthUrl;
-  }
-
-  async activateTfa(user: User) {
-    // activate tfa here
   }
 }

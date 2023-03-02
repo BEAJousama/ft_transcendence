@@ -14,6 +14,8 @@
 
       <input type="text" class="code" />
       <button onclick="handleclick(event)">Submit</button>
+      <button onclick="turnOff(event)">Turn Off</button>
+      <button onclick="turnOn(event)">Turn on</button>
     </div>
     <script>
       let user;
@@ -49,6 +51,28 @@
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({ code }),
+        })
+          .then((res) => res.json())
+          .then((data) => console.log(data));
+      }
+      function turnOn() {
+        fetch('http://localhost:3000/api/auth/2fa/turn-on', {
+          method: 'POST',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        })
+          .then((res) => res.json())
+          .then((data) => console.log(data));
+      }
+      function turnOff() {
+        fetch('http://localhost:3000/api/auth/2fa/turn-off', {
+          method: 'POST',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          },
         })
           .then((res) => res.json())
           .then((data) => console.log(data));
