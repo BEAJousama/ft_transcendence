@@ -1,4 +1,5 @@
-import { Controller, Get, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, UseGuards, Req, Res } from '@nestjs/common';
+import { UsersService } from 'src/users/users.service';
 import { AuthService } from './auth.service';
 import { FourtyTwoGuard, JwtAuthGuard } from './guards';
 
@@ -8,15 +9,13 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Get('42')
-  async fortyTwoLogin() {
-    return {
-      msg: 'done',
-    };
+  async fortyTwoLogin(@Req() req) {
+    return this.authService.getprofile(req.user.login ? req.user.login : '');
   }
 
   @UseGuards(FourtyTwoGuard)
   @Get('42/callback')
-  async fortyTwoLoginCallback(@Req() req) {
-    return this.authService.callback(req.user);
+  async fortyTwoLoginCallback(@Req() req, @Res() res) {
+    return this.authService.callback(req, res);
   }
 }

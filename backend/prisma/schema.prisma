@@ -42,7 +42,6 @@ enum Ladder {
 model User {
   id               Int             @id @default(autoincrement())
   login            String          @unique
-  nickname         String          @unique
   avatar           String
   twoFactorAuth    Boolean         @default(false)
   tfaSecret        String
