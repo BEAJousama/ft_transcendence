@@ -1,38 +1,120 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Getting Started with Create React App
 
-## Getting Started
+This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
-First, run the development server:
+## 🚀 Tech Used
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
+- react js
+- tailwind css
+
+## Project Folder Structure
+
+```
+└── public
+    ├── images
+    │   └── example.png
+    └── favicon.ico
+└── src
+    ├── components
+    │   ├── Button
+    │   ├── Modal
+    │   ├── Input
+    │   └── index.ts // this file exports all components
+    ├── pages
+    │   ├── Home
+    │   ├── Login
+    │   ├── Chat
+    │   ├── Game
+    │   └── index.ts // this file exports all pages
+    ├── hooks
+    │   ├── Context
+    │   └── index.ts // this file exports all hooks
+    ├── interfaces
+    │   ├── User
+    │   ├── Channel
+    │   ├── Message
+    │   ├── Game
+    │   └── index.ts // this file exports all interfaces
+    └── App.tsx // this is the entry point of our app
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+# Getting started
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Clone the repo
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
+```bash
+$ git clone git@github.com:Hicham-BelHoucin/ft_transcendence.git
+$ cd ft_transcendence
+```
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
+Now we will need to checkout to the `dev` branch
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+```bash
+$ git checkout dev
+```
 
-## Learn More
+## Install dependencies
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+$ yarn install
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+or
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+```bash
+$ npm i
+```
 
-## Deploy on Vercel
+## Create your branch
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Your branch name should be in the following format: feature/your-feature-name, hotfix/your-hotfix-name, bugfix/your-bugfix-name
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+```bash
+$ git checkout -b feature/your-feature-name
+```
+
+## Run the app
+
+```bash
+$ yarn dev
+```
+
+or
+
+```bash
+$ npm run dev
+```
+
+## Code!
+
+Go to `http://localhost:3000` and start hacking!
+
+## Commit your changes
+
+We really don't want a commit with a billion changes, please commit before every minor change, and write clear and short commit messages'
+
+```bash
+$ git add .
+
+$ git commit -m "your commit message"
+```
+
+## Push your changes
+
+```bash
+$ git push origin your-branch-name
+```
+
+## Create a merge request
+
+Go to the [Github repo](https://github.com/Hicham-BelHoucin/ft_transcendence) and create a merge request to the `dev` branch
+
+## Pull the latest changes
+
+After your, or someone else's merge request is merged, you will need to pull the latest changes from the `dev` branch
+
+```bash
+$ git checkout dev
+
+$ git pull origin dev
+```

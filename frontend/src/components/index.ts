@@ -1,2 +1,2 @@
-export { default as Button } from "./button";
-export { default as Input } from "./input";
+// this file exports all components
+export default () => {};
