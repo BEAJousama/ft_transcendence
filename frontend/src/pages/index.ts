@@ -1,2 +1,1 @@
-// this file exports all pages
-export default () => {};
+export { default as Login } from "./login";
