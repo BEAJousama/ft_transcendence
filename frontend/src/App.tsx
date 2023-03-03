@@ -1,10 +1,21 @@
-import React from "react";
+import React, { useState } from "react";
+import Button from "./components/button";
+import { AppContext } from "./context";
+import { User } from "./interfaces/user";
+import { Login } from "./pages";
 
 function App() {
+  const [user, setUser] = useState<User>();
   return (
-    <div className="App">
-      <h1 className="text-3xl font-bold underline">Hello world!</h1>
-    </div>
+    <AppContext.Provider value={[user, setUser]}>
+      {/* <div className="App h-screen w-screen flex items-center justify-center">
+        <Button className=" rounded-full" onClick={() => {}}>
+          <img src="/img/42.svg" />
+          <span>Login with intranet</span>
+        </Button>
+      </div> */}
+      <Login />
+    </AppContext.Provider>
   );
 }
 
