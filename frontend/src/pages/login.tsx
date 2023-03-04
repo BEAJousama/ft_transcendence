@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { Button } from "../components";
 
 const Login = () => {
@@ -12,10 +13,10 @@ const Login = () => {
     >
       <h1 className="text-white lg:text-8xl text-4xl">PongPlaza</h1>
       <Button className=" rounded-xl mt-40">
-        <img src="/img/42.svg" />
-        <a href="http://localhost:3000/api/auth/42/callback">
+        <img src="/img/42.svg" alt="" />
+        <Link to="http://localhost:3000/api/auth/42/callback">
           Login with intranet
-        </a>
+        </Link>
       </Button>
     </div>
   );
