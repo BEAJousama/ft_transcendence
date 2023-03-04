@@ -11,8 +11,14 @@
       <button>
         <a href="http://localhost:3000/api/auth/42/callback">42 Login</a>
       </button>
+
+      <input type="text" class="code" />
+      <button onclick="handleclick(event)">Submit</button>
+      <button onclick="turnOff(event)">Turn Off</button>
+      <button onclick="turnOn(event)">Turn on</button>
     </div>
     <script>
+      let user;
       (async () => {
         function getCookie(name) {
           const value = `; ${document.cookie}`;
@@ -30,8 +36,47 @@
         });
         // const user = data;
         const data = await res.json();
+        user = data;
         console.log(data);
       })();
+      function handleclick(e) {
+        e.preventDefault();
+        // const code = parseInt(document.querySelector('.code').value);
+        const code = document.querySelector('.code').value;
+        console.log(code);
+        fetch('http://localhost:3000/api/auth/2fa/verify', {
+          method: 'POST',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ code }),
+        })
+          .then((res) => res.json())
+          .then((data) => console.log(data));
+      }
+      function turnOn() {
+        fetch('http://localhost:3000/api/auth/2fa/turn-on', {
+          method: 'POST',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        })
+          .then((res) => res.json())
+          .then((data) => console.log(data));
+      }
+      function turnOff() {
+        fetch('http://localhost:3000/api/auth/2fa/turn-off', {
+          method: 'POST',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        })
+          .then((res) => res.json())
+          .then((data) => console.log(data));
+      }
     </script>
   </body>
 </html>
