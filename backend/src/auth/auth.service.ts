@@ -35,14 +35,14 @@ export class AuthService {
           httpOnly: true,
         });
         // redirect to 2tf front end url
-        res.status(302).redirect('http://localhost:5500/index.html');
+        res.status(302).redirect(process.env.FRONTEND_2FA_URL);
       }
       const payload = { login: user.login, sub: user.id };
       const access_token = this.jwtService.sign(payload);
       res.cookie('access_token', access_token, {
         httpOnly: true,
       });
-      res.status(302).redirect('http://localhost:5500/index.html');
+      res.status(302).redirect(process.env.FRONTEND_URL);
     } catch (error) {
       return error;
     }
