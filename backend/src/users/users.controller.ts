@@ -1,5 +1,6 @@
-import { Controller, Delete, Get, Param, Post } from '@nestjs/common';
+import { Controller, Delete, Get, Param, Post, Req } from '@nestjs/common';
 import { User } from '@prisma/client';
+import { Request } from 'express';
 import { UsersService } from './users.service';
 
 @Controller('users')
@@ -24,18 +25,24 @@ export class UsersController {
     }
   }
 
-  @Post(':id')
-  async updateOne(id: number, data: User) {
-    return this.usersService.updateUser(id, data);
+  @Get(':id/friends')
+  async findFriends(@Param('id') id: string) {
+    try {
+      // get user friends  ?????
+    } catch (error) {
+      return {
+        message: 'No Matches Found !!!!!',
+      };
+    }
   }
-
-  @Post()
-  async createOne(data: User) {
-    return this.usersService.createUser(data);
+  @Post(':id')
+  async updateOne(@Param('id') id: string, @Req() req: Request) {
+    const { data } = req.body;
+    return this.usersService.updateUser(parseInt(id), data);
   }
 
   @Delete(':id')
-  async deleteOne(id: number) {
-    return this.usersService.deleteUser(id);
+  async deleteOne(@Param('id') id: string) {
+    return this.usersService.deleteUser(parseInt(id));
   }
 }

@@ -42,6 +42,7 @@ enum Ladder {
 model User {
   id               Int             @id @default(autoincrement())
   login            String          @unique
+  username         String          @unique
   avatar           String
   twoFactorAuth    Boolean         @default(false)
   tfaSecret        String
@@ -58,6 +59,23 @@ model User {
   ownedChannels    Channel[]
   memberInChannels ChannelMember[]
   sentMessages     Message[]       @relation("send")
+  sentRequests     Friend[]        @relation("SentRequest")
+  receivedRequests Friend[]        @relation("ReceivedRequest")
+}
+
+enum RequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+model Friend {
+  id         Int           @id @default(autoincrement())
+  sender     User          @relation("SentRequest", fields: [senderId], references: [id])
+  senderId   Int
+  receiver   User          @relation("ReceivedRequest", fields: [receiverId], references: [id])
+  receiverId Int
+  status     RequestStatus @default(PENDING)
 }
 
 model Achievement {

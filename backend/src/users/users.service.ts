@@ -12,10 +12,11 @@ export class UsersService {
         data: {
           login: data.login,
           avatar: data.avatar,
+          username: data.login,
           tfaSecret: data.tfaSecret,
         },
       });
-      console.log(user);
+
       return user;
     } catch (error) {
       return error;
@@ -27,6 +28,10 @@ export class UsersService {
       const user = await this.prisma.user.findUnique({
         where: {
           id,
+        },
+        include: {
+          sentRequests: true,
+          receivedRequests: true,
         },
       });
       return user;
@@ -79,6 +84,150 @@ export class UsersService {
         },
       });
       return user;
+    } catch (error) {
+      return error;
+    }
+  }
+
+  async sendFriendRequest(senderId: number, receiverId: number) {
+    try {
+      const request = await this.prisma.friend.create({
+        data: {
+          senderId,
+          receiverId,
+        },
+      });
+      return request;
+    } catch (error) {
+      return error;
+    }
+  }
+
+  async acceptFriendRequest(senderId: number, receiverId: number) {
+    try {
+      const request = await this.prisma.friend.update({
+        where: {
+          id: senderId,
+        },
+        data: {
+          status: 'ACCEPTED',
+        },
+      });
+      return request;
+    } catch (error) {
+      return error;
+    }
+  }
+
+  async declineFriendRequest(senderId: number, receiverId: number) {
+    try {
+      const request = await this.prisma.friend.delete({
+        where: {
+          id: senderId,
+        },
+      });
+      return request;
+    } catch (error) {
+      return error;
+    }
+  }
+
+  async cancelFriendRequest(senderId: number, receiverId: number) {
+    try {
+      const request = await this.prisma.friend.delete({
+        where: {
+          id: senderId,
+        },
+      });
+      return request;
+    } catch (error) {
+      return error;
+    }
+  }
+
+  async getFriends(id: number) {
+    try {
+      const friends = await this.prisma.friend.findMany({
+        where: {
+          OR: [
+            {
+              senderId: id,
+              status: 'ACCEPTED',
+            },
+            {
+              receiverId: id,
+              status: 'ACCEPTED',
+            },
+          ],
+        },
+        include: {
+          sender: true,
+          receiver: true,
+        },
+      });
+      return friends;
+    } catch (error) {
+      return error;
+    }
+  }
+
+  async blockUser(blockerId: number, blockingId: number) {
+    try {
+      const block = await this.prisma.block.create({
+        data: {
+          blockerId,
+          blockingId,
+        },
+      });
+      return block;
+    } catch (error) {
+      return error;
+    }
+  }
+
+  async unblockUser(blockerId: number, blockingId: number) {
+    try {
+      const block = await this.prisma.block.delete({
+        where: {
+          blockerId_blockingId: {
+            blockerId,
+            blockingId,
+          },
+        },
+      });
+      return block;
+    } catch (error) {
+      return error;
+    }
+  }
+
+  async getBlockedUsers(id: number) {
+    try {
+      const blockedUsers = await this.prisma.block.findMany({
+        where: {
+          blockerId: id,
+        },
+        include: {
+          blocking: true,
+        },
+      });
+      return blockedUsers;
+    } catch (error) {
+      return error;
+    }
+  }
+
+  async getBlockingUsers(id: number) {
+    try {
+      const blockingUsers = await this.prisma.block.findMany({
+        where: {
+          blockingId: id,
+        },
+        include: {
+          blocker: true,
+        },
+      });
+      return blockingUsers;
     } catch (error) {
       return error;
     }

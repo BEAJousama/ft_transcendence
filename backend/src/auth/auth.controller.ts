@@ -1,5 +1,4 @@
 import { Controller, Get, UseGuards, Req, Res, Post } from '@nestjs/common';
-import { UsersService } from 'src/users/users.service';
 import { AuthService } from './auth.service';
 import { FourtyTwoGuard, JwtAuthGuard, Jwt2faAuthGuard } from './guards';
 
@@ -41,22 +40,22 @@ export class AuthController {
 
   @UseGuards(Jwt2faAuthGuard)
   @Post('2fa/verify')
-  async verifyTwoFactorAuthentication(@Req() req) {
+  async verifyTwoFactorAuthentication(@Req() req, @Res() res) {
     try {
-      const user = await this.authService.getprofile(req.user.login);
-      const { code } = req.body;
-      const isvalid = this.authService.verifyTwoFactorAuthentication(
-        code,
-        user,
-      );
-      console.log(isvalid);
-      return {
-        isvalid,
-      };
+      const data = await this.authService.verify(req, res);
+      res.send(data);
     } catch (e) {
-      return {
-        message: 'error',
-      };
+      throw e;
+    }
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('logout')
+  async logout(@Res() res) {
+    try {
+      this.authService.logout(res);
+    } catch (e) {
+      throw e;
     }
   }
 }

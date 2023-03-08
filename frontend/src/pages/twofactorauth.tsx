@@ -1,7 +1,8 @@
+import axios from "axios";
 import { useState, useRef, useContext } from "react";
 import { Navigate } from "react-router-dom";
 import { Button, Card, Input } from "../components";
-import { AppContext } from "../context";
+import { AppContext } from "../context/app.context";
 
 const TwoFactorAuth = () => {
   const [shouldRedirect, setShouldRedirect] = useState(false);
@@ -118,35 +119,28 @@ const TwoFactorAuth = () => {
         <Button
           className="w-full justify-center"
           onClick={async () => {
-            // let history = useHistory();
-            const res = await fetch(
-              "http://localhost:3000/api/auth/2fa/verify",
-              {
-                method: "POST",
-                credentials: "include",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ code }),
-              }
-            );
-            const data = await res.json();
-            if (data.isvalid) {
-              (async () => {
-                const res = await fetch("http://localhost:3000/api/auth/42/", {
-                  method: "GET",
-                  credentials: "include",
-                  headers: {
-                    "Content-Type": "application/json",
-                  },
-                });
-                const data = await res.json();
-                setUser && setUser(data);
-                console.log(data);
+            try {
+              console.log("clicked");
+              const response = await axios.post(
+                "http://localhost:3000/api/auth/2fa/verify",
+                { code },
+                { withCredentials: true }
+              );
+              const data = response.data;
+              console.log("data", data);
+              if (data.isvalid) {
+                const userResponse = await axios.get(
+                  "http://localhost:3000/api/auth/42/",
+                  { withCredentials: true }
+                );
+                const userData = userResponse.data;
+                setUser(userData);
                 setShouldRedirect(true);
-              })();
-            } else {
-              setError("Invalid Code");
+              } else {
+                setError("Invalid Code");
+              }
+            } catch (error) {
+              console.log(error);
             }
           }}
         >

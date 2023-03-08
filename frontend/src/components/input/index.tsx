@@ -3,7 +3,7 @@ import { InputHTMLAttributes, RefObject } from "react";
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   className?: string;
   label?: string;
-  htmlType?: "text" | "select";
+  htmlType?: "text" | "select" | "file";
   error?: string;
   value?: string;
   placeholder?: string;
@@ -35,7 +35,7 @@ const Input = ({
 }: InputProps) => {
   return (
     <div className="w-full">
-      {htmlType === "text" && (
+      {htmlType !== "select" && (
         <>
           <label
             htmlFor={id}
