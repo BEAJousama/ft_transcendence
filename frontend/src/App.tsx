@@ -1,9 +1,18 @@
-import React, { useContext, useEffect } from "react";
-import { Link, Navigate, Outlet, Route, Routes } from "react-router-dom";
+import axios from "axios";
+import React, { useContext, useEffect, useState } from "react";
+import {
+  Link,
+  Navigate,
+  Outlet,
+  Route,
+  Routes,
+  useParams,
+} from "react-router-dom";
 import { Button } from "./components";
 import Updateusername from "./components/updateusername";
 import AppProvider, { AppContext } from "./context/app.context";
 import { Login } from "./pages";
+import Profile from "./pages/profile";
 import TwoFactorAuth from "./pages/twofactorauth";
 
 const Spinner = () => {
@@ -30,6 +39,55 @@ const Spinner = () => {
   );
 };
 
+const Users = () => {
+  const { user } = useContext(AppContext);
+  const { id } = useParams();
+  const [friendRequest, setFriendRequest] = useState<any>();
+  useEffect(() => {
+    (async () => {
+      const response = await axios.get(
+        `http://localhost:3000/api/users/${user?.id}/friend-requests`,
+        {
+          withCredentials: true,
+        }
+      );
+      if (response.data) {
+        setFriendRequest(response.data);
+        console.log(response.data);
+      }
+    })();
+  }, []);
+  return (
+    <div className="h-screen w-screen flex items-center justify-center">
+      <div className="flex items-center justify-center flex-col gap-4">
+        <Button
+          onClick={async () => {
+            const body = {
+              senderId: user?.id,
+              receiverId: parseInt(id ? id : "0"),
+            };
+            const response = await axios.post(
+              "http://localhost:3000/api/users/add-friend",
+              body,
+              {
+                withCredentials: true,
+              }
+            );
+            if (response.data) {
+              // setUsers(response.data);
+              console.log(response.data);
+              console.log(body);
+            }
+          }}
+        >
+          Invite
+        </Button>
+        <Button>Block</Button>
+      </div>
+    </div>
+  );
+};
+
 const PrivateRoutes = () => {
   const { user, loading } = useContext(AppContext);
   if (loading) {
@@ -45,6 +103,8 @@ function App() {
       <Routes>
         <Route element={<PrivateRoutes />}>
           <Route path="/" element={<Updateusername />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/users/:id" element={<Users />} />
         </Route>
         <Route path="/login" element={<Login />} />
         <Route path="/tfa" element={<TwoFactorAuth />} />

@@ -1,6 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { User } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
+import {
+  AddFriendsDto,
+  BlockUserDto,
+  UnblockUserDto,
+  UpdateUserDto,
+} from './dto';
 
 @Injectable()
 export class UsersService {
@@ -62,13 +68,14 @@ export class UsersService {
     }
   }
 
-  async updateUser(id: number, data: User) {
+  async updateUser(body: UpdateUserDto) {
     try {
+      const { id } = body.user;
       const user = await this.prisma.user.update({
         where: {
           id,
         },
-        data,
+        data: <User>body.user,
       });
       return user;
     } catch (error) {
@@ -89,8 +96,10 @@ export class UsersService {
     }
   }
 
-  async sendFriendRequest(senderId: number, receiverId: number) {
+  async sendFriendRequest(body: AddFriendsDto) {
     try {
+      const { senderId, receiverId } = body;
+      console.log(senderId, receiverId);
       const request = await this.prisma.friend.create({
         data: {
           senderId,
@@ -99,11 +108,12 @@ export class UsersService {
       });
       return request;
     } catch (error) {
+      console.log(error);
       return error;
     }
   }
 
-  async acceptFriendRequest(senderId: number, receiverId: number) {
+  async acceptFriendRequest(senderId: number) {
     try {
       const request = await this.prisma.friend.update({
         where: {
@@ -119,7 +129,7 @@ export class UsersService {
     }
   }
 
-  async declineFriendRequest(senderId: number, receiverId: number) {
+  async declineFriendRequest(senderId: number) {
     try {
       const request = await this.prisma.friend.delete({
         where: {
@@ -132,7 +142,7 @@ export class UsersService {
     }
   }
 
-  async cancelFriendRequest(senderId: number, receiverId: number) {
+  async cancelFriendRequest(senderId: number) {
     try {
       const request = await this.prisma.friend.delete({
         where: {
@@ -140,6 +150,23 @@ export class UsersService {
         },
       });
       return request;
+    } catch (error) {
+      return error;
+    }
+  }
+
+  async getFriendRequests(id: number) {
+    try {
+      const requests = await this.prisma.friend.findMany({
+        where: {
+          receiverId: id,
+          status: 'PENDING',
+        },
+        include: {
+          sender: true,
+        },
+      });
+      return requests;
     } catch (error) {
       return error;
     }
@@ -171,8 +198,9 @@ export class UsersService {
     }
   }
 
-  async blockUser(blockerId: number, blockingId: number) {
+  async blockUser(body: BlockUserDto) {
     try {
+      const { blockerId, blockingId } = body;
       const block = await this.prisma.block.create({
         data: {
           blockerId,
@@ -185,8 +213,9 @@ export class UsersService {
     }
   }
 
-  async unblockUser(blockerId: number, blockingId: number) {
+  async unblockUser(body: UnblockUserDto) {
     try {
+      const { blockerId, blockingId } = body;
       const block = await this.prisma.block.delete({
         where: {
           blockerId_blockingId: {

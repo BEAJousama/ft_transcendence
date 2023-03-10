@@ -72,9 +72,9 @@ enum RequestStatus {
 model Friend {
   id         Int           @id @default(autoincrement())
   sender     User          @relation("SentRequest", fields: [senderId], references: [id])
-  senderId   Int
+  senderId   Int           @unique
   receiver   User          @relation("ReceivedRequest", fields: [receiverId], references: [id])
-  receiverId Int
+  receiverId Int           @unique
   status     RequestStatus @default(PENDING)
 }
 

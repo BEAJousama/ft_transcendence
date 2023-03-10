@@ -61,7 +61,7 @@ export class AuthService {
       const user: User = await this.usersService.findUserByLogin(login);
       if (user) {
         user.twoFactorAuth = true;
-        await this.usersService.updateUser(user.id, user);
+        await this.usersService.updateUser({ user });
       }
       return {
         message: 'success',
@@ -97,7 +97,7 @@ export class AuthService {
 
       if (user) {
         user.twoFactorAuth = false;
-        await this.usersService.updateUser(user.id, user);
+        await this.usersService.updateUser({ user });
       }
       return {
         message: 'success',
