@@ -40,10 +40,7 @@ export class AuthService {
         });
         // redirect to 2tf front end url
         res.status(302).redirect(process.env.FRONTEND_2FA_URL);
-<<<<<<< HEAD
-=======
         return;
->>>>>>> 46b41212ff104823bb94f4797fedef7883b758b3
       }
       const payload = { login: user.login, sub: user.id };
       const access_token = this.jwtService.sign(payload, {
