@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '@prisma/client';
+import { Request, Response } from 'express';
 import { authenticator } from 'otplib';
 import { UsersService } from 'src/users/users.service';
 @Injectable()
@@ -15,13 +16,12 @@ export class AuthService {
     return user;
   }
 
-  async callback(req, res) {
+  async callback(req, res: Response) {
     try {
       const data = req.user;
       let user: User = await this.usersService.findUserByLogin(data.login);
       if (!user) {
         const secret = authenticator.generateSecret();
-        console.log(secret);
         user = await this.usersService.createUser({
           login: data.login,
           avatar: data.avatar,
@@ -30,15 +30,26 @@ export class AuthService {
       }
       if (user.twoFactorAuth) {
         const payload = { login: user.login, sub: user.id };
-        const access_token = this.jwtService.sign(payload);
+
+        const access_token = this.jwtService.sign(payload, {
+          secret: process.env.TFA_JWT_SECRET,
+          expiresIn: '7d',
+        });
         res.cookie('2fa_access_token', access_token, {
           httpOnly: true,
         });
         // redirect to 2tf front end url
         res.status(302).redirect(process.env.FRONTEND_2FA_URL);
+<<<<<<< HEAD
+=======
+        return;
+>>>>>>> 46b41212ff104823bb94f4797fedef7883b758b3
       }
       const payload = { login: user.login, sub: user.id };
-      const access_token = this.jwtService.sign(payload);
+      const access_token = this.jwtService.sign(payload, {
+        secret: process.env.JWT_SECRET,
+        expiresIn: '24h',
+      });
       res.cookie('access_token', access_token, {
         httpOnly: true,
       });
@@ -53,7 +64,7 @@ export class AuthService {
       const user: User = await this.usersService.findUserByLogin(login);
       if (user) {
         user.twoFactorAuth = true;
-        await this.usersService.updateUser(user.id, user);
+        await this.usersService.updateUser({ user });
       }
       return {
         message: 'success',
@@ -65,13 +76,31 @@ export class AuthService {
     }
   }
 
+  async verify(req, res) {
+    const user = await this.getprofile(req.user.login);
+    const { code } = req.body;
+    const isvalid = this.verifyTwoFactorAuthentication(code, user);
+    if (isvalid === true) {
+      const payload = { login: user.login, sub: user.id };
+      const access_token = this.jwtService.sign(payload, {
+        secret: process.env.JWT_SECRET,
+        expiresIn: '24h',
+      });
+      res.cookie('access_token', access_token, {
+        httpOnly: true,
+      });
+    }
+    return {
+      isvalid,
+    };
+  }
   async turnOffTwoFactorAuthentication(login: string) {
     try {
       const user: User = await this.usersService.findUserByLogin(login);
 
       if (user) {
         user.twoFactorAuth = false;
-        await this.usersService.updateUser(user.id, user);
+        await this.usersService.updateUser({ user });
       }
       return {
         message: 'success',
@@ -94,11 +123,19 @@ export class AuthService {
   }
 
   async generateQrCodeDataURl(user: User) {
-    const otpauthUrl = authenticator.keyuri(
-      user.login,
-      'FT_TRANSCENDENCE',
-      user.tfaSecret,
-    );
-    return otpauthUrl;
+    try {
+      const otpauthUrl = authenticator.keyuri(
+        user.login,
+        'FT_TRANSCENDENCE',
+        user.tfaSecret,
+      );
+      return otpauthUrl;
+    } catch (error) {}
+  }
+
+  async logout(res: Response) {
+    res.clearCookie('access_token');
+    res.clearCookie('2fa_access_token');
+    res.status(302).redirect(process.env.FRONTEND_URL);
   }
 }

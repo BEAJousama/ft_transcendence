@@ -1,5 +1,12 @@
 import { Controller, Get, UseGuards, Req, Res, Post } from '@nestjs/common';
-import { UsersService } from 'src/users/users.service';
+import {
+  CallbackDoc,
+  LogoutDoc,
+  ProfileDoc,
+  TurnOffDoc,
+  TurnOnDoc,
+  VerifyDoc,
+} from './auth.decorator';
 import { AuthService } from './auth.service';
 import { FourtyTwoGuard, JwtAuthGuard, Jwt2faAuthGuard } from './guards';
 
@@ -8,6 +15,7 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @UseGuards(JwtAuthGuard)
+  @ProfileDoc()
   @Get('42')
   async fortyTwoLogin(@Req() req) {
     try {
@@ -16,6 +24,7 @@ export class AuthController {
   }
 
   @UseGuards(FourtyTwoGuard)
+  @CallbackDoc()
   @Get('42/callback')
   async fortyTwoLoginCallback(@Req() req, @Res() res) {
     try {
@@ -24,6 +33,7 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @TurnOnDoc()
   @Post('2fa/turn-on')
   async turnOnTwoFactorAuthentication(@Req() req) {
     try {
@@ -32,6 +42,7 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @TurnOffDoc()
   @Post('2fa/turn-off')
   async turnOffTwoFactorAuthentication(@Req() req) {
     try {
@@ -40,23 +51,25 @@ export class AuthController {
   }
 
   @UseGuards(Jwt2faAuthGuard)
+  @VerifyDoc()
   @Post('2fa/verify')
-  async verifyTwoFactorAuthentication(@Req() req) {
+  async verifyTwoFactorAuthentication(@Req() req, @Res() res) {
     try {
-      const user = await this.authService.getprofile(req.user.login);
-      const { code } = req.body;
-      const isvalid = this.authService.verifyTwoFactorAuthentication(
-        code,
-        user,
-      );
-      console.log(isvalid);
-      return {
-        isvalid,
-      };
+      const data = await this.authService.verify(req, res);
+      res.send(data);
     } catch (e) {
-      return {
-        message: 'error',
-      };
+      throw e;
+    }
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @LogoutDoc()
+  @Get('logout')
+  async logout(@Res() res) {
+    try {
+      this.authService.logout(res);
+    } catch (e) {
+      throw e;
     }
   }
 }
