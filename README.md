@@ -4,9 +4,9 @@ Surprise
 
 ## 🚀 Tech Used
 
-- react js
-- tailwind css
-- nest js
+- Next js
+- Tailwind css
+- Nest js
 
 # Getting started
 
