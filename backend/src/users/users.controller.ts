@@ -3,16 +3,14 @@ import {
   Controller,
   Delete,
   Get,
+  InternalServerErrorException,
   Param,
   Post,
   Req,
 } from '@nestjs/common';
-import { User } from '@prisma/client';
-import { Request } from 'express';
 import {
   AddFriendsDto,
   BlockUserDto,
-  GetBlockedUsersDto,
   UnblockUserDto,
   UpdateUserDto,
 } from './dto';
@@ -38,7 +36,11 @@ export class UsersController {
   @Get()
   @FindAllDoc()
   async findAll() {
-    return this.usersService.findAllUsers();
+    try {
+      return this.usersService.findAllUsers();
+    } catch (error) {
+      return null;
+    }
   }
 
   @Get(':id')
@@ -176,12 +178,20 @@ export class UsersController {
   @Post(':id')
   @UpdateDoc()
   async updateOne(@Param('id') id: string, @Body() body: UpdateUserDto) {
-    return this.usersService.updateUser(body);
+    try {
+      return this.usersService.updateUser(body);
+    } catch (error) {
+      return error;
+    }
   }
 
   @Delete(':id')
   @DeleteDoc()
   async deleteOne(@Param('id') id: string) {
-    return this.usersService.deleteUser(parseInt(id));
+    try {
+      return this.usersService.deleteUser(parseInt(id));
+    } catch (error) {
+      throw new InternalServerErrorException();
+    }
   }
 }

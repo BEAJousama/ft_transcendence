@@ -20,7 +20,9 @@ export class AuthController {
   async fortyTwoLogin(@Req() req) {
     try {
       return this.authService.getprofile(req.user.login ? req.user.login : '');
-    } catch (e) {}
+    } catch (e) {
+      throw e;
+    }
   }
 
   @UseGuards(FourtyTwoGuard)
@@ -29,7 +31,9 @@ export class AuthController {
   async fortyTwoLoginCallback(@Req() req, @Res() res) {
     try {
       return this.authService.callback(req, res);
-    } catch (e) {}
+    } catch (e) {
+      throw e;
+    }
   }
 
   @UseGuards(JwtAuthGuard)
@@ -38,7 +42,9 @@ export class AuthController {
   async turnOnTwoFactorAuthentication(@Req() req) {
     try {
       return this.authService.turnOnTwoFactorAuthentication(req.user.login);
-    } catch (e) {}
+    } catch (e) {
+      throw e;
+    }
   }
 
   @UseGuards(JwtAuthGuard)
@@ -47,7 +53,9 @@ export class AuthController {
   async turnOffTwoFactorAuthentication(@Req() req) {
     try {
       return this.authService.turnOffTwoFactorAuthentication(req.user.login);
-    } catch (e) {}
+    } catch (e) {
+      throw e;
+    }
   }
 
   @UseGuards(Jwt2faAuthGuard)

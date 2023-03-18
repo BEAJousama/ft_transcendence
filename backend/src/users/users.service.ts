@@ -1,5 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { User } from '@prisma/client';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 import { PrismaService } from 'src/prisma/prisma.service';
 import {
   AddFriendsDto,
@@ -42,7 +48,7 @@ export class UsersService {
       });
       return user;
     } catch (error) {
-      return null;
+      throw new NotFoundException(`user with ${id} does not exist.`);
     }
   }
 
@@ -55,7 +61,7 @@ export class UsersService {
       });
       return user;
     } catch (error) {
-      return error;
+      throw new NotFoundException(`user with ${login} does not exist.`);
     }
   }
 
@@ -64,7 +70,7 @@ export class UsersService {
       const users = await this.prisma.user.findMany();
       return users;
     } catch (error) {
-      return error;
+      throw new NotFoundException(`no users found ? `);
     }
   }
 
@@ -79,7 +85,14 @@ export class UsersService {
       });
       return user;
     } catch (error) {
-      return error;
+      if (error instanceof PrismaClientKnownRequestError) {
+        if (error.code === 'P2016') {
+          throw new NotFoundException(`User with ID ${body.user.id} not found`);
+        } else if (error.code === 'P2025') {
+          throw new BadRequestException('Invalid update data');
+        }
+      }
+      throw error;
     }
   }
 
@@ -92,7 +105,7 @@ export class UsersService {
       });
       return user;
     } catch (error) {
-      return error;
+      throw new InternalServerErrorException('Failed to delete user');
     }
   }
 
@@ -109,7 +122,7 @@ export class UsersService {
       return request;
     } catch (error) {
       console.log(error);
-      return error;
+      throw new InternalServerErrorException('Failed to send friend request');
     }
   }
 
@@ -125,7 +138,7 @@ export class UsersService {
       });
       return request;
     } catch (error) {
-      return error;
+      throw new InternalServerErrorException('Failed to accept friend request');
     }
   }
 
@@ -138,7 +151,9 @@ export class UsersService {
       });
       return request;
     } catch (error) {
-      return error;
+      throw new InternalServerErrorException(
+        'Failed to decline friend request',
+      );
     }
   }
 
@@ -151,7 +166,7 @@ export class UsersService {
       });
       return request;
     } catch (error) {
-      return error;
+      throw new InternalServerErrorException('Failed to cancel friend request');
     }
   }
 
@@ -168,7 +183,7 @@ export class UsersService {
       });
       return requests;
     } catch (error) {
-      return error;
+      throw new InternalServerErrorException('Failed to get friend requests');
     }
   }
 
@@ -194,7 +209,7 @@ export class UsersService {
       });
       return friends;
     } catch (error) {
-      return error;
+      throw new InternalServerErrorException('Failed to get friends');
     }
   }
 
@@ -209,7 +224,7 @@ export class UsersService {
       });
       return block;
     } catch (error) {
-      return error;
+      throw new InternalServerErrorException('Failed to block user');
     }
   }
 
@@ -226,7 +241,7 @@ export class UsersService {
       });
       return block;
     } catch (error) {
-      return error;
+      throw new InternalServerErrorException('Failed to unblock user');
     }
   }
 
@@ -242,7 +257,7 @@ export class UsersService {
       });
       return blockedUsers;
     } catch (error) {
-      return error;
+      throw new InternalServerErrorException('Failed to get blocked users');
     }
   }
 
@@ -258,7 +273,7 @@ export class UsersService {
       });
       return blockingUsers;
     } catch (error) {
-      return error;
+      throw new InternalServerErrorException('Failed to get blocking users');
     }
   }
 }
