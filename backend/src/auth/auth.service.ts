@@ -1,7 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '@prisma/client';
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { authenticator } from 'otplib';
 import { UsersService } from 'src/users/users.service';
 @Injectable()
@@ -12,12 +16,19 @@ export class AuthService {
   ) {}
 
   async getprofile(login: string) {
-    let user = await this.usersService.findUserByLogin(login);
-    return user;
+    try {
+      let user = await this.usersService.findUserByLogin(login);
+      return user;
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'An internal server error occurred.',
+      );
+    }
   }
 
   async callback(req, res: Response) {
     try {
+      if (!req.user) throw new UnauthorizedException();
       const data = req.user;
       let user: User = await this.usersService.findUserByLogin(data.login);
       if (!user) {
@@ -52,7 +63,9 @@ export class AuthService {
       });
       res.status(302).redirect(process.env.FRONTEND_URL);
     } catch (error) {
-      return error;
+      throw new InternalServerErrorException(
+        'An internal server error occurred.',
+      );
     }
   }
 
@@ -67,29 +80,35 @@ export class AuthService {
         message: 'success',
       };
     } catch (error) {
-      return {
-        message: 'error',
-      };
+      throw new InternalServerErrorException(
+        'An internal server error occurred.',
+      );
     }
   }
 
   async verify(req, res) {
-    const user = await this.getprofile(req.user.login);
-    const { code } = req.body;
-    const isvalid = this.verifyTwoFactorAuthentication(code, user);
-    if (isvalid === true) {
-      const payload = { login: user.login, sub: user.id };
-      const access_token = this.jwtService.sign(payload, {
-        secret: process.env.JWT_SECRET,
-        expiresIn: '24h',
-      });
-      res.cookie('access_token', access_token, {
-        httpOnly: true,
-      });
+    try {
+      const user = await this.getprofile(req.user.login);
+      const { code } = req.body;
+      const isvalid = this.verifyTwoFactorAuthentication(code, user);
+      if (isvalid === true) {
+        const payload = { login: user.login, sub: user.id };
+        const access_token = this.jwtService.sign(payload, {
+          secret: process.env.JWT_SECRET,
+          expiresIn: '24h',
+        });
+        res.cookie('access_token', access_token, {
+          httpOnly: true,
+        });
+      }
+      return {
+        isvalid,
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'An internal server error occurred.',
+      );
     }
-    return {
-      isvalid,
-    };
   }
   async turnOffTwoFactorAuthentication(login: string) {
     try {
@@ -103,9 +122,9 @@ export class AuthService {
         message: 'success',
       };
     } catch (error) {
-      return {
-        message: 'error',
-      };
+      throw new InternalServerErrorException(
+        'An internal server error occurred.',
+      );
     }
   }
 
@@ -113,10 +132,16 @@ export class AuthService {
     twoFactorAuthenticationCode: string,
     user: User,
   ) {
-    return authenticator.verify({
-      token: twoFactorAuthenticationCode,
-      secret: user.tfaSecret,
-    });
+    try {
+      return authenticator.verify({
+        token: twoFactorAuthenticationCode,
+        secret: user.tfaSecret,
+      });
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'An internal server error occurred.',
+      );
+    }
   }
 
   async generateQrCodeDataURl(user: User) {
@@ -127,7 +152,11 @@ export class AuthService {
         user.tfaSecret,
       );
       return otpauthUrl;
-    } catch (error) {}
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'An internal server error occurred.',
+      );
+    }
   }
 
   async logout(res: Response) {
