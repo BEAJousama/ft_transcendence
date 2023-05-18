@@ -1,4 +1,3 @@
-import Avatar from "../avatar";
 import { Children } from "react";
 
 const AvatarGroup = ({
@@ -15,8 +14,8 @@ const AvatarGroup = ({
       {array && array}
       {rest && rest.length && (
         <a
-          className="flex items-center justify-center w-10 h-10 text-xs font-medium text-white bg-gray-700 border-2 border-white rounded-full hover:bg-gray-600 dark:border-gray-800"
-          href="#"
+          className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-white bg-gray-700 text-xs font-medium text-white hover:bg-gray-600 dark:border-gray-800"
+          href="/chat"
         >
           +{rest.length}
         </a>
