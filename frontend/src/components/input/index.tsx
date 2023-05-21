@@ -18,6 +18,8 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   hidden?: boolean;
   disabled?: boolean;
   required?: boolean;
+  name?: string;
+  id?: string;
 }
 
 const Input = ({
@@ -25,6 +27,7 @@ const Input = ({
   className,
   label,
   error,
+  name,
   value,
   onChange,
   htmlType = "text",
@@ -45,7 +48,7 @@ const Input = ({
       <label
         htmlFor=""
         className={clsx(
-          "font-semibold absolute -top-2 left-1.5 bg-secondary-500 rounded px-1 text-xs man-w-min bg-inherit",
+          "man-w-min absolute -top-2 left-1.5 z-10 rounded bg-secondary-500 px-1 text-xs font-semibold",
           disabled && "text-primary-800",
           active && "text-primary-500",
           !disabled && !active && "text-quaternary-200",
@@ -55,6 +58,8 @@ const Input = ({
         {label}
       </label>
       <input
+        id={id}
+        name={name}
         onFocus={() => {
           setActive(true);
         }}
@@ -62,9 +67,8 @@ const Input = ({
           setActive(false);
         }}
         type="text"
-        id=""
-        className={`flex flex-col justify-center items-center bg-transparent border-2 rounded-md p-3 w-full font-semibold outline-none border-quaternary-200 text-quaternary-200 
-        focus:border-primary-500 focus:text-primary-500 text-sm focus:shadow-md focus:shadow-gray-700 
+        className={`flex w-full flex-col items-center justify-center rounded-md border-2 border-quaternary-200 bg-transparent p-3 text-sm font-semibold text-quaternary-200 
+        outline-none focus:border-primary-500 focus:text-primary-500 focus:shadow-md focus:shadow-gray-700 
         disabled:border-primary-800 disabled:text-primary-800 ${clsx(
           isError && "border-red-700 text-red-700"
         )} ${className}`}

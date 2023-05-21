@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '@prisma/client';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { authenticator } from 'otplib';
 import { UsersService } from 'src/users/users.service';
 @Injectable()
@@ -14,6 +14,10 @@ export class AuthService {
     private jwtService: JwtService,
     private usersService: UsersService,
   ) {}
+  private accessToken: {
+    name: string;
+    value: string;
+  };
 
   async getprofile(login: string) {
     try {
@@ -26,7 +30,16 @@ export class AuthService {
     }
   }
 
-  async callback(req, res: Response) {
+  async getAccessToken() {
+    const token = this.accessToken;
+    this.accessToken = {
+      name: '',
+      value: '',
+    };
+    return token;
+  }
+
+  async callback(req) {
     try {
       if (!req.user) throw new UnauthorizedException();
       const data = req.user;
@@ -37,8 +50,12 @@ export class AuthService {
           login: data.login,
           avatar: data.avatar,
           tfaSecret: secret,
+          fullname: data.fullname,
+          phone: data.phone,
+          email: data.email,
         });
       }
+
       if (user.twoFactorAuth) {
         const payload = { login: user.login, sub: user.id };
 
@@ -46,11 +63,10 @@ export class AuthService {
           secret: process.env.TFA_JWT_SECRET,
           expiresIn: '7d',
         });
-        res.cookie('2fa_access_token', access_token, {
-          httpOnly: true,
-        });
-        // redirect to 2tf front end url
-        res.status(302).redirect(process.env.FRONTEND_2FA_URL);
+        this.accessToken = {
+          name: '2fa_access_token',
+          value: access_token,
+        };
         return;
       }
       const payload = { login: user.login, sub: user.id };
@@ -58,26 +74,9 @@ export class AuthService {
         secret: process.env.JWT_SECRET,
         expiresIn: '24h',
       });
-      res.cookie('access_token', access_token, {
-        httpOnly: true,
-      });
-      res.status(302).redirect(process.env.FRONTEND_URL);
-    } catch (error) {
-      throw new InternalServerErrorException(
-        'An internal server error occurred.',
-      );
-    }
-  }
-
-  async turnOnTwoFactorAuthentication(login: string) {
-    try {
-      const user: User = await this.usersService.findUserByLogin(login);
-      if (user) {
-        user.twoFactorAuth = true;
-        await this.usersService.updateUser({ user });
-      }
-      return {
-        message: 'success',
+      this.accessToken = {
+        name: 'access_token',
+        value: access_token,
       };
     } catch (error) {
       throw new InternalServerErrorException(
@@ -86,7 +85,54 @@ export class AuthService {
     }
   }
 
-  async verify(req, res) {
+  async turnOnTwoFactorAuthentication(req) {
+    try {
+      const isvalid = await this.verify(req);
+      if (isvalid) {
+        const user: User = await this.usersService.findUserByLogin(
+          req.user.login ? req.user.login : '',
+        );
+        user.twoFactorAuth = true;
+        await this.usersService.updateUser({ user });
+        return {
+          message: 'success',
+        };
+      }
+      return {
+        message: 'fail',
+      };
+    } catch (error) {
+      console.log(error);
+      throw new InternalServerErrorException(
+        'An internal server error occurred.',
+      );
+    }
+  }
+
+  async turnOffTwoFactorAuthentication(req) {
+    try {
+      const isvalid = await this.verify(req);
+      if (isvalid) {
+        const user: User = await this.usersService.findUserByLogin(
+          req.user.login ? req.user.login : '',
+        );
+        user.twoFactorAuth = false;
+        await this.usersService.updateUser({ user });
+        return {
+          message: 'success',
+        };
+      }
+      return {
+        message: 'fail',
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'An internal server error occurred.',
+      );
+    }
+  }
+
+  async verify(req) {
     try {
       const user = await this.getprofile(req.user.login);
       const { code } = req.body;
@@ -97,30 +143,11 @@ export class AuthService {
           secret: process.env.JWT_SECRET,
           expiresIn: '24h',
         });
-        res.cookie('access_token', access_token, {
-          httpOnly: true,
-        });
+        return {
+          access_token,
+        };
       }
-      return {
-        isvalid,
-      };
-    } catch (error) {
-      throw new InternalServerErrorException(
-        'An internal server error occurred.',
-      );
-    }
-  }
-  async turnOffTwoFactorAuthentication(login: string) {
-    try {
-      const user: User = await this.usersService.findUserByLogin(login);
-
-      if (user) {
-        user.twoFactorAuth = false;
-        await this.usersService.updateUser({ user });
-      }
-      return {
-        message: 'success',
-      };
+      return null;
     } catch (error) {
       throw new InternalServerErrorException(
         'An internal server error occurred.',
@@ -144,8 +171,9 @@ export class AuthService {
     }
   }
 
-  async generateQrCodeDataURl(user: User) {
+  async generateQrCodeDataUrl(login: string) {
     try {
+      const user = await this.getprofile(login);
       const otpauthUrl = authenticator.keyuri(
         user.login,
         'FT_TRANSCENDENCE',
@@ -157,11 +185,5 @@ export class AuthService {
         'An internal server error occurred.',
       );
     }
-  }
-
-  async logout(res: Response) {
-    res.clearCookie('access_token');
-    res.clearCookie('2fa_access_token');
-    res.status(302).redirect(process.env.FRONTEND_URL);
   }
 }

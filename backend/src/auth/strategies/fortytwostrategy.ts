@@ -13,11 +13,14 @@ export class FortyTwoStrategy extends PassportStrategy(Strategy, '42') {
   }
 
   async validate(accessToken: string, refreshToken: string, profile: any) {
-    const { login, image, id } = profile._json;
+    const { login, image, id, displayname, phone, email } = profile._json;
     return {
       id,
       login,
       avatar: image.link,
+      fullname: displayname,
+      phone,
+      email,
     };
   }
 }

@@ -13,7 +13,6 @@ const Card = ({
   const ref = useRef(null);
 
   useClickAway(ref, () => {
-    console.log("clickaway");
     setShowModal && setShowModal(false);
   });
   return (

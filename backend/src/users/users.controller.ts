@@ -177,7 +177,7 @@ export class UsersController {
 
   @Post(':id')
   @UpdateDoc()
-  async updateOne(@Param('id') id: string, @Body() body: UpdateUserDto) {
+  async updateOne(@Body() body: UpdateUserDto) {
     try {
       return this.usersService.updateUser(body);
     } catch (error) {

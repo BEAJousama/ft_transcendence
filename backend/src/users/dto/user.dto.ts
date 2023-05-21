@@ -58,6 +58,14 @@ export class UserDto {
     description: 'number of losses',
   })
   losses: number;
+
+  email: string;
+
+  fullname: string;
+
+  country: string;
+
+  phone: string;
 }
 
 export class DeleteUserDto {
@@ -68,8 +76,5 @@ export class DeleteUserDto {
 }
 
 export class UpdateUserDto {
-  @ApiProperty({
-    description: 'updated user object',
-  })
   user: UserDto;
 }

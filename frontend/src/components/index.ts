@@ -13,3 +13,4 @@ export { default as Sidepanel } from "./side-panel";
 export { default as RightClickMenu } from "./rightclickmenu";
 export { RightClickMenuItem } from "./rightclickmenu";
 export { default as ProfileBanner } from "./profilebanner";
+export { default as Spinner } from "./spinner";

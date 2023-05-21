@@ -1,9 +1,15 @@
+import axios from "axios";
 import { Button, Card, Input } from "./../../components";
-import { useRef, useState } from "react";
+import { useContext, useRef, useState } from "react";
+import { Link, Navigate } from "react-router-dom";
+import { AppContext } from "../../context/app.context";
 
 const TwoFactorAuth = () => {
+  const { fetchUser } = useContext(AppContext);
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
+  const [shouldRedirect, setShouldRedirect] = useState<boolean>(false);
+
   const inputsRef = [
     useRef<HTMLInputElement>(null),
     useRef<HTMLInputElement>(null),
@@ -28,11 +34,14 @@ const TwoFactorAuth = () => {
       }
     }
   };
+
+  if (shouldRedirect) return <Navigate to="/" />;
+
   return (
-    <div className="bg-secondary-800 flex h-screen w-screen flex-col items-center justify-center gap-5 text-gray-200">
+    <div className="flex h-screen w-screen flex-col items-center justify-center gap-5 bg-secondary-800 text-gray-200">
       <h1 className="text-xl lg:text-3xl">Welcome Back</h1>
       <p className="lg:text-md text-sm">Verify the Authentication Code</p>
-      <Card className="bg-secondary-500 shadow-secondary-500 mx-4 flex max-w-xs flex-col  items-center  justify-center gap-4 border-none shadow-lg sm:mx-0 lg:max-w-sm">
+      <Card className="mx-4 flex max-w-xs flex-col items-center justify-center  gap-4  border-none bg-secondary-500 shadow-lg shadow-secondary-500 sm:mx-0 lg:max-w-sm">
         <h1 className="text-center text-xl lg:text-3xl">
           Tow-Factor Authentication
         </h1>
@@ -109,43 +118,54 @@ const TwoFactorAuth = () => {
             value={code[5] || ""}
           />
         </div>
+        {error && (
+          <p className="w-full pl-4 text-left text-xs font-medium text-red-600 dark:text-red-500">
+            {error}
+          </p>
+        )}
         <Button
           className="w-full justify-center"
           onClick={async () => {
-            // let history = useHistory();
-            const res = await fetch(
-              "http://localhost:3000/api/auth/2fa/verify",
-              {
-                method: "POST",
-                credentials: "include",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ code }),
-              }
-            );
-            const data = await res.json();
-            if (data.isvalid) {
-              (async () => {
-                const res = await fetch("http://localhost:3000/api/auth/42/", {
-                  method: "GET",
-                  credentials: "include",
+            try {
+              const accessToken =
+                window.localStorage.getItem("2fa_access_token");
+              const response = await axios.post(
+                `${process.env.REACT_APP_BACK_END_URL}api/auth/2fa/verify`,
+                { code },
+                {
                   headers: {
-                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${accessToken}`,
                   },
-                });
-                const data = await res.json();
-                console.log(data);
-              })();
-            } else {
+                }
+              );
+
+              if (response.data) {
+                window.localStorage.setItem(
+                  "access_token",
+                  response.data.access_token
+                );
+                await fetchUser();
+                setShouldRedirect(true);
+              }
+              setError("Invalid Code");
+            } catch (error) {
               setError("Invalid Code");
             }
           }}
         >
           Authenticate
         </Button>
-        <Button variant="text" className="w-full justify-center">
-          Back to basic login
+
+        <Button
+          variant="text"
+          className="w-full justify-center"
+          onClick={() => {
+            setCode("");
+            setError("");
+            inputsRef[0].current?.focus();
+          }}
+        >
+          Reset
         </Button>
       </Card>
     </div>
