@@ -125,6 +125,7 @@ model Channel {
 }
 
 enum Role {
+  OWNER
   MEMEBER
   ADMIN
 }
@@ -133,6 +134,7 @@ enum MemberStatus {
   MUTED
   BANNED
   ACTIVE
+  LEFT
 }
 
 model ChannelMember {
@@ -144,7 +146,12 @@ model ChannelMember {
   status       MemberStatus @default(ACTIVE)
   banStartTime DateTime?
   banDuration  Int? // time in seconds
-
+  isBanned     Boolean      @default(false)
+  isMuted      Boolean      @default(false)
+  isPinned     Boolean      @default(false)
+  isUnread     Boolean      @default(false)
+  isArchived   Boolean      @default(false)
+  isDeleted    Boolean      @default(false)
   @@id([userId, channelId])
 }
 
