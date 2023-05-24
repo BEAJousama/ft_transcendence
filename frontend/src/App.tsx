@@ -10,6 +10,7 @@ import Settings from "./pages/settings";
 import Pong from "./pages/pong";
 import FourOhFour from "./pages/404";
 import { Spinner } from "./components";
+import SocketProvider, { SocketContext } from "./context/socket.context";
 
 
 const PrivateRoutes = () => {
@@ -31,6 +32,7 @@ const PrivateRoutes = () => {
 function App() {
   return (
     <AppProvider>
+      <SocketProvider>
       <Routes>
         <Route element={<PrivateRoutes />}>
           <Route path="/" element={<Home />} />
@@ -43,6 +45,7 @@ function App() {
         <Route path="*" element={<FourOhFour />} />
         <Route path="/login" element={<Login />} />
       </Routes>
+      </SocketProvider>
     </AppProvider>
   );
 }

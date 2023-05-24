@@ -1,7 +1,14 @@
-import React, { useState, useRef } from "react";
-import { MdAddBox, MdOutlineAdminPanelSettings } from "react-icons/md";
+import React, { useContext, useState, useRef, useEffect } from "react";
+
+import {
+  MdAddBox,
+  MdGroupAdd,
+  MdOutlineAdminPanelSettings,
+} from "react-icons/md";
+import { BiArrowBack, BiRightArrowAlt } from "react-icons/bi";
 import { useClickAway } from "react-use";
 import { BsPersonAdd } from "react-icons/bs";
+
 import clsx from "clsx";
 import Avatar from "../avatar";
 import Button from "../button";
@@ -9,6 +16,8 @@ import { SlOptionsVertical } from "react-icons/sl";
 import { TbBan } from "react-icons/tb";
 import RightClickMenu, { RightClickMenuItem } from "../rightclickmenu";
 import { BiVolumeMute } from "react-icons/bi";
+import { SocketContext } from "../../context/socket.context";
+import { stat } from "fs";
 
 const ProfileBanner = ({
   avatar = "https://www.github.com/Hicham-BelHoucin.png",
@@ -22,6 +31,8 @@ const ProfileBanner = ({
   showOptions,
   showStatus,
   status,
+  channelId,
+  userId,
 }: {
   avatar?: string;
   show?: boolean;
@@ -34,10 +45,29 @@ const ProfileBanner = ({
   showOptions?: boolean;
   showStatus?: boolean;
   status?: string;
+  channelId?: string;
+  userId?: string;
 }) => {
   const [isChecked, setIsChecked] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const ref = useRef(null);
+  const socket = useContext(SocketContext);  
+
+/* TODO: I wanna see immediate changes in the UI when I click on the button to setAsAdmin
+     its not working, I have to refresh the page to see the changes
+     I think I have to use useEffect to see the changes in the UI
+     But i can't change props in useEffect
+*/
+
+
+  const setAsAdmin = () => {
+    socket?.emit("set_admin", {userId, channelId});
+  };
+
+  const banUser = () => {
+    socket?.emit("ban_user", {userId, channelId});
+  };
+  
 
   useClickAway(ref, () => setShowMenu(false));
 
@@ -105,15 +135,28 @@ const ProfileBanner = ({
           className="absolute -bottom-14 right-14 w-56 bg-yellow-500"
         >
           <RightClickMenu className="w-full !bg-secondary-500">
-            <RightClickMenuItem>
+            <RightClickMenuItem
+              onClick={() => {
+              }}
+            >
               <BsPersonAdd />
               Invite To Play
             </RightClickMenuItem>
-            <RightClickMenuItem>
+            <RightClickMenuItem
+              onClick={() => {
+                setAsAdmin();
+                setShowMenu(false);
+              }}
+            >
               <MdOutlineAdminPanelSettings />
               Make Group Admin
             </RightClickMenuItem>
-            <RightClickMenuItem>
+            <RightClickMenuItem
+              onClick={() => {
+                banUser();
+                setShowMenu(false);
+              }}
+            >
               <BiVolumeMute />
               Mute
             </RightClickMenuItem>

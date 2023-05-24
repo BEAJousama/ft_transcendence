@@ -1,7 +1,58 @@
+import {useContext, useEffect, useState } from "react";
 import ProfileBanner from "../profilebanner";
 import Channel from "./channel";
+import { SocketContext } from "../../context/socket.context";
+import { AppContext } from "../../context/app.context";
 
-const ChannelList = ({ onClick, setShowModal }: any) => {
+const ChannelList = ({setShowModal, setCurrentChannel, channelMember }: {setShowModal: any,  setCurrentChannel: any, channelMember: any}) => {
+  
+  const[channels, setChannels] = useState<any>([]);
+  const socket = useContext(SocketContext);
+  const {user, ...data} = useContext(AppContext)
+  
+  useEffect(() => {
+    getuserChannels(1);
+    getNewChannel();
+    socket?.on('channel_leave', (channels: any) => {
+      setCurrentChannel(channels[0]);
+      setChannels(channels);
+    });
+
+  }, [channels, socket]);
+
+  const getuserChannels = async (id: number) => {
+    // prefer getting it through http 
+    // try {
+    //     fetch("http://127.0.0.1:3000/api/channel/channels/1").then((res) => {
+    //         res.json().then((data) => {
+    //             setChannels(data);
+    //           });
+    //         });
+    // } catch (error) {
+    //     console.log(error);
+    // }
+    try {
+      socket?.emit('getChannels', {user: {id}});
+      socket?.on('getChannels', (channels: any) => {   
+        setChannels(channels);
+      }
+      );
+    } catch (error) { 
+      console.log(error);
+    }
+}
+
+const getNewChannel = async () => {
+    try {
+        socket?.on('channel_create', (channel: any) => {
+            setChannels([...channels, channel]);
+        });
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+
   return (
     <div className="lg:col-span-3 col-span-8 flex flex-col justify-start gap-4 py-2 w-full h-screen overflow-y-scroll scrollbar-hide">
       <ProfileBanner
@@ -9,19 +60,25 @@ const ChannelList = ({ onClick, setShowModal }: any) => {
         name="hicham"
         description="Online"
         showAddGroup={true}
-        className="px-4"
         setShowModal={setShowModal}
       />
-      {new Array(25).fill(0).map((_, i) => {
+      {channels?.map((channel: any) => {
         return (
           <Channel
-            key={i}
-            name="User Name"
-            pinned={!(i % 2) ? true : false}
-            muted={i % 2 ? true : false}
-            avatar={`https://randomuser.me/api/portraits/women/${i}.jpg`}
-            description="Let's make sure we prepare well so we can have a great experience at Gitex Africa and in Marrakech."
-            onClick={onClick}
+            key={channel.id}
+            id={channel.id}
+            name={channel.name}
+            pinned={channelMember.isPinned}
+            muted={channelMember.isMuted}
+            archived={channelMember.isArchived}
+            unread={channelMember.isUnread}
+            avatar={`https://randomuser.me/api/portraits/women/${channel.id}.jpg`}
+            description={channel.messages[channel.messages.length - 1]?.content}
+            onClick={
+              () => {
+                console.log(channel);
+                setCurrentChannel(channel);
+            }}
           />
         );
       })}

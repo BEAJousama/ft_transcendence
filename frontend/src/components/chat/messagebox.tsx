@@ -3,9 +3,9 @@ import { useRef, useState } from "react";
 import RightClickMenu, { RightClickMenuItem } from "../rightclickmenu";
 import { BsPinAngleFill } from "react-icons/bs";
 import { MdDelete } from "react-icons/md";
-import { useClickAway } from "react-use";
+import { useClickAway, useMedia } from "react-use";
 
-const MessageBox = ({ right }: { right?: boolean }) => {
+const MessageBox = ({ message, right }: { message?: any; right?: boolean }) => {
   const [showMenu, setShowMenu] = useState(false);
   const ref = useRef(null);
 
@@ -25,7 +25,7 @@ const MessageBox = ({ right }: { right?: boolean }) => {
   return (
     <div
       className={clsx(
-        "flex w-full flex-col ",
+        "w-full flex flex-col ",
         right && "items-end",
         !right && "items-start"
       )}
@@ -34,19 +34,18 @@ const MessageBox = ({ right }: { right?: boolean }) => {
     >
       <div
         className={clsx(
-          "relative m-1 flex max-w-[70%] flex-col rounded p-2 text-sm text-white ",
+          "flex flex-col rounded text-white m-1 p-2 text-sm max-w-[70%] relative ",
           right && "bg-primary-500",
           !right && "bg-secondary-400"
         )}
       >
         <div>
-          Let's make sure we prepare well so we can have a great experience at
-          Gitex Africa and in Marrakech.
+          {message.content}
         </div>
         <span
           className={clsx("w-full text-right", !right && "text-secondary-300")}
         >
-          12:00 pm
+          {message.date}pm
         </span>
         {showMenu && (
           <RightClickMenu>

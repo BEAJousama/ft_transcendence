@@ -1,14 +1,11 @@
-import React, { useState } from "react";
-
+import React, {useContext, useState } from "react";
+import {  Button, Card, Divider } from "../../components";
 import { MdGroupAdd } from "react-icons/md";
 import { BiArrowBack, BiRightArrowAlt } from "react-icons/bi";
-
+import Input from "../../components/input";
 import { RiCloseFill } from "react-icons/ri";
-import Card from "../card";
-import Button from "../button";
-import Divider from "../divider";
-import Input from "../input";
-import ProfileBanner from "../profilebanner";
+import ProfileBanner from "../../components/profilebanner";
+import { SocketContext } from "../../context/socket.context";
 
 const CreateGroupModal = ({
   setShowModal,
@@ -18,22 +15,28 @@ const CreateGroupModal = ({
   const [show, setShow] = useState(false);
   const [groupName, setGroupName] = useState("");
   const [showSubmit, setShowSubmit] = useState(false);
-  // const [selectedUsers, setSelectedUsers] = useState<number>();
+  const  socket= useContext(SocketContext);
+  const [selectedUsers, setSelectedUsers] = useState<number>();
+
+  function handleCreateGroup() {
+    socket?.emit("channel_create", { name: groupName ,avatar: "obeaj", visibility: "PUBLIC", members: [1, 2]});
+    setShowModal(false);
+  }
 
   return (
-    <div className="animation-fade absolute left-0 top-0 flex h-screen w-screen items-center justify-center animate-duration-500">
+    <div className="animation-fade animate-duration-500 absolute top-0 left-0 w-screen h-screen flex items-center justify-center">
       <div className="fixed inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm"></div>
       <Card
-        className="animate-duration-400 z-10 
-      flex min-w-[90%] animate-jump-in flex-col items-center justify-start gap-4 border-none bg-secondary-800 text-white
-       shadow-lg shadow-secondary-500 animate-ease-out lg:min-w-[40%] xl:min-w-[800px]"
+        className="z-10 bg-secondary-800 
+      border-none flex flex-col items-center justify-start shadow-lg shadow-secondary-500 gap-4 text-white min-w-[90%]
+       lg:min-w-[40%] xl:min-w-[800px] animate-jump-in animate-ease-out animate-duration-400"
         setShowModal={setShowModal}
       >
-        <div className="flex w-full items-center justify-between">
+        <div className="flex items-center justify-between w-full">
           {show && (
             <Button
               variant="text"
-              className=" !bg-inherit text-2xl !text-white hover:bg-inherit"
+              className=" !bg-inherit hover:bg-inherit !text-white text-2xl"
               onClick={() => {
                 setShow(false);
               }}
@@ -44,7 +47,7 @@ const CreateGroupModal = ({
           <span className="text-lg"> New Chat</span>
           <Button
             variant="text"
-            className=" !bg-inherit text-2xl !text-white hover:bg-inherit"
+            className=" !bg-inherit hover:bg-inherit !text-white text-2xl"
             onClick={() => {
               setShowModal(false);
             }}
@@ -61,7 +64,7 @@ const CreateGroupModal = ({
               const { value } = e.target;
               setShowSubmit(false);
               setGroupName(value);
-              if (value !== "") setShowSubmit(true);
+              if (value != "") setShowSubmit(true);
             }}
           />
         ) : (
@@ -79,7 +82,7 @@ const CreateGroupModal = ({
         )}
         <span className="w-full">Users</span>
 
-        <div className="flex h-[300px] w-full flex-col items-center justify-center gap-2 overflow-y-scroll pt-20 scrollbar-hide">
+        <div className="w-full h-[300px] flex items-center justify-center flex-col gap-2 pt-20 overflow-y-scroll scrollbar-hide">
           {new Array(16).fill(0).map((_, i) => {
             return (
               <ProfileBanner
@@ -96,10 +99,15 @@ const CreateGroupModal = ({
         {showSubmit && (
           <>
             <Divider />
-            <div className="flex w-full items-center justify-end">
+            <div className="w-full flex items-center justify-end">
               <Button
                 htmlType="submit"
-                className="justify-end !bg-inherit !text-white hover:bg-inherit"
+                className="!bg-inherit hover:bg-inherit !text-white justify-end"
+                onClick={
+                  () => {
+                    handleCreateGroup();
+                  }
+                }
               >
                 Create Group Chat
               </Button>

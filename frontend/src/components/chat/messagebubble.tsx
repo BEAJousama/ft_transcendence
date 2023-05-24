@@ -5,7 +5,7 @@ import MessageBox from "./messagebox";
 import { BiLeftArrow } from "react-icons/bi";
 import { RiEdit2Fill, RiLogoutBoxRLine } from "react-icons/ri";
 import Avatar from "../avatar";
-import { useState, useRef } from "react";
+import { useState, useRef, useContext, useEffect } from "react";
 import { useClickAway } from "react-use";
 import React from "react";
 import Modal from "../modal";
@@ -14,12 +14,28 @@ import Picker from "@emoji-mart/react";
 import { RiCloseFill } from "react-icons/ri";
 import Divider from "../divider";
 import ProfileBanner from "../profilebanner";
+import { SocketContext } from "../../context/socket.context";
+import { AppContext } from "../../context/app.context";
 
-const MessageBubble = ({ setOpen }: any) => {
+const MessageBubble = ({ setOpen, currentChannel }: {setOpen: any, currentChannel: any}) => {
   const [value, setValue] = useState("");
   const [showPicker, setShowPicker] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
+  const [messages, setMessages] = useState<any[]>([]);
+  const socket = useContext(SocketContext);
+  const {user, ...data} = useContext(AppContext)
+
+  
+  useEffect(() => {
+    socket?.emit("getChannelMessages", {channelId : currentChannel.id, user:{id: 1}});
+    socket?.on("getChannelMessages", (message: any) => {
+      setMessages(message);
+    });
+    socket?.on("messsage", (message: any) => {
+      setMessages([...messages, message]);
+    });
+  }, [socket, messages, currentChannel]);
 
   const ref = useRef(null);
   useClickAway(ref, () => {
@@ -27,6 +43,17 @@ const MessageBubble = ({ setOpen }: any) => {
   });
   const handleEmojiSelect = (emoji: string) => {
     setValue((prevMessage) => prevMessage + emoji);
+  };
+
+  const handleSendMessage = (value : string) => {
+    if (value) {
+      socket?.emit('message', {senderId: user?.id, receiverId: currentChannel.id, content: value}); // senderId and receiverId are hardcoded for now
+      setValue("");
+    }
+  };
+
+  const leaveGroup = () => {
+    socket?.emit("channel_leave", { channelId: currentChannel.id, userId: 1 }); // hardcoded for now
   };
 
   return (
@@ -37,8 +64,8 @@ const MessageBubble = ({ setOpen }: any) => {
           setShowModal(true);
         }}
       >
-        <Avatar src="https://www.github.com/Hicham-BelHoucin.png" alt="" />
-        <div>Hicham Bel Houcin</div>
+        <Avatar src={`https://randomuser.me/api/portraits/women/${currentChannel.id}.jpg`} alt="" />
+        <div>{currentChannel.name}</div>
         <Button
           variant="text"
           className=" !hover:bg-inherit absolute right-0 mx-2 !items-end !bg-inherit text-white lg:hidden"
@@ -51,8 +78,11 @@ const MessageBubble = ({ setOpen }: any) => {
       </Button>
 
       <div className="mb-16 flex h-screen flex-col justify-end gap-2 overflow-y-scroll scrollbar-hide">
-        {new Array(15).fill(0).map((_, i) => {
-          return <MessageBox right={i % 2 ? true : false} />;
+        {messages?.map((message, i) => {
+          return <MessageBox
+          key={message.id}
+          message={message}
+          right={(message.senderId === user?.id)} />; // hardcoded for now
         })}
       </div>
       <div className="absolute bottom-0 flex w-full items-center bg-secondary-700 p-1">
@@ -76,8 +106,12 @@ const MessageBubble = ({ setOpen }: any) => {
         <Button
           variant="text"
           className="!hover:bg-inherit !bg-inherit text-primary-500"
+          // onKeyDown={(event) => {
+          //   if (event.key === "Enter")
+          //     handleSendMessage(value);
+          // }}
           onClick={() => {
-            // here the logic to send the message to the server and then to the other user
+            handleSendMessage(value);
           }}
         >
           <BsSendFill />
@@ -143,17 +177,23 @@ const MessageBubble = ({ setOpen }: any) => {
           )}
           <Divider />
           <div className="flex h-[300px] w-full flex-col items-center  justify-center gap-2 overflow-y-scroll pt-20 scrollbar-hide">
-            {new Array(10).fill(0).map((_, i) => {
+            {currentChannel.channelMembers.map((member : any) => {
               return (
                 <ProfileBanner
                   showOptions
                   showStatus
-                  status="Admin"
-                  key={i}
-                  name="User Name"
-                  avatar={`https://randomuser.me/api/portraits/women/${i}.jpg`}
+                  key={member.userId}
+                  status={member.role}
+                  channelId={currentChannel.id}
+                  userId={member.userId}
+                  name={member.user.username}
+                  avatar={member.user.avatar}
                   description="Let's make sure we prepare well so we can have a great experience at Gitex Africa and in Marrakech."
-                  // onClick={onClick}
+                  // onClick={
+                  //   () => {
+                  //     console.log(member);
+                  //   }
+                  // }
                 />
               );
             })}
@@ -161,6 +201,8 @@ const MessageBubble = ({ setOpen }: any) => {
           <Button
             className="w-full justify-center"
             onClick={() => {
+              console.log("left group");
+              leaveGroup();
               setShowModal(false);
             }}
           >
