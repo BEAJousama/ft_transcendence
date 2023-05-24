@@ -18,7 +18,14 @@ import {
 export class UsersService {
   constructor(private prisma: PrismaService) {}
 
-  async createUser(data: { login: string; avatar: string; tfaSecret: string }) {
+  async createUser(data: {
+    login: string;
+    avatar: string;
+    tfaSecret: string;
+    fullname: string;
+    phone: string;
+    email: string;
+  }) {
     try {
       const user = await this.prisma.user.create({
         data: {
@@ -26,6 +33,10 @@ export class UsersService {
           avatar: data.avatar,
           username: data.login,
           tfaSecret: data.tfaSecret,
+          fullname: data.fullname,
+          phone: data.phone,
+          email: data.email,
+          country: 'none',
         },
       });
 

@@ -1,3 +1,7 @@
+import clsx from "clsx";
+import { Children } from "react";
+
+
 const Button = ({
   type = "primary",
   className,
@@ -7,7 +11,7 @@ const Button = ({
   onClick,
   variant = "contained",
 }: {
-  type?: "primary" | "secondary" | "danger" | "success" | "cuation";
+  type?: "primary" | "danger" | "success" | "cuation";
   className?: string;
   htmlType?: "button" | "submit" | "reset";
   children: React.ReactNode;
@@ -15,16 +19,29 @@ const Button = ({
   onClick?: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
   variant?: "text" | "contained" | "outlined";
 }) => {
+  const array = Children.toArray(children).slice(0);
+  if (disabled) {
+    return (
+      <button
+        className={clsx(`w-full border-primary-800 text-primary-800 font-bold py-2 px-4 rounded flex items-center gap-4 border`, array?.length < 2 && "justify-center")}
+        disabled={disabled}
+        onClick={onClick}
+        type={htmlType}
+      >
+        {children}
+      </button>
+    )
+  }
   return (
     <>
       {type === "primary" && (
         <>
           <button
             className={`
-              ${
-                variant === "contained"
-                  ? `bg-primary-400 hover:bg-primary-700 text-white font-bold py-2 px-4 rounded flex items-center gap-4 `
-                  : variant === "outlined"
+              ${variant === "contained"
+                ? `bg-primary-400 hover:bg-primary-700 text-white font-bold
+                py-2 px-4 rounded flex items-center gap-4 hover:shadow-sm hover:shadow-primary-800`
+                : variant === "outlined"
                   ? `bg-white hover:bg-gray-200 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded flex items-center gap-4  shadow`
                   : `bg-white hover:bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded flex items-center gap-4 `
               } ${className}
@@ -37,24 +54,7 @@ const Button = ({
           </button>
         </>
       )}
-      {type === "secondary" && (
-        <>
-          <button
-            className={
-              variant === "contained"
-                ? `bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded flex items-center gap-4 `
-                : variant === "outlined"
-                ? `bg-white hover:bg-gray-200 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded flex items-center gap-4  shadow`
-                : `bg-white hover:bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded flex items-center gap-4 `
-            }
-            disabled={disabled}
-            onClick={onClick}
-            type={htmlType}
-          >
-            {children}
-          </button>
-        </>
-      )}
+
       {type === "success" && (
         <>
           <button

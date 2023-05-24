@@ -1,7 +1,8 @@
 import { BsFillChatDotsFill } from "react-icons/bs";
-import { AiFillHome } from "react-icons/ai";
+import { AiFillHome, AiFillProfile } from "react-icons/ai";
 import { TbDeviceGamepad2 } from "react-icons/tb";
-import { RiListSettingsFill } from "react-icons/ri";
+import { CgProfile } from "react-icons/cg";
+import { RiListSettingsFill, RiProfileFill } from "react-icons/ri";
 import { RiLogoutBoxRLine } from "react-icons/ri";
 import clsx from "clsx";
 import { Link, useLocation } from "react-router-dom";
@@ -29,15 +30,13 @@ const ListItem = ({
 }) => {
   return (
     <li
-      className={`flex w-full items-center justify-center pt-2 ${
-        selected &&
+      className={`flex w-full items-center justify-center pt-2 ${selected &&
         "relative before:absolute before:-left-2 before:h-full  before:rounded-md before:border-2 before:border-primary-500 before:bg-primary-500 before:text-primary-500 before:content-['1']"
-      } ${className}`}
+        } ${className}`}
     >
       <button
-        className={`flex items-center justify-start gap-4 rounded bg-secondary-800 py-2 font-bold hover:bg-secondary-800 md:w-8/12 ${
-          selected ? "text-primary-500" : "text-secondary-400"
-        }`}
+        className={`flex items-center justify-start gap-4 rounded bg-secondary-800 py-2 font-bold hover:bg-secondary-800 md:w-8/12 ${selected ? "text-primary-500" : "text-secondary-400"
+          }`}
         onClick={(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
           onClick && onClick();
         }}
@@ -85,6 +84,12 @@ const Sidepanel = ({ className }: any) => {
             <span className="hidden md:block">Pong Game</span>
           </ListItem>
         </Link>
+        <Link to="/profile">
+          <ListItem selected={path === "/pofile"}>
+            <CgProfile />
+            <span className="hidden md:block">Profile</span>
+          </ListItem>
+        </Link>
         <Link to="/settings">
           <ListItem selected={path === "/settings"}>
             <RiListSettingsFill />
@@ -93,7 +98,11 @@ const Sidepanel = ({ className }: any) => {
         </Link>
       </List>
       <div className="flex w-full flex-col items-center justify-center gap-4">
-        <ListItem className="bg-secondary-800 text-secondary-300 hover:bg-secondary-800">
+        <ListItem className="bg-secondary-800 text-secondary-300 hover:bg-secondary-800" onClick={() => {
+          localStorage.removeItem("access_token");
+          localStorage.removeItem("2fa_access_token");
+          window.location.reload();
+        }}>
           <RiLogoutBoxRLine />
           <span className="hidden md:block">Log Out</span>
         </ListItem>

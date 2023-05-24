@@ -1,4 +1,34 @@
-import { ProfileBanner, Sidepanel } from "../../components";
+import { Avatar, ProfileBanner, Sidepanel } from "../../components";
+
+
+
+const Game = () => {
+  return (
+    <div className="flex items-center justify-center bg-tertiary-500 rounded-full h-12 m-4 w-full">
+      <div className="flex items-center justify-center w-full">
+        <Avatar
+          src={`https://randomuser.me/api/portraits/women/${2}.jpg`}
+          className="w-16 h-16"
+          alt="" />
+        <div className="flex flex-col text-white items-end justify-end w-full px-4">
+          <span className="text-center w-[20%] font-bold">3</span>
+          <span className="text-center w-[20%] font-bold">login</span>
+        </div>
+      </div>
+      <span className="text-3xl text-primary-500 shadow-lg  shadow-primary-500">•</span>
+      <div className="flex items-center justify-end w-full">
+        <div className="flex flex-col text-white items-start justify-center w-full px-4">
+          <span className="text-center w-[20%] font-bold">3</span>
+          <span className="text-center w-[20%] font-bold">login</span>
+        </div>
+        <Avatar
+          src={`https://randomuser.me/api/portraits/women/${4}.jpg`}
+          className="w-16 h-16"
+          alt="" />
+      </div>
+    </div>
+  )
+}
 
 const Container = ({
   children,
@@ -10,7 +40,7 @@ const Container = ({
   icon: string;
 }) => {
   return (
-    <div className="flex w-[88%] flex-col gap-2 p-4">
+    <div className="flex w-[88%] max-w-[800px] flex-col gap-2 p-4">
       <div className="relative m-5 flex h-[500px] rounded border-2 border-secondary-400">
         <img
           src={icon}
@@ -33,7 +63,7 @@ export default function Home() {
     <div className="grid h-screen w-screen grid-cols-10 overflow-hidden bg-secondary-500">
       <Sidepanel className="col-span-2 2xl:col-span-1" />
       <div className="col-span-8 overflow-auto scrollbar-hide">
-        <Container title="Leader Board" icon="/img/3dMedal.svg">
+        {/* <Container title="Leader Board" icon="/img/3dMedal.svg">
           {new Array(25).fill(0).map((_, i) => {
             return (
               <ProfileBanner
@@ -56,15 +86,15 @@ export default function Home() {
               />
             );
           })}
-        </Container>
-        <Container title="Leader Board" icon="/img/3dCam.svg">
+        </Container> */}
+        <Container title="LIVE FEED" icon="/img/3dCam.svg">
           {new Array(25).fill(0).map((_, i) => {
             return (
-              <ProfileBanner
+              <Game
                 key={i}
-                name="User Name"
-                avatar={`https://randomuser.me/api/portraits/women/${i}.jpg`}
-                description="Let's make sure we prepare well so we can have a great experience at Gitex Africa and in Marrakech."
+              // name="User Name"
+              // avatar={`https://randomuser.me/api/portraits/women/${i}.jpg`}
+              // description="Let's make sure we prepare well so we can have a great experience at Gitex Africa and in Marrakech."
               />
             );
           })}

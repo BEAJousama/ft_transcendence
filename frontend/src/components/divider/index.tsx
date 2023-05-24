@@ -1,6 +1,12 @@
-const Divider = () => {
+const Divider = ({ vertical }: { vertical?: boolean }) => {
   return (
-    <hr className="w-full h-1 bg-gray-200 border-0 rounded dark:bg-gray-700" />
+    <>
+      {!vertical ? (
+        <hr className="h-[1px] w-full rounded border-0 bg-gray-700 " />
+      ) : (
+        <hr className="h-full w-[1px] rounded border-0 bg-gray-700 " />
+      )}
+    </>
   );
 };
 
