@@ -3,24 +3,25 @@ import ProfileBanner from "../profilebanner";
 import Channel from "./channel";
 import { SocketContext } from "../../context/socket.context";
 import { AppContext } from "../../context/app.context";
+import { AnyRecord } from "dns";
 
-const ChannelList = ({setShowModal, setCurrentChannel, channelMember }: {setShowModal: any,  setCurrentChannel: any, channelMember: any}) => {
+const ChannelList = ({setShowModal, setCurrentChannel } : 
+  {setShowModal: any,  setCurrentChannel: any}) => {
   
   const[channels, setChannels] = useState<any>([]);
   const socket = useContext(SocketContext);
   const {user, ...data} = useContext(AppContext)
   
   useEffect(() => {
-    getuserChannels(1);
+    getuserChannels(user?.id);
     getNewChannel();
     socket?.on('channel_leave', (channels: any) => {
       setCurrentChannel(channels[0]);
       setChannels(channels);
     });
-
   }, [channels, socket]);
 
-  const getuserChannels = async (id: number) => {
+  const getuserChannels = async (id: any) => {
     // prefer getting it through http 
     // try {
     //     fetch("http://127.0.0.1:3000/api/channel/channels/1").then((res) => {
@@ -62,23 +63,22 @@ const getNewChannel = async () => {
         showAddGroup={true}
         setShowModal={setShowModal}
       />
-      {channels?.map((channel: any) => {
+      {channels.map((channel: any) => {
         return (
           <Channel
             key={channel.id}
             id={channel.id}
             name={channel.name}
-            pinned={channelMember.isPinned}
-            muted={channelMember.isMuted}
-            archived={channelMember.isArchived}
-            unread={channelMember.isUnread}
+            pinned={channel.pinnedFor?.map((user: any) => user.id).includes(user?.id)}
+            muted={channel.mutedFor?.map((user: any) => user.id).includes(user?.id)}
+            archived={channel.archivedFor?.map((user: any) => user.id).includes(user?.id)}
+            unread={channel.unreadFor?.map((user: any) => user.id).includes(user?.id)}
             avatar={`https://randomuser.me/api/portraits/women/${channel.id}.jpg`}
-            description={channel.messages[channel.messages.length - 1]?.content}
+            description={channel?.messages[channel.messages.length - 1]?.content}
             onClick={
               () => {
-                console.log(channel);
                 setCurrentChannel(channel);
-            }}
+              }}
           />
         );
       })}

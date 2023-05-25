@@ -7,7 +7,7 @@ import { useMedia } from "react-use";
 export default function Chat() {
   const [open, setOpen] = useState<boolean>(false);
   const [showModal, setShowModal] = useState<boolean>(false);
-  let isMatch = useMedia("(min-width:1024px)", false);
+  let   isMatch = useMedia("(min-width:1024px)", false);
   const [currentChannel, setCurrentChannel] = useState<any>({});
   const [channelMember, setChannelMember] = useState<any>([]);
   const socket = useContext(SocketContext);
@@ -36,7 +36,6 @@ export default function Chat() {
           // className="col-span-8 "
           setCurrentChannel={setCurrentChannel}
           setShowModal={setShowModal}
-          channelMember={channelMember}
           />
         )}
       {(open || isMatch) && <MessageBubble currentChannel={currentChannel} setOpen={setOpen} />}

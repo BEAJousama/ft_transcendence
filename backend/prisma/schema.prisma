@@ -60,7 +60,13 @@ model User {
   blockers         Block[]         @relation("blocker")
   wins             Int             @default(0)
   losses           Int             @default(0)
-  ownedChannels    Channel[]
+  ownedChannels    Channel[]       @relation("ownedChannels")
+  pinnedChannels   Channel[]       @relation("pinnedChannels")
+  mutedChannels    Channel[]       @relation("mutedChannels")
+  bannedChannels   Channel[]       @relation("bannedChannels")
+  archivedChannels Channel[]       @relation("archivedChannels")
+  deletedChannels  Channel[]       @relation("deletedChannels")
+  unreadChannels   Channel[]       @relation("unreadChannels")
   memberInChannels ChannelMember[]
   sentMessages     Message[]       @relation("send")
   sentRequests     Friend[]        @relation("SentRequest")
@@ -116,10 +122,17 @@ model Channel {
   avatar         String
   visiblity      Visiblity       @default(PUBLIC)
   password       String?
-  owner          User            @relation(fields: [userId], references: [id])
+  owner          User            @relation("ownedChannels", fields: [userId], references: [id])
+  //add isPinned option wich relate to channelMember isPinned
+  pinnedFor      User[]          @relation("pinnedChannels")
+  mutedFor       User[]          @relation("mutedChannels")
+  bannedFor      User[]          @relation("bannedChannels")
+  archivedFor    User[]          @relation("archivedChannels")
+  deletedFor     User[]          @relation("deletedChannels")
+  unreadFor      User[]          @relation("unreadChannels")
   userId         Int
   type           ChannelType     @default(GROUP)
-  channelMembers ChannelMember[]
+  channelMembers ChannelMember[] @relation("membersInChannels")
   createAt       DateTime        @default(now())
   messages       Message[]       @relation("receive")
 }
@@ -140,18 +153,21 @@ enum MemberStatus {
 model ChannelMember {
   user         User         @relation(fields: [userId], references: [id])
   userId       Int
-  channel      Channel      @relation(fields: [channelId], references: [id])
+  channel      Channel      @relation("membersInChannels", fields: [channelId], references: [id])
   channelId    Int
   role         Role         @default(MEMEBER)
-  status       MemberStatus @default(ACTIVE)
+  status       MemberStatus @default(ACTIVE) // if left or banned, the user will be removed from the channel, if muted the user will not be able to send messages
   banStartTime DateTime?
+  // pinnedMessages  Message[] @relation("pinnedMessages")
+  // deletedMessages Message[] @relation("deletedMessages")
   banDuration  Int? // time in seconds
-  isBanned     Boolean      @default(false)
-  isMuted      Boolean      @default(false)
-  isPinned     Boolean      @default(false)
-  isUnread     Boolean      @default(false)
-  isArchived   Boolean      @default(false)
-  isDeleted    Boolean      @default(false)
+  isBanned     Boolean      @default(false) // this has no sense now -- TO BE REMOVED --
+  isMuted      Boolean      @default(false) // if true the user won't get notifications from the channel
+  isPinned     Boolean      @default(false) // if true the channel will be pinned to the top of the list
+  isUnread     Boolean      @default(false) // if true the channel will be marked as unread
+  isArchived   Boolean      @default(false) // if true the channel will be archived
+  isDeleted    Boolean      @default(false) // if true the channel will be deleted only from th ui but not from the database
+
   @@id([userId, channelId])
 }
 

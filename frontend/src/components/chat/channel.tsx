@@ -60,7 +60,6 @@ const Channel = ({
   };
 
     const data = {
-      userId : 1, // TODO: get user id from context
       channelId : id
     }
 
@@ -81,16 +80,16 @@ const Channel = ({
     };
 
     const archiveChannel = () => {
-      socket?.emit("archiveChannel", data);
+      socket?.emit("archive_channel", data);
     };
 
 
     const unarchiveChannel = () => {
-      socket?.emit("unarchiveChannel", data);
+      socket?.emit("unarchive_channel", data);
     };
 
     const deleteChannel = () => {
-      socket?.emit("deleteChannel", data);
+      socket?.emit("delete_channel", data);
     };
 
     const markAsUnread = () => {

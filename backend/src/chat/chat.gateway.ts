@@ -20,6 +20,7 @@ import { ChannelType, MemberStatus, Message, Visiblity } from '@prisma/client';
 import { UsersService } from 'src/users/users.service';
 import * as EVENT from  "./utils/"
 import { get } from 'http';
+import { parse } from 'path';
 
 
 @WebSocketGateway({ namespace: 'chat', cors: true, origins: 'http://127.0.0.1:3000' })
@@ -49,7 +50,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect  {
       }
       // else
       //   console.log("client verified");
-      this.connectedClient.set(client.data.id, client);
+      this.connectedClient.set(client.data.sub, client);
       await this.joinChannels(client);
       await this.sendChannelsToClient(client)
       // To do : Add events to handle the online status of friends
@@ -62,8 +63,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect  {
   }
   
   async handleDisconnect(client: Socket) {
-    if (client.data.id) 
-      this.connectedClient.delete(client.data.id);
+    if (client.data.sub) 
+      this.connectedClient.delete(client.data.sub);
       //To do : add events to handle the online status of friends
   }
   
@@ -110,7 +111,7 @@ async sendMessage(client: Socket, payload: any) {
           message: 'Cannot create dm',
         });
       }
-      let sockets = this.getConnectedUsers(client.data.id);
+      let sockets = this.getConnectedUsers(client.data.sub);
       if (!sockets || sockets.length === 0) return;
       sockets.forEach((s) => {
         s.join(dm.id.toString());
@@ -144,11 +145,10 @@ async sendMessage(client: Socket, payload: any) {
   
   @SubscribeMessage(EVENT.CHANNEL_CREATE)
   async createChannel(client: Socket, payload: ChannelDto) {
-    console.log(payload);
+    // console.log(client.data);
     // this.validatePayload(payload);
     try {
-      const channel = await this.channelService.makeChannel(client.data.id | 1, payload);
-      console.log(payload);
+      const channel = await this.channelService.makeChannel(client.data.sub, payload);
       if (!channel)
       {
         throw new WsException({
@@ -156,9 +156,9 @@ async sendMessage(client: Socket, payload: any) {
           message: 'Cannot create channel',
         });
       }    
-      let sockets = this.getConnectedUsers(client.data.id);
+      let sockets = this.getConnectedUsers(client.data.sub);
       payload.members.forEach((m) => {
-        if (!this.chatService.isBlocked(client.data.id, m))
+        if (!this.chatService.isBlocked(client.data.sub, m))
         sockets = sockets.concat(this.getConnectedUsers(m));
       })
       if (!sockets || sockets.length === 0) return;
@@ -166,7 +166,7 @@ async sendMessage(client: Socket, payload: any) {
         s.join(channel.id.toString());
         this.server.to(s.id).emit(EVENT.CHANNEL_CREATE, channel);
       });
-      this.sendChannels(client.data.id);
+      this.sendChannels(client.data.sub);
       
     } 
     catch (error) {
@@ -181,10 +181,9 @@ async sendMessage(client: Socket, payload: any) {
   @SubscribeMessage(EVENT.GET_CHANNELS)
   async getChannels(client: Socket, payload: any): Promise<void> {
     try {
-      const channels = await this.channelService.getChannelsByUserId(payload.user.id);
+      const channels = await this.channelService.getChannelsByUserId(client.data.sub);
       client.emit(EVENT.GET_CHANNELS, channels);
     } catch (err) {
-      console.log(err);
       throw new WsException({
         error: EVENT.GET_CHANNELS,
         message: err.message,
@@ -195,17 +194,17 @@ async sendMessage(client: Socket, payload: any) {
   async joinRoom(client: Socket, payload: any) {
     try {
       const ru = await this.channelService.JoinChannel(
-        client.data.id,
+        client.data.sub,
         payload.channelId,
         payload.password,
       );
-      const sockets = this.getConnectedUsers(client.data.id);
+      const sockets = this.getConnectedUsers(client.data.sub);
       sockets.forEach((s) => {
         s.join(payload.channelId);
         this.server.to(s.id).emit(EVENT.CHANNEL_JOIN, ru)
       });      
-      this.sendChannels(client.data.id);
-      // this.sendChannelToMembers(client.data.id, payload.channelId, ru);
+      this.sendChannels(client.data.sub);
+      // this.sendChannelToMembers(client.data.sub, payload.channelId, ru);
     } catch (err) {
       throw new WsException({
         error: EVENT.CHANNEL_JOIN,
@@ -219,7 +218,7 @@ async sendMessage(client: Socket, payload: any) {
   async findRoom(client: Socket, payload: any) {
     try {
       const rooms = await this.channelService.findChannelsByName(
-        client.data.id,
+        client.data.sub,
         payload.name,
         );
         
@@ -252,19 +251,18 @@ async sendMessage(client: Socket, payload: any) {
   async leaveChannel(client: Socket, payload: any) {
     try {
       const ru = await this.channelService.leaveChannel(
-        payload.userId,
+        client.data.sub,
         payload.channelId,
         );
-        console.log(payload);
         client.leave(payload.channelId);
-        const channels = await this.channelService.getChannelsByUserId(payload.userId);
+        const channels = await this.channelService.getChannelsByUserId(client.data.sub);
         client.emit(EVENT.CHANNEL_LEAVE, channels);
-        const sockets = this.getConnectedUsers(payload.userId);
+        const sockets = this.getConnectedUsers(client.data.sub);
         sockets.forEach((s) => {
           s.leave(payload.channelId);
           this.server.to(s.id).emit(EVENT.CHANNEL_LEAVE, ru)
         });
-        this.sendChannels(payload.userId);
+        this.sendChannels(client.data.sub);
       } catch (err) {
         throw new WsException({
           error: EVENT.CHANNEL_LEAVE,
@@ -283,11 +281,11 @@ async sendMessage(client: Socket, payload: any) {
           );
         const channel = await this.channelService.getChannelById(parseInt(payload.channelId));
           client.emit(EVENT.SET_ADMIN, channel);
-          const sockets = this.getConnectedUsers(client.data.id);
+          const sockets = this.getConnectedUsers(client.data.sub);
           sockets.forEach((s) => {
             this.server.to(s.id).emit(EVENT.SET_ADMIN, ru)
           });
-          this.sendChannels(client.data.id);
+          this.sendChannels(client.data.sub);
         } catch (err) {
           throw new WsException({
             error: EVENT.SET_ADMIN,
@@ -301,15 +299,15 @@ async sendMessage(client: Socket, payload: any) {
   async banFromChannel(client: Socket, payload: any) {
     try {
       const ru = await this.channelService.BanUserFromChannel(
-        parseInt(client.data.id),
+        parseInt(client.data.sub),
         parseInt(payload.channelId),
         parseInt(payload.userId),
         );
-        const sockets = this.getConnectedUsers(client.data.id);
+        const sockets = this.getConnectedUsers(client.data.sub);
         sockets.forEach((s) => {
           this.server.to(s.id).emit(EVENT.BAN_FROM_CHANNEL, ru)
         });
-        this.sendChannels(client.data.id);
+        this.sendChannels(client.data.sub);
       } catch (err) {
         throw new WsException({
           error: EVENT.BAN_FROM_CHANNEL,
@@ -322,15 +320,15 @@ async sendMessage(client: Socket, payload: any) {
   async removeChannelMember(client: Socket, payload: any) {
     try {
       const ru = await this.channelService.removeMemberFromChannel(
-        client.data.id,
+        client.data.sub,
         payload.channelId,
         payload.userId,
         );
-        const sockets = this.getConnectedUsers(client.data.id);
+        const sockets = this.getConnectedUsers(client.data.sub);
         sockets.forEach((s) => {
           this.server.to(s.id).emit(EVENT.REMOVE_CHANNEL_MEMBER, ru)
         });
-        this.sendChannels(client.data.id);
+        this.sendChannels(client.data.sub);
       } catch (err) {
         throw new WsException({
           error: EVENT.REMOVE_CHANNEL_MEMBER,
@@ -359,7 +357,7 @@ async sendMessage(client: Socket, payload: any) {
     async DmMessages(client: Socket, dmId: string) {
       try {
         const messages = await this.messageService.getMessagesByChannelId(
-          parseInt(dmId), client.data.id
+          parseInt(dmId), client.data.sub
           );
         } catch (err) {
           throw new WsException({
@@ -373,14 +371,14 @@ async sendMessage(client: Socket, payload: any) {
     async deleteChannel(client: Socket, channelId: string) {
       try {
           await this.channelService.deleteChannel(
-          parseInt(channelId), client.data.id
+          parseInt(channelId), client.data.sub
           );
-          const sockets = this.getConnectedUsers(client.data.id);
+          const sockets = this.getConnectedUsers(client.data.sub);
           sockets.forEach((s) => {
             s.leave(channelId);
             // this.server.to(s.id).emit(EVENT.CHANNEL_DELETE, channel)
           });
-          this.sendChannels(client.data.id);
+          this.sendChannels(client.data.sub);
         } catch (err) {
           throw new WsException({
             error: EVENT.CHANNEL_DELETE,
@@ -390,12 +388,13 @@ async sendMessage(client: Socket, payload: any) {
       }
 
       @SubscribeMessage(EVENT.PIN_CHANNEL)
-      async pinChannel(client: Socket, payload: {channelId: string, userId: string}) { // to do userId could be get from backend directly ...
+      async pinChannel(client: Socket, payload : any) { // to do userId could be get from backend directly ...
         try {
-          const channel = await this.channelService.pinChannel(
-            parseInt(payload.userId), parseInt(payload.channelId)
+          const chMember = await this.channelService.pinChannel(
+            parseInt(client.data.sub), parseInt(payload.channelId)
             );
-            const sockets = this.getConnectedUsers(client.data.id);
+            client.emit(EVENT.GET_CH_MEMBER, chMember);
+            const sockets = this.getConnectedUsers(client.data.sub);
           } catch (err) {
             throw new WsException({
               error: EVENT.PIN_CHANNEL,
@@ -403,13 +402,15 @@ async sendMessage(client: Socket, payload: any) {
             });
           }
         }
-
+        
         @SubscribeMessage(EVENT.UNPIN_CHANNEL)
-        async unpinChannel(client: Socket, channelId: string) {
+        async unpinChannel(client: Socket, payload: any) {
           try {
-            const channel = await this.channelService.unpinChannel(
-              parseInt(channelId)
+            const chMember = await this.channelService.unpinChannel(
+              parseInt(client.data.sub),
+              parseInt(payload.channelId)
               );
+              client.emit(EVENT.GET_CH_MEMBER, chMember);
             } catch (err) {
               throw new WsException({
                 error: EVENT.UNPIN_CHANNEL,
@@ -419,10 +420,11 @@ async sendMessage(client: Socket, payload: any) {
           }
 
           @SubscribeMessage(EVENT.MUTE_CHANNEL)
-          async muteChannel(client: Socket, channelId: string) {
+          async muteChannel(client: Socket, payload: any) {
             try {
               const channel = await this.channelService.muteChannel(
-                parseInt(channelId)
+                parseInt(client.data.sub),
+                parseInt(payload.channelId)
                 );
               } catch (err) {
                 throw new WsException({
@@ -433,10 +435,11 @@ async sendMessage(client: Socket, payload: any) {
             }
 
             @SubscribeMessage(EVENT.UNMUTE_CHANNEL)
-            async unmuteChannel(client: Socket, channelId: string) {
+            async unmuteChannel(client: Socket, payload: any) {
               try {
                 const channel = await this.channelService.unmuteChannel(
-                  parseInt(channelId)
+                  parseInt(client.data.sub),
+                  parseInt(payload.channelId)
                   );
                 } catch (err) {
                   throw new WsException({
@@ -446,26 +449,6 @@ async sendMessage(client: Socket, payload: any) {
                 }
               }
 
-
-
-          // @SubscribeMessage(EVENT.GET_PINNED_CHANNELS)
-          // async getPinnedChannels(client: Socket) {
-          //   try {
-          //     const channels = await this.channelService.getPinnedChannels();
-          //     client.emit(EVENT.GET_PINNED_CHANNELS, channels);
-          //   } catch (err) {
-          //     throw new WsException({
-          //       error: EVENT.GET_PINNED_CHANNELS,
-          //       message: err.message,
-          //     });
-          //   }
-          // }
-
-
-  //edit a channel
-  //delete a channel
-  //delete a message
-  //delete a conversation
 
   /* -------------------------------------- Helper functions -------------------------------------*/
 
@@ -484,7 +467,6 @@ async sendMessage(client: Socket, payload: any) {
     }
     catch (err)
     {
-      console.log(err);
       throw new WsException({
         error: "Authentication failed",
         message: err.message,
@@ -494,7 +476,7 @@ async sendMessage(client: Socket, payload: any) {
 
   private async joinChannels(client)
   {
-    const channels = await this.channelService.getChannelsByUserId(client.data.id);
+    const channels = await this.channelService.getChannelsByUserId(client.data.sub);
     channels.forEach((channel) => {
       client.join(channel.id);
     });
@@ -503,7 +485,7 @@ async sendMessage(client: Socket, payload: any) {
   //get realtime channels when added to a channel or when connected
 
   private async sendChannelsToClient(client: Socket) {
-    const channels = await this.channelService.getChannelsByUserId(client.data.id);
+    const channels = await this.channelService.getChannelsByUserId(client.data.sub);
     client.emit("ListOfChannels", channels);
   }
 
@@ -549,45 +531,6 @@ async sendMessage(client: Socket, payload: any) {
     });
     return connectedUsers;
   }
-
-  // private validatePayload(payload: any)
-  // {
-  //   if (
-  //     !(
-  //       'name' in payload &&
-  //       'visibility' in payload &&
-  //       'password' in payload &&
-  //       'avatar' in payload &&
-  //       'users' in payload
-  //     )
-  //   ) {
-  //     throw new WsException({
-  //       error: "createChannel",
-  //       message: 'Cannot create channel group',
-  //     });
-  //   }
-
-  //   if (
-  //     typeof payload.name !== 'string' ||
-  //     typeof payload.visibility !== 'string' ||
-  //     typeof payload.password !== 'string' ||
-  //     typeof payload.image !== 'string' ||
-  //     !Array.isArray(payload.users)
-  //   ) {
-  //     throw new WsException({
-  //       error: "createChannel",
-  //       message: 'Cannot create channel group',
-  //     });
-  //   }
-  //   if (payload.privacy === Visiblity.PROTECTED) {
-  //     if (payload.password === '') {
-  //       throw new WsException({
-  //         error: "channel_protection",
-  //         message: "the channel require a password",
-  //       });
-  //     }
-  //   }
-  // }
 
   private async sendChannels(userId: number)
   {
