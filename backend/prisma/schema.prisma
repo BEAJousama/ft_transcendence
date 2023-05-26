@@ -40,33 +40,36 @@ enum Ladder {
 // }
 
 model User {
-  id               Int             @id @default(autoincrement())
-  login            String          @unique
-  username         String          @unique
-  email            String          @unique
+  id               Int           @id @default(autoincrement())
+  login            String        @unique
+  username         String        @unique
+  email            String        @unique
   fullname         String
   country          String
   phone            String
   avatar           String
-  twoFactorAuth    Boolean         @default(false)
+  twoFactorAuth    Boolean       @default(false)
   tfaSecret        String
-  status           UserStatus      @default(OFFLINE)
-  ladder           Ladder          @default(BEGINNER)
-  rating           Int             @default(0)
-  createdAt        DateTime        @default(now())
-  updatedAt        DateTime        @updatedAt
-  achievement      Achievement[]   @relation("AchievementPlayers")
-  blocking         Block[]         @relation("blocking")
-  blockers         Block[]         @relation("blocker")
-  wins             Int             @default(0)
-  losses           Int             @default(0)
-  ownedChannels    Channel[]       @relation("ownedChannels")
-  pinnedChannels   Channel[]       @relation("pinnedChannels")
-  mutedChannels    Channel[]       @relation("mutedChannels")
-  bannedChannels   Channel[]       @relation("bannedChannels")
-  archivedChannels Channel[]       @relation("archivedChannels")
-  deletedChannels  Channel[]       @relation("deletedChannels")
-  unreadChannels   Channel[]       @relation("unreadChannels")
+  status           UserStatus    @default(OFFLINE)
+  ladder           Ladder        @default(BEGINNER)
+  rating           Int           @default(0)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  achievement      Achievement[] @relation("AchievementPlayers")
+  blocking         Block[]       @relation("blocking")
+  blockers         Block[]       @relation("blocker")
+  wins             Int           @default(0)
+  losses           Int           @default(0)
+  mutedIn          Channel[]     @relation("mutedinChannels")
+  bannedIn         Channel[]     @relation("bannedinChannels")
+  adminIn          Channel[]     @relation("admininChannels")
+  ownedChannels    Channel[]     @relation("ownedChannels")
+  pinnedChannels   Channel[]     @relation("pinnedChannels")
+  mutedChannels    Channel[]     @relation("mutedChannels")
+  archivedChannels Channel[]     @relation("archivedChannels")
+  deletedChannels  Channel[]     @relation("deletedChannels")
+  unreadChannels   Channel[]     @relation("unreadChannels")
+
   memberInChannels ChannelMember[]
   sentMessages     Message[]       @relation("send")
   sentRequests     Friend[]        @relation("SentRequest")
@@ -123,13 +126,14 @@ model Channel {
   visiblity      Visiblity       @default(PUBLIC)
   password       String?
   owner          User            @relation("ownedChannels", fields: [userId], references: [id])
-  //add isPinned option wich relate to channelMember isPinned
   pinnedFor      User[]          @relation("pinnedChannels")
   mutedFor       User[]          @relation("mutedChannels")
-  bannedFor      User[]          @relation("bannedChannels")
   archivedFor    User[]          @relation("archivedChannels")
   deletedFor     User[]          @relation("deletedChannels")
   unreadFor      User[]          @relation("unreadChannels")
+  bannedUsers    User[]          @relation("bannedinChannels")
+  mutedUsers     User[]          @relation("mutedinChannels")
+  adminUsers     User[]          @relation("admininChannels")
   userId         Int
   type           ChannelType     @default(GROUP)
   channelMembers ChannelMember[] @relation("membersInChannels")

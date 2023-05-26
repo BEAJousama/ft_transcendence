@@ -111,7 +111,7 @@ export class MessageService {
                 }
             });
         
-        if (!channelmember || channelmember.status ===  "BANNED"  || channelmember.status === "MUTED")
+        if (!channelmember || channelmember.status ===  "BANNED")
             throw new Error("cannot get messages!");
 
         const messages = await this.prisma.message.findMany({

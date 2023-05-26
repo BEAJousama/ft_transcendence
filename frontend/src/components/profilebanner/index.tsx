@@ -1,4 +1,4 @@
-import React, { useContext, useState, useRef, useEffect } from "react";
+import React, { useContext, useState, useRef, useEffect, Fragment } from "react";
 
 import {
   MdAddBox,
@@ -20,7 +20,8 @@ import { SocketContext } from "../../context/socket.context";
 import { stat } from "fs";
 
 const ProfileBanner = ({
-  avatar = "https://www.github.com/Hicham-BelHoucin.png",
+  user,
+  avatar,
   show,
   name,
   description,
@@ -30,20 +31,23 @@ const ProfileBanner = ({
   setShowModal,
   showOptions,
   showStatus,
+  role,
   status,
   channelId,
   userId,
 }: {
+  user?: number | undefined;
   avatar?: string;
   show?: boolean;
-  name: string;
-  description: string;
+  name: string | undefined;
+  description: string | undefined;
   setSelectedUsers?: React.Dispatch<React.SetStateAction<number | undefined>>;
   showAddGroup?: boolean;
   className?: string;
   setShowModal?: React.Dispatch<React.SetStateAction<boolean>>;
   showOptions?: boolean;
   showStatus?: boolean;
+  role?: string;
   status?: string;
   channelId?: string;
   userId?: string;
@@ -64,10 +68,25 @@ const ProfileBanner = ({
     socket?.emit("set_admin", {userId, channelId});
   };
 
+  const unsetAdmin = () => {
+    socket?.emit("unset_admin", {userId, channelId});
+  };
+
   const banUser = () => {
     socket?.emit("ban_user", {userId, channelId});
   };
-  
+
+  const unbanUser = () => {
+    socket?.emit("unban_user", {userId, channelId});
+  };
+
+  const muteUser = () => {
+    socket?.emit("mute_user", {userId, channelId});
+  };
+
+  const unmuteUser = () => {
+    socket?.emit("unmute_user", {userId, channelId});
+  };
 
   useClickAway(ref, () => setShowMenu(false));
 
@@ -114,19 +133,19 @@ const ProfileBanner = ({
       )}
       {showStatus && (
         <div className="flex h-full flex-col items-end justify-end text-tertiary-200">
-          {status}
+          {role}
         </div>
       )}
       {showOptions && (
         <div className="flex items-center justify-end">
-          <Button
-            className=" !hover:bg-inherit !bg-inherit hover:animate-jump hover:animate-once hover:animate-ease-in"
-            onClick={() => {
-              setShowMenu(true);
-            }}
-          >
-            <SlOptionsVertical />
-          </Button>
+              <Button
+              className=" !hover:bg-inherit !bg-inherit hover:animate-jump hover:animate-once hover:animate-ease-in"
+              onClick={() => {
+                setShowMenu(true);
+              }}
+            >
+              <SlOptionsVertical />
+            </Button>
         </div>
       )}
       {showMenu && (
@@ -142,29 +161,42 @@ const ProfileBanner = ({
               <BsPersonAdd />
               Invite To Play
             </RightClickMenuItem>
-            <RightClickMenuItem
-              onClick={() => {
-                setAsAdmin();
-                setShowMenu(false);
-              }}
-            >
-              <MdOutlineAdminPanelSettings />
-              Make Group Admin
-            </RightClickMenuItem>
-            <RightClickMenuItem
-              onClick={() => {
-                banUser();
-                setShowMenu(false);
-              }}
-            >
-              <BiVolumeMute />
-              Mute
-            </RightClickMenuItem>
-            <RightClickMenuItem>
-              <TbBan />
-              Ban
-            </RightClickMenuItem>
+            {(role === "ADMIN" ||  role === "OWNER") &&
+            <Fragment>
+                      <RightClickMenuItem
+                      onClick={() => {
+                        setAsAdmin();
+                        setShowMenu(false);
+                      }}
+                      >
+                      <MdOutlineAdminPanelSettings />
+                      {role === "ADMIN" ? "Remove Admin" : "Set As Admin"}
+                    </RightClickMenuItem>
+                    <RightClickMenuItem
+                      onClick={() => {
+                        status === "MUTED" ? unmuteUser() : muteUser();
+                        console.log(status);
+                        setShowMenu(false);
+                      }}
+                    >
+                      <BiVolumeMute />
+                      {status === "MUTED" ? "Unmute" : "Mute"}
+                    </RightClickMenuItem>
+                    <RightClickMenuItem
+                      onClick={
+                        () => {
+                          status === "BANNED" ? unbanUser() : banUser();
+                          setShowMenu(false);
+                      }}
+                    >
+                      <TbBan />
+                      Ban
+                    </RightClickMenuItem>
+            </Fragment>
+            }
+
           </RightClickMenu>
+            
         </div>
       )}
     </div>

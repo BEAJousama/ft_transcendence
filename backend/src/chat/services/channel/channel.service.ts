@@ -416,81 +416,83 @@ export class ChannelService {
         return channelMember;
     }
 
-    async setAsAdmin(
-      ownerId: number,
-      channelId: number,
-      userId: number,
-        ): Promise<ChannelMember> {
-        let channelMember = await this.prisma.channelMember.updateMany({
-            where: {
-              userId,
-              channelId,
-              channel: 
-              {
-                // userId: ownerId,
-                channelMembers: {
-                  some: {
-                    userId: ownerId,
-                    // role: Role.OWNER || Role.ADMIN,
-                  },
-                },
-              }
-            },
-            data: {
-              role: Role.ADMIN,
-            },
-        });
+  async setAsAdmin(
+    ownerId: number,
+    userId: number,
+    channelId: number,
+      ): Promise<ChannelMember> {
 
-        if (channelMember.count == 0)
-        {
-          throw new Error('Cannot set user as admin : You are not Admin or Owner of the channel');
-        }
-
-        let member = await this.prisma.channelMember.findFirst({
-          where: {
-              userId,
-              channelId,
+      let owner = await this.prisma.channelMember.findUnique({
+        where: {
+          userId_channelId: {
+            userId: ownerId,
+            channelId,
           },
-        });
-        return member;
-    }
+        },
+      });
+      let chMem = await this.prisma.channelMember.findUnique({
+        where: {
+          userId_channelId: {
+            userId,
+            channelId,
+          },
+        },
+      });
+      let newRole : Role = (chMem.role === Role.ADMIN )? Role.MEMEBER : Role.ADMIN;
+      if (owner.role !== Role.OWNER)
+      {
+        throw new Error('Cannot set user as admin : You are not Owner of the channel');
+      }
+      let update = await this.prisma.channelMember.update({
+        where: {
+          userId_channelId: {
+            userId,
+            channelId,
+          },
+        },
+        data: {
+          role: newRole,
+        },
+      });
+      return chMem;
+  }
 
     async setAsOwner(
       ownerId: number,
       channelId: number,
       userId: number,
         ): Promise<ChannelMember> {
-          let channelMember = await this.prisma.channelMember.updateMany({
-            where: {
-              userId,
-              channelId,
-              channel: 
-              {
-                channelMembers: {
-                  some: {
-                    userId: ownerId,
-                    role: Role.OWNER || Role.ADMIN,
-                  },
-                },
-              }
+               let chMem = await this.prisma.channelMember.findFirst({
+        where: {
+            userId,
+            channelId,
+        },
+      });
+      let newRole : Role = (chMem.role === Role.OWNER )? Role.MEMEBER : Role.OWNER;
+      let channelMember = await this.prisma.channelMember.updateMany({
+        where: {
+          userId,
+          channelId,
+          channel: 
+          {
+            channelMembers: {
+              some: {
+                userId: ownerId,
+                role: Role.OWNER,
+              },
             },
-            data: {
-            role: Role.OWNER,
-            },
-        });
-
-        if (channelMember.count == 0)
-        {
-          throw new Error('Cannot set user as admin : You are not Admin or Owner of the channel');
-        }
-
-        let member = await this.prisma.channelMember.findFirst({
-          where: {
-              userId,
-              channelId,
-          },
-        });
-        return member;
+          }
+        },
+        data: {
+          role: newRole,
+        },
+      });
+      
+      if (channelMember.count == 0)
+      {
+        throw new Error('Cannot set user as admin : You are not Admin or Owner of the channel');
+      }
+      return chMem;
     }
 
   async pinChannel(
@@ -789,43 +791,127 @@ async unmuteChannel(
         return channels;
     }
 
-    async muteUser(
-        userId: number,
-        channelId: number,
-        ): Promise<ChannelMember> 
-        {
-        const channelMember = await this.prisma.channelMember.update({
-            where: {
+  async muteUser(
+      ownerId: number,
+      userId: number,
+      channelId: number,
+      ): Promise<number> 
+      {
+        let updated;
+        const chMem = await this.prisma.channelMember.findUnique({
+          where: {
             userId_channelId: {
+              userId: ownerId,
+              channelId,
+            },
+          },
+        });
+        if (chMem.role !== Role.OWNER && chMem.role !== Role.ADMIN) {
+          throw new Error("You are not authorized to mute a user");
+        }
+        else
+        {
+            updated = await this.prisma.channelMember.update({
+            where: {
+              userId_channelId: {
                 userId,
                 channelId,
-            },
+              },
             },
             data: {
               status: MemberStatus.MUTED,
             },
         });
-        return channelMember;
-    }
+        }
+      return updated.count;
+  }
 
-    async unmuteUser(
-        userId: number,
-        channelId: number,
-        ): Promise<ChannelMember> 
-        {
-        const channelMember = await this.prisma.channelMember.update({
-            where: {
+  async unmuteUser(
+      ownerId: number,
+      userId: number,
+      channelId: number,
+      ): Promise<number> 
+      {
+        let updated;
+        const chMem = await this.prisma.channelMember.findUnique({
+          where: {
             userId_channelId: {
+              userId: ownerId,
+              channelId,
+            },
+          },
+        });
+        if (chMem.role !== Role.OWNER && chMem.role !== Role.ADMIN) {
+          throw new Error("You are not authorized to mute a user");
+        }
+        else
+        {
+            updated = await this.prisma.channelMember.update({
+            where: {
+              userId_channelId: {
                 userId,
                 channelId,
-            },
+              },
             },
             data: {
               status: MemberStatus.ACTIVE,
             },
         });
-        return channelMember;
-    }
+        }
+      return updated.count;
+  }
+
+  async banUser(
+      ownerId: number,
+      userId: number,
+      channelId: number,
+      ): Promise<number> 
+      {
+      const channelMember = await this.prisma.channelMember.updateMany({
+          where: {
+            userId,
+            channelId,
+            channel: {
+              channelMembers: {
+                some: {
+                  userId: ownerId,
+                  role: Role.OWNER || Role.ADMIN,
+                },
+              },
+            },
+          },
+          data: {
+            status: MemberStatus.BANNED,
+          },
+      });
+      return channelMember.count;
+  }
+
+  async unbanUser(
+      ownerId: number,
+      userId: number,
+      channelId: number,
+      ): Promise<number> 
+      {
+      const channelMember = await this.prisma.channelMember.updateMany({
+          where: {
+            userId,
+            channelId,
+            channel: {
+              channelMembers: {
+                some: {
+                  userId: ownerId,
+                  role: Role.OWNER || Role.ADMIN,
+                },
+              },
+            },
+          },
+          data: {
+            status: MemberStatus.ACTIVE,
+          },
+      });
+      return channelMember.count;
+  }
 
     async getProtectedChannels(): Promise<Channel[]> {
         const channels = await this.prisma.channel.findMany({
@@ -834,44 +920,6 @@ async unmuteChannel(
           },
         });
         return channels;
-    }
-
-    async setAsMember(
-      ownerId: number,
-      channelId: number,
-      userId: number,
-        ): Promise<ChannelMember> {
-          let channelMember = await this.prisma.channelMember.updateMany({
-            where: {
-              userId,
-              channelId,
-              channel: 
-              {
-                channelMembers: {
-                  some: {
-                    userId: ownerId,
-                    role: Role.OWNER || Role.ADMIN,
-                  },
-                },
-              }
-            },
-            data: {
-            role: Role.MEMEBER,
-            },
-        });
-
-        if (channelMember.count == 0)
-        {
-          throw new Error('Cannot set user as admin : You are not Admin or Owner of the channel');
-        }
-
-        let member = await this.prisma.channelMember.findFirst({
-          where: {
-              userId,
-              channelId,
-          },
-        });
-        return member;
     }
 
     async getUndeleatedChannelMembers(

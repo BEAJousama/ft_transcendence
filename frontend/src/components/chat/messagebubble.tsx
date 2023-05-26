@@ -17,7 +17,7 @@ import ProfileBanner from "../profilebanner";
 import { SocketContext } from "../../context/socket.context";
 import { AppContext } from "../../context/app.context";
 
-const MessageBubble = ({ setOpen, currentChannel }: {setOpen: any, currentChannel: any}) => {
+const MessageBubble = ({ setOpen, currentChannel, channelMember }: {setOpen: any, currentChannel: any, channelMember: any}) => {
   const [value, setValue] = useState("");
   const [showPicker, setShowPicker] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -78,7 +78,7 @@ const MessageBubble = ({ setOpen, currentChannel }: {setOpen: any, currentChanne
       </Button>
 
       <div className="mb-16 flex h-screen flex-col justify-end gap-2 overflow-y-scroll scrollbar-hide">
-        {messages?.map((message, i) => {
+        {messages?.map((message) => {
           return <MessageBox
           key={message.id}
           message={message}
@@ -96,13 +96,15 @@ const MessageBubble = ({ setOpen, currentChannel }: {setOpen: any, currentChanne
           <BsEmojiSmileFill />
         </Button>
         <Input
-          placeholder="type something ?"
+          disabled={channelMember.status === "MUTED"}
+          placeholder={channelMember.status === "MUTED" ? "You are muted, you can't send messages!" : "type something"}
           value={value}
           onChange={(event) => {
             const { value } = event.target;
             setValue(value);
           }}
         />
+
         <Button
           variant="text"
           className="!hover:bg-inherit !bg-inherit text-primary-500"
@@ -178,30 +180,26 @@ const MessageBubble = ({ setOpen, currentChannel }: {setOpen: any, currentChanne
           <Divider />
           <div className="flex h-[300px] w-full flex-col items-center  justify-center gap-2 overflow-y-scroll pt-20 scrollbar-hide">
             {currentChannel.channelMembers.map((member : any) => {
-              return (
-                <ProfileBanner
-                  showOptions
-                  showStatus
-                  key={member.userId}
-                  status={member.role}
-                  channelId={currentChannel.id}
-                  userId={member.userId}
-                  name={member.user.username}
-                  avatar={member.user.avatar}
-                  description="Let's make sure we prepare well so we can have a great experience at Gitex Africa and in Marrakech."
-                  // onClick={
-                  //   () => {
-                  //     console.log(member);
-                  //   }
-                  // }
-                />
-              );
+                return (
+                  <ProfileBanner
+                    user={user?.id}
+                    showOptions
+                    showStatus
+                    key={member.userId}
+                    status={member.status}
+                    role={member.role}
+                    channelId={currentChannel.id}
+                    userId={member.userId}
+                    name={member.user.username}
+                    avatar={member.user.avatar}
+                    description={member.user.status}
+                  />
+                );
             })}
           </div>
           <Button
             className="w-full justify-center"
             onClick={() => {
-              console.log("left group");
               leaveGroup();
               setShowModal(false);
             }}

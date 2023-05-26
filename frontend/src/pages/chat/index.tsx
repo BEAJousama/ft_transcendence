@@ -10,23 +10,24 @@ export default function Chat() {
   let   isMatch = useMedia("(min-width:1024px)", false);
   const [currentChannel, setCurrentChannel] = useState<any>({});
   const [channelMember, setChannelMember] = useState<any>([]);
+  const { user } = useContext<any>(SocketContext);
   const socket = useContext(SocketContext);
 
 
   useEffect(() => {
-    socket?.emit('channel_member', {userId : 1, channelId : currentChannel.id });
+    socket?.emit('channel_member', {userId : user?.id, channelId : currentChannel.id });
     socket?.on('channel_member', (data: any) => {
+      console.log(data);
       setChannelMember(data);
     }
     );
-  }, [channelMember, socket]);
+    socket?.on('set_admin', (data: any) => {
+      setCurrentChannel(data);
+    }
+    );
+  }, [channelMember, socket, currentChannel]);
 
   //add logic to get current channel
-  socket?.on('set_admin', (data: any) => {
-    console.log(data);
-      setCurrentChannel(data);
-  }
-  );
 
   return (
     <div className="grid grid-cols-10 h -screen w-screen bg-secondary-500 overflow-hidden">
@@ -35,10 +36,11 @@ export default function Chat() {
         <ChannelList
           // className="col-span-8 "
           setCurrentChannel={setCurrentChannel}
+          setChannelMember={setChannelMember}
           setShowModal={setShowModal}
           />
         )}
-      {(open || isMatch) && <MessageBubble currentChannel={currentChannel} setOpen={setOpen} />}
+      {(open || isMatch) && <MessageBubble currentChannel={currentChannel} setOpen={setOpen} channelMember={channelMember}/>}
       {showModal && <CreateGroupModal setShowModal={setShowModal} />}
     </div>
   );

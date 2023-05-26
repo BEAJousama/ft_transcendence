@@ -4,9 +4,10 @@ import Channel from "./channel";
 import { SocketContext } from "../../context/socket.context";
 import { AppContext } from "../../context/app.context";
 import { AnyRecord } from "dns";
+import { channel } from "diagnostics_channel";
 
-const ChannelList = ({setShowModal, setCurrentChannel } : 
-  {setShowModal: any,  setCurrentChannel: any}) => {
+const ChannelList = ({setShowModal, setCurrentChannel, setChannelMember } : 
+  {setShowModal: any,  setCurrentChannel: any, setChannelMember: any}) => {
   
   const[channels, setChannels] = useState<any>([]);
   const socket = useContext(SocketContext);
@@ -53,13 +54,25 @@ const getNewChannel = async () => {
     }
 }
 
-
+const getChannelMember = (channelId: any) => {
+  try {
+    socket?.emit('channel_member', {userId : user?.id, channelId : channelId });
+    socket?.on('channel_member', (data: any) => {
+      console.log(data);
+      setChannelMember(data);
+    }
+    );
+  } catch (error) {
+    console.log(error);
+  }
+}
   return (
     <div className="lg:col-span-3 col-span-8 flex flex-col justify-start gap-4 py-2 w-full h-screen overflow-y-scroll scrollbar-hide">
       <ProfileBanner
+        avatar={user?.avatar}
         show={false}
-        name="hicham"
-        description="Online"
+        name={user?.username}
+        description={user?.status}
         showAddGroup={true}
         setShowModal={setShowModal}
       />
@@ -78,6 +91,7 @@ const getNewChannel = async () => {
             onClick={
               () => {
                 setCurrentChannel(channel);
+                getChannelMember(channel.id);
               }}
           />
         );
