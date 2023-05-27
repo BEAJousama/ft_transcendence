@@ -16,11 +16,9 @@ import { DmService } from './services/dm/dm.service';
 import { ChannelService } from './services/channel/channel.service';
 import { MessageService } from './services/message/message.service';
 import { ChannelDto, DmDto, MessageDto } from './dto';
-import { ChannelType, MemberStatus, Message, Visiblity } from '@prisma/client';
+import { MemberStatus } from '@prisma/client';
 import { UsersService } from 'src/users/users.service';
 import * as EVENT from  "./utils/"
-import { get } from 'http';
-import { parse } from 'path';
 
 
 @WebSocketGateway({ namespace: 'chat', cors: true, origins: 'http://127.0.0.1:3000' })
@@ -34,7 +32,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect  {
               private dmService: DmService,
               private channelService: ChannelService,
               private messageService: MessageService,
-              private jwtService: JwtService) 
+              private jwtService: JwtService,
+              private userService: UsersService,
+              )
+              
               {
                 // this.cookie = require('cookie');
               }
@@ -45,28 +46,41 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect  {
     try {
       
       await this.verifyClient(client);
-      if (!client.data)
-      {
-        // console.log("client not verified");
-        this.disconnect(client);
-      }
+      // if (!client.data)
+      // {
+      //   console.log("client not verified");
+      //   this.disconnect(client);
+      // }
+      // if (client.data.sub)
+      // user.status = UserStatus.ONLINE;
+      // this.userService.updateUser({id:});
       // else
       //   console.log("client verified");
       this.connectedClient.set(client.data.sub, client);
       await this.joinChannels(client);
       await this.sendChannelsToClient(client)
+
       // To do : Add events to handle the online status of friends
       // console.log("connected");
       // client.emit("ping", "pong");
       
     } catch (error) {
       this.disconnect(client, error)
+      //retutn ws exception
+      new WsException({
+        error: "connection",
+        message: error.message,
+      });
     }
   }
 
   async handleDisconnect(client: Socket) {
-    if (client.data.sub) 
-    this.connectedClient.delete(client.data.sub);
+    if (client.data.sub)
+    {
+      // this.userService.updateUserStatus(client.data.sub, UserStatus.OFFLINE);
+      this.connectedClient.delete(client.data.sub);
+    }
+
     //To do : add events to handle the online status of friends
   }
 
@@ -128,7 +142,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect  {
     try
     {
       const members = await this.channelService.getChannelMemberByUserIdAndChannelId(payload.userId, payload.channelId);
-      console.log(members);
       client.emit(EVENT.GET_CH_MEMBER, members);
     }
     catch (err)
@@ -139,8 +152,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect  {
       });
     }
   }
-  //create a new group channel
-  
+    
+
   @SubscribeMessage(EVENT.CHANNEL_CREATE)
   async createChannel(client: Socket, payload: ChannelDto) {
     // console.log(client.data);
@@ -295,11 +308,40 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect  {
   @SubscribeMessage(EVENT.BAN_FROM_CHANNEL)
   async banFromChannel(client: Socket, payload: any) {
     try {
-      const ru = await this.channelService.BanUserFromChannel(
+      const ru = await this.channelService.banUser(
         parseInt(client.data.sub),
-        parseInt(payload.channelId),
         parseInt(payload.userId),
+        parseInt(payload.channelId),
         );
+        const ch = await this.channelService.getChannelById(
+          parseInt(payload.channelId),
+          );
+        client.emit(EVENT.SET_ADMIN, ch);
+        const sockets = this.getConnectedUsers(client.data.sub);
+        sockets.forEach((s) => {
+          this.server.to(s.id).emit(EVENT.BAN_FROM_CHANNEL, ru)
+        });
+        this.sendChannels(client.data.sub);
+      } catch (err) {
+        throw new WsException({
+          error: EVENT.BAN_FROM_CHANNEL,
+          message: err.message,
+        });
+      }
+    }
+
+  @SubscribeMessage(EVENT.UNBAN_FROM_CHANNEL)
+  async UnbanFromChannel(client: Socket, payload: any) {
+    try {
+      const ru = await this.channelService.unbanUser(
+        parseInt(client.data.sub),
+        parseInt(payload.userId),
+        parseInt(payload.channelId),
+        );
+        const ch = await this.channelService.getChannelById(
+          parseInt(payload.channelId),
+          );
+        client.emit(EVENT.SET_ADMIN, ch);
         const sockets = this.getConnectedUsers(client.data.sub);
         sockets.forEach((s) => {
           this.server.to(s.id).emit(EVENT.BAN_FROM_CHANNEL, ru)
@@ -554,7 +596,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect  {
     {
       const data = await this.jwtService.verifyAsync(token, {secret: process.env.JWT_SECRET});
       client.data = data;
-      // console.log("client data", client.data);
+      // this.userService.updateUserStatus(client.data.sub, UserStatus.ONLINE);
+      client.emit("connecte_user", true);
       return data;
     }
     catch (err)

@@ -3,15 +3,13 @@ import ProfileBanner from "../profilebanner";
 import Channel from "./channel";
 import { SocketContext } from "../../context/socket.context";
 import { AppContext } from "../../context/app.context";
-import { AnyRecord } from "dns";
-import { channel } from "diagnostics_channel";
 
 const ChannelList = ({setShowModal, setCurrentChannel, setChannelMember } : 
   {setShowModal: any,  setCurrentChannel: any, setChannelMember: any}) => {
   
   const[channels, setChannels] = useState<any>([]);
   const socket = useContext(SocketContext);
-  const {user, ...data} = useContext(AppContext)
+  let {user, setUser} = useContext(AppContext)
   
   useEffect(() => {
     getuserChannels(user?.id);
@@ -20,6 +18,11 @@ const ChannelList = ({setShowModal, setCurrentChannel, setChannelMember } :
       setCurrentChannel(channels[0]);
       setChannels(channels);
     });
+    socket?.on("connect_user", (data: any) => {
+      setUser(data);
+    }
+    );
+    //eslint-disable-next-line
   }, [channels, socket]);
 
   const getuserChannels = async (id: any) => {
@@ -70,7 +73,6 @@ const getChannelMember = (channelId: any) => {
     <div className="lg:col-span-3 col-span-8 flex flex-col justify-start gap-4 py-2 w-full h-screen overflow-y-scroll scrollbar-hide">
       <ProfileBanner
         avatar={user?.avatar}
-        show={false}
         name={user?.username}
         description={user?.status}
         showAddGroup={true}

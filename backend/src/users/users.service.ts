@@ -4,7 +4,7 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { User } from '@prisma/client';
+import { User, UserStatus } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 import { PrismaService } from 'src/prisma/prisma.service';
 import {
@@ -82,6 +82,22 @@ export class UsersService {
       return users;
     } catch (error) {
       throw new NotFoundException(`no users found ? `);
+    }
+  }
+
+  async updateUserStatus(id: number, status: UserStatus) {
+    try {
+      const user = await this.prisma.user.update({
+        where: {
+          id,
+        },
+        data: {
+          status,
+        },
+      });
+      return user;
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to update user status');
     }
   }
 

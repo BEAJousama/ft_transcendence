@@ -16,6 +16,7 @@ import Divider from "../divider";
 import ProfileBanner from "../profilebanner";
 import { SocketContext } from "../../context/socket.context";
 import { AppContext } from "../../context/app.context";
+import { channel } from "diagnostics_channel";
 
 const MessageBubble = ({ setOpen, currentChannel, channelMember }: {setOpen: any, currentChannel: any, channelMember: any}) => {
   const [value, setValue] = useState("");
@@ -182,6 +183,7 @@ const MessageBubble = ({ setOpen, currentChannel, channelMember }: {setOpen: any
             {currentChannel.channelMembers.map((member : any) => {
                 return (
                   <ProfileBanner
+                    channelMember={channelMember}
                     user={user?.id}
                     showOptions
                     showStatus

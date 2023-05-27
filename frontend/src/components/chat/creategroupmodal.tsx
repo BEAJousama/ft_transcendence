@@ -1,4 +1,4 @@
-import React, {useContext, useState } from "react";
+import React, {Fragment, useContext, useEffect, useState } from "react";
 import {  Button, Card, Divider } from "../../components";
 import { MdGroupAdd } from "react-icons/md";
 import { BiArrowBack, BiRightArrowAlt } from "react-icons/bi";
@@ -16,10 +16,26 @@ const CreateGroupModal = ({
   const [groupName, setGroupName] = useState("");
   const [showSubmit, setShowSubmit] = useState(false);
   const  socket= useContext(SocketContext);
-  const [selectedUsers, setSelectedUsers] = useState<number>();
+  const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
+  const [allusers, setAllUsers] = useState<any[]>([]);
+  const token = localStorage.getItem("access_token");
+
+  useEffect(() => {
+    fetch("http://localhost:3000/api/users", {
+      method: 'GET',
+      headers: {
+          'Authorization': `Bearer ${token}`, // notice the Bearer before your token
+      }
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        setAllUsers(data);
+      }
+    );
+  }, [token]);
 
   function handleCreateGroup() {
-    socket?.emit("channel_create", { name: groupName ,avatar: "obeaj", visibility: "PUBLIC", members: [1, 2]});
+    socket?.emit("channel_create", { name: groupName ,avatar: "obeaj", visibility: "PUBLIC", members: selectedUsers});
     setShowModal(false);
   }
 
@@ -64,7 +80,7 @@ const CreateGroupModal = ({
               const { value } = e.target;
               setShowSubmit(false);
               setGroupName(value);
-              if (value != "") setShowSubmit(true);
+              if (value !== "") setShowSubmit(true);
             }}
           />
         ) : (
@@ -81,21 +97,37 @@ const CreateGroupModal = ({
           </Button>
         )}
         <span className="w-full">Users</span>
-
-        <div className="w-full h-[300px] flex items-center justify-center flex-col gap-2 pt-20 overflow-y-scroll scrollbar-hide">
-          {new Array(16).fill(0).map((_, i) => {
+        <div className="w-full h[auto] flex items-center justify-center flex-col align-middle gap-2 pt-20 overflow-y-scroll scrollbar-hide">
+          {allusers.map((user) => {
             return (
+              <div key={user.id} className="flex flex-row items-center justify-between w-full">
               <ProfileBanner
-                key={i}
-                avatar={`https://randomuser.me/api/portraits/women/${i}.jpg`}
-                show={show}
-                name="hatim"
-                description="something ? "
-                setSelectedUsers={() => {}}
-              />
+                key={user.id}
+                avatar={user.avatar}
+                name={user.username}
+                description={user.status}
+                />
+              {show && (
+                  <div className="w-8">
+                  <input
+                    type="checkbox"
+                    className="h-5 w-5"
+                    onClick={() => {
+                    }}
+                    onChange={() => {
+                      !selectedUsers.includes(user.id) ?
+                        setSelectedUsers([...selectedUsers, user.id]) :
+                        setSelectedUsers(selectedUsers.filter((id) => id !== user.id));
+                    }}
+                    />
+                    </div>
+                    
+                    )}
+                </div>
             );
           })}
         </div>
+        
         {showSubmit && (
           <>
             <Divider />

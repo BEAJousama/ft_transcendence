@@ -20,12 +20,11 @@ import { SocketContext } from "../../context/socket.context";
 import { stat } from "fs";
 
 const ProfileBanner = ({
+  channelMember,
   user,
   avatar,
-  show,
   name,
   description,
-  setSelectedUsers,
   showAddGroup,
   className,
   setShowModal,
@@ -36,12 +35,11 @@ const ProfileBanner = ({
   channelId,
   userId,
 }: {
+  channelMember?: any;
   user?: number | undefined;
   avatar?: string;
-  show?: boolean;
   name: string | undefined;
   description: string | undefined;
-  setSelectedUsers?: React.Dispatch<React.SetStateAction<number | undefined>>;
   showAddGroup?: boolean;
   className?: string;
   setShowModal?: React.Dispatch<React.SetStateAction<boolean>>;
@@ -52,10 +50,9 @@ const ProfileBanner = ({
   channelId?: string;
   userId?: string;
 }) => {
-  const [isChecked, setIsChecked] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const ref = useRef(null);
-  const socket = useContext(SocketContext);  
+  const socket = useContext(SocketContext);
 
 /* TODO: I wanna see immediate changes in the UI when I click on the button to setAsAdmin
      its not working, I have to refresh the page to see the changes
@@ -107,18 +104,6 @@ const ProfileBanner = ({
         <span className="text-white">{name}</span>
         <span className="text-secondary-300 ">{description}</span>
       </div>
-      {show && (
-        <div className="w-10">
-          <input
-            type="checkbox"
-            className="h-5 w-5"
-            onClick={() => {
-              setIsChecked(!isChecked);
-            }}
-            onChange={() => {}}
-          />
-        </div>
-      )}
       {showAddGroup && (
         <div className="flex items-center justify-end">
           <Button
@@ -138,6 +123,8 @@ const ProfileBanner = ({
       )}
       {showOptions && (
         <div className="flex items-center justify-end">
+          {
+            userId !== user && 
               <Button
               className=" !hover:bg-inherit !bg-inherit hover:animate-jump hover:animate-once hover:animate-ease-in"
               onClick={() => {
@@ -146,6 +133,7 @@ const ProfileBanner = ({
             >
               <SlOptionsVertical />
             </Button>
+          }
         </div>
       )}
       {showMenu && (
@@ -161,7 +149,7 @@ const ProfileBanner = ({
               <BsPersonAdd />
               Invite To Play
             </RightClickMenuItem>
-            {(role === "ADMIN" ||  role === "OWNER") &&
+            {((channelMember.role === "ADMIN" || channelMember.role === "OWNER") && role != "OWNER") &&
             <Fragment>
                       <RightClickMenuItem
                       onClick={() => {
@@ -190,7 +178,7 @@ const ProfileBanner = ({
                       }}
                     >
                       <TbBan />
-                      Ban
+                      {status === "BANNED" ? "Unban" : "Ban"}
                     </RightClickMenuItem>
             </Fragment>
             }

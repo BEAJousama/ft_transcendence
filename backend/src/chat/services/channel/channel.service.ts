@@ -30,7 +30,6 @@ export class ChannelService {
           {
               archivedFor: true,
               mutedFor: true,
-              bannedFor: true,
               pinnedFor: true,
               channelMembers:
               {
@@ -345,6 +344,8 @@ export class ChannelService {
         channelId: number,
         banDuration: number,
         ): Promise<void> {
+        
+        
         await this.prisma.channelMember.update({
           where: {
             userId_channelId: {
@@ -867,24 +868,78 @@ async unmuteChannel(
       channelId: number,
       ): Promise<number> 
       {
-      const channelMember = await this.prisma.channelMember.updateMany({
+        try
+        {
+        let updated;
+        const chMem = await this.prisma.channelMember.findUnique({
           where: {
-            userId,
-            channelId,
-            channel: {
-              channelMembers: {
-                some: {
-                  userId: ownerId,
-                  role: Role.OWNER || Role.ADMIN,
+            userId_channelId: {
+              userId: ownerId,
+              channelId,
+            },
+          },
+        });
+        if (chMem.role !== Role.OWNER && chMem.role !== Role.ADMIN) {
+          throw new Error("You are not authorized to ban a user");
+        }
+        else
+        {
+          updated = await this.prisma.channelMember.update({
+            where: {
+              userId_channelId: {
+                userId,
+                channelId,
+              },
+            },
+            data: {
+              status: MemberStatus.BANNED,
+            },
+          });
+        }
+        // add userId to bannedFor
+        const channel = await this.prisma.channel.update({
+          where: {
+            id: channelId,
+          },
+          data: {
+            channelMembers: {
+              disconnect: {
+                userId_channelId :
+                {
+                  userId:chMem.userId,
+                  channelId:chMem.channelId,
                 },
               },
             },
+            bannedUsers: {
+              connect: {
+                id: userId,
+              },
+            },
           },
-          data: {
-            status: MemberStatus.BANNED,
+        });
+        console.log("banUser");
+        const ch = await this.prisma.channel.findUnique({
+          where: {
+            id: channelId,
           },
-      });
-      return channelMember.count;
+          include: {
+            channelMembers: true,
+            bannedUsers: true,
+          },
+        });
+        console.log(ch);
+        return updated.count;
+      }
+      catch (error) {
+        console.log(error);
+        throw new Error(error.message);
+      }
+
+
+        // remove channelMember from channelMembers of the channel
+
+  
   }
 
   async unbanUser(
@@ -893,24 +948,33 @@ async unmuteChannel(
       channelId: number,
       ): Promise<number> 
       {
-      const channelMember = await this.prisma.channelMember.updateMany({
+        let updated;
+        const chMem = await this.prisma.channelMember.findUnique({
           where: {
-            userId,
-            channelId,
-            channel: {
-              channelMembers: {
-                some: {
-                  userId: ownerId,
-                  role: Role.OWNER || Role.ADMIN,
-                },
-              },
+            userId_channelId: {
+              userId: ownerId,
+              channelId,
             },
           },
-          data: {
-            status: MemberStatus.ACTIVE,
-          },
-      });
-      return channelMember.count;
+        });
+        if (chMem.role !== Role.OWNER && chMem.role !== Role.ADMIN) {
+          throw new Error("You are not authorized to ban a user");
+        }
+        else
+        {
+            updated = await this.prisma.channelMember.update({
+            where: {
+              userId_channelId: {
+                userId,
+                channelId,
+              },
+            },
+            data: {
+              status: MemberStatus.LEFT,
+            },
+        });
+        }
+      return updated.count;
   }
 
     async getProtectedChannels(): Promise<Channel[]> {
