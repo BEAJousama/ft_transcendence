@@ -10,6 +10,8 @@ import Settings from "./pages/settings";
 import Pong from "./pages/pong";
 import FourOhFour from "./pages/404";
 import { Spinner } from "./components";
+import Profile from "./pages/profile";
+import Search from "./pages/search";
 
 
 const PrivateRoutes = () => {
@@ -38,7 +40,10 @@ function App() {
           <Route path="/pong" element={<Pong />} />
           <Route path="/chat" element={<Chat />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/search" element={<Search />} />
           <Route path="/tfa" element={<TwoFactorAuth />} />
+          <Route path="/profile/" element={<Profile />} />
+          <Route path="/profile/:id" element={<Profile />} />
         </Route>
         <Route path="*" element={<FourOhFour />} />
         <Route path="/login" element={<Login />} />

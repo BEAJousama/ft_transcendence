@@ -14,6 +14,7 @@ import Picker from "@emoji-mart/react";
 import { RiCloseFill } from "react-icons/ri";
 import Divider from "../divider";
 import ProfileBanner from "../profilebanner";
+import AvatarGroup from "../avatarGroup";
 
 const MessageBubble = ({ setOpen }: any) => {
   const [value, setValue] = useState("");
@@ -37,6 +38,7 @@ const MessageBubble = ({ setOpen }: any) => {
           setShowModal(true);
         }}
       >
+
         <Avatar src="https://www.github.com/Hicham-BelHoucin.png" alt="" />
         <div>Hicham Bel Houcin</div>
         <Button
@@ -153,7 +155,7 @@ const MessageBubble = ({ setOpen }: any) => {
                   name="User Name"
                   avatar={`https://randomuser.me/api/portraits/women/${i}.jpg`}
                   description="Let's make sure we prepare well so we can have a great experience at Gitex Africa and in Marrakech."
-                  // onClick={onClick}
+                // onClick={onClick}
                 />
               );
             })}
