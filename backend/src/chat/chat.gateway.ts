@@ -156,7 +156,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect  {
 
   @SubscribeMessage(EVENT.CHANNEL_CREATE)
   async createChannel(client: Socket, payload: ChannelDto) {
-    // console.log(client.data);
+    console.log(payload);
     // this.validatePayload(payload);
     try {
       const channel = await this.channelService.makeChannel(client.data.sub, payload);

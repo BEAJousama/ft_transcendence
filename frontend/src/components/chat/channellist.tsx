@@ -10,7 +10,7 @@ const ChannelList = ({setShowModal, setCurrentChannel, setChannelMember } :
   const[channels, setChannels] = useState<any>([]);
   const socket = useContext(SocketContext);
   let {user, setUser} = useContext(AppContext)
-  
+  let pinnedChannels;
   useEffect(() => {
     getuserChannels(user?.id);
     getNewChannel();
@@ -78,7 +78,8 @@ const getChannelMember = (channelId: any) => {
         showAddGroup={true}
         setShowModal={setShowModal}
       />
-      {channels.map((channel: any) => {
+      {
+        channels.map((channel: any) => {
         return (
           <Channel
             key={channel.id}

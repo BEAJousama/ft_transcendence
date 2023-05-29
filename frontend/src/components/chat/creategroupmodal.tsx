@@ -6,6 +6,7 @@ import Input from "../../components/input";
 import { RiCloseFill } from "react-icons/ri";
 import ProfileBanner from "../../components/profilebanner";
 import { SocketContext } from "../../context/socket.context";
+import Select from "../select";
 
 const CreateGroupModal = ({
   setShowModal,
@@ -17,7 +18,9 @@ const CreateGroupModal = ({
   const [showSubmit, setShowSubmit] = useState(false);
   const  socket= useContext(SocketContext);
   const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
+  const [visibility, setVisibility] = useState<string>("PUBLIC");
   const [allusers, setAllUsers] = useState<any[]>([]);
+  const [password, setPassword] = useState<string>("");
   const token = localStorage.getItem("access_token");
 
   useEffect(() => {
@@ -35,7 +38,8 @@ const CreateGroupModal = ({
   }, [token]);
 
   function handleCreateGroup() {
-    socket?.emit("channel_create", { name: groupName ,avatar: "obeaj", visibility: "PUBLIC", members: selectedUsers});
+    console.log("password: ", password);
+    socket?.emit("channel_create", { name: groupName ,avatar: "obeaj", visibility: visibility, members: selectedUsers, password: password});
     setShowModal(false);
   }
 
@@ -73,6 +77,7 @@ const CreateGroupModal = ({
         </div>
         <Divider />
         {show ? (
+          <>
           <Input
             placeholder="Group Chat Name (required)"
             value={groupName}
@@ -83,7 +88,29 @@ const CreateGroupModal = ({
               if (value !== "") setShowSubmit(true);
             }}
           />
+          <Select label= "Visibility" setVisibility={setVisibility} options={["PUBLIC", "PRIVATE", "PROTECTED"]} />
+          {
+            (visibility === "PROTECTED" ||  visibility === "PRIVATE") && (
+              <>
+              <span className="w-full mb-2 text-sm font-medium text-gray-900 dark:text-white">Enter password: </span>
+              <Input
+                label="Password"
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => {
+                  const { value } = e.target;
+                  setPassword(value);
+                  setShowSubmit(false);
+                  if (value !== "") setShowSubmit(true);
+                }}
+              />
+              </>
+            )
+          }
+          </>
         ) : (
+          <>
           <Button
             variant="text"
             className="w-full justify-around"
@@ -95,38 +122,50 @@ const CreateGroupModal = ({
             New Group Chat
             <BiRightArrowAlt />
           </Button>
+          <Button
+            variant="text"
+            className="w-full justify-around"
+            onClick={() => {
+              setShow(true);
+            }}
+            >
+            <MdGroupAdd />
+            Send Message
+            <BiRightArrowAlt />
+          </Button>
+            </>
         )}
-        <span className="w-full">Users</span>
-        <div className="w-full h[auto] flex items-center justify-center flex-col align-middle gap-2 pt-20 overflow-y-scroll scrollbar-hide">
-          {allusers.map((user) => {
-            return (
-              <div key={user.id} className="flex flex-row items-center justify-between w-full">
-              <ProfileBanner
-                key={user.id}
-                avatar={user.avatar}
-                name={user.username}
-                description={user.status}
-                />
-              {show && (
-                  <div className="w-8">
-                  <input
-                    type="checkbox"
-                    className="h-5 w-5"
-                    onClick={() => {
-                    }}
-                    onChange={() => {
-                      !selectedUsers.includes(user.id) ?
-                        setSelectedUsers([...selectedUsers, user.id]) :
-                        setSelectedUsers(selectedUsers.filter((id) => id !== user.id));
-                    }}
+        {
+          show && (
+          <div className="w-full h[100px] flex items-center justify-center flex-col align-middle gap-2 pt-20 overflow-y-scroll scrollbar-hide">
+            <span className="w-full mb-2 text-sm font-medium text-gray-900 dark:text-white">Select users: </span>
+            {allusers.map((user) => {
+              return (
+                <div key={user.id} className="flex flex-row items-center justify-between w-full">
+                    <ProfileBanner
+                      key={user.id}
+                      avatar={user.avatar}
+                      name={user.username}
+                      description={user.status}
                     />
+                    <div className="w-8">
+                      <input
+                        type="checkbox"
+                        className="h-5 w-5"
+                        onClick={() => {
+                        }}
+                        onChange={() => {
+                          !selectedUsers.includes(user.id) ?
+                            setSelectedUsers([...selectedUsers, user.id]) :
+                            setSelectedUsers(selectedUsers.filter((id) => id !== user.id));
+                          }}
+                      />
                     </div>
-                    
-                    )}
-                </div>
-            );
-          })}
-        </div>
+                  </div>
+              );
+            })}
+          </div>
+          )}
         
         {showSubmit && (
           <>

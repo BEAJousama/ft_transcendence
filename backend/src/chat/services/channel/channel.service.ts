@@ -99,10 +99,12 @@ export class ChannelService {
     try {
       const ch = await this.getChannelByName(channelData.name);
       if (ch)
-        throw new Error(`Channel ${ch.name} already exists`);
+      throw new Error(`Channel ${ch.name} already exists`);
       if (channelData.visibility === Visiblity.PROTECTED)
       {
+        console.log("hashPassword")
         hashPassword = await this.hashPassword(channelData.password);
+        console.log(hashPassword);
       }
       const channelMembers = channelData.members.map((memberId: number) => {
         return {
@@ -144,6 +146,7 @@ export class ChannelService {
       return channel;
     } 
     catch (error) {
+      console.log(error);
       throw new Error(error.message);
     }
   }
@@ -219,8 +222,15 @@ export class ChannelService {
     }
 
     private async hashPassword(password: string): Promise<string> {
-        const passwordHash = await bcrypt.hash(password, 20);
+      try {
+        const passwordHash =  await bcrypt.hash(password, 5).then((hash) => {
+          return hash;
+        })
         return passwordHash;
+      } catch (error) {
+        console.log(error);
+        throw new Error(error.message);
+      }
     }
 
     private async verifyPassword(
@@ -902,15 +912,6 @@ async unmuteChannel(
             id: channelId,
           },
           data: {
-            channelMembers: {
-              disconnect: {
-                userId_channelId :
-                {
-                  userId:chMem.userId,
-                  channelId:chMem.channelId,
-                },
-              },
-            },
             bannedUsers: {
               connect: {
                 id: userId,
@@ -918,28 +919,12 @@ async unmuteChannel(
             },
           },
         });
-        console.log("banUser");
-        const ch = await this.prisma.channel.findUnique({
-          where: {
-            id: channelId,
-          },
-          include: {
-            channelMembers: true,
-            bannedUsers: true,
-          },
-        });
-        console.log(ch);
         return updated.count;
       }
       catch (error) {
         console.log(error);
         throw new Error(error.message);
       }
-
-
-        // remove channelMember from channelMembers of the channel
-
-  
   }
 
   async unbanUser(
