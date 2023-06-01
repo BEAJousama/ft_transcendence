@@ -29,7 +29,7 @@ const MessageBox = ({ right }: { right?: boolean }) => {
         right && "items-end",
         !right && "items-start"
       )}
-      ref={ref}
+
       onContextMenu={handleContextMenu}
     >
       <div
@@ -39,7 +39,7 @@ const MessageBox = ({ right }: { right?: boolean }) => {
           !right && "bg-secondary-400"
         )}
       >
-        <div>
+        <div ref={ref}>
           Let's make sure we prepare well so we can have a great experience at
           Gitex Africa and in Marrakech.
         </div>

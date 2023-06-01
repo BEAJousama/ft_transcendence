@@ -16,10 +16,6 @@ import ReactFlagsSelect from "react-flags-select";
 import { useFormik } from "formik";
 import Modal from "../../components/modal";
 
-
-
-
-
 export default function Settings() {
   const { user, fetchUser } = useContext(AppContext);
   const ref = useRef<HTMLInputElement>(null);
@@ -63,7 +59,6 @@ export default function Settings() {
     }
   };
 
-
   useEffect(() => {
     (async () => {
       try {
@@ -81,11 +76,18 @@ export default function Settings() {
     })();
   }, []);
 
+  /*
+  
+  <div className="grid h-screen w-screen grid-cols-10 bg-secondary-500">
+              <Sidepanel className="col-span-2 2xl:col-span-1" />
+              <div className="col-span-8 flex h-screen flex-col items-center gap-4 overflow-y-scroll  px-4 py-16 scrollbar-hide md:gap-8">
+  */
+
   return (
-    <div className="relative grid h-screen grid-cols-5 overflow-hidden bg-secondary-500 lg:grid-cols-10">
-      <Sidepanel className="col-span-1 lg:col-span-2 xl:col-span-1" />
-      <div className="col-span-4 flex h-full w-full flex-col items-center justify-start overflow-y-auto px-2 pt-8 scrollbar-hide lg:col-span-8 xl:col-span-9">
-        <div className="w-full md:flex  md:flex-col md:items-center md:justify-center 2xl:w-[65%]">
+    <div className="relative grid h-screen grid-cols-10 overflow-hidden bg-secondary-500">
+      <Sidepanel className="col-span-2 2xl:col-span-1" />
+      <div className="col-span-8 flex h-full w-full flex-col items-center justify-start overflow-y-auto px-2 pt-8 scrollbar-hide 2xl:col-span-9">
+        <div className="w-full max-w-[1024px]  md:flex md:flex-col md:items-center md:justify-center 2xl:w-[65%]">
           <div className="flex w-full items-center gap-2 p-2 text-lg text-white md:gap-4 md:text-2xl">
             <MdSettings />
             Account Settings
@@ -131,22 +133,36 @@ export default function Settings() {
             {showmodal && (
               <Modal className="!w-[50%] !max-w-md">
                 <MdDelete className="text-9xl" />
-                <span className="text-2xl max-w-xs text-center">Are you sure you want to delete your account</span>
-                <Button type="danger" onClick={async () => {
-                  const accessToken = window.localStorage.getItem("access_token");
-                  const response = await axios.delete(
-                    `${process.env.REACT_APP_BACK_END_URL}api/users/${user?.id}`,
-                    {
-                      headers: {
-                        Authorization: `Bearer ${accessToken}`,
-                      },
-                    }
-                  );
-                  window.location.reload();
-                }}>Yes, Delete</Button>
-                <Button variant="text" className="!bg-inherit !hover:bg-inherit text-primary-500" onClick={() => {
-                  setShowmodal(false)
-                }}>Keep Account</Button>
+                <span className="max-w-xs text-center text-2xl">
+                  Are you sure you want to delete your account
+                </span>
+                <Button
+                  type="danger"
+                  onClick={async () => {
+                    const accessToken =
+                      window.localStorage.getItem("access_token");
+                    const response = await axios.delete(
+                      `${process.env.REACT_APP_BACK_END_URL}api/users/${user?.id}`,
+                      {
+                        headers: {
+                          Authorization: `Bearer ${accessToken}`,
+                        },
+                      }
+                    );
+                    window.location.reload();
+                  }}
+                >
+                  Yes, Delete
+                </Button>
+                <Button
+                  variant="text"
+                  className="!hover:bg-inherit !bg-inherit text-primary-500"
+                  onClick={() => {
+                    setShowmodal(false);
+                  }}
+                >
+                  Keep Account
+                </Button>
               </Modal>
             )}
             <div className="flex w-full flex-col items-center justify-center gap-4 p-4 text-quaternary-200">
@@ -251,6 +267,34 @@ export default function Settings() {
                   <ReactFlagsSelect
                     className="!m-0 w-full rounded-md border-2 border-quaternary-200 !p-0 font-semibold text-black"
                     searchable
+                    countries={[
+                      "US",
+                      "TR",
+                      "TH",
+                      "SG",
+                      "RU",
+                      "PT",
+                      "NL",
+                      "MY",
+                      "MA",
+                      "LU",
+                      "KR",
+                      "JP",
+                      "IT",
+                      "JO",
+                      "GB",
+                      "FR",
+                      "FI",
+                      "ES",
+                      "DE",
+                      "CZ",
+                      "CH",
+                      "BE",
+                      "AU",
+                      "AT",
+                      "AE",
+                      "AM",
+                    ]}
                     selected={formik.values.country || "MA"}
                     onSelect={(code) => {
                       formik.setFieldValue("country", code);
@@ -268,37 +312,47 @@ export default function Settings() {
                 />
               </div>
               <div className="flex w-full max-w-md items-center justify-center gap-4">
-                <Button className="w-full justify-center" onClick={async () => {
-                  try {
-                    const accessToken = window.localStorage.getItem("access_token");
-                    const response = await axios.post(
-                      `${process.env.REACT_APP_BACK_END_URL}api/users/${user?.id}`,
-                      {
-                        user: {
-                          ...user,
-                          username: formik.values.username,
-                          email: formik.values.email,
-                          phone: formik.values.phone,
-                          country: formik.values.country,
-                          avatar: previewImage,
-                        }
-                      },
-                      {
-                        headers: {
-                          Authorization: `Bearer ${accessToken}`,
+                <Button
+                  className="w-full justify-center"
+                  onClick={async () => {
+                    try {
+                      const accessToken =
+                        window.localStorage.getItem("access_token");
+                      const response = await axios.post(
+                        `${process.env.REACT_APP_BACK_END_URL}api/users/${user?.id}`,
+                        {
+                          user: {
+                            ...user,
+                            username: formik.values.username,
+                            email: formik.values.email,
+                            phone: formik.values.phone,
+                            country: formik.values.country,
+                            avatar: previewImage,
+                          },
                         },
-                      }
-                    );
-                    // Handle the response from the API
-                    console.log("User updated successfully!");
-                    // Fetch the updated user data
-                    fetchUser();
-                  } catch (error) {
-                    // Handle any errors that occur during the update process
-                    console.error("Error updating user:", error);
-                  }
-                }}>Save</Button>
-                <Button className="w-full justify-center" variant="text" onClick={formik.handleReset}>
+                        {
+                          headers: {
+                            Authorization: `Bearer ${accessToken}`,
+                          },
+                        }
+                      );
+                      // Handle the response from the API
+                      console.log("User updated successfully!");
+                      // Fetch the updated user data
+                      fetchUser();
+                    } catch (error) {
+                      // Handle any errors that occur during the update process
+                      console.error("Error updating user:", error);
+                    }
+                  }}
+                >
+                  Save
+                </Button>
+                <Button
+                  className="w-full justify-center"
+                  variant="text"
+                  onClick={formik.handleReset}
+                >
                   Cancel
                 </Button>
               </div>
@@ -322,4 +376,3 @@ export default function Settings() {
     </div>
   );
 }
-

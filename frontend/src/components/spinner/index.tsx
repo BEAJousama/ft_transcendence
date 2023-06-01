@@ -1,6 +1,10 @@
-const Spinner = () => {
+import clsx from "clsx";
+
+const Spinner = ({ className }: {
+  className?: string;
+}) => {
   return (
-    <div className="animation-fade fixed left-0 top-0 flex h-screen w-screen items-center justify-center animate-duration-500">
+    <div className={clsx("animation-fade fixed left-0 top-0 flex h-screen w-screen items-center justify-center animate-duration-500", className && className)}>
       <div role="status">
         <svg
           aria-hidden="true"
