@@ -40,7 +40,7 @@ const Game = () => {
   );
 };
 
-const Test = ({
+const UserBanner = ({
   showRank,
   rank,
   showRating,
@@ -55,7 +55,7 @@ const Test = ({
   return (
     <div className="my-3 flex h-12 w-full items-center justify-between rounded-full bg-tertiary-500">
       <Avatar
-        src={`https://randomuser.me/api/portraits/women/${rank || 25}.jpg`}
+        src={user?.avatar || `https://randomuser.me/api/portraits/women/${rank || 25}.jpg`}
         className="h-16 w-16"
         alt=""
       />
@@ -99,7 +99,7 @@ const Test = ({
           (isMatch || !showRating) && "hidden"
         )}
       >
-        3,785
+        {user?.rating}
         <img src="/img/smalllogo.svg" alt="logo" width={20} />
       </div>
     </div>
@@ -139,7 +139,7 @@ export default function Home() {
   return (
     <div className="grid h-screen w-screen grid-cols-10 bg-secondary-500">
       <Sidepanel className="col-span-2 2xl:col-span-1" />
-      <div className="col-span-8 flex h-screen flex-col items-center gap-10 overflow-y-scroll px-4 py-16 scrollbar-hide 2xl:col-span-9 2xl:grid 2xl:grid-cols-2 2xl:place-items-center">
+      <div className="col-span-8 flex h-screen flex-col items-center gap-10 overflow-y-scroll px-4 py-16 scrollbar-hide 2xl:col-span-9 2xl:grid 2xl:grid-cols-3 2xl:place-items-center">
         <div className="flex h-[500px] w-[88%] max-w-[800px] flex-wrap items-center justify-center gap-4 rounded border-2 border-secondary-400 p-4 md:h-[200px] md:flex-nowrap">
           <Avatar
             src={user?.avatar || ""}
@@ -174,13 +174,13 @@ export default function Home() {
         </div>
         <Container title="Leader Board" icon="/img/3dMedal.svg">
           {new Array(25).fill(0).map((_, i) => {
-            return <Test key={i} rank={i + 1} showRank showRating user={user} />;
+            return <UserBanner key={i} rank={i + 1} showRank showRating user={user} />;
           })}
         </Container>
         <Container title="FRIEND LIST" icon="/img/friendlist.svg">
           {new Array(25).fill(0).map((_, i) => {
             return (
-              <Test
+              <UserBanner
                 key={i}
                 rank={i + 1}
                 showRating
@@ -195,7 +195,19 @@ export default function Home() {
             return <Game key={i} />;
           })}
         </Container>
+        <Container title="MATCH HISTORY" icon="/img/history.svg">
+          {new Array(25).fill(0).map((_, i) => {
+            return <Game key={i} />;
+          })}
+        </Container>
+        <Container title="POPULAR ROOMS" icon="/img/3dchat.svg">
+          {new Array(25).fill(0).map((_, i) => {
+            return <Game key={i} />;
+          })}
+        </Container>
       </div>
     </div>
   );
 }
+
+export { UserBanner };

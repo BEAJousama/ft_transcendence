@@ -48,7 +48,9 @@ const ListItem = ({
   );
 };
 
-const Sidepanel = ({ className }: any) => {
+const Sidepanel = ({ className }: {
+  className?: string;
+}) => {
   const path = useLocation().pathname;
 
   return (
@@ -82,7 +84,7 @@ const Sidepanel = ({ className }: any) => {
           </ListItem>
         </Link>
         <Link to="/search">
-          <ListItem selected={path === "/seacrh"}>
+          <ListItem selected={path === "/search"}>
             <BiSearch />
             <span className="hidden md:block">Search</span>
           </ListItem>

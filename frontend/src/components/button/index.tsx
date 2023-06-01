@@ -40,7 +40,7 @@ const Button = ({
             className={`
               ${variant === "contained"
                 ? `bg-primary-400 hover:bg-primary-700 text-white font-bold
-                py-2 px-4 rounded flex items-center gap-4 hover:shadow-sm hover:shadow-primary-800`
+                py-2 px-4 rounded flex items-center gap-4 hover:shadow-sm `
                 : variant === "outlined"
                   ? `bg-white hover:bg-gray-200 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded flex items-center gap-4  shadow`
                   : `bg-white hover:bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded flex items-center gap-4 `
