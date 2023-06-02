@@ -116,7 +116,7 @@ export class UsersController {
   @AddFriendsDoc()
   async addFriend(@Body() body: AddFriendsDto) {
     try {
-      console.log(body);
+      // console.log(body);
       const friendRequest = await this.usersService.sendFriendRequest(body);
       if (!friendRequest) throw 'No Matches Found !!!!!';
       return friendRequest;
@@ -177,9 +177,9 @@ export class UsersController {
 
   @Post(':id')
   @UpdateDoc()
-  async updateOne(@Body() body: UpdateUserDto) {
+  async updateOne(@Body() body: UpdateUserDto, @Param('id') id: string) {
     try {
-      return this.usersService.updateUser(body);
+      return this.usersService.updateUser(body, parseInt(id));
     } catch (error) {
       return error;
     }
