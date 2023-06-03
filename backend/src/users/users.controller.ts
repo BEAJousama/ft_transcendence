@@ -43,6 +43,33 @@ export class UsersController {
     }
   }
 
+  @Get('achievements')
+  @FindAllDoc()
+  async getAllAchievements() {
+    try {
+      return await this.usersService.getAllAchievements();
+    } catch (error) {
+      return null;
+    }
+  }
+
+  @Post('achievements')
+  @FindAllDoc()
+  async assignAchievements(
+    @Body() body: { userId: number; achievementId: number },
+  ) {
+    try {
+      return await this.usersService.assignAchievements(
+        body.userId,
+        body.achievementId,
+      );
+    } catch (error) {
+      return {
+        message: 'Could not Assign the achievement',
+      };
+    }
+  }
+
   @Get(':id')
   @FindOneDoc()
   async findOne(@Param('id') id: string) {

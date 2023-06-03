@@ -1,31 +1,10 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
-
-
-
-export type User = {
-  id: number
-  login: string
-  username: string
-  email: string
-  fullname: string
-  country: string
-  phone: string
-  avatar: string
-  twoFactorAuth: boolean
-  tfaSecret: string
-  status: string
-  ladder: string
-  rating: number
-  createdAt: Date
-  updatedAt: Date
-  wins: number
-  losses: number
-}
+import IUser from "../interfaces/user";
 
 export interface IAppContext {
-  user: User | undefined;
-  setUser: (user: User) => void;
+  user: IUser | undefined;
+  setUser: (user: IUser) => void;
   logout: () => void;
   login: () => void;
   setUsername: (username: string) => void;
@@ -40,21 +19,21 @@ export interface IAppContext {
 
 export const AppContext = React.createContext<IAppContext>({
   user: undefined,
-  setUser: (user: User) => {},
-  logout: () => {},
-  login: () => {},
-  setUsername: () => {},
-  setAvatar: () => {},
-  setAuthenticated: () => {},
+  setUser: (user: IUser) => { },
+  logout: () => { },
+  login: () => { },
+  setUsername: () => { },
+  setAvatar: () => { },
+  setAuthenticated: () => { },
   loading: true,
   authenticated: false,
-  fetchUser: () => {},
-  setTwoFactorAuth: () => {},
+  fetchUser: () => { },
+  setTwoFactorAuth: () => { },
   twoFactorAuth: false,
 });
 
 const AppProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<User | undefined>(undefined);
+  const [user, setUser] = useState<IUser | undefined>(undefined);
   const [loading, setLoading] = useState<boolean>(true);
   const [authenticated, setAuthenticated] = useState<boolean>(false);
   const [twoFactorAuth, setTwoFactorAuth] = useState<boolean>(false);
@@ -63,7 +42,7 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
     setUser(undefined);
   };
 
-  const login = () => {};
+  const login = () => { };
 
   const setUsername = (username: string) => {
     setUser((prevUser) => {

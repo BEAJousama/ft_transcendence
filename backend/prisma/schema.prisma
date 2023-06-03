@@ -78,7 +78,7 @@ model User {
   rating           Int             @default(0)
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @updatedAt
-  achievement      Achievement[]   @relation("AchievementPlayers")
+  achievements     Achievement[]   @relation("AchievementPlayers")
   blocking         Block[]         @relation("blocking")
   blockers         Block[]         @relation("blocker")
   wins             Int             @default(0)

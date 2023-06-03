@@ -6,10 +6,15 @@ import {
     RightClickMenu,
     RightClickMenuItem,
     Sidepanel,
+    Spinner,
 } from "../../components";
 import { CgProfile } from "react-icons/cg";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { AppContext } from "../../context/app.context";
+import clsx from "clsx";
+import axios from "axios";
+import IAchievement from "../../interfaces/achievement";
+// import { useParams } from "react-router-dom";
 
 const icons = [
     "beginner.svg",
@@ -23,28 +28,36 @@ const icons = [
 const Achievement = ({
     title,
     description,
+    disabled,
+    image,
 }: {
     title: string;
     description: string;
+    disabled?: boolean;
+    image: string;
 }) => {
     return (
         <Card
-            className="flex flex-col items-center justify-center gap-3 !border-tertiary-500 
-        !bg-secondary-600  text-white !shadow-2xl !shadow-secondary-600"
+            className={clsx(
+                `relative flex flex-col items-center justify-center gap-3 
+        overflow-hidden  !border-tertiary-500 !bg-secondary-600 text-white !shadow-2xl !shadow-secondary-600 hover:before:hidden`,
+                disabled &&
+                `w-full before:absolute before:inset-0 before:bg-secondary-600 before:bg-opacity-5 before:backdrop-blur-sm before:content-['']`
+            )}
         >
             <img
-                src={`/achievements/${title.toLocaleLowerCase()}.png`}
+                src={`/achievements/${image}`}
                 alt="Achievement"
                 width={150}
+                className="rounded-xl"
             />
             <div className="font-montserrat text-sm font-bold">
-                {title.charAt(0)
-                    .toLocaleUpperCase() +
-                    title.slice(1).toLocaleLowerCase()
-                        .replaceAll("_", " ")
-                }
+                {title.charAt(0).toLocaleUpperCase() +
+                    title.slice(1).toLocaleLowerCase().replaceAll("_", " ")}
             </div>
-            <div className="text-center text-xs text-tertiary-200 font-montserrat">{description}</div>
+            <div className="text-center font-montserrat text-xs text-tertiary-200">
+                {description}
+            </div>
         </Card>
     );
 };
@@ -52,16 +65,58 @@ const Achievement = ({
 export default function Profile() {
     const { user } = useContext(AppContext);
     const [show, setShow] = useState(false);
+    const [achievements, setAchievements] = useState<IAchievement[]>();
+
+    // const { id } = useParams()
+    const isDisabled = (name: string) => {
+        const achievements = user?.achievements;
+        if (!achievements) return true;
+        return !achievements.find((item) => item.name === name)
+    }
+    useEffect(() => {
+        (async () => {
+            try {
+                const accessToken = window.localStorage.getItem("access_token");
+                const response = await axios.get(
+                    `${process.env.REACT_APP_BACK_END_URL}api/users/achievements`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${accessToken}`,
+                        },
+                    }
+                );
+
+                response.data.sort((a: IAchievement, b: IAchievement) => {
+                    const disabledA = isDisabled(a.name);
+                    const disabledB = isDisabled(b.name);
+
+                    if (disabledA && !disabledB) {
+                        return 1; // Move disabledA to a higher index
+                    } else if (!disabledA && disabledB) {
+                        return -1; // Move disabledB to a higher index
+                    } else {
+                        return 0; // Preserve the original order
+                    }
+                });
+
+                setAchievements(response.data);
+
+            } catch { }
+        })();
+
+    }, []);
+
+
 
     return (
         <div className="grid h-screen w-screen grid-cols-10 bg-secondary-500">
             <Sidepanel className="col-span-2 2xl:col-span-1" />
-            <div className="col-span-8 2xl:col-span-9 flex h-screen flex-col items-center gap-4 overflow-y-scroll  px-4 py-16 scrollbar-hide md:gap-8">
-                <div className="flex w-full max-w-[1024px] items-center gap-2 p-2 text-lg font-bold text-white md:gap-4 md:text-2xl">
+            <div className="col-span-8 flex h-screen flex-col items-center gap-4 overflow-y-scroll px-4  py-16 scrollbar-hide md:gap-8 2xl:col-span-9">
+                <div className="flex w-full max-w-[1024px] items-center gap-2 p-2 text-lg font-bold text-white md:gap-4  md:text-2xl">
                     <CgProfile />
                     Profile
                 </div>
-                <div className="flex w-full max-w-[1024px] flex-col justify-between gap-4 md:flex-row">
+                <div className="flex w-full max-w-[1024px] flex-col justify-between gap-4 md:flex-row ">
                     <div className="w-full max-w-[400px]">
                         <div className="flex w-full items-center justify-between gap-4 font-serif text-white">
                             <img src={`/levels/${user?.ladder}.svg`} alt="" width={70} />
@@ -121,13 +176,13 @@ export default function Profile() {
                         )}
                     </div>
                 </div>
-                <div className="relative hidden h-14 w-full max-w-[1024px] md:block">
+                <div className="relative hidden h-14 w-full max-w-[1024px] md:block ">
                     <div className="absolute -top-5 z-10 flex w-full items-center justify-between">
-                        {icons.map((item) => {
-                            return <img src={`/levels/${item}`} alt="" width={40} />;
+                        {icons.map((item, i) => {
+                            return <img key={i} src={`/levels/${item}`} alt="" width={40} />;
                         })}
                     </div>
-                    <div className="absolute top-[45%] mb-4 h-4 w-full rounded-full bg-primary-800 dark:bg-gray-700">
+                    <div className="absolute top-[45%] mb-4 h-4 w-[99%] rounded-full bg-primary-800 dark:bg-gray-700">
                         <div
                             className="h-4 rounded-full bg-primary-400"
                             style={{ width: "75%" }}
@@ -136,46 +191,26 @@ export default function Profile() {
                 </div>
                 <Divider />
                 <span className="w-full max-w-[1024px] text-xl font-bold text-white">
-                    Achievements <span className="text-primary-500">9</span> / 9
+                    Achievements <span className="text-primary-500">9</span> /
+                    {achievements?.length}
                 </span>
                 <div className="flex w-full max-w-[1024px] items-center justify-center">
                     <div className="grid grid-cols-1 gap-2 md:grid-cols-2 md:gap-4 lg:grid-cols-3 xl:gap-8">
-                        <Achievement
-                            title="COMEBACK_KING"
-                            description="Win a game after being down by 5 or more points."
-                        />
-                        <Achievement
-                            title="PERFECT_GAME"
-                            description="Achieve a score of 11-0 in a single game against the computer or another player."
-                        />
-                        <Achievement
-                            title="SHARP_SHOOTER"
-                            description="Score 10 or more points in a row without missing a shot."
-                        />
-                        <Achievement
-                            title="MARATHON_MATCH"
-                            description="Play a game that lasts more than 10 minutes."
-                        />
-                        <Achievement
-                            title="SPEED_DEMON"
-                            description="Score a point within 10 seconds of the start of a game."
-                        />
-                        <Achievement
-                            title="MASTER_OF_SPIN"
-                            description="Score a point with a spin shot that confuses the opponent."
-                        />
-                        <Achievement
-                            title="TRICKSTER"
-                            description="Score a point by bouncing the ball off the wall or the paddle."
-                        />
-                        <Achievement
-                            title="IRON_PADDLE"
-                            description="Block 50 or more shots in a single game."
-                        />
-                        <Achievement
-                            title="STREAKER"
-                            description="Win 10 or more games in a row against the computer or other players."
-                        />
+                        {!achievements ? (
+                            <Spinner />
+                        ) : (
+                            achievements.map((item: IAchievement) => {
+                                return (
+                                    <Achievement
+                                        key={item.id}
+                                        title={item.name}
+                                        description={item.description}
+                                        image={item.image}
+                                        disabled={isDisabled(item.name)}
+                                    />
+                                );
+                            })
+                        )}
                     </div>
                 </div>
             </div>

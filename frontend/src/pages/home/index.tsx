@@ -3,6 +3,7 @@ import { Avatar, Sidepanel } from "../../components";
 import { useMedia } from "react-use";
 import { useContext } from "react";
 import { AppContext } from "../../context/app.context";
+import { Link } from "react-router-dom";
 
 const Game = () => {
   return (
@@ -116,8 +117,8 @@ const Container = ({
   icon: string;
 }) => {
   return (
-    <div className="flex w-full max-w-[800px] flex-col gap-2 md:w-[88%]">
-      <div className="relative flex h-[500px] rounded border-2 border-secondary-400">
+    <div className="flex w-full max-w-[800px] flex-col gap-2 md:w-[88%]  animate-fade-right">
+      <div className="relative flex h-[500px] rounded border-2 border-secondary-400 shadow-md shadow-secondary-400">
         <img
           src={icon}
           alt="icon"
@@ -139,8 +140,8 @@ export default function Home() {
   return (
     <div className="grid h-screen w-screen grid-cols-10 bg-secondary-500">
       <Sidepanel className="col-span-2 2xl:col-span-1" />
-      <div className="col-span-8 flex h-screen flex-col items-center gap-10 overflow-y-scroll px-4 py-16 scrollbar-hide 2xl:col-span-9 2xl:grid 2xl:grid-cols-3 2xl:place-items-center">
-        <div className="flex h-[500px] w-[88%] max-w-[800px] flex-wrap items-center justify-center gap-4 rounded border-2 border-secondary-400 p-4 md:h-[200px] md:flex-nowrap">
+      <div className="col-span-8 flex h-screen flex-col items-center gap-10 overflow-y-scroll px-4 py-16 scrollbar-hide 2xl:col-span-9 2xl:grid 2xl:grid-cols-2 3xl:grid-cols-3 2xl:place-items-center">
+        <Link to={`/profile`} className=" animate-fade-right flex h-[500px] w-[88%] max-w-[800px] flex-wrap items-center justify-center gap-4 rounded border-2 border-secondary-400 p-4 md:h-[200px] md:flex-nowrap">
           <Avatar
             src={user?.avatar || ""}
             alt=""
@@ -171,7 +172,7 @@ export default function Home() {
               </div>
             </div>
           </div>
-        </div>
+        </Link>
         <Container title="Leader Board" icon="/img/3dMedal.svg">
           {new Array(25).fill(0).map((_, i) => {
             return <UserBanner key={i} rank={i + 1} showRank showRating user={user} />;

@@ -13,89 +13,28 @@ import {
   UnblockUserDto,
   UpdateUserDto,
 } from './dto';
-
-const Achievements = {
-  PERFECT_GAME:
-    'Achieve a score of 11-0 in a single game against the computer or another player.',
-  COMEBACK_KING: 'Win a game after being down by 5 or more points.',
-  SHARP_SHOOTER: 'Score 10 or more points in a row without missing a shot.',
-  IRON_PADDLE: 'Block 50 or more shots in a single game.',
-  MARATHON_MATCH: 'Play a game that lasts more than 10 minutes.',
-  MASTER_OF_SPIN: 'Score a point with a spin shot that confuses the opponent.',
-  SPEED_DEMON: 'Score a point within 10 seconds of the start of a game.',
-  TRICKSTER: 'Score a point by bouncing the ball off the wall or the paddle.',
-  STREAKER:
-    'Win 10 or more games in a row against the computer or other players.',
-  First_Serve: 'Serve your first ball in a game.',
-  Paddle_Master: 'Score 10 points using only your paddle.',
-  Speed_Demon: 'Reach a ball speed of 100 mph.',
-  Perfect_Aim: "Score five consecutive direct hits on your opponent's paddle.",
-  Flawless_Victory: 'Win a game without your opponent scoring a single point.',
-  Comeback_Kid: 'Win a game after being down by five points.',
-  Sharp_Shooter:
-    'Score a point with a precise shot that grazes the edge of the paddle.',
-  Untouchable: 'Play for one minute without your opponent touching the ball.',
-  Long_Rally:
-    'Successfully rally the ball 20 times without anyone scoring a point.',
-  Quick_Reflexes:
-    'Score a point within three seconds of the ball being served.',
-  Defensive_Prodigy:
-    'Successfully block 10 consecutive shots from your opponent.',
-  Master_of_Spin:
-    "Apply spin to the ball and make it curve around your opponent's paddle.",
-  Unstoppable_Streak: 'Win five games in a row without losing a single one.',
-  Perfect_Defense:
-    'Win a game without allowing your opponent to score a single point.',
-  Precision_Shot:
-    'Score a point by hitting the ball directly into one of the corners.',
-  Doubles_Champion:
-    'Win a doubles match with a teammate against two opponents.',
-  Nail_Biter: 'Win a game by a margin of only one point.',
-  Paddle_Acrobat:
-    'Perform a successful trick shot by hitting the ball behind your back.',
-  Mind_Reader:
-    "Anticipate your opponent's shot and successfully block it five times in a row.",
-  Crazy_Comeback: 'Win a game after being down by eight points.',
-  Power_Serve:
-    'Serve the ball with such force that your opponent cannot return it.',
-  Pinpoint_Accuracy:
-    "Score three consecutive points by hitting the ball to the exact same spot on your opponent's side.",
-  Legendary_Rivalry: 'Play against a specific opponent 100 times.',
-  Paddle_Wizard:
-    'Win a game without moving your paddle from the center position.',
-  Pong_Champion: 'Win 100 games in total.',
-};
-
-const Achievements_with_img = [
-  'PERFECT_GAME',
-  'COMEBACK_KING',
-  'SHARP_SHOOTER',
-  'IRON_PADDLE',
-  'MARATHON_MATCH',
-  'MASTER_OF_SPIN',
-  'SPEED_DEMON',
-  'TRICKSTER',
-  'STREAKER',
-];
-
+import Achievements from './achievements/index.tsx';
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) {
+    this.createAchievements();
+  }
 
-  async createAchievements() {
+  private async createAchievements() {
     try {
-      const keys = Object.keys(Achievements);
-      const values = Object.values(Achievements);
-
-      keys.map((_, i) => {
-        this.prisma.achievement.create({
-          data: {
-            name: keys[i],
-            description: values[i],
-            image: Achievements_with_img.includes(keys[i]) ? '' : 'default.png',
-          },
+      const achievements = await this.prisma.achievement.findMany();
+      if (achievements.length === 0) {
+        const keys = Object.keys(Achievements);
+        keys.map(async (key, i) => {
+          await this.prisma.achievement.create({
+            data: {
+              name: key,
+              description: Achievements[key],
+              image: `${key.toLocaleLowerCase()}.png`,
+            },
+          });
         });
-      });
+      }
     } catch (error) {
       return error;
     }
@@ -103,7 +42,24 @@ export class UsersService {
 
   async getAllAchievements() {
     try {
-      return await this.prisma.achievement.findMany();
+      const achievements = await this.prisma.achievement.findMany();
+      console.log(achievements.length);
+      return achievements;
+    } catch (error) {}
+  }
+
+  async assignAchievements(userId: number, achievementId: number) {
+    try {
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: {
+          achievements: {
+            connect: {
+              id: achievementId,
+            },
+          },
+        },
+      });
     } catch (error) {}
   }
 
@@ -144,6 +100,7 @@ export class UsersService {
         include: {
           sentRequests: true,
           receivedRequests: true,
+          achievements: true,
         },
       });
       return user;
@@ -157,6 +114,9 @@ export class UsersService {
       const user = await this.prisma.user.findUnique({
         where: {
           login,
+        },
+        include: {
+          achievements: true,
         },
       });
       return user;
