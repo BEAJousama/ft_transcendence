@@ -21,7 +21,7 @@ import { UsersService } from 'src/users/users.service';
 import * as EVENT from  "./utils/"
 
 
-@WebSocketGateway({ namespace: 'chat', cors: true, origins: 'http://127.0.0.1:3000' })
+@WebSocketGateway({ namespace: 'chat', cors: true, origins: '*' })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect  {
   @WebSocketServer()
   server: Server;
@@ -156,7 +156,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect  {
 
   @SubscribeMessage(EVENT.CHANNEL_CREATE)
   async createChannel(client: Socket, payload: ChannelDto) {
-    console.log(payload);
     // this.validatePayload(payload);
     try {
       const channel = await this.channelService.makeChannel(client.data.sub, payload);
@@ -200,6 +199,20 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect  {
       });
     }
   }
+
+  @SubscribeMessage(EVENT.GET_ARCHIVED_CHANNELS)
+  async getArchivedChannels(client: Socket, payload: any): Promise<void> {
+    try {
+      const channels = await this.channelService.getArchivedChannelsByUserId(client.data.sub);
+      client.emit(EVENT.GET_ARCHIVED_CHANNELS, channels);
+    } catch (err) {
+      throw new WsException({
+        error: EVENT.GET_ARCHIVED_CHANNELS,
+        message: err.message,
+      });
+    }
+  }
+  
   
   @SubscribeMessage(EVENT.CHANNEL_SEARCH)
   async findRoom(client: Socket, payload: any) {
@@ -319,7 +332,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect  {
         client.emit(EVENT.SET_ADMIN, ch);
         const sockets = this.getConnectedUsers(client.data.sub);
         sockets.forEach((s) => {
-          this.server.to(s.id).emit(EVENT.BAN_FROM_CHANNEL, ru)
+          this.server.to(s.id).emit(EVENT.SET_ADMIN, ch)
         });
         this.sendChannels(client.data.sub);
       } catch (err) {
@@ -456,7 +469,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect  {
           message: err.message,
         });
       }
-  }
+    }
 
   @SubscribeMessage(EVENT.MUTE_CHANNEL)
   async muteChannel(client: Socket, payload: any) {
@@ -558,6 +571,92 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect  {
     }
   }
 
+  @SubscribeMessage(EVENT.PIN_MESSAGE)
+  async pinMessage(client: Socket, payload: any) {
+    try {
+      const message = await this.messageService.pinMessage(
+        parseInt(payload.messageId),
+        parseInt(client.data.sub),
+        );
+      const messages = await this.messageService.getMessagesByChannelId(
+        parseInt(payload.channelId),
+        parseInt(client.data.sub),
+        );
+      client.emit(EVENT.GET_CH_MSSGS, messages);
+      const pinnedMessages = await this.messageService.getPinnedMessages(
+        parseInt(payload.channelId),
+        parseInt(client.data.sub),
+        );  
+      client.emit(EVENT.GET_PINNED_MESSAGES, pinnedMessages);
+    } catch (err) {
+      throw new WsException({
+        error: EVENT.PIN_MESSAGE,
+        message: err.message,
+      });
+    }
+  }
+  
+  @SubscribeMessage(EVENT.UNPIN_MESSAGE)
+  async UnpinMessage(client: Socket, payload: any) {
+    try {
+      const message = await this.messageService.UnpinMessage(
+        parseInt(payload.messageId),
+        parseInt(client.data.sub),
+        );
+        const messages = await this.messageService.getMessagesByChannelId(
+          parseInt(payload.channelId),
+          parseInt(client.data.sub),
+          );
+        client.emit(EVENT.GET_CH_MSSGS, messages);
+        const pinnedMessages = await this.messageService.getPinnedMessages(
+          parseInt(payload.channelId),
+          parseInt(client.data.sub),
+          );  
+        client.emit(EVENT.GET_PINNED_MESSAGES, pinnedMessages);
+    } catch (err) {
+      throw new WsException({
+        error: EVENT.PIN_MESSAGE,
+        message: err.message,
+      });
+    }
+  }
+
+  @SubscribeMessage(EVENT.GET_PINNED_MESSAGES)
+  async getPinnedMessages(client: Socket, payload: any) {
+    try {
+      const messages = await this.messageService.getPinnedMessages(
+        parseInt(payload.channelId),
+        parseInt(client.data.sub),
+        );
+        client.emit(EVENT.GET_PINNED_MESSAGES, messages);
+    } catch (err) {
+      throw new WsException({
+        error: EVENT.GET_PINNED_MESSAGES,
+        message: err.message,
+      });
+    }
+  }
+
+  @SubscribeMessage(EVENT.MESSAGE_DELETE)
+  async deleteMessage(client: Socket, payload: any) {
+    try {
+      const message = await this.messageService.deleteMessage(
+        parseInt(client.data.sub),
+        parseInt(payload.messageId),
+        );
+      const ch = await this.channelService.getChannelById(
+
+          parseInt(payload.channelId),
+          );
+        client.emit(EVENT.SET_ADMIN, ch);
+    } catch (err) {
+      throw new WsException({
+        error: EVENT.MESSAGE_DELETE,
+        message: err.message,
+      });
+    }
+  }
+
 
 
         
@@ -648,7 +747,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect  {
     members.forEach(member =>
       {
         if (member.status === MemberStatus.BANNED && this.chatService.isBlocked(senderId, member.userId) )
-          return;
+            return;
         const sockets = this.getConnectedUsers(member.userId);
         sockets.forEach(socket =>
             {

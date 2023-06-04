@@ -17,6 +17,7 @@ import ProfileBanner from "../profilebanner";
 import { SocketContext } from "../../context/socket.context";
 import { AppContext } from "../../context/app.context";
 import { channel } from "diagnostics_channel";
+import Select from "../select";
 
 const MessageBubble = ({ setOpen, currentChannel, channelMember }: {setOpen: any, currentChannel: any, channelMember: any}) => {
   const [value, setValue] = useState("");
@@ -24,19 +25,26 @@ const MessageBubble = ({ setOpen, currentChannel, channelMember }: {setOpen: any
   const [showModal, setShowModal] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
   const [messages, setMessages] = useState<any[]>([]);
+  const [pinnedMssgsModal, setPinnedMssgsModal] = useState(false);
+  const [visibility, setVisibility] = useState<string>(currentChannel.visiblity);
+  const [pinnedMessages, setPinnedMessages] = useState<any[]>([]);
   const socket = useContext(SocketContext);
-  const {user, ...data} = useContext(AppContext)
+  const {user} = useContext(AppContext)
 
   
   useEffect(() => {
-    socket?.emit("getChannelMessages", {channelId : currentChannel.id, user:{id: 1}});
+    socket?.emit("getChannelMessages", {channelId : currentChannel.id, user: {id: user?.id}});
     socket?.on("getChannelMessages", (message: any) => {
       setMessages(message);
+    });
+    socket?.emit("get_pinned_messages", {channelId : currentChannel.id});
+    socket?.on("get_pinned_messages", (message: any) => {
+      setPinnedMessages(message);
     });
     socket?.on("messsage", (message: any) => {
       setMessages([...messages, message]);
     });
-  }, [socket, messages, currentChannel]);
+  }, [socket, messages, currentChannel, pinnedMessages]);
 
   const ref = useRef(null);
   useClickAway(ref, () => {
@@ -58,7 +66,7 @@ const MessageBubble = ({ setOpen, currentChannel, channelMember }: {setOpen: any
   };
 
   return (
-    <div className="relative col-span-10 flex h-screen w-full flex-col justify-start gap-4 rounded-t-3xl bg-secondary-600 lg:col-span-5 xl:col-span-5 2xl:col-span-6">
+    <div className="relative overflow-auto col-span-10 flex h-screen w-full flex-col justify-start gap-4 rounded-t-3xl bg-secondary-600 lg:col-span-5 xl:col-span-5 2xl:col-span-6">
       <Button
         className="flex items-center gap-2 rounded-t-3xl bg-secondary-400 !p-2 text-white hover:bg-secondary-400"
         onClick={() => {
@@ -77,15 +85,23 @@ const MessageBubble = ({ setOpen, currentChannel, channelMember }: {setOpen: any
           <BiLeftArrow />
         </Button>
       </Button>
-
-      <div className="mb-16 flex h-screen flex-col justify-end gap-2 overflow-y-scroll scrollbar-hide">
-        {messages?.map((message) => {
-          return <MessageBox
-          key={message.id}
-          message={message}
-          right={(message.senderId === user?.id)} />; // hardcoded for now
+      <div className="mb-16 flex h-screen flex-col justify-end gap-2 scrollbar-hide ">
+        {
+          messages?.map((message) => {
+          return (
+            <>
+            {new Date(message.date).getDay() !== new Date(messages[messages.indexOf(message) - 1]?.date).getDay() && (
+              <Divider center title={ `${new Date(message.date).getDate()} - ${new Date(message.date).getMonth() + 1} - ${new Date(message.date).getFullYear()}`}/>
+            )}
+            <MessageBox
+            key={message.id}
+            message={message}
+            right={(message.senderId === user?.id)} 
+            />          
+            </>
+          )
         })}
-      </div>
+      </div>      
       <div className="absolute bottom-0 flex w-full items-center bg-secondary-700 p-1">
         <Button
           variant="text"
@@ -93,12 +109,12 @@ const MessageBubble = ({ setOpen, currentChannel, channelMember }: {setOpen: any
           onClick={() => {
             setShowPicker(true);
           }}
-        >
+          >
           <BsEmojiSmileFill />
         </Button>
         <Input
-          disabled={channelMember.status === "MUTED"}
-          placeholder={channelMember.status === "MUTED" ? "You are muted, you can't send messages!" : "type something"}
+          disabled={channelMember.status === "MUTED" || channelMember.status === "BANNED"}
+          placeholder={(channelMember.status === "MUTED" ? "You are muted, you can't send messages!" : channelMember.status === "BANNED" ? "You are banned, you can't send messages!" : "type something")}
           value={value}
           onChange={(event) => {
             const { value } = event.target;
@@ -119,6 +135,23 @@ const MessageBubble = ({ setOpen, currentChannel, channelMember }: {setOpen: any
         >
           <BsSendFill />
         </Button>
+        {/* {
+            pinnedMessages.length > 0 && (
+              //open a modal to show pinned messages
+              <div className="absolute bottom-0 flex w-full items-center bg-secondary-700 p-1">
+                <Button
+                  variant="text"
+                  className="!hover:bg-inherit !bg-inherit text-primary-500"
+                  onClick={() => {
+                    setPinnedMssgsModal(true);
+                  }}
+                >
+                  <RiEdit2Fill />
+                </Button>
+              </div>
+    
+            )
+          } */}
       </div>
       {showPicker && (
         <div ref={ref} className="h-50 absolute bottom-14 w-1">
@@ -133,16 +166,19 @@ const MessageBubble = ({ setOpen, currentChannel, channelMember }: {setOpen: any
       {showModal && (
         <Modal>
           <div className="flex w-full items-center justify-between">
-            <Button
-              className="!bg-inherit !text-white hover:bg-inherit"
-              onClick={() => {
-                setShowEdit(true);
-              }}
-            >
-              <RiEdit2Fill />
-              Edit Name and Password
-            </Button>
-
+            {
+              (channelMember.role === "ADMIN" || channelMember.role === "OWNER" ) && (
+                  <Button
+                    className="!bg-inherit !text-white hover:bg-inherit"
+                    onClick={() => {
+                      setShowEdit(true);
+                    }}
+                  >
+                    <RiEdit2Fill />
+                    Edit Channel
+                  </Button>
+                )
+            }
             <Button
               variant="text"
               className=" !bg-inherit text-2xl !text-white hover:bg-inherit"
@@ -156,11 +192,19 @@ const MessageBubble = ({ setOpen, currentChannel, channelMember }: {setOpen: any
           {showEdit && (
             <div className="flex w-full flex-col items-center justify-center gap-4 bg-inherit">
               <Input label="Name" placeholder="channel name" />
-              <Input label="Password" placeholder="*****************" />
+              <Select label= "Visibility" setVisibility={setVisibility} options={["PUBLIC", "PRIVATE", "PROTECTED"]} value={currentChannel.visiblity} />
+              {visibility === "PRIVATE" ? ( 
+                <Input label="Password [optional]" placeholder="*****************" type="password"/>
+              ) : 
+              visibility === "PROTECTED" ? (
+                <Input label="Password" placeholder="*****************" type="password"/>
+              ) : null
+              }
               <div className="flex w-full items-center justify-center gap-4">
                 <Button
                   onClick={() => {
                     setShowEdit(false);
+                    setVisibility(currentChannel.visiblity);
                   }}
                   className="w-full justify-center"
                 >
@@ -169,6 +213,7 @@ const MessageBubble = ({ setOpen, currentChannel, channelMember }: {setOpen: any
                 <Button
                   onClick={() => {
                     setShowEdit(false);
+                    setVisibility(currentChannel.visiblity);
                   }}
                   className="w-full justify-center"
                   type="danger"
@@ -178,7 +223,7 @@ const MessageBubble = ({ setOpen, currentChannel, channelMember }: {setOpen: any
               </div>
             </div>
           )}
-          <Divider />
+          <Divider/>
           <div className="flex h-[300px] w-full flex-col items-center  justify-center gap-2 overflow-y-scroll pt-20 scrollbar-hide">
             {currentChannel.channelMembers.map((member : any) => {
                 return (

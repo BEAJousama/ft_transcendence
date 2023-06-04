@@ -72,6 +72,7 @@ model User {
 
   memberInChannels ChannelMember[]
   sentMessages     Message[]       @relation("send")
+  pineedMessages   Message[]       @relation("pinner")
   sentRequests     Friend[]        @relation("SentRequest")
   receivedRequests Friend[]        @relation("ReceivedRequest")
 }
@@ -138,6 +139,7 @@ model Channel {
   type           ChannelType     @default(GROUP)
   channelMembers ChannelMember[] @relation("membersInChannels")
   createAt       DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
   messages       Message[]       @relation("receive")
 }
 
@@ -155,32 +157,32 @@ enum MemberStatus {
 }
 
 model ChannelMember {
-  user         User         @relation(fields: [userId], references: [id])
-  userId       Int
-  channel      Channel      @relation("membersInChannels", fields: [channelId], references: [id])
-  channelId    Int
-  role         Role         @default(MEMEBER)
-  status       MemberStatus @default(ACTIVE) // if left or banned, the user will be removed from the channel, if muted the user will not be able to send messages
-  banStartTime DateTime?
-  // pinnedMessages  Message[] @relation("pinnedMessages")
-  // deletedMessages Message[] @relation("deletedMessages")
-  banDuration  Int? // time in seconds
-  isBanned     Boolean      @default(false) // this has no sense now -- TO BE REMOVED --
-  isMuted      Boolean      @default(false) // if true the user won't get notifications from the channel
-  isPinned     Boolean      @default(false) // if true the channel will be pinned to the top of the list
-  isUnread     Boolean      @default(false) // if true the channel will be marked as unread
-  isArchived   Boolean      @default(false) // if true the channel will be archived
-  isDeleted    Boolean      @default(false) // if true the channel will be deleted only from th ui but not from the database
-
+  user               User                 @relation(fields: [userId], references: [id])
+  userId             Int
+  channel            Channel              @relation("membersInChannels", fields: [channelId], references: [id])
+  channelId          Int
+  role               Role                 @default(MEMEBER)
+  status             MemberStatus         @default(ACTIVE) // if left or banned, the user will be removed from the channel, if muted the user will not be able to send messages
+  banStartTime       DateTime?
+  banDuration        Int? // time in seconds
+  isBanned           Boolean              @default(false) // this has no sense now -- TO BE REMOVED --
+  isMuted            Boolean              @default(false) // if true the user won't get notifications from the channel
+  isPinned           Boolean              @default(false) // if true the channel will be pinned to the top of the list
+  isUnread           Boolean              @default(false) // if true the channel will be marked as unread
+  isArchived         Boolean              @default(false) // if true the channel will be archived
+  isDeleted          Boolean              @default(false) // if true the channel will be deleted only from th ui but not from the database
   @@id([userId, channelId])
 }
 
 model Message {
-  id         Int      @id @default(autoincrement())
-  content    String
-  receiver   Channel  @relation("receive", fields: [receiverId], references: [id])
-  receiverId Int
-  sender     User     @relation("send", fields: [senderId], references: [id])
-  senderId   Int
-  date       DateTime @default(now())
+  id                 Int                  @id @default(autoincrement())
+  content            String
+  receiver           Channel              @relation("receive", fields: [receiverId], references: [id])
+  receiverId         Int
+  sender             User                 @relation("send", fields: [senderId], references: [id])
+  senderId           Int
+  pinned             Boolean?              @default(false)
+  pinner             User?                 @relation("pinner", fields: [pinnerId], references: [id])
+  pinnerId           Int?                  
+  date               DateTime             @default(now())
 }

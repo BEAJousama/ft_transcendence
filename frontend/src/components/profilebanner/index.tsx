@@ -5,7 +5,7 @@ import {
   MdGroupAdd,
   MdOutlineAdminPanelSettings,
 } from "react-icons/md";
-import { BiArrowBack, BiRightArrowAlt } from "react-icons/bi";
+import { BiArrowBack, BiRightArrowAlt, BiArchiveIn, BiArchiveOut} from "react-icons/bi";
 import { useClickAway } from "react-use";
 import { BsPersonAdd } from "react-icons/bs";
 
@@ -28,6 +28,8 @@ const ProfileBanner = ({
   showAddGroup,
   className,
   setShowModal,
+  setShowArchive,
+  showArchive,
   showOptions,
   showStatus,
   role,
@@ -43,6 +45,8 @@ const ProfileBanner = ({
   showAddGroup?: boolean;
   className?: string;
   setShowModal?: React.Dispatch<React.SetStateAction<boolean>>;
+  setShowArchive?: React.Dispatch<React.SetStateAction<boolean>>;
+  showArchive?: boolean;
   showOptions?: boolean;
   showStatus?: boolean;
   role?: string;
@@ -109,7 +113,18 @@ const ProfileBanner = ({
           <Button
             className=" !hover:bg-inherit !bg-inherit hover:animate-jump hover:animate-once hover:animate-ease-in"
             onClick={() => {
+              setShowArchive && setShowArchive(!showArchive);
+            }}
+          >
+            {
+              showArchive ? <BiArchiveOut /> : <BiArchiveIn />
+            }
+          </Button>
+          <Button
+            className=" !hover:bg-inherit !bg-inherit hover:animate-jump hover:animate-once hover:animate-ease-in"
+            onClick={() => {
               setShowModal && setShowModal(true);
+              
             }}
           >
             <MdAddBox />
@@ -151,35 +166,38 @@ const ProfileBanner = ({
             </RightClickMenuItem>
             {((channelMember.role === "ADMIN" || channelMember.role === "OWNER") && role != "OWNER") &&
             <Fragment>
-                      <RightClickMenuItem
-                      onClick={() => {
-                        setAsAdmin();
-                        setShowMenu(false);
+              {status !== "BANNED" &&
+                <>
+                     <RightClickMenuItem
+                     onClick={() => {
+                       setAsAdmin();
+                       setShowMenu(false);
+                     }}
+                     >
+                     <MdOutlineAdminPanelSettings />
+                     {role === "ADMIN" ? "Remove Admin" : "Set As Admin"}
+                   </RightClickMenuItem>
+                   <RightClickMenuItem
+                     onClick={() => {
+                       status === "MUTED" ? unmuteUser() : muteUser();
+                       setShowMenu(false);
                       }}
                       >
-                      <MdOutlineAdminPanelSettings />
-                      {role === "ADMIN" ? "Remove Admin" : "Set As Admin"}
-                    </RightClickMenuItem>
-                    <RightClickMenuItem
-                      onClick={() => {
-                        status === "MUTED" ? unmuteUser() : muteUser();
-                        console.log(status);
-                        setShowMenu(false);
-                      }}
-                    >
-                      <BiVolumeMute />
-                      {status === "MUTED" ? "Unmute" : "Mute"}
-                    </RightClickMenuItem>
-                    <RightClickMenuItem
-                      onClick={
-                        () => {
-                          status === "BANNED" ? unbanUser() : banUser();
-                          setShowMenu(false);
-                      }}
-                    >
-                      <TbBan />
-                      {status === "BANNED" ? "Unban" : "Ban"}
-                    </RightClickMenuItem>
+                     <BiVolumeMute />
+                     {status === "MUTED" ? "Unmute" : "Mute"}
+                   </RightClickMenuItem>
+                  </>
+                }
+                <RightClickMenuItem
+                  onClick={
+                    () => {
+                      status === "BANNED" ? unbanUser() : banUser();
+                      setShowMenu(false);
+                  }}
+                >
+                  <TbBan />
+                  {status === "BANNED" ? "Unban" : "Ban"}
+                </RightClickMenuItem>
             </Fragment>
             }
 

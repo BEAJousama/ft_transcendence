@@ -17,7 +17,6 @@ export default function Chat() {
   useEffect(() => {
     socket?.emit('channel_member', {userId : user?.id, channelId : currentChannel.id });
     socket?.on('channel_member', (data: any) => {
-      console.log(data);
       setChannelMember(data);
     }
     );

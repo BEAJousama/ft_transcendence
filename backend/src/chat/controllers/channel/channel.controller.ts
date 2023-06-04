@@ -18,8 +18,11 @@ import { ChannelService } from 'src/chat/services/channel/channel.service';
 @Controller('channel')
 export class ChannelController 
 {
+
     constructor(private channelService : ChannelService)
-    {}
+    {
+    }
+    
     @Get()    
     async global(@Req() req: Request) {
         console.log("Hellooooo");

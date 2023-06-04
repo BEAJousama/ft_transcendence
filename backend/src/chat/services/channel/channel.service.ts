@@ -47,6 +47,41 @@ export class ChannelService {
     }
   }
 
+  async getArchivedChannelsByUserId(userId: number): Promise<Channel[]>
+  {
+    try {
+      const channels = await this.prisma.channel.findMany({
+        where: {
+          channelMembers: {
+            some: {
+              userId,
+              isArchived: true,
+            },
+          },
+        },
+
+        include:
+        {
+          archivedFor: true,
+          mutedFor: true,
+          pinnedFor: true,
+          channelMembers:
+          {
+            include: {
+              user: true,
+            },
+          },
+          messages: true,
+        },
+      });
+      return channels;
+    }
+    catch (error) {
+      throw new Error(error.message);
+    }
+  }
+  
+
   async getChannelMembersByChannelId( channelId: number) : Promise<ChannelMember[]> 
   {
     // TODO: check if member is not banned or left the channel already
@@ -101,11 +136,7 @@ export class ChannelService {
       if (ch)
       throw new Error(`Channel ${ch.name} already exists`);
       if (channelData.visibility === Visiblity.PROTECTED)
-      {
-        console.log("hashPassword")
         hashPassword = await this.hashPassword(channelData.password);
-        console.log(hashPassword);
-      }
       const channelMembers = channelData.members.map((memberId: number) => {
         return {
             userId: memberId,
@@ -322,10 +353,14 @@ export class ChannelService {
 
     async leaveChannel(userId: number, channelId: number): Promise<number> {
       try {
-       let ru =  await this.prisma.channelMember.deleteMany({
+
+       let ru =  await this.prisma.channelMember.updateMany({
             where: {
             userId,
             channelId,
+            },
+            data: {
+            status: MemberStatus.LEFT,
             },
         });
         return ru.count;
@@ -955,7 +990,7 @@ async unmuteChannel(
               },
             },
             data: {
-              status: MemberStatus.LEFT,
+              status: MemberStatus.ACTIVE,
             },
         });
         }

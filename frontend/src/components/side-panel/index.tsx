@@ -2,7 +2,8 @@ import { BsFillChatDotsFill } from "react-icons/bs";
 import { AiFillHome, AiFillProfile } from "react-icons/ai";
 import { TbDeviceGamepad2 } from "react-icons/tb";
 import { CgProfile } from "react-icons/cg";
-import { RiListSettingsFill, RiProfileFill } from "react-icons/ri";
+import { RiListSettingsFill, RiProfileFill} from "react-icons/ri";
+import { IoMdNotifications } from "react-icons/io";
 import { RiLogoutBoxRLine } from "react-icons/ri";
 import clsx from "clsx";
 import { Link, useLocation } from "react-router-dom";
@@ -94,6 +95,12 @@ const Sidepanel = ({ className }: any) => {
           <ListItem selected={path === "/settings"}>
             <RiListSettingsFill />
             <span className="hidden md:block">Settings</span>
+          </ListItem>
+        </Link>
+        <Link to="/notifs">
+          <ListItem selected={path === "/notifs"}>
+            <IoMdNotifications />
+            <span className="hidden md:block">Notifications</span>
           </ListItem>
         </Link>
       </List>

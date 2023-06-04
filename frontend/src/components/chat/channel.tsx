@@ -23,6 +23,7 @@ interface ChannelProps {
   onClick?: () => void;
   pinned?: boolean;
   archived?: boolean;
+  deleted?: boolean;
   unread?: boolean;
 }
 
@@ -35,6 +36,7 @@ const Channel = ({
   messages,
   createdAt,
   updatedAt,
+  deleted,
   muted,
   archived,
   unread,
@@ -93,11 +95,11 @@ const Channel = ({
     };
 
     const markAsUnread = () => {
-      socket?.emit("markAsUnread", data);
+      socket?.emit("mark_unread", data);
     };
 
     const markAsRead = () => {
-      socket?.emit("markAsRead", data);
+      socket?.emit("mark_read", data);
     };
 
   return (
@@ -139,19 +141,19 @@ const Channel = ({
           <RightClickMenuItem
           onClick={
             () => {
-              console.log("archived");
+              archived ? unarchiveChannel() : archiveChannel();
           }}>
             <BsArchiveFill />
-            Archive Chat
+            {archived ? "Unarchive chat" : "Archive chat"}
           </RightClickMenuItem>
           <RightClickMenuItem
             onClick={
               () => {
-                console.log("unread");
+                unread ? markAsRead() : markAsUnread();
             }}
           >
             <RiMailUnreadFill />
-            Mark as unread
+            {unread ? "Mark as read" : "Mark as unread"}
           </RightClickMenuItem>
           <RightClickMenuItem
             onClick={
@@ -166,7 +168,7 @@ const Channel = ({
           <RightClickMenuItem
             onClick={
               () => {
-                console.log("deleted");
+                console.log("delete");
             }}
             >
             <MdDelete />

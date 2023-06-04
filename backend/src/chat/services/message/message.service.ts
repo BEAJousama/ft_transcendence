@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Message } from '@prisma/client';
+import { MemberStatus, Message } from '@prisma/client';
 import { MessageDto } from 'src/chat/dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 
@@ -11,12 +11,22 @@ export class MessageService {
     async makeMessage(
       data : MessageDto,
     ): Promise<Message | null> {
-        // if (data.senderId === data.receiverId)
-        //     throw new Error("Cannot send message to yourself !");
-        //check if sender is blocked from channel
-        
+
+        const channelMember = await this.prisma.channelMember.findFirst({
+            where: {
+                userId: data.senderId,
+                channelId: data.receiverId,
+                status: "BANNED",
+            },
+        });
+        if (channelMember)
+            throw new Error("Cannot send message to this channel !");
         let message = this.prisma.message.create({
-            data,
+            data: {
+                content: data.content,
+                senderId: data.senderId,
+                receiverId: data.receiverId,
+            },
         }).then((message) => {;
             if (!message) 
             {
@@ -33,29 +43,73 @@ export class MessageService {
         let message = await this.prisma.message.findFirst({
             where:
             {
-                OR: [
-                    {
-                        id: messageId,
-                        senderId: userId,
-                    },
-                    {
-                        id: messageId,
-                        receiverId: userId,
-                    },
-                ],
+                id: messageId,
+                senderId: userId,
             }
         });
         
         if (!message)
             throw new Error("Cannot delete message !");
-        this.prisma.message.delete({
+        await this.prisma.message.delete({
             where: {
                 id: messageId,
             },
         });
-
+        console.log("Message deleted !");
         return {message: "message deleted !"};
     };
+
+    async pinMessage(messageId, pinnerId)
+    {
+        let message = await this.prisma.message.findUnique(
+            {
+                where:{
+                    id: messageId,
+                }
+            }
+            );
+            if (!message)
+                throw new Error("Cannot pin message !");
+            await this.prisma.message.update(
+                {
+                    where:{
+                        id: messageId,
+                    },
+                    data: {
+                        pinned : true,
+                        pinnerId,
+                    },
+                }
+                );
+        return {message: "message pinned !"};
+    };
+
+    async UnpinMessage(messageId, pinnerId)
+    {
+        
+        let message = await this.prisma.message.findUnique(
+            {
+                where:{
+                    id: messageId,
+                }
+            }
+        );
+        if (!message || message.pinnerId != pinnerId)
+            throw new Error("Cannot pin message !");
+        await this.prisma.message.update(
+            {
+                where:{
+                    id: messageId,
+                },
+                data: {
+                    pinned : false,
+                    pinnerId,
+                },
+            }
+        );
+        return {message: "message pinned !"};
+    };
+
 
     async updateMessage(messageId, data : MessageDto)
     {
@@ -110,9 +164,10 @@ export class MessageService {
                     userId,
                 }
             });
-        
-        if (!channelmember || channelmember.status ===  "BANNED")
-            throw new Error("cannot get messages!");
+        if (!channelmember || channelmember.status === MemberStatus.BANNED)
+        {
+            throw new Error("User cannot get messages!");
+        }
 
         const messages = await this.prisma.message.findMany({
         where: {
@@ -126,6 +181,36 @@ export class MessageService {
 
         return messages;
     }
+
+    async getPinnedMessages(channelId: number, userId: number) : Promise<Message[]>
+    {
+        const channelmember = await this.prisma.channelMember.findFirst(
+            {
+                where:
+                {
+                    channelId,
+                    userId,
+                }
+            });
+        if (!channelmember || channelmember.status === MemberStatus.BANNED)
+        {
+            throw new Error("User cannot get messages!");
+        }
+        
+        const messages = await this.prisma.message.findMany({
+            where: {
+                receiverId: channelId,
+                pinned: true,
+            },
+            include: {
+                sender: true,
+                receiver: true,
+            },
+        });
+        return messages;
+    }
+
+    
 
     formatingMessage(message: any): any {
         return {

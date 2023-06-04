@@ -4,16 +4,19 @@ import Channel from "./channel";
 import { SocketContext } from "../../context/socket.context";
 import { AppContext } from "../../context/app.context";
 
-const ChannelList = ({setShowModal, setCurrentChannel, setChannelMember } : 
+const ChannelList = ({setShowModal, setCurrentChannel, setChannelMember} : 
   {setShowModal: any,  setCurrentChannel: any, setChannelMember: any}) => {
   
   const[channels, setChannels] = useState<any>([]);
+  const [archiveChannels, setArchiveChannels] = useState<any>([]);
+  const [showArchive, setShowArchive] = useState<boolean>(false);
   const socket = useContext(SocketContext);
   let {user, setUser} = useContext(AppContext)
-  let pinnedChannels;
+
   useEffect(() => {
     getuserChannels(user?.id);
     getNewChannel();
+    getArchiveChannels(user?.id);
     socket?.on('channel_leave', (channels: any) => {
       setCurrentChannel(channels[0]);
       setChannels(channels);
@@ -47,6 +50,19 @@ const ChannelList = ({setShowModal, setCurrentChannel, setChannelMember } :
     }
 }
 
+const getArchiveChannels = async (id: any) => {
+  try {
+    socket?.emit('getArchiveChannels', {user: {id}});
+    socket?.on('getArchiveChannels', (channels: any) => {
+      setArchiveChannels(channels);
+    }
+    );
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+
 const getNewChannel = async () => {
     try {
         socket?.on('channel_create', (channel: any) => {
@@ -61,7 +77,6 @@ const getChannelMember = (channelId: any) => {
   try {
     socket?.emit('channel_member', {userId : user?.id, channelId : channelId });
     socket?.on('channel_member', (data: any) => {
-      console.log(data);
       setChannelMember(data);
     }
     );
@@ -77,10 +92,89 @@ const getChannelMember = (channelId: any) => {
         description={user?.status}
         showAddGroup={true}
         setShowModal={setShowModal}
+        setShowArchive={setShowArchive}
+        showArchive={showArchive}
       />
       {
-        channels.map((channel: any) => {
-        return (
+        !showArchive ? 
+        (
+          channels?.filter(
+            (channel: any) => channel.pinnedFor?.map((user: any) => user.id).includes(user?.id)
+          )?.map((channel: any) => {
+            //list the pinned channels first
+            return (
+              <Channel
+              key={channel.id}
+              id={channel.id}
+              name={channel.name}
+              pinned={channel.pinnedFor?.map((user: any) => user.id).includes(user?.id)}
+              muted={channel.mutedFor?.map((user: any) => user.id).includes(user?.id)}
+              archived={channel.archivedFor?.map((user: any) => user.id).includes(user?.id)}
+              unread={channel.unreadFor?.map((user: any) => user.id).includes(user?.id)}
+              avatar={`https://randomuser.me/api/portraits/women/${channel.id}.jpg`}
+              description={channel?.messages[channel.messages.length - 1]?.content}
+              onClick={
+                () => {
+                  setCurrentChannel(channel);
+                  getChannelMember(channel.id);
+                }}
+                />
+                )
+              }).concat(
+                channels?.filter(
+                  (channel: any) => ((!channel.pinnedFor?.map((user: any) => user.id).includes(user?.id) &&
+                                    Date.parse(channel.createAt) < Date.parse(channel.updatedAt)))
+                ).map((channel: any) => {
+                  //list the pinned channels first
+                  return (
+                    <Channel
+                    key={channel.id}
+                    id={channel.id}
+                    name={channel.name}
+                    pinned={channel.pinnedFor?.map((user: any) => user.id).includes(user?.id)}
+                    muted={channel.mutedFor?.map((user: any) => user.id).includes(user?.id)}
+                    archived={channel.archivedFor?.map((user: any) => user.id).includes(user?.id)}
+                    unread={channel.unreadFor?.map((user: any) => user.id).includes(user?.id)}
+                    avatar={`https://randomuser.me/api/portraits/women/${channel.id}.jpg`}
+                    description={channel?.messages[channel.messages.length - 1]?.content}
+                    onClick={
+                      () => {
+                        setCurrentChannel(channel);
+                        getChannelMember(channel.id);
+                      }}
+                      />
+                      )
+                    }
+                    ).concat(
+                      channels?.filter(
+                        (channel: any) => !channel.pinnedFor?.map((user: any) => user.id).includes(user?.id) 
+                                         && Date.parse(channel.createAt) === Date.parse(channel.updatedAt)
+                      ).map((channel: any) => {
+                        return (
+                          <Channel
+                          key={channel.id}
+                          id={channel.id}
+                          name={channel.name}
+                          pinned={channel.pinnedFor?.map((user: any) => user.id).includes(user?.id)}
+                          muted={channel.mutedFor?.map((user: any) => user.id).includes(user?.id)}
+                          archived={channel.archivedFor?.map((user: any) => user.id).includes(user?.id)}
+                          unread={channel.unreadFor?.map((user: any) => user.id).includes(user?.id)}
+                          avatar={`https://randomuser.me/api/portraits/women/${channel.id}.jpg`}
+                          description={channel?.messages[channel.messages.length - 1]?.content}
+                          onClick={
+                            () => {
+                              setCurrentChannel(channel);
+                              getChannelMember(channel.id);
+                            }}
+                            />
+                            )
+                          }))
+              )
+
+        )
+        :
+        (archiveChannels.map((channel: any) => {
+          return(
           <Channel
             key={channel.id}
             id={channel.id}
@@ -97,8 +191,10 @@ const getChannelMember = (channelId: any) => {
                 getChannelMember(channel.id);
               }}
           />
-        );
-      })}
+          )
+        })
+        )
+      } 
     </div>
   );
 };

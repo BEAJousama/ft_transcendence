@@ -11,6 +11,7 @@ import Pong from "./pages/pong";
 import FourOhFour from "./pages/404";
 import { Spinner } from "./components";
 import SocketProvider, { SocketContext } from "./context/socket.context";
+import Notifs from "./pages/notifs";
 
 
 const PrivateRoutes = () => {
@@ -40,6 +41,7 @@ function App() {
           <Route path="/pong" element={<Pong />} />
           <Route path="/chat" element={<Chat />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/notifs" element={<Notifs />} />
           <Route path="/tfa" element={<TwoFactorAuth />} />
         </Route>
         <Route path="*" element={<FourOhFour />} />
