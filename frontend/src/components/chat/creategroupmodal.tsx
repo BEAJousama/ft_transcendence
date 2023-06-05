@@ -7,6 +7,7 @@ import { RiCloseFill } from "react-icons/ri";
 import ProfileBanner from "../../components/profilebanner";
 import { SocketContext } from "../../context/socket.context";
 import Select from "../select";
+import { AppContext } from "../../context/app.context";
 
 const CreateGroupModal = ({
   setShowModal,
@@ -21,6 +22,7 @@ const CreateGroupModal = ({
   const [visibility, setVisibility] = useState<string>("PUBLIC");
   const [allusers, setAllUsers] = useState<any[]>([]);
   const [password, setPassword] = useState<string>("");
+  const {user} = useContext(AppContext);
   const token = localStorage.getItem("access_token");
 
   useEffect(() => {
@@ -139,14 +141,16 @@ const CreateGroupModal = ({
           show && (
           <div className="w-full h[100px] flex items-center justify-center flex-col align-middle gap-2 pt-20 overflow-y-scroll scrollbar-hide">
             <span className="w-full mb-2 text-sm font-medium text-gray-900 dark:text-white">Select users: </span>
-            {allusers.map((user) => {
+            {allusers.filter((u) => {
+              return u.id !== user?.id;
+            }).map((u) => {
               return (
-                <div key={user.id} className="flex flex-row items-center justify-between w-full">
+                <div key={u.id} className="flex flex-row items-center justify-between w-full">
                     <ProfileBanner
-                      key={user.id}
-                      avatar={user.avatar}
-                      name={user.username}
-                      description={user.status}
+                      key={u.id}
+                      avatar={u.avatar}
+                      name={u.username}
+                      description={u.status}
                     />
                     <div className="w-8">
                       <input
@@ -155,9 +159,9 @@ const CreateGroupModal = ({
                         onClick={() => {
                         }}
                         onChange={() => {
-                          !selectedUsers.includes(user.id) ?
-                            setSelectedUsers([...selectedUsers, user.id]) :
-                            setSelectedUsers(selectedUsers.filter((id) => id !== user.id));
+                          !selectedUsers.includes(u.id) ?
+                            setSelectedUsers([...selectedUsers, u.id]) :
+                            setSelectedUsers(selectedUsers.filter((id) => id !== u.id));
                           }}
                       />
                     </div>

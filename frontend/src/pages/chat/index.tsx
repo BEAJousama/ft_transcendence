@@ -1,4 +1,5 @@
 import { ChannelList, CreateGroupModal, MessageBubble } from "../../components";
+import Welcome from "../../components/chat/welcome";
 import Sidepanel from "../../components/side-panel";
 import { SocketContext } from "../../context/socket.context";
 import { useContext, useEffect, useState } from "react";
@@ -24,6 +25,7 @@ export default function Chat() {
       setCurrentChannel(data);
     }
     );
+    console.log(currentChannel)
   }, [channelMember, socket, currentChannel]);
 
   //add logic to get current channel
@@ -39,7 +41,10 @@ export default function Chat() {
           setShowModal={setShowModal}
           />
         )}
-      {(open || isMatch) && <MessageBubble currentChannel={currentChannel} setOpen={setOpen} channelMember={channelMember}/>}
+      {((open || isMatch) && Object.keys(currentChannel).length ) ? <MessageBubble currentChannel={currentChannel} setOpen={setOpen} channelMember={channelMember}/>
+    : 
+      < Welcome />
+    }
       {showModal && <CreateGroupModal setShowModal={setShowModal} />}
     </div>
   );

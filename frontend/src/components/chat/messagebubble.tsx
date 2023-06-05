@@ -202,6 +202,7 @@ const MessageBubble = ({ setOpen, currentChannel, channelMember }: {setOpen: any
               }
               <div className="flex w-full items-center justify-center gap-4">
                 <Button
+                  disabled={visibility==="PROTECTED" } 
                   onClick={() => {
                     setShowEdit(false);
                     setVisibility(currentChannel.visiblity);

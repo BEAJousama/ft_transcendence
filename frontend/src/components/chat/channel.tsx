@@ -17,7 +17,7 @@ interface ChannelProps {
   members?: string[];
   messages?: string[];
   createdAt?: string;
-  updatedAt?: string;
+  updatedAt: string;
   muted?: boolean;
   selected?: boolean;
   onClick?: () => void;
@@ -117,7 +117,20 @@ const Channel = ({
         <span className="text-secondary-300">{description}</span>
       </div>
       <div className="flex items-right flex-col text-black text-sm justify-end">
-        <span className="text-primary-500 p-0 w-14 ">3:28 pm</span>
+        <span className="text-primary-500 p-0 w-14 ">
+        {
+                new Date(updatedAt).getHours() > 12 ?
+                new Date(updatedAt).getHours() - 12 :
+                new Date(updatedAt).getHours()
+              }:
+              {
+                new Date(updatedAt).getMinutes() < 10 ?
+                `0${new Date(updatedAt).getMinutes()}` :
+                new Date(updatedAt).getMinutes()
+              }
+              {new Date(updatedAt).getHours() > 12 ? "pm" : "am"
+        }
+        </span>
         <div className="flex items-center gap-2 justify-end">
           <span className="flex items-center justify-center bg-primary-500  text-xs rounded-full w-5 h-5">
             2

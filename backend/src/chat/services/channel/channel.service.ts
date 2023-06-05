@@ -135,14 +135,15 @@ export class ChannelService {
       const ch = await this.getChannelByName(channelData.name);
       if (ch)
       throw new Error(`Channel ${ch.name} already exists`);
-      if (channelData.visibility === Visiblity.PROTECTED)
+      if (channelData.visibility === Visiblity.PROTECTED
+        || (channelData.visibility === Visiblity.PRIVATE && channelData.password))
         hashPassword = await this.hashPassword(channelData.password);
       const channelMembers = channelData.members.map((memberId: number) => {
         return {
             userId: memberId,
         };
       });
-
+      channelMembers.push({ userId });
       const channel = await this.prisma.channel.create({
         data:
         {

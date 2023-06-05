@@ -113,6 +113,7 @@ const getChannelMember = (channelId: any) => {
               unread={channel.unreadFor?.map((user: any) => user.id).includes(user?.id)}
               avatar={`https://randomuser.me/api/portraits/women/${channel.id}.jpg`}
               description={channel?.messages[channel.messages.length - 1]?.content}
+              updatedAt={channel.messages.length > 0 ? channel.messages[channel.messages.length - 1].date : channel.updatedAt}
               onClick={
                 () => {
                   setCurrentChannel(channel);
@@ -123,8 +124,8 @@ const getChannelMember = (channelId: any) => {
               }).concat(
                 channels?.filter(
                   (channel: any) => ((!channel.pinnedFor?.map((user: any) => user.id).includes(user?.id) &&
-                                    Date.parse(channel.createAt) < Date.parse(channel.updatedAt)))
-                ).map((channel: any) => {
+                  Date.parse(channel.createAt) < Date.parse(channel.updatedAt)))
+                  ).map((channel: any) => {
                   //list the pinned channels first
                   return (
                     <Channel
@@ -137,6 +138,8 @@ const getChannelMember = (channelId: any) => {
                     unread={channel.unreadFor?.map((user: any) => user.id).includes(user?.id)}
                     avatar={`https://randomuser.me/api/portraits/women/${channel.id}.jpg`}
                     description={channel?.messages[channel.messages.length - 1]?.content}
+                    messages={channel.messages}
+                    updatedAt={channel.messages.length > 0 ? channel.messages[channel.messages.length - 1].date : channel.updatedAt}
                     onClick={
                       () => {
                         setCurrentChannel(channel);
@@ -148,8 +151,8 @@ const getChannelMember = (channelId: any) => {
                     ).concat(
                       channels?.filter(
                         (channel: any) => !channel.pinnedFor?.map((user: any) => user.id).includes(user?.id) 
-                                         && Date.parse(channel.createAt) === Date.parse(channel.updatedAt)
-                      ).map((channel: any) => {
+                        && Date.parse(channel.createAt) === Date.parse(channel.updatedAt)
+                        ).map((channel: any) => {
                         return (
                           <Channel
                           key={channel.id}
@@ -161,6 +164,8 @@ const getChannelMember = (channelId: any) => {
                           unread={channel.unreadFor?.map((user: any) => user.id).includes(user?.id)}
                           avatar={`https://randomuser.me/api/portraits/women/${channel.id}.jpg`}
                           description={channel?.messages[channel.messages.length - 1]?.content}
+                          messages={channel.messages}
+                          updatedAt={channel.messages.length > 0 ? channel.messages[channel.messages.length - 1].date : channel.updatedAt}
                           onClick={
                             () => {
                               setCurrentChannel(channel);
@@ -171,7 +176,7 @@ const getChannelMember = (channelId: any) => {
                           }))
               )
 
-        )
+              )
         :
         (archiveChannels.map((channel: any) => {
           return(
@@ -185,6 +190,8 @@ const getChannelMember = (channelId: any) => {
             unread={channel.unreadFor?.map((user: any) => user.id).includes(user?.id)}
             avatar={`https://randomuser.me/api/portraits/women/${channel.id}.jpg`}
             description={channel?.messages[channel.messages.length - 1]?.content}
+            messages={channel.messages}
+            updatedAt={channel.messages.length > 0 ? channel.messages[channel.messages.length - 1].date : channel.updatedAt}
             onClick={
               () => {
                 setCurrentChannel(channel);
