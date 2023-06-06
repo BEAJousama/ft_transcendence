@@ -18,12 +18,12 @@ export class PongGateway {
   // @WebSocketServer() server;
   // onModuleInit() {
   //   this.server.on('connect', (socket) => {
-  //     console.log('connected');
+  //     // console.log('connected');
   //   });
   // }
   // @SubscribeMessage('init')
   // init(@ConnectedSocket() client: Socket, @MessageBody() info) {
-  //   console.log(info);
+  //   // console.log(info);
   //   const data = this.pongService.initialize(info);
   //   client.emit('init', data);
   // }
@@ -34,12 +34,12 @@ export class PongGateway {
   // }
   // @SubscribeMessage('join-queue')
   // handleJoin(@ConnectedSocket() client: Socket) {
-  //   console.log('client joined');
+  //   // console.log('client joined');
   //   client.emit('joined', 'joined');
   // }
   // @SubscribeMessage('leave-queue')
   // handleLeave(@ConnectedSocket() client: Socket) {
-  //   console.log('client left');
+  //   // console.log('client left');
   //   client.emit('left', 'left');
   // }
 }

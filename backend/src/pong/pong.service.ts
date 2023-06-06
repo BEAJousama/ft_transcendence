@@ -113,7 +113,7 @@ export class PongService {
   //     };
   //   }
   //   const keys = info;
-  //   // console.log(keys);
+  //   // // console.log(keys);
   //   this._ball.x += this._ball.velocityX;
   //   this._ball.y += this._ball.velocityY;
   //   // protection

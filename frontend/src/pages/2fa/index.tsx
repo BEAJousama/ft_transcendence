@@ -1,11 +1,9 @@
 import axios from "axios";
 import { Button, Card, Input } from "./../../components";
-import { useContext, useRef, useState } from "react";
-import { Link, Navigate } from "react-router-dom";
-import { AppContext } from "../../context/app.context";
+import { useRef, useState } from "react";
+import { Navigate } from "react-router-dom";
 
 const TwoFactorAuth = () => {
-  const { fetchUser } = useContext(AppContext);
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [shouldRedirect, setShouldRedirect] = useState<boolean>(false);
@@ -144,7 +142,7 @@ const TwoFactorAuth = () => {
                   "access_token",
                   response.data.access_token
                 );
-                await fetchUser();
+                // await fetchUser();
                 setShouldRedirect(true);
               }
               setError("Invalid Code");

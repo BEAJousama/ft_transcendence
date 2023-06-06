@@ -1,40 +1,38 @@
-import React, { useContext } from "react";
+import { useContext } from "react";
 import { Navigate, Outlet, Route, Routes, useLocation } from "react-router-dom";
 import AppProvider, { AppContext } from "./context/app.context";
-import TwoFactorAuth from "./pages/2fa";
-import Login from "./pages/login";
-import Home from "./pages/home";
-import SignUp from "./pages/signup";
-import Chat from "./pages/chat";
-import Settings from "./pages/settings";
-import Pong from "./pages/pong";
-import FourOhFour from "./pages/404";
 import { Spinner } from "./components";
-import Profile from "./pages/profile";
-import Search from "./pages/search";
-import SocketProvider from "./context/socket.context";
-
+import {
+  TwoFactorAuth,
+  Login,
+  Home,
+  SignUp,
+  Chat,
+  Settings,
+  Pong,
+  FourOhFour,
+  Profile,
+  Search,
+} from "./pages/";
 
 const PrivateRoutes = () => {
-  const { authenticated, loading, twoFactorAuth } = useContext(AppContext);
+  const { authenticated, loading, user, fetchUser } = useContext(AppContext);
   const path = useLocation().pathname;
+  const twoFactorAuth = user?.twoFactorAuth;
 
   if (loading) {
     return <Spinner />;
   }
-
   return authenticated || (path === "/tfa" && twoFactorAuth) ? (
     <Outlet />
   ) : (
     <Navigate to="/login" />
   );
-  // return <Outlet />;
 };
 
 function App() {
   return (
     <AppProvider>
-      {/* <SocketProvider> */}
       <Routes>
         <Route element={<PrivateRoutes />}>
           <Route path="/" element={<Home />} />
@@ -47,10 +45,9 @@ function App() {
           <Route path="/profile/" element={<Profile />} />
           <Route path="/profile/:id" element={<Profile />} />
         </Route>
-        <Route path="*" element={<FourOhFour />} />
         <Route path="/login" element={<Login />} />
+        <Route path="*" element={<FourOhFour />} />
       </Routes>
-      {/* </SocketProvider> */}
     </AppProvider>
   );
 }

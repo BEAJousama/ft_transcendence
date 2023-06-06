@@ -1,20 +1,18 @@
 import { BsThreeDotsVertical } from "react-icons/bs";
 import {
     Button,
-    Card,
     Divider,
     RightClickMenu,
     RightClickMenuItem,
     Sidepanel,
     Spinner,
+    Achievement
 } from "../../components";
 import { CgProfile } from "react-icons/cg";
-import { useContext, useEffect, useState } from "react";
-import { AppContext } from "../../context/app.context";
-import clsx from "clsx";
-import axios from "axios";
+import { useContext, useState } from "react";
+import { AppContext, fetcher } from "../../context/app.context";
 import IAchievement from "../../interfaces/achievement";
-// import { useParams } from "react-router-dom";
+import useSWR from "swr";
 
 const icons = [
     "beginner.svg",
@@ -25,88 +23,18 @@ const icons = [
     "legendary.svg",
 ];
 
-const Achievement = ({
-    title,
-    description,
-    disabled,
-    image,
-}: {
-    title: string;
-    description: string;
-    disabled?: boolean;
-    image: string;
-}) => {
-    return (
-        <Card
-            className={clsx(
-                `relative flex flex-col items-center justify-center gap-3 
-        overflow-hidden  !border-tertiary-500 !bg-secondary-600 text-white !shadow-2xl !shadow-secondary-600 hover:before:hidden`,
-                disabled &&
-                `w-full before:absolute before:inset-0 before:bg-secondary-600 before:bg-opacity-5 before:backdrop-blur-sm before:content-['']`
-            )}
-        >
-            <img
-                src={`/achievements/${image}`}
-                alt="Achievement"
-                width={150}
-                className="rounded-xl"
-            />
-            <div className="font-montserrat text-sm font-bold">
-                {title.charAt(0).toLocaleUpperCase() +
-                    title.slice(1).toLocaleLowerCase().replaceAll("_", " ")}
-            </div>
-            <div className="text-center font-montserrat text-xs text-tertiary-200">
-                {description}
-            </div>
-        </Card>
-    );
-};
 
 export default function Profile() {
     const { user } = useContext(AppContext);
     const [show, setShow] = useState(false);
-    const [achievements, setAchievements] = useState<IAchievement[]>();
+    const { data: achievements, isLoading } = useSWR('api/users/achievements', fetcher);
 
-    // const { id } = useParams()
+    // // const { id } = useParams()
     const isDisabled = (name: string) => {
         const achievements = user?.achievements;
         if (!achievements) return true;
         return !achievements.find((item) => item.name === name)
     }
-    useEffect(() => {
-        (async () => {
-            try {
-                const accessToken = window.localStorage.getItem("access_token");
-                const response = await axios.get(
-                    `${process.env.REACT_APP_BACK_END_URL}api/users/achievements`,
-                    {
-                        headers: {
-                            Authorization: `Bearer ${accessToken}`,
-                        },
-                    }
-                );
-
-                response.data.sort((a: IAchievement, b: IAchievement) => {
-                    const disabledA = isDisabled(a.name);
-                    const disabledB = isDisabled(b.name);
-
-                    if (disabledA && !disabledB) {
-                        return 1; // Move disabledA to a higher index
-                    } else if (!disabledA && disabledB) {
-                        return -1; // Move disabledB to a higher index
-                    } else {
-                        return 0; // Preserve the original order
-                    }
-                });
-
-                setAchievements(response.data);
-
-            } catch { }
-        })();
-
-    }, []);
-
-
 
     return (
         <div className="grid h-screen w-screen grid-cols-10 bg-secondary-500">
@@ -196,7 +124,7 @@ export default function Profile() {
                 </span>
                 <div className="flex w-full max-w-[1024px] items-center justify-center">
                     <div className="grid grid-cols-1 gap-2 md:grid-cols-2 md:gap-4 lg:grid-cols-3 xl:gap-8">
-                        {!achievements ? (
+                        {isLoading ? (
                             <Spinner />
                         ) : (
                             achievements.map((item: IAchievement) => {

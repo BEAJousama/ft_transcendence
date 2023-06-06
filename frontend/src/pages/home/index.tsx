@@ -4,8 +4,12 @@ import { useMedia } from "react-use";
 import { useContext } from "react";
 import { AppContext } from "../../context/app.context";
 import { Link } from "react-router-dom";
+import IUser from "../../interfaces/user";
 
-const Game = () => {
+const Game = ({ player1, player2 }: {
+  player1?: IUser;
+  player2?: IUser;
+}) => {
   return (
     <div className="my-4 flex h-12 w-full items-center justify-center rounded-full bg-tertiary-500">
       <div className="flex w-full items-center justify-start">
@@ -107,6 +111,11 @@ const UserBanner = ({
   );
 };
 
+
+const ChatBanner = () => {
+  return <div></div>
+}
+
 const Container = ({
   children,
   title,
@@ -118,13 +127,13 @@ const Container = ({
 }) => {
   return (
     <div className="flex w-full max-w-[800px] flex-col gap-2 md:w-[88%]  animate-fade-right">
-      <div className="relative flex h-[500px] rounded border-2 border-secondary-400 shadow-md shadow-secondary-400">
+      <div className="relative flex h-[500px] rounded border-2 border-secondary-400 shadow-sm shadow-secondary-400">
         <img
           src={icon}
           alt="icon"
           className="absolute -top-10 left-1/2 -translate-x-1/2 transform "
         />
-        <span className="text-md absolute left-1/2 top-2 z-10 -translate-x-1/2 transform font-bold text-white sm:text-xl">
+        <span className="text-sm md:text-xl absolute left-1/2 top-2 z-10 -translate-x-1/2 transform font-bold text-white">
           {title}
         </span>
         <div className="absolute top-12 flex h-[90%] w-full flex-col overflow-y-auto overflow-x-hidden px-2 scrollbar-hide">
@@ -174,37 +183,14 @@ export default function Home() {
           </div>
         </Link>
         <Container title="Leader Board" icon="/img/3dMedal.svg">
-          {new Array(25).fill(0).map((_, i) => {
-            return <UserBanner key={i} rank={i + 1} showRank showRating user={user} />;
-          })}
         </Container>
         <Container title="FRIEND LIST" icon="/img/friendlist.svg">
-          {new Array(25).fill(0).map((_, i) => {
-            return (
-              <UserBanner
-                key={i}
-                rank={i + 1}
-                showRating
-                user={user}
-              // showRank
-              />
-            );
-          })}
         </Container>
         <Container title="LIVE FEED" icon="/img/3dCam.svg">
-          {new Array(25).fill(0).map((_, i) => {
-            return <Game key={i} />;
-          })}
         </Container>
         <Container title="MATCH HISTORY" icon="/img/history.svg">
-          {new Array(25).fill(0).map((_, i) => {
-            return <Game key={i} />;
-          })}
         </Container>
         <Container title="POPULAR ROOMS" icon="/img/3dchat.svg">
-          {new Array(25).fill(0).map((_, i) => {
-            return <Game key={i} />;
-          })}
         </Container>
       </div>
     </div>

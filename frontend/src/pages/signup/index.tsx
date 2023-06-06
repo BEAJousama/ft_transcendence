@@ -57,7 +57,7 @@ export default function SignUp() {
             className="w-full justify-center"
             type="success"
             onClick={() => {
-              console.log("submit");
+              // console.log("submit");
             }}
           >
             Submit

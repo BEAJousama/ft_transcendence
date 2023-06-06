@@ -102,7 +102,7 @@ export class AuthService {
         message: 'fail',
       };
     } catch (error) {
-      console.log(error);
+      // console.log(error);
       throw new InternalServerErrorException(
         'An internal server error occurred.',
       );

@@ -143,7 +143,7 @@ export class UsersController {
   @AddFriendsDoc()
   async addFriend(@Body() body: AddFriendsDto) {
     try {
-      // console.log(body);
+      // // console.log(body);
       const friendRequest = await this.usersService.sendFriendRequest(body);
       if (!friendRequest) throw 'No Matches Found !!!!!';
       return friendRequest;

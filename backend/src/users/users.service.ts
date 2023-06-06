@@ -43,7 +43,7 @@ export class UsersService {
   async getAllAchievements() {
     try {
       const achievements = await this.prisma.achievement.findMany();
-      console.log(achievements.length);
+      // console.log(achievements.length);
       return achievements;
     } catch (error) {}
   }
