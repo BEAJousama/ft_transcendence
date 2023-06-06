@@ -25,7 +25,6 @@ export default function Chat() {
       setCurrentChannel(data);
     }
     );
-    console.log(currentChannel)
   }, [channelMember, socket, currentChannel]);
 
   //add logic to get current channel

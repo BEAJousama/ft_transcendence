@@ -25,7 +25,9 @@ export type User = {
 
 export interface IAppContext {
   user: User | undefined;
+  users: User[];
   setUser: (user: User) => void;
+  setUsers: (users: User[]) => void;
   logout: () => void;
   login: () => void;
   setUsername: (username: string) => void;
@@ -40,7 +42,9 @@ export interface IAppContext {
 
 export const AppContext = React.createContext<IAppContext>({
   user: undefined,
+  users: [],
   setUser: (user: User) => {},
+  setUsers: (users: User[]) => {},
   logout: () => {},
   login: () => {},
   setUsername: () => {},
@@ -55,6 +59,7 @@ export const AppContext = React.createContext<IAppContext>({
 
 const AppProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | undefined>(undefined);
+  const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [authenticated, setAuthenticated] = useState<boolean>(false);
   const [twoFactorAuth, setTwoFactorAuth] = useState<boolean>(false);
@@ -84,6 +89,20 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
       }
     });
   };
+  const fetchUsers = async () => {
+    const accessToken = window.localStorage.getItem("access_token");
+    fetch("http://localhost:3000/api/users", {
+      method: 'GET',
+      headers: {
+          'Authorization': `Bearer ${accessToken}`, // notice the Bearer before your token
+      }
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        setUsers(data);
+      }
+    );
+  };
 
   const fetchUser = async () => {
     try {
@@ -109,11 +128,14 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   useEffect(() => {
+    fetchUsers();
     fetchUser();
   }, []);
 
   const appContextValue: IAppContext = {
     user: user,
+    users: users,
+    setUsers,
     setUser,
     logout,
     login,

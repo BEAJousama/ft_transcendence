@@ -79,14 +79,19 @@ const MessageBox = ({ message, right }: { message?: any; right?: boolean }) => {
                   className="w-10 h-10 rounded-full mr-2"
                   src={sender?.avatar}
                   alt={sender?.username}
-                />
-                <span className="absolute bottom-0 left-0 w-full bg-gray-800 text-center opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                  />
+                {/* <span className="absolute bottom-0 left-0 w-full bg-gray-800 text-center opacity-0 transition-opacity duration-300 group-hover:opacity-100">
                   {sender?.username}
-                </span>
+                </span> */}
               </span>
             </div>
           )}
           <div>
+            {user?.id !== message.senderId && (
+              <h1 className="font-montserrat font-bold text-sm text-primary-300">
+              {sender?.username}
+              </h1>
+            )}
             <div>{message.content}</div>
             <span className={clsx("w-full text-right", !right ? "text-secondary-300" : "text-secondary-200")}>
               {

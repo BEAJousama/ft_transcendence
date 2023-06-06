@@ -20,27 +20,10 @@ const CreateGroupModal = ({
   const  socket= useContext(SocketContext);
   const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
   const [visibility, setVisibility] = useState<string>("PUBLIC");
-  const [allusers, setAllUsers] = useState<any[]>([]);
   const [password, setPassword] = useState<string>("");
-  const {user} = useContext(AppContext);
-  const token = localStorage.getItem("access_token");
-
-  useEffect(() => {
-    fetch("http://localhost:3000/api/users", {
-      method: 'GET',
-      headers: {
-          'Authorization': `Bearer ${token}`, // notice the Bearer before your token
-      }
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        setAllUsers(data);
-      }
-    );
-  }, [token]);
+  const {user, users} = useContext(AppContext);
 
   function handleCreateGroup() {
-    console.log("password: ", password);
     socket?.emit("channel_create", { name: groupName ,avatar: "obeaj", visibility: visibility, members: selectedUsers, password: password});
     setShowModal(false);
   }
@@ -141,9 +124,9 @@ const CreateGroupModal = ({
           show && (
           <div className="w-full h[100px] flex items-center justify-center flex-col align-middle gap-2 pt-20 overflow-y-scroll scrollbar-hide">
             <span className="w-full mb-2 text-sm font-medium text-gray-900 dark:text-white">Select users: </span>
-            {allusers.filter((u) => {
+            {users.filter((u : any) => {
               return u.id !== user?.id;
-            }).map((u) => {
+            }).map((u : any) => {
               return (
                 <div key={u.id} className="flex flex-row items-center justify-between w-full">
                     <ProfileBanner

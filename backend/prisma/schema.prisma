@@ -121,26 +121,28 @@ enum ChannelType {
 }
 
 model Channel {
-  id             Int             @id @default(autoincrement())
-  name           String
-  avatar         String
-  visiblity      Visiblity       @default(PUBLIC)
-  password       String?
-  owner          User            @relation("ownedChannels", fields: [userId], references: [id])
-  pinnedFor      User[]          @relation("pinnedChannels")
-  mutedFor       User[]          @relation("mutedChannels")
-  archivedFor    User[]          @relation("archivedChannels")
-  deletedFor     User[]          @relation("deletedChannels")
-  unreadFor      User[]          @relation("unreadChannels")
-  bannedUsers    User[]          @relation("bannedinChannels")
-  mutedUsers     User[]          @relation("mutedinChannels")
-  adminUsers     User[]          @relation("admininChannels")
-  userId         Int
-  type           ChannelType     @default(GROUP)
-  channelMembers ChannelMember[] @relation("membersInChannels")
-  createAt       DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  messages       Message[]       @relation("receive")
+  
+  id                  Int             @id @default(autoincrement())
+  name                String
+  avatar              String
+  visiblity           Visiblity       @default(PUBLIC)
+  password            String?
+  owner               User            @relation("ownedChannels", fields: [userId], references: [id])
+  pinnedFor           User[]          @relation("pinnedChannels")
+  mutedFor            User[]          @relation("mutedChannels")
+  archivedFor         User[]          @relation("archivedChannels")
+  deletedFor          User[]          @relation("deletedChannels")
+  unreadFor           User[]          @relation("unreadChannels")
+  bannedUsers         User[]          @relation("bannedinChannels")
+  mutedUsers          User[]          @relation("mutedinChannels")
+  adminUsers          User[]          @relation("admininChannels")
+  userId              Int
+  type                ChannelType     @default(GROUP)
+  channelMembers      ChannelMember[] @relation("membersInChannels")
+  createAt            DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+  messages            Message[]       @relation("receive")
+  lastestMessageDate  DateTime?       @default(now())
 }
 
 enum Role {
@@ -184,5 +186,6 @@ model Message {
   pinned             Boolean?              @default(false)
   pinner             User?                 @relation("pinner", fields: [pinnerId], references: [id])
   pinnerId           Int?                  
-  date               DateTime             @default(now())
+  date               DateTime             @default(now())  
+  
 }

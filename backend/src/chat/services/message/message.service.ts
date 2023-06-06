@@ -21,19 +21,26 @@ export class MessageService {
         });
         if (channelMember)
             throw new Error("Cannot send message to this channel !");
-        let message = this.prisma.message.create({
+        let message = await this.prisma.message.create({
             data: {
                 content: data.content,
                 senderId: data.senderId,
                 receiverId: data.receiverId,
             },
-        }).then((message) => {;
-            if (!message) 
-            {
-                console.log("Cannot create message !");
-                return null;
-            }
-            return message;
+        })
+        if (!message) 
+        {
+            console.log("Cannot create message !");
+            return null;
+        }
+        await this.prisma.channel.update({
+            where: {
+                id: data.receiverId,
+            },
+            data: {
+                lastestMessageDate: message.date,
+                updatedAt: message.date,
+            },
         });
         return message;
     }

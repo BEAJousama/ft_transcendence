@@ -7,7 +7,6 @@ import { RiEdit2Fill, RiLogoutBoxRLine } from "react-icons/ri";
 import Avatar from "../avatar";
 import { useState, useRef, useContext, useEffect } from "react";
 import { useClickAway } from "react-use";
-import React from "react";
 import Modal from "../modal";
 import data from "@emoji-mart/data";
 import Picker from "@emoji-mart/react";
@@ -16,7 +15,6 @@ import Divider from "../divider";
 import ProfileBanner from "../profilebanner";
 import { SocketContext } from "../../context/socket.context";
 import { AppContext } from "../../context/app.context";
-import { channel } from "diagnostics_channel";
 import Select from "../select";
 
 const MessageBubble = ({ setOpen, currentChannel, channelMember }: {setOpen: any, currentChannel: any, channelMember: any}) => {
@@ -42,9 +40,12 @@ const MessageBubble = ({ setOpen, currentChannel, channelMember }: {setOpen: any
       setPinnedMessages(message);
     });
     socket?.on("messsage", (message: any) => {
-      setMessages([...messages, message]);
+      const sortedMessages = [...messages, message].sort((a, b) => {
+        return new Date(a.date).getTime() - new Date(b.date).getTime();
+      });
+      setMessages(sortedMessages);
     });
-  }, [socket, messages, currentChannel, pinnedMessages]);
+  }, [socket, messages, currentChannel]);
 
   const ref = useRef(null);
   useClickAway(ref, () => {
@@ -68,7 +69,7 @@ const MessageBubble = ({ setOpen, currentChannel, channelMember }: {setOpen: any
   return (
     <div className="relative overflow-auto col-span-10 flex h-screen w-full flex-col justify-start gap-4 rounded-t-3xl bg-secondary-600 lg:col-span-5 xl:col-span-5 2xl:col-span-6">
       <Button
-        className="flex items-center gap-2 rounded-t-3xl bg-secondary-400 !p-2 text-white hover:bg-secondary-400"
+        className="flex tems-center gap-2 rounded-t-3xl top-0 mb-16 sticky bg-secondary-400 !p-2 text-white hover:bg-secondary-400 z-10"
         onClick={() => {
           setShowModal(true);
         }}
@@ -85,7 +86,7 @@ const MessageBubble = ({ setOpen, currentChannel, channelMember }: {setOpen: any
           <BiLeftArrow />
         </Button>
       </Button>
-      <div className="mb-16 flex h-screen flex-col justify-end gap-2 scrollbar-hide ">
+      <div className="mb-16 flex h-screen flex-col justify-end gap-2 scrollbar-hide z-0 ">
         {
           messages?.map((message) => {
           return (
@@ -102,7 +103,7 @@ const MessageBubble = ({ setOpen, currentChannel, channelMember }: {setOpen: any
           )
         })}
       </div>      
-      <div className="absolute bottom-0 flex w-full items-center bg-secondary-700 p-1">
+      <div className="absolute sticky bottom-0 flex w-full  items-center bg-secondary-700 p-1 ">
         <Button
           variant="text"
           className="!hover:bg-inherit !bg-inherit text-primary-500"

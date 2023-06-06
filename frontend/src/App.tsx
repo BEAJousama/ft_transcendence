@@ -11,6 +11,7 @@ import Pong from "./pages/pong";
 import FourOhFour from "./pages/404";
 import { Spinner } from "./components";
 import SocketProvider, { SocketContext } from "./context/socket.context";
+import ChatNotifsProvider from "./context/chatNotifs.context";
 import Notifs from "./pages/notifs";
 
 
@@ -34,19 +35,21 @@ function App() {
   return (
     <AppProvider>
       <SocketProvider>
-      <Routes>
-        <Route element={<PrivateRoutes />}>
-          <Route path="/" element={<Home />} />
-          <Route path="/signup" element={<SignUp />} />
-          <Route path="/pong" element={<Pong />} />
-          <Route path="/chat" element={<Chat />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/notifs" element={<Notifs />} />
-          <Route path="/tfa" element={<TwoFactorAuth />} />
-        </Route>
-        <Route path="*" element={<FourOhFour />} />
-        <Route path="/login" element={<Login />} />
-      </Routes>
+        <ChatNotifsProvider>
+        <Routes>
+          <Route element={<PrivateRoutes />}>
+            <Route path="/" element={<Home />} />
+            <Route path="/signup" element={<SignUp />} />
+            <Route path="/pong" element={<Pong />} />
+            <Route path="/chat" element={<Chat />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/notifs" element={<Notifs />} />
+            <Route path="/tfa" element={<TwoFactorAuth />} />
+          </Route>
+          <Route path="*" element={<FourOhFour />} />
+          <Route path="/login" element={<Login />} />
+        </Routes>
+        </ChatNotifsProvider>
       </SocketProvider>
     </AppProvider>
   );
