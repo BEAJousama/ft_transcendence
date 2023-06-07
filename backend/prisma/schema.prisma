@@ -69,7 +69,6 @@ model User {
   archivedChannels Channel[]     @relation("archivedChannels")
   deletedChannels  Channel[]     @relation("deletedChannels")
   unreadChannels   Channel[]     @relation("unreadChannels")
-
   memberInChannels ChannelMember[]
   sentMessages     Message[]       @relation("send")
   pineedMessages   Message[]       @relation("pinner")
@@ -121,7 +120,6 @@ enum ChannelType {
 }
 
 model Channel {
-  
   id                  Int             @id @default(autoincrement())
   name                String
   avatar              String
@@ -143,6 +141,7 @@ model Channel {
   updatedAt           DateTime        @updatedAt
   messages            Message[]       @relation("receive")
   lastestMessageDate  DateTime?       @default(now())
+  newMessagesCount    Int?            @default(0)
 }
 
 enum Role {

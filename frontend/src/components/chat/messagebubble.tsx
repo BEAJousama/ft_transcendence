@@ -86,7 +86,7 @@ const MessageBubble = ({ setOpen, currentChannel, channelMember }: {setOpen: any
           <BiLeftArrow />
         </Button>
       </Button>
-      <div className="mb-16 flex h-screen flex-col justify-end gap-2 scrollbar-hide z-0 ">
+      <div className="mb-2 flex h-full flex-col justify-end gap-2 scrollbar-hide z-[0] ">
         {
           messages?.map((message) => {
           return (

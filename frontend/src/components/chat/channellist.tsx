@@ -54,7 +54,7 @@ const getArchiveChannels = async (id: any) => {
   try {
     socket?.emit('getArchiveChannels', {user: {id}});
     socket?.on('getArchiveChannels', (channels: any) => {
-      setArchiveChannels(channels);
+      setArchiveChannels(channels); 
     }
     );
   } catch (error) {
@@ -66,6 +66,7 @@ const getArchiveChannels = async (id: any) => {
 const getNewChannel = async () => {
     try {
         socket?.on('channel_create', (channel: any) => {
+          console.log("heeeey");
             setChannels([...channels, channel]);
         });
     } catch (error) {
@@ -115,8 +116,10 @@ const getChannelMember = (channelId: any) => {
               avatar={`https://randomuser.me/api/portraits/women/${channel.id}.jpg`}
               description={channel?.messages[channel.messages.length - 1]?.content}
               updatedAt={channel.lastestMessageDate}
+              newMessages={channel.newMessagesCount}
               onClick={
                 () => {
+                  console.log(channel);
                   setCurrentChannel(channel);
                   getChannelMember(channel.id);
                 }}
@@ -140,6 +143,7 @@ const getChannelMember = (channelId: any) => {
                     avatar={`https://randomuser.me/api/portraits/women/${channel.id}.jpg`}
                     description={channel?.messages[channel.messages.length - 1]?.content}
                     updatedAt={channel.lastestMessageDate}
+                    newMessages={channel.newMessagesCount}
                     onClick={
                       () => {
                         setCurrentChannel(channel);
@@ -152,43 +156,45 @@ const getChannelMember = (channelId: any) => {
                         (channel: any) => ((!channel.pinnedFor?.map((user: any) => user.id).includes(user?.id) &&
                         Date.parse(channel.createAt) === Date.parse(channel.updatedAt)))
                         ).map((channel: any) => {
-                        //list the pinned channels first
-                        return (
-                          <Channel
-                          key={channel.id}
-                          id={channel.id}
-                          name={channel.name}
-                          pinned={channel.pinnedFor?.map((user: any) => user.id).includes(user?.id)}
-                          muted={channel.mutedFor?.map((user: any) => user.id).includes(user?.id)}
-                          archived={channel.archivedFor?.map((user: any) => user.id).includes(user?.id)}
-                          unread={channel.unreadFor?.map((user: any) => user.id).includes(user?.id)}
-                          avatar={`https://randomuser.me/api/portraits/women/${channel.id}.jpg`}
-                          description={channel?.messages[channel.messages.length - 1]?.content}
-                          updatedAt={channel.lastestMessageDate}
-                          onClick={
-                            () => {
-                              setCurrentChannel(channel);
-                              getChannelMember(channel.id);
-                            }}
-                            />
-                            )
-                          })
-              )))
-        :
-        (archiveChannels.map((channel: any) => {
-          return(
-          <Channel
-            key={channel.id}
-            id={channel.id}
-            name={channel.name}
-            pinned={channel.pinnedFor?.map((user: any) => user.id).includes(user?.id)}
-            muted={channel.mutedFor?.map((user: any) => user.id).includes(user?.id)}
-            archived={channel.archivedFor?.map((user: any) => user.id).includes(user?.id)}
-            unread={channel.unreadFor?.map((user: any) => user.id).includes(user?.id)}
-            avatar={`https://randomuser.me/api/portraits/women/${channel.id}.jpg`}
-            description={channel?.messages[channel.messages.length - 1]?.content}
-            updatedAt={channel.lastestMessageDate}
-            onClick={
+                          //list the pinned channels first
+                          return (
+                            <Channel
+                            key={channel.id}
+                            id={channel.id}
+                            name={channel.name}
+                            pinned={channel.pinnedFor?.map((user: any) => user.id).includes(user?.id)}
+                            muted={channel.mutedFor?.map((user: any) => user.id).includes(user?.id)}
+                            archived={channel.archivedFor?.map((user: any) => user.id).includes(user?.id)}
+                            unread={channel.unreadFor?.map((user: any) => user.id).includes(user?.id)}
+                            avatar={`https://randomuser.me/api/portraits/women/${channel.id}.jpg`}
+                            description={channel?.messages[channel.messages.length - 1]?.content}
+                            updatedAt={channel.lastestMessageDate}
+                            newMessages={channel.newMessagesCount}
+                            onClick={
+                              () => {
+                                setCurrentChannel(channel);
+                                getChannelMember(channel.id);
+                              }}
+                              />
+                              )
+                            })
+                            )))
+                            :
+                            (archiveChannels.map((channel: any) => {
+                              return(
+                                <Channel
+                                key={channel.id}
+                                id={channel.id}
+                                name={channel.name}
+                                pinned={channel.pinnedFor?.map((user: any) => user.id).includes(user?.id)}
+                                muted={channel.mutedFor?.map((user: any) => user.id).includes(user?.id)}
+                                archived={channel.archivedFor?.map((user: any) => user.id).includes(user?.id)}
+                                unread={channel.unreadFor?.map((user: any) => user.id).includes(user?.id)}
+                                avatar={`https://randomuser.me/api/portraits/women/${channel.id}.jpg`}
+                                description={channel?.messages[channel.messages.length - 1]?.content}
+                                updatedAt={channel.lastestMessageDate}
+                                newMessages={channel.newMessagesCount}
+                                onClick={
               () => {
                 setCurrentChannel(channel);
                 getChannelMember(channel.id);

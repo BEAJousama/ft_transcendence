@@ -38,8 +38,15 @@ export class MessageService {
                 id: data.receiverId,
             },
             data: {
+                newMessagesCount: {
+                    increment: 1,
+                },
+                deletedFor: {
+                    set: [],
+                },
                 lastestMessageDate: message.date,
                 updatedAt: message.date,
+                                
             },
         });
         return message;

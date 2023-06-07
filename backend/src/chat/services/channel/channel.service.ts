@@ -25,12 +25,21 @@ export class ChannelService {
               isArchived: false,
             },
           },
+          //deletedfor should't contain the userId
+          deletedFor: {
+            none: {
+              id: {
+                equals: userId,
+              },
+            },
+          },
         },
           include:
           {
               archivedFor: true,
-              mutedFor: true,
+              mutedFor: true, 
               pinnedFor: true,
+              deletedFor: true,
               channelMembers:
               {
                 include: {
@@ -201,19 +210,18 @@ export class ChannelService {
 
   async deleteChannel(channelId: number, userId): Promise<number>
   {
-    let deleted =  await this.prisma.channel.deleteMany({
+    let updated =  await this.prisma.channel.update({
       where: { id: channelId,
-      channelMembers: {
-          some: {
-              userId: userId,
-              role: Role.OWNER,
-          }
-        }
-      }
+      },
+      data: {
+        deletedFor: {
+          connect: {
+            id: userId,
+        },
+      },
+    },
     });
-    if (deleted.count === 0)
-      throw new Error('You are not the owner of the channel');
-    return deleted.count;
+    return updated.id;
   }
 
 

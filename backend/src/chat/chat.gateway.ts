@@ -165,16 +165,19 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect  {
           error: EVENT.CHANNEL_CREATE,
           message: 'Cannot create channel',
         });
-      }    
+      }
+      const channelTosend = this.channelService.getChannelById(channel.id);
       let sockets = this.getConnectedUsers(client.data.sub);
+      console.log(sockets);
       payload.members.forEach((m) => {
         if (!this.chatService.isBlocked(client.data.sub, m))
-        sockets = sockets.concat(this.getConnectedUsers(m));
+          sockets = sockets.concat(this.getConnectedUsers(m));
       })
+      console.log(sockets);
       if (!sockets || sockets.length === 0) return;
       sockets.forEach((s) => {
         s.join(channel.id.toString());
-        this.server.to(s.id).emit(EVENT.CHANNEL_CREATE, channel);
+        this.server.to(s.id).emit(EVENT.CHANNEL_CREATE, channelTosend);
       });
       this.sendChannels(client.data.sub);
       
@@ -420,14 +423,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect  {
     }
 
   @SubscribeMessage(EVENT.CHANNEL_DELETE)
-  async deleteChannel(client: Socket, channelId: string) {
+  async deleteChannel(client: Socket, payload: any) {
     try {
         await this.channelService.deleteChannel(
-        parseInt(channelId), client.data.sub
+              parseInt(payload.channelId), client.data.sub
         );
         const sockets = this.getConnectedUsers(client.data.sub);
         sockets.forEach((s) => {
-          s.leave(channelId);
+          s.leave(payload.channelId);
           // this.server.to(s.id).emit(EVENT.CHANNEL_DELETE, channel)
         });
         this.sendChannels(client.data.sub);
@@ -760,7 +763,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect  {
   {
     let connectedUsers: Socket[] = [];
     this.connectedClient.forEach(user => {
-      if (user.data.id === id)
+      if (user.data.sub === id)
         connectedUsers.push(user);
     });
     return connectedUsers;

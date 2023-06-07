@@ -21,6 +21,7 @@ interface ChannelProps {
   muted?: boolean;
   selected?: boolean;
   onClick?: () => void;
+  newMessages?: number;
   pinned?: boolean;
   archived?: boolean;
   deleted?: boolean;
@@ -41,6 +42,7 @@ const Channel = ({
   archived,
   unread,
   selected,
+  newMessages,
   onClick,
   pinned,
 }: ChannelProps) => {
@@ -91,7 +93,7 @@ const Channel = ({
     };
 
     const deleteChannel = () => {
-      socket?.emit("delete_channel", data);
+      socket?.emit("channel_delete", data);
     };
 
     const markAsUnread = () => {
@@ -133,7 +135,7 @@ const Channel = ({
         </span>
         <div className="flex items-center gap-2 justify-end">
           <span className="flex items-center justify-center bg-primary-500  text-xs rounded-full w-5 h-5">
-            2
+            {}
           </span>
           {muted && <BiVolumeMute />}
           {pinned && <BsPinAngleFill />}
@@ -181,6 +183,7 @@ const Channel = ({
           <RightClickMenuItem
             onClick={
               () => {
+                deleteChannel();
                 console.log("delete");
             }}
             >
