@@ -92,7 +92,9 @@ const MessageBubble = ({ setOpen, currentChannel, channelMember }: {setOpen: any
           return (
             <>
             {new Date(message.date).getDay() !== new Date(messages[messages.indexOf(message) - 1]?.date).getDay() && (
-              <Divider center title={ `${new Date(message.date).getDate()} - ${new Date(message.date).getMonth() + 1} - ${new Date(message.date).getFullYear()}`}/>
+              <Divider center title={ 
+                //check if date is less than 10, if so add a 0 in front of it
+                `${  new Date(message.date).getDate() < 10 ? '0' + new Date(message.date).getDate() : new Date(message.date).getDate()}-${ new Date(message.date).getMonth() < 12 ? '0' + (new Date(message.date).getMonth() + 1) : new Date(message.date).getMonth() + 1}-${new Date(message.date).getFullYear()}`}/>
             )}
             <MessageBox
             key={message.id}
@@ -227,7 +229,7 @@ const MessageBubble = ({ setOpen, currentChannel, channelMember }: {setOpen: any
           )}
           <Divider/>
           <div className="flex h-[300px] w-full flex-col items-center  justify-center gap-2 overflow-y-scroll pt-20 scrollbar-hide">
-            {currentChannel.channelMembers.map((member : any) => {
+            {currentChannel?.channelMembers?.map((member : any) => {
                 return (
                   <ProfileBanner
                     channelMember={channelMember}

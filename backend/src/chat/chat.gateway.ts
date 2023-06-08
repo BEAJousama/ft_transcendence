@@ -283,10 +283,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect  {
         parseInt(payload.channelId),
         );
         const channel = await this.channelService.getChannelById(parseInt(payload.channelId));
-        client.emit(EVENT.SET_ADMIN, channel);
+        // client.emit(EVENT.SET_ADMIN, channel);
         const sockets = this.getConnectedUsers(client.data.sub);
         sockets.forEach((s) => {
-          this.server.to(s.id).emit(EVENT.SET_ADMIN, ru)
+          this.server.to(s.id).emit(EVENT.SET_ADMIN, channel)
         });
         this.sendChannels(client.data.sub);
       } catch (err) {
@@ -306,10 +306,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect  {
         parseInt(payload.channelId),
         );
       const channel = await this.channelService.getChannelById(parseInt(payload.channelId));
-        client.emit(EVENT.SET_ADMIN, channel);
+        // client.emit(EVENT.SET_ADMIN, channel);
         const sockets = this.getConnectedUsers(client.data.sub);
         sockets.forEach((s) => {
-          this.server.to(s.id).emit(EVENT.SET_ADMIN, ru)
+          this.server.to(s.id).emit(EVENT.SET_ADMIN, channel)
         });
         this.sendChannels(client.data.sub);
       } catch (err) {

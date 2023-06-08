@@ -66,7 +66,6 @@ const getArchiveChannels = async (id: any) => {
 const getNewChannel = async () => {
     try {
         socket?.on('channel_create', (channel: any) => {
-          console.log("heeeey");
             setChannels([...channels, channel]);
         });
     } catch (error) {
@@ -101,7 +100,6 @@ const getChannelMember = (channelId: any) => {
         (
           channels?.filter(
             (channel: any) => channel.pinnedFor?.map((user: any) => user.id).includes(user?.id)
-            && Date.parse(channel.createAt) < Date.parse(channel.updatedAt)
           )?.map((channel: any) => {
             //list the pinned channels first
             return (
@@ -119,7 +117,6 @@ const getChannelMember = (channelId: any) => {
               newMessages={channel.newMessagesCount}
               onClick={
                 () => {
-                  console.log(channel);
                   setCurrentChannel(channel);
                   getChannelMember(channel.id);
                 }}
