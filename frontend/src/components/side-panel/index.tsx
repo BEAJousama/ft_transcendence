@@ -1,5 +1,5 @@
 import { BsFillChatDotsFill } from "react-icons/bs";
-import { AiFillHome, AiFillProfile } from "react-icons/ai";
+import { AiFillHome } from "react-icons/ai";
 import { TbDeviceGamepad2 } from "react-icons/tb";
 import { CgProfile } from "react-icons/cg";
 import { RiListSettingsFill, RiProfileFill} from "react-icons/ri";
@@ -7,6 +7,7 @@ import { IoMdNotifications } from "react-icons/io";
 import { RiLogoutBoxRLine } from "react-icons/ri";
 import clsx from "clsx";
 import { Link, useLocation } from "react-router-dom";
+import { BiSearch } from "react-icons/bi";
 
 const List = ({
   children,
@@ -32,7 +33,7 @@ const ListItem = ({
   return (
     <li
       className={`flex w-full items-center justify-center pt-2 ${selected &&
-        "relative before:absolute before:-left-2 before:h-full  before:rounded-md before:border-2 before:border-primary-500 before:bg-primary-500 before:text-primary-500 before:content-['1']"
+        "relative before:absolute before:-left-1.5 before:h-full  before:rounded-md before:border-2 before:border-primary-500 before:bg-primary-500 before:text-primary-500 before:content-['1']"
         } ${className}`}
     >
       <button
@@ -48,7 +49,9 @@ const ListItem = ({
   );
 };
 
-const Sidepanel = ({ className }: any) => {
+const Sidepanel = ({ className }: {
+  className?: string;
+}) => {
   const path = useLocation().pathname;
 
   return (
@@ -58,14 +61,16 @@ const Sidepanel = ({ className }: any) => {
         className && className
       )}
     >
-      <div className="w-46 hidden items-center justify-center md:flex">
-        <img className="!w-64 px-6" src="/img/logo.png" alt="logo" />
-      </div>
-      <img
-        className="w-16 px-4 md:hidden"
-        src="/img/smalllogo.svg"
-        alt="logo"
-      />
+      <Link to="/">
+        <div className="w-46 hidden items-center justify-center md:flex">
+          <img className="!w-64 px-6" src="/img/logo.png" alt="logo" />
+        </div>
+        <img
+          className="w-16 px-4 md:hidden"
+          src="/img/smalllogo.svg"
+          alt="logo"
+        />
+      </Link>
       <List className="flex w-full flex-col gap-2 text-lg md:gap-4 md:text-sm">
         <Link to="/">
           <ListItem selected={path === "/"}>
@@ -79,6 +84,12 @@ const Sidepanel = ({ className }: any) => {
             <span className="hidden md:block">Chat</span>
           </ListItem>
         </Link>
+        <Link to="/search">
+          <ListItem selected={path === "/search"}>
+            <BiSearch />
+            <span className="hidden md:block">Search</span>
+          </ListItem>
+        </Link>
         <Link to="/pong">
           <ListItem selected={path === "/pong"}>
             <TbDeviceGamepad2 />
@@ -86,7 +97,7 @@ const Sidepanel = ({ className }: any) => {
           </ListItem>
         </Link>
         <Link to="/profile">
-          <ListItem selected={path === "/pofile"}>
+          <ListItem selected={path === "/profile"}>
             <CgProfile />
             <span className="hidden md:block">Profile</span>
           </ListItem>

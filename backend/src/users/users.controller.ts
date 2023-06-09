@@ -43,6 +43,33 @@ export class UsersController {
     }
   }
 
+  @Get('achievements')
+  @FindAllDoc()
+  async getAllAchievements() {
+    try {
+      return await this.usersService.getAllAchievements();
+    } catch (error) {
+      return null;
+    }
+  }
+
+  @Post('achievements')
+  @FindAllDoc()
+  async assignAchievements(
+    @Body() body: { userId: number; achievementId: number },
+  ) {
+    try {
+      return await this.usersService.assignAchievements(
+        body.userId,
+        body.achievementId,
+      );
+    } catch (error) {
+      return {
+        message: 'Could not Assign the achievement',
+      };
+    }
+  }
+
   @Get(':id')
   @FindOneDoc()
   async findOne(@Param('id') id: string) {
@@ -116,7 +143,7 @@ export class UsersController {
   @AddFriendsDoc()
   async addFriend(@Body() body: AddFriendsDto) {
     try {
-      console.log(body);
+      // // console.log(body);
       const friendRequest = await this.usersService.sendFriendRequest(body);
       if (!friendRequest) throw 'No Matches Found !!!!!';
       return friendRequest;
@@ -177,9 +204,9 @@ export class UsersController {
 
   @Post(':id')
   @UpdateDoc()
-  async updateOne(@Body() body: UpdateUserDto) {
+  async updateOne(@Body() body: UpdateUserDto, @Param('id') id: string) {
     try {
-      return this.usersService.updateUser(body);
+      return this.usersService.updateUser(body, parseInt(id));
     } catch (error) {
       return error;
     }

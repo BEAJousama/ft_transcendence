@@ -26,17 +26,40 @@ enum Ladder {
 }
 
 // enum Achievements {
-// Perfect Game Comeback King Sharpshooter Iron Paddle Marathon Match Master of Spin Speed Demon Trickster Streaker Grand Slam
 // PERFECT_GAME // : Achieve a score of 11-0 in a single game against the computer or another player.
 // COMEBACK_KING // : Win a game after being down by 5 or more points.
-// SHARPSHOOTER // : Score 10 or more points in a row without missing a shot.
+// SHARP_SHOOTER // : Score 10 or more points in a row without missing a shot.
 // IRON_PADDLE // : Block 50 or more shots in a single game.
 // MARATHON_MATCH // : Play a game that lasts more than 10 minutes.
 // MASTER_OF_SPIN // : Score a point with a spin shot that confuses the opponent.
 // SPEED_DEMON // : Score a point within 10 seconds of the start of a game.
 // TRICKSTER // : Score a point by bouncing the ball off the wall or the paddle.
 // STREAKER // : Win 10 or more games in a row against the computer or other players.
-// GRAND_SLAM // : Win all four game modes (e.g. Classic, Time Attack, Survival, etc.) in a row.
+// First_Serve // : Serve your first ball in a game.
+// Paddle_Master // : Score 10 points using only your paddle.
+// Speed_Demon // : Reach a ball speed of 100 mph.
+// Perfect_Aim // : Score five consecutive direct hits on your opponent's paddle.
+// Flawless_Victory // : Win a game without your opponent scoring a single point.
+// Comeback_Kid // : Win a game after being down by five points.
+// Sharp_Shooter // : Score a point with a precise shot that grazes the edge of the paddle.
+// Untouchable //  Play for one minute without your opponent touching the ball.
+// Long_Rally // : Successfully rally the ball 20 times without anyone scoring a point.
+// Quick_Reflexes // : Score a point within three seconds of the ball being served.
+// Defensive_Prodigy // : Successfully block 10 consecutive shots from your opponent.
+// Master_of //  Spin: Apply spin to the ball and make it curve around your opponent's paddle.
+// Unstoppable_Streak // : Win five games in a row without losing a single one.
+// Perfect_Defense // : Win a game without allowing your opponent to score a single point.
+// Precision_Shot // : Score a point by hitting the ball directly into one of the corners.
+// Doubles_Champion // : Win a doubles match with a teammate against two opponents.
+// Nail_Biter // : Win a game by a margin of only one point.
+// Paddle_Acrobat // : Perform a successful trick shot by hitting the ball behind your back.
+// Mind_Reader // : Anticipate your opponent's shot and successfully block it five times in a row.
+// Crazy_Comeback // : Win a game after being down by eight points.
+// Power_Serve // : Serve the ball with such force that your opponent cannot return it.
+// Pinpoint_Accuracy // : Score three consecutive points by hitting the ball to the exact same spot on your opponent's side.
+// Legendary_Rivalry // : Play against a specific opponent 100 times.
+// Paddle_Wizard // : Win a game without moving your paddle from the center position.
+// Pong_Champion // : Win 100 games in total.
 // }
 
 model User {
@@ -55,7 +78,6 @@ model User {
   rating           Int           @default(0)
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
-  achievement      Achievement[] @relation("AchievementPlayers")
   blocking         Block[]       @relation("blocking")
   blockers         Block[]       @relation("blocker")
   wins             Int           @default(0)
@@ -69,11 +91,15 @@ model User {
   archivedChannels Channel[]     @relation("archivedChannels")
   deletedChannels  Channel[]     @relation("deletedChannels")
   unreadChannels   Channel[]     @relation("unreadChannels")
+  achievements     Achievement[]   @relation("AchievementPlayers")
   memberInChannels ChannelMember[]
   sentMessages     Message[]       @relation("send")
   pineedMessages   Message[]       @relation("pinner")
   sentRequests     Friend[]        @relation("SentRequest")
   receivedRequests Friend[]        @relation("ReceivedRequest")
+  player           Player[]        @relation("player")
+  gamesWon         Game[]          @relation("winner")
+  gamesLost        Game[]          @relation("loser")
 }
 
 enum RequestStatus {
@@ -187,4 +213,34 @@ model Message {
   pinnerId           Int?                  
   date               DateTime             @default(now())  
   
+}
+
+model Player {
+  id             Int    @id @default(autoincrement())
+  player         User   @relation("player", fields: [playerId], references: [id])
+  playerId       Int
+  gamesAsPlayer1 Game[] @relation("player1")
+  gamesAsPlayer2 Game[] @relation("player2")
+  score          String
+}
+
+enum GameStatus {
+  PENDING
+  IN_PROGRESS
+  FINISHED
+}
+
+model Game {
+  id        Int        @id @default(autoincrement())
+  player1   Player     @relation("player1", fields: [player1Id], references: [id])
+  player1Id Int
+  player2   Player     @relation("player2", fields: [player2Id], references: [id])
+  player2Id Int
+  winner    User?      @relation("winner", fields: [winnerId], references: [id])
+  winnerId  Int?
+  loser     User?      @relation("loser", fields: [loserId], references: [id])
+  loserId   Int?
+  date      DateTime   @default(now())
+  duration  Int        @default(0)
+  status    GameStatus
 }

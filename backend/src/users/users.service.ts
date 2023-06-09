@@ -13,10 +13,55 @@ import {
   UnblockUserDto,
   UpdateUserDto,
 } from './dto';
-
+import Achievements from './achievements/index.tsx';
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) {
+    this.createAchievements();
+  }
+
+  private async createAchievements() {
+    try {
+      const achievements = await this.prisma.achievement.findMany();
+      if (achievements.length === 0) {
+        const keys = Object.keys(Achievements);
+        keys.map(async (key, i) => {
+          await this.prisma.achievement.create({
+            data: {
+              name: key,
+              description: Achievements[key],
+              image: `${key.toLocaleLowerCase()}.png`,
+            },
+          });
+        });
+      }
+    } catch (error) {
+      return error;
+    }
+  }
+
+  async getAllAchievements() {
+    try {
+      const achievements = await this.prisma.achievement.findMany();
+      // console.log(achievements.length);
+      return achievements;
+    } catch (error) {}
+  }
+
+  async assignAchievements(userId: number, achievementId: number) {
+    try {
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: {
+          achievements: {
+            connect: {
+              id: achievementId,
+            },
+          },
+        },
+      });
+    } catch (error) {}
+  }
 
   async createUser(data: {
     login: string;
@@ -55,6 +100,7 @@ export class UsersService {
         include: {
           sentRequests: true,
           receivedRequests: true,
+          achievements: true,
         },
       });
       return user;
@@ -68,6 +114,9 @@ export class UsersService {
       const user = await this.prisma.user.findUnique({
         where: {
           login,
+        },
+        include: {
+          achievements: true,
         },
       });
       return user;
@@ -101,16 +150,17 @@ export class UsersService {
     }
   }
 
-  async updateUser(body: UpdateUserDto) {
+  async updateUser(body: UpdateUserDto, id: number) {
     try {
-      const { id } = body.user;
       const user = await this.prisma.user.update({
         where: {
           id,
         },
         data: <User>body.user,
       });
-      return user;
+      return {
+        message: 'User updated successfully',
+      };
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError) {
         if (error.code === 'P2016') {
@@ -139,7 +189,6 @@ export class UsersService {
   async sendFriendRequest(body: AddFriendsDto) {
     try {
       const { senderId, receiverId } = body;
-      console.log(senderId, receiverId);
       const request = await this.prisma.friend.create({
         data: {
           senderId,
@@ -148,7 +197,6 @@ export class UsersService {
       });
       return request;
     } catch (error) {
-      console.log(error);
       throw new InternalServerErrorException('Failed to send friend request');
     }
   }

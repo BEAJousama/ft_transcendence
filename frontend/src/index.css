@@ -1,8 +1,8 @@
 @tailwind base;
 @tailwind components;
 @layer base {
-    html {
-      @apply font-montserrat;
-    }
+  html {
+    @apply font-montserrat;
   }
+}
 @tailwind utilities;
