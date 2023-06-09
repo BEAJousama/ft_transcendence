@@ -4,20 +4,17 @@ import IUser from "../interfaces/user";
 import useSWR, { KeyedMutator, mutate, mutate as swrMutate } from "swr"
 
 export interface IAppContext {
-<<<<<<< HEAD
-  user: User | undefined;
-  users: User[];
-  setUser: (user: User) => void;
-  setUsers: (users: User[]) => void;
+  // user: User | undefined;
+  users: IUser[];
+  setUser: (user: IUser) => void;
+  setUsers: (users: IUser[]) => void;
   logout: () => void;
   login: () => void;
   setUsername: (username: string) => void;
   setAvatar: (avatar: string) => void;
   setAuthenticated: (avatar: boolean) => void;
   setTwoFactorAuth: (avatar: boolean) => void;
-=======
   user: IUser | undefined;
->>>>>>> d388a1ae471b8f463509911435d87705eaeb3f3f
   loading: boolean;
   authenticated: boolean,
   fetchUser: () => Promise<void>
@@ -26,39 +23,55 @@ export interface IAppContext {
 
 export const AppContext = React.createContext<IAppContext>({
   user: undefined,
-<<<<<<< HEAD
   users: [],
-  setUser: (user: User) => {},
-  setUsers: (users: User[]) => {},
-  logout: () => {},
-  login: () => {},
-  setUsername: () => {},
-  setAvatar: () => {},
-  setAuthenticated: () => {},
-=======
->>>>>>> d388a1ae471b8f463509911435d87705eaeb3f3f
+  setUser: (user: IUser) => { },
+  setUsers: (users: IUser[]) => { },
+  logout: () => { },
+  login: () => { },
+  setUsername: () => { },
+  setAvatar: () => { },
+  setAuthenticated: () => { },
   loading: true,
   authenticated: false,
-  fetchUser: async () => { },
-  updateUser: async () => { }
+  fetchUser: async () => {
+    updateUser: async () => { };
+  },
+  setTwoFactorAuth: function (avatar: boolean): void {
+    throw new Error("Function not implemented.");
+  },
+  updateUser: function (): Promise<void> {
+    throw new Error("Function not implemented.");
+  }
 });
 
-<<<<<<< HEAD
+export const fetcher = async (url: string) => {
+  const accessToken = window.localStorage.getItem("access_token"); // Replace with your actual access token
+  const response = await axios.get(
+    `${process.env.REACT_APP_BACK_END_URL}${url}`,
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
+  return response.data;
+}
+
 const AppProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<User | undefined>(undefined);
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [authenticated, setAuthenticated] = useState<boolean>(false);
+  const [data, setData] = useState<IUser | undefined>(undefined);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [users, setUsers] = useState<IUser[]>([]);
   const [twoFactorAuth, setTwoFactorAuth] = useState<boolean>(false);
 
   const logout = () => {
-    setUser(undefined);
+    setData(undefined);
   };
 
   const login = () => {};
 
   const setUsername = (username: string) => {
-    setUser((prevUser) => {
+    setData((prevUser) => {
       if (prevUser) {
         return { ...prevUser, username };
       } else {
@@ -68,7 +81,7 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const setAvatar = (avatar: string) => {
-    setUser((prevUser) => {
+    setData((prevUser) => {
       if (prevUser) {
         return { ...prevUser, avatar };
       } else {
@@ -90,25 +103,7 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
       }
     );
   };
-=======
-export const fetcher = async (url: string) => {
-  const accessToken = window.localStorage.getItem("access_token"); // Replace with your actual access token
-  const response = await axios.get(
-    `${process.env.REACT_APP_BACK_END_URL}${url}`,
-    {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    }
-  );
-  return response.data;
-}
 
-const AppProvider = ({ children }: { children: React.ReactNode }) => {
-  const [data, setData] = useState<IUser | undefined>(undefined);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
->>>>>>> d388a1ae471b8f463509911435d87705eaeb3f3f
 
   const fetchUser = async () => {
 
@@ -146,25 +141,26 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
   }, [])
 
   const appContextValue: IAppContext = {
-<<<<<<< HEAD
-    user: user,
     users: users,
     setUsers,
-    setUser,
     logout,
     login,
     setUsername,
     setAvatar,
-    loading,
-    authenticated,
-    setAuthenticated,
-=======
     user: data,
     loading: isLoading,
     authenticated: isAuthenticated,
->>>>>>> d388a1ae471b8f463509911435d87705eaeb3f3f
     fetchUser,
     updateUser,
+    setUser: function (user: IUser): void {
+      throw new Error("Function not implemented.");
+    },
+    setAuthenticated: function (avatar: boolean): void {
+      throw new Error("Function not implemented.");
+    },
+    setTwoFactorAuth: function (avatar: boolean): void {
+      throw new Error("Function not implemented.");
+    }
   };
 
   return (
