@@ -34,7 +34,7 @@ export const AppContext = React.createContext<IAppContext>({
   loading: true,
   authenticated: false,
   fetchUser: async () => {
-    updateUser: async () => { };
+    // updateUser: async () => {};
   },
   setTwoFactorAuth: function (avatar: boolean): void {
     throw new Error("Function not implemented.");
