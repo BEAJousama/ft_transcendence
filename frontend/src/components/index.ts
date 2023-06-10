@@ -22,3 +22,7 @@ export { default as QrCode } from "./qr-code";
 export { default as ActivateFfa } from "./activate-tfa";
 export { default as Achievement } from "./achievement";
 export { default as ConfirmationModal } from "./confirmationmodal";
+export { default as Container } from "./container";
+export { default as ChatBanner } from "./chat-banner";
+export { default as GameBanner } from "./game-banner";
+export { default as UserBanner } from "./user-banner";

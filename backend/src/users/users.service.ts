@@ -115,9 +115,6 @@ export class UsersService {
         where: {
           login,
         },
-        include: {
-          achievements: true,
-        },
       });
       return user;
     } catch (error) {
@@ -125,9 +122,13 @@ export class UsersService {
     }
   }
 
-  async findAllUsers() {
+  async findAllUsers(fullname: string) {
     try {
-      const users = await this.prisma.user.findMany();
+      const users = await this.prisma.user.findMany({
+        orderBy: {
+          rating: 'desc',
+        },
+      });
       return users;
     } catch (error) {
       throw new NotFoundException(`no users found ? `);
@@ -185,11 +186,11 @@ export class UsersService {
     }
   }
 
-  async acceptFriendRequest(senderId: number) {
+  async acceptFriendRequest(id: number) {
     try {
       const request = await this.prisma.friend.update({
         where: {
-          id: senderId,
+          id: id,
         },
         data: {
           status: 'ACCEPTED',
@@ -231,16 +232,31 @@ export class UsersService {
 
   async getFriendRequests(id: number) {
     try {
-      const requests = await this.prisma.friend.findMany({
+      const requests = await this.prisma.friend.findMany();
+      return requests;
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to get friend requests');
+    }
+  }
+
+  async getFriendRequest({ senderId, receiverId }) {
+    try {
+      // console.log(senderId, receiverId);
+      const request = await this.prisma.friend.findMany({
         where: {
-          receiverId: id,
-          status: 'PENDING',
-        },
-        include: {
-          sender: true,
+          OR: [
+            {
+              senderId: parseInt(senderId),
+              receiverId: parseInt(receiverId),
+            },
+            {
+              receiverId: parseInt(senderId),
+              senderId: parseInt(receiverId),
+            },
+          ],
         },
       });
-      return requests;
+      return request[0];
     } catch (error) {
       throw new InternalServerErrorException('Failed to get friend requests');
     }
@@ -266,7 +282,11 @@ export class UsersService {
           receiver: true,
         },
       });
-      return friends;
+      const result = friends.map((item) => {
+        if (item.senderId !== id) return item.sender;
+        return item.receiver;
+      });
+      return result;
     } catch (error) {
       throw new InternalServerErrorException('Failed to get friends');
     }

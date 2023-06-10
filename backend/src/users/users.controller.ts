@@ -6,6 +6,7 @@ import {
   InternalServerErrorException,
   Param,
   Post,
+  Query,
   Req,
 } from '@nestjs/common';
 import {
@@ -28,6 +29,7 @@ import {
   UpdateDoc,
 } from './users.decorator';
 import { UsersService } from './users.service';
+import { Public } from 'src/public.decorator';
 
 @Controller('users')
 export class UsersController {
@@ -35,9 +37,9 @@ export class UsersController {
 
   @Get()
   @FindAllDoc()
-  async findAll() {
+  async findAll(@Query('fullname') fullname: string) {
     try {
-      return this.usersService.findAllUsers();
+      return this.usersService.findAllUsers(fullname);
     } catch (error) {
       return null;
     }
@@ -111,6 +113,26 @@ export class UsersController {
     }
   }
 
+  @Get(':id/friend-request')
+  async findFriendRequest(
+    @Query('senderId') senderId: number,
+    @Query('receiverId') receiverId: number,
+  ) {
+    try {
+      const friend = await this.usersService.getFriendRequest({
+        senderId,
+        receiverId,
+      });
+      // console.log(senderId, receiverId);
+      if (!friend) throw 'No Matches Found !!!!!';
+      return friend;
+    } catch (error) {
+      return {
+        message: 'No Matches Found !!!!!',
+      };
+    }
+  }
+
   @Post('block-user')
   @BlockUserDoc()
   async blockUser(@Body() body: BlockUserDto) {
@@ -154,7 +176,7 @@ export class UsersController {
     }
   }
 
-  @Post('remove-friend/:id')
+  @Delete('remove-friend/:id')
   @RemoveFriendsDoc()
   async removeFriend(@Param('id') id: string) {
     try {
@@ -170,7 +192,7 @@ export class UsersController {
     }
   }
 
-  @Post('accept-friend/:id')
+  @Get('accept-friend/:id')
   @AcceptFriendsDoc()
   async acceptFriend(@Param('id') id: string) {
     try {

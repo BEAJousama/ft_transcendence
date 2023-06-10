@@ -1,5 +1,11 @@
 import IAchievement from "./achievement";
 
+export interface IFriend {
+  id: number;
+  senderId: number;
+  receiverId: number;
+  status: string;
+}
 interface IUser {
   id: number;
   login: string;
@@ -19,6 +25,7 @@ interface IUser {
   wins: number;
   losses: number;
   achievements: IAchievement[];
+  receivedRequests: any[];
 }
 
 export default IUser;

@@ -16,9 +16,9 @@ import {
 } from "./pages/";
 
 const PrivateRoutes = () => {
-  const { authenticated, loading, user, fetchUser } = useContext(AppContext);
+  const { authenticated, loading, user } = useContext(AppContext);
   const path = useLocation().pathname;
-  const twoFactorAuth = user?.twoFactorAuth;
+  const twoFactorAuth = user?.twoFactorAuth || localStorage.getItem("2fa_access_token");
 
   if (loading) {
     return <Spinner />;

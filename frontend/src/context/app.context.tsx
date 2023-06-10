@@ -1,22 +1,21 @@
 import axios from "axios";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import IUser from "../interfaces/user";
-import useSWR, { KeyedMutator, mutate, mutate as swrMutate } from "swr"
 
 export interface IAppContext {
   user: IUser | undefined;
   loading: boolean;
-  authenticated: boolean,
-  fetchUser: () => Promise<void>
-  updateUser: () => Promise<void>
+  authenticated: boolean;
+  fetchUser: () => Promise<void>;
+  updateUser: () => Promise<void>;
 }
 
 export const AppContext = React.createContext<IAppContext>({
   user: undefined,
   loading: true,
   authenticated: false,
-  fetchUser: async () => { },
-  updateUser: async () => { }
+  fetchUser: async () => {},
+  updateUser: async () => {},
 });
 
 export const fetcher = async (url: string) => {
@@ -30,46 +29,43 @@ export const fetcher = async (url: string) => {
     }
   );
   return response.data;
-}
+};
 
 const AppProvider = ({ children }: { children: React.ReactNode }) => {
   const [data, setData] = useState<IUser | undefined>(undefined);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
-  const fetchUser = async () => {
-
-    if (isAuthenticated) return
+  const fetchUser = useCallback(async () => {
+    if (isAuthenticated) return;
     try {
-      setIsLoading(true)
-      const data = await fetcher('api/auth/42');
-      setIsAuthenticated(true)
+      setIsLoading(true);
+      const data = await fetcher("api/auth/42");
+      setIsAuthenticated(true);
       setData(data);
     } catch (error) {
-      setIsAuthenticated(false)
-      // setIsLoading(false)
+      setIsAuthenticated(false);
     }
-    setIsLoading(false)
-  }
+    setIsLoading(false);
+  }, [isAuthenticated]);
 
-  const updateUser = async () => {
+  const updateUser = useCallback(async () => {
     try {
-      const data = await fetcher('api/auth/42');
+      const data = await fetcher("api/auth/42");
       setData(data);
-    } catch (error) { }
-  }
+    } catch (error) {}
+  }, []);
 
   useEffect(() => {
     fetchUser();
     const handleLocalStorageChange = async () => {
-      await fetchUser()
+      await fetchUser();
     };
-    window.addEventListener('storage', handleLocalStorageChange);
+    window.addEventListener("storage", handleLocalStorageChange);
     return () => {
-      window.removeEventListener('storage', handleLocalStorageChange);
+      window.removeEventListener("storage", handleLocalStorageChange);
     };
-
-  }, [])
+  }, [fetchUser]);
 
   const appContextValue: IAppContext = {
     user: data,

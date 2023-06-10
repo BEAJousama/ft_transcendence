@@ -9,12 +9,14 @@ services:
       - ./backend/.env
     networks:
       - ft_transcendence
+    volumes:
+      - ./data:/var/lib/postgresql/data
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
     volumes:
-      - ./frontend:/app
+      - "./frontend:/app"
     env_file:
       - ./frontend/.env
     ports:
@@ -27,7 +29,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     volumes:
-      - ./backend:/app
+      - "./backend:/app"
     env_file:
       - ./backend/.env
     ports:

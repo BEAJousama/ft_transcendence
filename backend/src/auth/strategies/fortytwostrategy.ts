@@ -19,7 +19,7 @@ export class FortyTwoStrategy extends PassportStrategy(Strategy, '42') {
       login,
       avatar: image.link,
       fullname: displayname,
-      phone,
+      phone: phone === 'hidden' ? '' : phone,
       email,
     };
   }

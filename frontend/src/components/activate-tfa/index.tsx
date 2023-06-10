@@ -2,20 +2,21 @@ import { MdDelete } from "react-icons/md";
 import Button from "../button";
 import Divider from "../divider";
 import axios from "axios";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import QrCode from "../qr-code";
 import Input from "../input";
+import { AppContext } from "../../context/app.context";
 
 const ActivateFfa = ({
     setShowmodal,
     user,
-
     setUpdated,
 }: {
     user: any;
     setShowmodal: React.Dispatch<React.SetStateAction<boolean>>;
     setUpdated?: React.Dispatch<React.SetStateAction<string>>;
 }) => {
+    const { updateUser } = useContext(AppContext);
     const [error, setError] = useState("");
     const [code, setCode] = useState("");
 
@@ -33,6 +34,7 @@ const ActivateFfa = ({
                 }
             );
             if (response.data.message === "success") {
+                await updateUser();
                 setUpdated &&
                     setUpdated(
                         `Two Factor Authentication ${!user?.twoFactorAuth ? "Avtivated" : "deactivated"
@@ -47,9 +49,9 @@ const ActivateFfa = ({
     };
     return (
         <div className="flex w-full flex-col items-center justify-center gap-4 p-4 text-quaternary-200">
-            <span className="text-xl">Two Factor Authentication</span>
+            <span className="text-xl text-center">Two Factor Authentication</span>
             <QrCode />
-            <div>Enter 6-digit code from your two factor authenticator App</div>
+            <div className="text-center">Enter 6-digit code from your two factor authenticator App</div>
             <div className="flex w-full max-w-md flex-col gap-4">
                 <Input
                     className="text-center"

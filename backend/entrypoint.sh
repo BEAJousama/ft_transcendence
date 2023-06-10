@@ -1,7 +1,8 @@
 #!/bin/sh
 
 #replace local host with hostname
-sed -i '' "s/e[0-9]*r[0-9]*p[0-9]*\.1337\.ma/$(hostname)/g" .env
+# sed -i "s/e[0-9]*r[0-9]*p[0-9]*\.1337\.ma/$(hostname)/g" .env
+yarn install
 
 # run migrations
 yarn prisma migrate dev --name init
@@ -11,7 +12,7 @@ yarn prisma generate
 
 # create tables in db
 yarn prisma db push --accept-data-loss 
-
 yarn prisma studio -b none& #debug
+
 # start server
 yarn start:dev
