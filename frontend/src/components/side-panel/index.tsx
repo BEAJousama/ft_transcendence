@@ -32,7 +32,7 @@ const ListItem = ({
   return (
     <li
       className={`flex w-full items-center justify-center pt-2 ${selected &&
-        "relative before:absolute before:-left-2 before:h-full  before:rounded-md before:border-2 before:border-primary-500 before:bg-primary-500 before:text-primary-500 before:content-['1']"
+        "relative before:absolute before:-left-1.5 before:h-full  before:rounded-md before:border-2 before:border-primary-500 before:bg-primary-500 before:text-primary-500 before:content-['1']"
         } ${className}`}
     >
       <button
@@ -96,7 +96,7 @@ const Sidepanel = ({ className }: {
           </ListItem>
         </Link>
         <Link to="/profile">
-          <ListItem selected={path === "/pofile"}>
+          <ListItem selected={path === "/profile"}>
             <CgProfile />
             <span className="hidden md:block">Profile</span>
           </ListItem>

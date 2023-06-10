@@ -16,9 +16,9 @@ export default function SocketProvider({
                 token: localStorage.getItem("access_token"),
             },
         });
-        console.log(newSocket)
+        // console.log(newSocket)
         newSocket.on("connect", () => {
-            console.log("Connected");
+            // console.log("Connected");
         });
         setSocket(newSocket);
         return () => {

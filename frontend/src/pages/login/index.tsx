@@ -6,14 +6,9 @@ import { Navigate } from "react-router-dom";
 
 // max-w-lg
 export default function Login() {
-  const {
-    authenticated,
-    fetchUser,
-    setAuthenticated,
-    twoFactorAuth,
-    setTwoFactorAuth,
-  } = useContext(AppContext);
+  const { authenticated, fetchUser } = useContext(AppContext);
   const [loading, setLaoding] = useState<boolean>(true);
+  const [twoFactorAuth, setTwoFactorAuth] = useState<boolean>(false);
 
   useEffect(() => {
     (async () => {
@@ -24,24 +19,20 @@ export default function Login() {
         if (res.data.name) {
           setTwoFactorAuth(res.data.name === "2fa_access_token");
           window.localStorage.setItem(res.data.name, res.data.value);
+          await fetchUser();
         }
-        await fetchUser();
         setLaoding(false);
-      } catch {
+      } catch (_e) {
         setLaoding(false);
       }
     })();
-  }, []);
+  }, [fetchUser]);
 
   if (authenticated) {
     return <Navigate to="/" />;
   }
 
-  if (twoFactorAuth) {
-    return <Navigate to="/tfa" />;
-  }
-
-  console.log(process.env);
+  if (twoFactorAuth) return <Navigate to="/tfa" />;
   return (
     <div className="flex h-screen w-screen items-center justify-center bg-secondary-700 ">
       {loading ? (

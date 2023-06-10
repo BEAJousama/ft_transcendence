@@ -1,0 +1,45 @@
+version: "3"
+
+services:
+  db:
+    image: postgres:13
+    ports:
+      - 5434:5432
+    env_file:
+      - ./backend/.env
+    networks:
+      - ft_transcendence
+    volumes:
+      - ./data:/var/lib/postgresql/data
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    volumes:
+      - "./frontend:/app"
+    env_file:
+      - ./frontend/.env
+    ports:
+      - 5000:5000
+    restart: always
+    networks:
+      - ft_transcendence
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    volumes:
+      - "./backend:/app"
+    env_file:
+      - ./backend/.env
+    ports:
+      - 3000:3000
+      - 5555:5555
+    depends_on:
+      - db
+    networks:
+      - ft_transcendence
+    restart: always
+
+networks:
+  ft_transcendence:

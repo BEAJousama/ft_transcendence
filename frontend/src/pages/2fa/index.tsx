@@ -1,14 +1,13 @@
 import axios from "axios";
 import { Button, Card, Input } from "./../../components";
 import { useContext, useRef, useState } from "react";
-import { Link, Navigate } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import { AppContext } from "../../context/app.context";
 
 const TwoFactorAuth = () => {
-  const { fetchUser } = useContext(AppContext);
+  const { fetchUser, authenticated } = useContext(AppContext);
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
-  const [shouldRedirect, setShouldRedirect] = useState<boolean>(false);
 
   const inputsRef = [
     useRef<HTMLInputElement>(null),
@@ -35,7 +34,7 @@ const TwoFactorAuth = () => {
     }
   };
 
-  if (shouldRedirect) return <Navigate to="/" />;
+  if (authenticated) return <Navigate to="/" />;
 
   return (
     <div className="flex h-screen w-screen flex-col items-center justify-center gap-5 bg-secondary-800 text-gray-200">
@@ -145,7 +144,6 @@ const TwoFactorAuth = () => {
                   response.data.access_token
                 );
                 await fetchUser();
-                setShouldRedirect(true);
               }
               setError("Invalid Code");
             } catch (error) {

@@ -93,7 +93,7 @@ export class AuthService {
           req.user.login ? req.user.login : '',
         );
         user.twoFactorAuth = true;
-        await this.usersService.updateUser({ user });
+        await this.usersService.updateUser({ user }, user.id);
         return {
           message: 'success',
         };
@@ -102,7 +102,7 @@ export class AuthService {
         message: 'fail',
       };
     } catch (error) {
-      console.log(error);
+      // console.log(error);
       throw new InternalServerErrorException(
         'An internal server error occurred.',
       );
@@ -117,7 +117,7 @@ export class AuthService {
           req.user.login ? req.user.login : '',
         );
         user.twoFactorAuth = false;
-        await this.usersService.updateUser({ user });
+        await this.usersService.updateUser({ user }, user.id);
         return {
           message: 'success',
         };
