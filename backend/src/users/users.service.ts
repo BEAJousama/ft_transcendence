@@ -70,6 +70,7 @@ export class UsersService {
     fullname: string;
     phone: string;
     email: string;
+    password?: string;
   }) {
     try {
       const user = await this.prisma.user.create({
@@ -81,13 +82,21 @@ export class UsersService {
           fullname: data.fullname,
           phone: data.phone,
           email: data.email,
+          password: data.password,
           country: 'none',
         },
       });
 
       return user;
     } catch (error) {
-      return error;
+      if (error?.code === 'P2002') {
+        console.log(error.meta);
+        throw new BadRequestException(
+          `${error.meta?.target?.toString()} already exists`,
+        );
+      }
+
+      throw new InternalServerErrorException('Failed to create user');
     }
   }
 

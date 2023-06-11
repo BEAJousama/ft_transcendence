@@ -8,6 +8,10 @@ import { User } from '@prisma/client';
 import { Request, Response } from 'express';
 import { authenticator } from 'otplib';
 import { UsersService } from 'src/users/users.service';
+import { SignUpDto } from './dto/signup.dto';
+import { SignInDto } from './dto/signin.dto';
+import * as bcrypt from 'bcrypt';
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -18,6 +22,82 @@ export class AuthService {
     name: string;
     value: string;
   };
+
+  // async hashPassword(password: string): Promise<string> {
+  //   const saltRounds = 10;
+  //   const hashedPassword = await bcrypt.hash(password, saltRounds);
+  //   return hashedPassword;
+  // }
+
+  // async verifyPassword(
+  //   password: string,
+  //   hashedPassword: string,
+  // ): Promise<boolean> {
+  //   const isMatch = await bcrypt.compare(password, hashedPassword);
+  //   return isMatch;
+  // }
+
+  async signUp(body: SignUpDto) {
+    try {
+      const secret = authenticator.generateSecret();
+      const password: string = body.password;
+      // const password: string = await this.hashPassword(body.password);
+      const user = await this.usersService.createUser({
+        login: body.username,
+        avatar: '/img/default.jpg',
+        tfaSecret: secret,
+        fullname: body.fullname,
+        phone: '',
+        email: body.email,
+        password: password,
+      });
+      return user;
+    } catch (error) {
+      // console.log(error);
+      throw error;
+    }
+  }
+
+  async signIn(body: SignInDto) {
+    try {
+      const user = await this.usersService.findUserByLogin(body.username);
+      if (!user) {
+        throw new UnauthorizedException('Invalid credentials');
+      }
+      // const isMatch = await this.verifyPassword(body.password, user.password);
+      const isMatch = user?.password === body.password;
+      if (!isMatch) {
+        throw new UnauthorizedException('Invalid credentials');
+      }
+      if (user.twoFactorAuth) {
+        const payload = { login: user.login, sub: user.id };
+
+        const access_token = this.jwtService.sign(payload, {
+          secret: process.env.TFA_JWT_SECRET,
+          expiresIn: '7d',
+        });
+        const accessToken = {
+          name: '2fa_access_token',
+          value: access_token,
+        };
+        return accessToken;
+      }
+      const payload = { login: user.login, sub: user.id };
+      const access_token = this.jwtService.sign(payload, {
+        secret: process.env.JWT_SECRET,
+        expiresIn: '24h',
+      });
+      const accessToken = {
+        name: 'access_token',
+        value: access_token,
+      };
+      return accessToken;
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'An internal server error occurred.',
+      );
+    }
+  }
 
   async getprofile(login: string) {
     try {

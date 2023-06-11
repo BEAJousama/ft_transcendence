@@ -6,6 +6,7 @@ import {
   Res,
   Post,
   InternalServerErrorException,
+  Body,
 } from '@nestjs/common';
 import {
   CallbackDoc,
@@ -16,14 +17,43 @@ import {
   VerifyDoc,
 } from './auth.decorator';
 import { AuthService } from './auth.service';
-import { FourtyTwoGuard, JwtAuthGuard, Jwt2faAuthGuard } from './guards';
+import { FourtyTwoGuard, Jwt2faAuthGuard } from './guards';
 import { Public } from 'src/public.decorator';
 import { Response } from 'express';
 import * as qrcode from 'qrcode';
 
+import { GoogleGuard } from './guards/google.guard';
+import { SignInDto } from './dto/signin.dto';
+import { SignUpDto } from './dto/signup.dto';
+
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
+
+  @Public()
+  @Get('google/login')
+  @UseGuards(GoogleGuard)
+  async googleAuth(@Req() req) {}
+
+  @Public()
+  @Get('google/callback')
+  @UseGuards(GoogleGuard)
+  async googleAuthRedirect(@Req() req, @Res() res) {
+    await this.authService.callback(req);
+    return res.redirect(process.env.FRONTEND_URL);
+  }
+
+  @Public()
+  @Post('signin')
+  async signIn(@Body() body: SignInDto) {
+    return await this.authService.signIn(body);
+  }
+
+  @Public()
+  @Post('signup')
+  async signUp(@Body() body: SignUpDto) {
+    return await this.authService.signUp(body);
+  }
 
   @ProfileDoc()
   @Get('42')

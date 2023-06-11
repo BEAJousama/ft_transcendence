@@ -67,6 +67,7 @@ model User {
   login            String          @unique
   username         String          @unique
   email            String          @unique
+  password         String?
   fullname         String
   country          String
   phone            String
