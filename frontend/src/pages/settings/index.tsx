@@ -47,7 +47,7 @@ export default function Settings() {
                   onAccept={async () => {
                     try {
                       const accessToken =
-                        window.localStorage.getItem("access_token");
+                        window.localStorage?.getItem("access_token");
                       await axios.delete(
                         `${process.env.REACT_APP_BACK_END_URL}api/users/${user?.id}`,
                         {
@@ -56,8 +56,8 @@ export default function Settings() {
                           },
                         }
                       );
-                      localStorage.removeItem("access_token");
-                      localStorage.removeItem("2fa_access_token");
+                      localStorage?.removeItem("access_token");
+                      localStorage?.removeItem("2fa_access_token");
                       window.location.reload();
                     } catch (e) {
                       setShowmodal(false);

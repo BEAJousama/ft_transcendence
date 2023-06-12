@@ -14,8 +14,8 @@ export const AppContext = React.createContext<IAppContext>({
   user: undefined,
   loading: true,
   authenticated: false,
-  fetchUser: async () => {},
-  updateUser: async () => {},
+  fetchUser: async () => { },
+  updateUser: async () => { },
 });
 
 export const fetcher = async (url: string) => {
@@ -53,13 +53,15 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const data = await fetcher("api/auth/42");
       setData(data);
-    } catch (error) {}
+    } catch (error) {
+      setIsAuthenticated(false)
+    }
   }, []);
 
   useEffect(() => {
     fetchUser();
     const handleLocalStorageChange = async () => {
-      await fetchUser();
+      await updateUser();
     };
     window.addEventListener("storage", handleLocalStorageChange);
     return () => {

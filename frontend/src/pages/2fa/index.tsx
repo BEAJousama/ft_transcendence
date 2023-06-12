@@ -127,7 +127,7 @@ const TwoFactorAuth = () => {
           onClick={async () => {
             try {
               const accessToken =
-                window.localStorage.getItem("2fa_access_token");
+                window.localStorage?.getItem("2fa_access_token");
               const response = await axios.post(
                 `${process.env.REACT_APP_BACK_END_URL}api/auth/2fa/verify`,
                 { code },
@@ -139,7 +139,7 @@ const TwoFactorAuth = () => {
               );
 
               if (response.data) {
-                window.localStorage.setItem(
+                window.localStorage?.setItem(
                   "access_token",
                   response.data.access_token
                 );

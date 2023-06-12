@@ -30,6 +30,7 @@ import {
 } from './users.decorator';
 import { UsersService } from './users.service';
 import { Public } from 'src/public.decorator';
+import { assignAchievementsDto } from './dto/achievements.dto';
 
 @Controller('users')
 export class UsersController {
@@ -57,18 +58,14 @@ export class UsersController {
 
   @Post('achievements')
   @FindAllDoc()
-  async assignAchievements(
-    @Body() body: { userId: number; achievementId: number },
-  ) {
+  async assignAchievements(@Body() body: assignAchievementsDto) {
     try {
       return await this.usersService.assignAchievements(
         body.userId,
         body.achievementId,
       );
     } catch (error) {
-      return {
-        message: 'Could not Assign the achievement',
-      };
+      throw error;
     }
   }
 

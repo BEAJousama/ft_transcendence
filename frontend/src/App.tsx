@@ -13,6 +13,7 @@ import {
   FourOhFour,
   Profile,
   Search,
+  CompleteInfo,
 } from "./pages/";
 
 const PrivateRoutes = () => {
@@ -31,12 +32,18 @@ const PrivateRoutes = () => {
 };
 
 function App() {
+  try {
+    localStorage.getItem('access_token')
+  }
+  catch (e) {
+    return <FourOhFour show={false} />
+  }
   return (
     <AppProvider>
       <Routes>
         <Route element={<PrivateRoutes />}>
           <Route path="/" element={<Home />} />
-          <Route path="/signup" element={<SignUp />} />
+          <Route path="/completeinfo" element={<CompleteInfo />} />
           <Route path="/pong" element={<Pong />} />
           <Route path="/chat" element={<Chat />} />
           <Route path="/settings" element={<Settings />} />
@@ -45,6 +52,7 @@ function App() {
           <Route path="/profile/" element={<Profile />} />
           <Route path="/profile/:id" element={<Profile />} />
         </Route>
+        <Route path="/signup" element={<SignUp />} />
         <Route path="/login" element={<Login />} />
         <Route path="*" element={<FourOhFour />} />
       </Routes>

@@ -1,4 +1,4 @@
-import { Avatar, Card, Button, Input } from "./../../components";
+import { Avatar, Card, Button, Input } from "../../components";
 import { useContext, useState } from "react";
 import { MdOutlineModeEdit } from "react-icons/md";
 import { useRef } from "react";
@@ -7,7 +7,7 @@ import { AppContext } from "../../context/app.context";
 import axios from "axios";
 import { Navigate } from "react-router-dom";
 
-export default function SignUp() {
+export default function CompleteInfo() {
   const { user, updateUser } = useContext(AppContext)
   const formik = useFormik({
     initialValues: {

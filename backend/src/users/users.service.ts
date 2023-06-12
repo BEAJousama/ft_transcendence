@@ -60,7 +60,10 @@ export class UsersService {
           },
         },
       });
-    } catch (error) {}
+    } catch (error) {
+      // console.log(error);
+      throw new NotFoundException('user or Achievement Not Found');
+    }
   }
 
   async createUser(data: {

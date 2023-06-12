@@ -23,9 +23,8 @@ const LeaderBoard = () => {
         users &&
         users.map((user: IUser, i: number) => {
           return (
-            <Link to={`/profile/${user?.id}`}>
+            <Link to={`/profile/${user?.id}`} key={user?.username}>
               <UserBanner
-                key={user.id}
                 rank={i + 1}
                 showRank
                 showRating
@@ -55,8 +54,8 @@ const FriendList = () => {
       {!isLoading ? (
         friends &&
         friends.map((user: IUser) => {
-          return <Link to={`/profile/${user?.id}`}>
-            <UserBanner key={user.id} showRating user={user} />
+          return <Link to={`/profile/${user?.id}`} key={user?.id}>
+            <UserBanner showRating user={user} />
           </Link>
         })
       ) : (
@@ -74,7 +73,7 @@ export default function Home() {
     new Date(user?.createdAt).toLocaleString() ===
     new Date(user?.updatedAt).toLocaleString()
   )
-    return <Navigate to="/signup" />;
+    return <Navigate to="/completeinfo" />;
   return (
     <Layout className="3xl:grid-cols-3 flex flex-col items-center gap-5 2xl:grid 2xl:grid-cols-2 2xl:place-items-center">
       <Link
@@ -115,23 +114,14 @@ export default function Home() {
       <LeaderBoard />
       <FriendList />
       <Container title="LIVE FEED" icon="/img/3dCam.svg">
-        {new Array(25).fill(0).map((_, i) => {
-          return <GameBanner key={i} />;
-        })}
       </Container>
       <Container title="MATCH HISTORY" icon="/img/history.svg">
-        {new Array(25).fill(0).map((_, i) => {
-          return <GameBanner key={i} />;
-        })}
       </Container>
       <Container
         title="POPULAR ROOMS"
         icon="/img/3dchat.svg"
         className="!grid grid-cols-1 place-items-center xl:grid-cols-2"
       >
-        {new Array(25).fill(0).map((_) => {
-          return <ChatBanner />;
-        })}
       </Container>
     </Layout>
   );

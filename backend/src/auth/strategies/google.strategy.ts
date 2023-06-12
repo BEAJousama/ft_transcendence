@@ -20,10 +20,11 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     profile: any,
     done: VerifyCallback,
   ): Promise<any> {
-    const { id, displayName, name, emails, photos } = profile;
+    const { id, displayName, emails, photos } = profile;
+    const username = emails[0].value.split('@')[0].replaceAll(/[_\-.]/g, '');
     const user = {
       id,
-      login: name.givenName,
+      login: username,
       email: emails[0].value,
       fullname: displayName,
       avatar: photos[0].value,

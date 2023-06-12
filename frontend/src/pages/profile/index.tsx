@@ -138,7 +138,7 @@ const ProfileInfo = ({ user,
     mutate,
     error,
   } = useSWR(`api/users/${user?.id}/friend-request`, async (url) => {
-    const accessToken = window.localStorage.getItem("access_token"); // Replace with your actual access token
+    const accessToken = window.localStorage?.getItem("access_token"); // Replace with your actual access token
     const response = await axios.get(
       `${process.env.REACT_APP_BACK_END_URL}${url}`,
       {
@@ -233,7 +233,7 @@ const ProfileInfo = ({ user,
         >
           {text}
         </Button>
-        <Button
+        {/* <Button
           disabled={user?.id === currentUser?.id}
           variant="text"
           className="!hover:bg-secondary-500 !border-none !bg-secondary-500 !text-white"
@@ -253,7 +253,7 @@ const ProfileInfo = ({ user,
               Block
             </RightClickMenuItem>
           </RightClickMenu>
-        )}
+        )} */}
       </div>
     </div>
   </>

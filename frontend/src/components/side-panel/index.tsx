@@ -110,8 +110,8 @@ const Sidepanel = ({ className }: {
       </List>
       <div className="flex w-full flex-col items-center justify-center gap-4">
         <ListItem className="bg-secondary-800 text-secondary-300 hover:bg-secondary-800" onClick={() => {
-          localStorage.removeItem("access_token");
-          localStorage.removeItem("2fa_access_token");
+          localStorage?.removeItem("access_token");
+          localStorage?.removeItem("2fa_access_token");
           window.location.reload();
         }}>
           <RiLogoutBoxRLine />

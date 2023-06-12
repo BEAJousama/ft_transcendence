@@ -23,25 +23,25 @@ export class AuthService {
     value: string;
   };
 
-  // async hashPassword(password: string): Promise<string> {
-  //   const saltRounds = 10;
-  //   const hashedPassword = await bcrypt.hash(password, saltRounds);
-  //   return hashedPassword;
-  // }
+  async hashPassword(password: string): Promise<string> {
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+    return hashedPassword;
+  }
 
-  // async verifyPassword(
-  //   password: string,
-  //   hashedPassword: string,
-  // ): Promise<boolean> {
-  //   const isMatch = await bcrypt.compare(password, hashedPassword);
-  //   return isMatch;
-  // }
+  async verifyPassword(
+    password: string,
+    hashedPassword: string,
+  ): Promise<boolean> {
+    const isMatch = await bcrypt.compare(password, hashedPassword);
+    return isMatch;
+  }
 
   async signUp(body: SignUpDto) {
     try {
       const secret = authenticator.generateSecret();
-      const password: string = body.password;
-      // const password: string = await this.hashPassword(body.password);
+
+      const password: string = await this.hashPassword(body.password);
       const user = await this.usersService.createUser({
         login: body.username,
         avatar: '/img/default.jpg',
@@ -51,9 +51,10 @@ export class AuthService {
         email: body.email,
         password: password,
       });
-      return user;
+      return {
+        message: 'success',
+      };
     } catch (error) {
-      // console.log(error);
       throw error;
     }
   }
@@ -64,13 +65,12 @@ export class AuthService {
       if (!user) {
         throw new UnauthorizedException('Invalid credentials');
       }
-      // const isMatch = await this.verifyPassword(body.password, user.password);
-      const isMatch = user?.password === body.password;
+      const isMatch = await this.verifyPassword(body.password, user.password);
       if (!isMatch) {
         throw new UnauthorizedException('Invalid credentials');
       }
       if (user.twoFactorAuth) {
-        const payload = { login: user.login, sub: user.id };
+        const payload = { login: user.login, sub: user.id, email: user.email };
 
         const access_token = this.jwtService.sign(payload, {
           secret: process.env.TFA_JWT_SECRET,
@@ -82,7 +82,7 @@ export class AuthService {
         };
         return accessToken;
       }
-      const payload = { login: user.login, sub: user.id };
+      const payload = { login: user.login, sub: user.id, email: user.email };
       const access_token = this.jwtService.sign(payload, {
         secret: process.env.JWT_SECRET,
         expiresIn: '24h',
@@ -93,9 +93,7 @@ export class AuthService {
       };
       return accessToken;
     } catch (error) {
-      throw new InternalServerErrorException(
-        'An internal server error occurred.',
-      );
+      throw error;
     }
   }
 
@@ -137,7 +135,7 @@ export class AuthService {
       }
 
       if (user.twoFactorAuth) {
-        const payload = { login: user.login, sub: user.id };
+        const payload = { login: user.login, sub: user.id, email: user.email };
 
         const access_token = this.jwtService.sign(payload, {
           secret: process.env.TFA_JWT_SECRET,
@@ -149,7 +147,7 @@ export class AuthService {
         };
         return;
       }
-      const payload = { login: user.login, sub: user.id };
+      const payload = { login: user.login, sub: user.id, email: user.email };
       const access_token = this.jwtService.sign(payload, {
         secret: process.env.JWT_SECRET,
         expiresIn: '24h',
@@ -158,10 +156,9 @@ export class AuthService {
         name: 'access_token',
         value: access_token,
       };
-    } catch (error) {
-      throw new InternalServerErrorException(
-        'An internal server error occurred.',
-      );
+    } catch (error: any) {
+      console.log(error);
+      throw new InternalServerErrorException(error.response.message);
     }
   }
 

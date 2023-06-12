@@ -13,7 +13,7 @@ export default function SocketProvider({
     useEffect(() => {
         const newSocket = io("http://10.12.3.15:3000/game", {
             auth: {
-                token: localStorage.getItem("access_token"),
+                token: localStorage?.getItem("access_token"),
             },
         });
         // console.log(newSocket)
