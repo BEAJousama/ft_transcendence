@@ -5,8 +5,8 @@ import { channelmembersI } from "../models/channelMembers.interface";
 export class DmDto 
 {
     channelId?: number;
-    senderId: number;
+    senderId?: number;
     receiverId: number;
-    name : string;
-    avatar : string;
+    name? : string;
+    avatar? : string;
 }

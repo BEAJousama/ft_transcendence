@@ -8,6 +8,7 @@ import RightClickMenu, { RightClickMenuItem } from "../rightclickmenu";
 import { useClickAway } from "react-use";
 import { SocketContext } from "../../context/socket.context";
 import { channel } from "diagnostics_channel";
+import clsx from "clsx";
 
 interface ChannelProps {
   id: string;
@@ -93,6 +94,7 @@ const Channel = ({
     };
 
     const deleteChannel = () => {
+  
       socket?.emit("channel_delete", data);
     };
 
@@ -106,7 +108,7 @@ const Channel = ({
 
   return (
     <div
-      className="relative flex items-center gap-2 w-full px-4"
+      className="relative flex items-center gap-2 w-full px-4 cursor-pointer hover:bg-tertiary-700 rounded-xl py-2 "
       onContextMenu={handleContextMenu}
       onClick={() => {
         onClick && onClick();
@@ -119,7 +121,7 @@ const Channel = ({
         <span className="text-secondary-300">{description}</span>
       </div>
       <div className="flex items-right flex-col text-black text-sm justify-end">
-        <span className="text-primary-500 p-0 w-14 ">
+        <span className={clsx("p-0 w-14", unread ? "text-primary-500" : "text-secondary-300" )}>
         {
                 new Date(updatedAt).getHours() > 12 ?
                 new Date(updatedAt).getHours() - 12 :
@@ -134,9 +136,11 @@ const Channel = ({
         }
         </span>
         <div className="flex items-center gap-2 justify-end">
-          <span className="flex items-center justify-center bg-primary-500  text-xs rounded-full w-5 h-5">
+          {unread && (
+            <span className="flex items-center justify-center bg-primary-500  text-xs rounded-full w-5 h-5">
             {}
           </span>
+          )}
           {muted && <BiVolumeMute />}
           {pinned && <BsPinAngleFill />}
         </div>
@@ -184,7 +188,6 @@ const Channel = ({
             onClick={
               () => {
                 deleteChannel();
-                console.log("delete");
             }}
             >
             <MdDelete />

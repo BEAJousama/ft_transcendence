@@ -114,7 +114,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect  {
   async createDm(client: Socket, payload: DmDto) {
     try {
       //create a dm send channels to user
-      const dm =  await this.dmService.makeDm(payload).then((dm) => { return dm; });
+      const dm =  await this.dmService.makeDm(payload);
       if (!dm)
       {
         throw new WsException({
@@ -122,11 +122,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect  {
           message: 'Cannot create dm',
         });
       }
+      const channelTosend = await this.channelService.getChannelById(dm.id);
       let sockets = this.getConnectedUsers(client.data.sub);
       if (!sockets || sockets.length === 0) return;
       sockets.forEach((s) => {
         s.join(dm.id.toString());
-        this.server.to(s.id).emit(EVENT.DM_CREATE, dm);
+        this.server.to(s.id).emit(EVENT.DM_CREATE, channelTosend);
       });
     } catch (err) {
       throw new WsException({
@@ -166,21 +167,18 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect  {
           message: 'Cannot create channel',
         });
       }
-      const channelTosend = this.channelService.getChannelById(channel.id);
+      const channelTosend = await this.channelService.getChannelById(channel.id);
       let sockets = this.getConnectedUsers(client.data.sub);
-      console.log(sockets);
       payload.members.forEach((m) => {
         if (!this.chatService.isBlocked(client.data.sub, m))
           sockets = sockets.concat(this.getConnectedUsers(m));
       })
-      console.log(sockets);
       if (!sockets || sockets.length === 0) return;
       sockets.forEach((s) => {
         s.join(channel.id.toString());
         this.server.to(s.id).emit(EVENT.CHANNEL_CREATE, channelTosend);
       });
       this.sendChannels(client.data.sub);
-      
     } 
     catch (error) {
       throw new WsException({
@@ -660,6 +658,36 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect  {
     }
   }
 
+
+   @SubscribeMessage(EVENT.MARK_UNREAD)
+  async markUnread(client: Socket, payload: any) {
+    try {
+      const updated = await this.channelService.markUnread(
+        parseInt(client.data.sub),
+        parseInt(payload.channelId),
+        );
+    } catch (err) {
+      throw new WsException({
+        error: EVENT.MARK_UNREAD,
+        message: err.message,
+      });
+    }
+  }
+
+   @SubscribeMessage(EVENT.MARK_READ)
+  async markRead(client: Socket, payload: any) {
+    try {
+      const updated = await this.channelService.markRead(
+        parseInt(client.data.sub),
+        parseInt(payload.channelId),
+        );
+    } catch (err) {
+      throw new WsException({
+        error: EVENT.MARK_UNREAD,
+        message: err.message,
+      });
+    }
+  }
 
 
         

@@ -2,49 +2,54 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { Channel, ChannelType } from '@prisma/client';
 import { DmDto } from 'src/chat/dto';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { ChatService } from '../chat/chat.service';
 
 @Injectable()
 export class DmService {
-    constructor(private prisma: PrismaService)
+    constructor(private prisma: PrismaService,  private chatService : ChatService)
     {
     }
 
     async makeDm(data: DmDto) : Promise<Channel | null>
     {
-        let dm =  await this.getDmByUserIds(data.senderId, data.receiverId).then((dm) => {
-            return dm;
-        });
-        if (dm)
-            return dm;
-        dm =  await this.prisma.channel.create({
-            data: {
-                name: data.name,
-                avatar: data.avatar,
-                owner: {
-                    connect: {
-                        id: data.senderId,
-                    },
-                },
-                type: ChannelType.CONVERSATION,
-                channelMembers: {
-                    createMany: {
-                        data: [
-                            {
-                                userId: data.senderId,
+        try {
+            let dm =  await this.getDmByUserIds(data.senderId, data.receiverId);
+            if (dm)
+                return dm;
+            if(await this.chatService.isBlocked(data.senderId, data.receiverId))
+                throw new NotFoundException('Cannot send message to this user !');
+            dm =  await this.prisma.channel.create({
+                    data: {
+                        name: "Dm" + data.senderId + data.receiverId,
+                        avatar: "https://i.imgur.com/HeIi0wU.png",
+                        owner: {
+                            connect: {
+                                id: data.senderId,
                             },
-                            {
-                                userId: data.receiverId,
+                        },
+                        type: ChannelType.CONVERSATION,
+                        channelMembers: {
+                            createMany: {
+                                data: [
+                                    {
+                                        userId: data.senderId,
+                                    },
+                                    {
+                                        userId: data.receiverId,
+                                    },
+                                ],
                             },
-                        ],
+                        },
                     },
-                },
-            },
-        }).then((dm) => {
+                });
+            if (!dm)
+                return null;
             return dm;
-        });
-        if (!dm)
-            return null;
-        return dm;
+        }
+        catch (e) {
+            console.log(e)
+        }
+
     }
 
     async deleteDm(id: number)

@@ -6,12 +6,13 @@ import { use } from 'passport';
 import { ChannelDto } from 'src/chat/dto';
 import { channelmembersI } from 'src/chat/models';
 import { channel } from 'diagnostics_channel';
+import { ChatService } from '../chat/chat.service';
 
 @Injectable()
 
 export class ChannelService {
 
-  constructor(private prisma: PrismaService) 
+  constructor(private prisma: PrismaService, private chatService: ChatService) 
   {}
 
   async getChannelsByUserId(userId: number): Promise<Channel[]> 
@@ -37,7 +38,8 @@ export class ChannelService {
           include:
           {
               archivedFor: true,
-              mutedFor: true, 
+              mutedFor: true,
+              unreadFor: true,
               pinnedFor: true,
               deletedFor: true,
               channelMembers:
@@ -72,6 +74,7 @@ export class ChannelService {
         include:
         {
           archivedFor: true,
+          unreadFor: true,
           mutedFor: true,
           pinnedFor: true,
           channelMembers:
@@ -143,14 +146,17 @@ export class ChannelService {
     try {
       const ch = await this.getChannelByName(channelData.name);
       if (ch)
-      throw new Error(`Channel ${ch.name} already exists`);
+        throw new Error(`Channel ${ch.name} already exists`);
       if (channelData.visibility === Visiblity.PROTECTED
         || (channelData.visibility === Visiblity.PRIVATE && channelData.password))
         hashPassword = await this.hashPassword(channelData.password);
       const channelMembers = channelData.members.map((memberId: number) => {
-        return {
-            userId: memberId,
-        };
+        // if (!this.chatService.isBlocked(userId, memberId))
+        // {
+          return {
+              userId: memberId,
+          };
+        // }
       });
       channelMembers.push({ userId });
       const channel = await this.prisma.channel.create({
@@ -160,6 +166,7 @@ export class ChannelService {
           password: hashPassword,
           avatar: channelData.avatar,
           visiblity: Visiblity[channelData.visibility],
+          type: ChannelType[ChannelType.GROUP],
           owner: {
               connect: {
                   id: userId,
@@ -670,22 +677,22 @@ async unarchiveChannel(
   channelId: number,
 ): Promise<ChannelMember>
 {
-  const channel = await this.prisma.channel.update({
-    where: {
-      id: channelId,
-    },
-    data: {
-      archivedFor: {
-        disconnect: {
-          id: userId,
-        },
-      },
-    },
-
-  });
-
+  
   try
   {
+    const channel = await this.prisma.channel.update({
+      where: {
+        id: channelId,
+      },
+      data: {
+        archivedFor: {
+          disconnect: {
+            id: userId,
+          },
+        },
+      },
+  
+    });
     const chMember = await this.prisma.channelMember.update({
       where: {
         userId_channelId: {
@@ -704,12 +711,93 @@ async unarchiveChannel(
   }
 }
 
+async markUnread(userId: number, channelId: number) : Promise<ChannelMember>
+{
+  try
+  {
+    const channel = await this.prisma.channel.update(
+      {
+        where:
+        {
+          id: channelId,
+        },
+        data:{
+          unreadFor: {
+            connect:
+            {
+              id: userId,
+            }
+        }
+      }
+    });
+    const chMember = await this.prisma.channelMember.update(
+      {
+        where:
+        {
+          userId_channelId:
+          {
+            userId,
+            channelId,
+          },
+        },
+        data:
+        {
+          isUnread: true,
+        },
+      });
+      return chMember;
+  }
+  catch (error) {
+    throw new Error(error.message);
+  }
+}
+
+async markRead(userId: number, channelId: number) : Promise<ChannelMember>
+{
+  try
+  {
+    const channel = await this.prisma.channel.update(
+      {
+        where:
+        {
+          id: channelId,
+        },
+        data:{
+          unreadFor: {
+            disconnect:
+            {
+              id: userId,
+            }
+        }
+      }
+    });
+    const chMember = await this.prisma.channelMember.update(
+      {
+        where:
+        {
+          userId_channelId:
+          {
+            userId,
+            channelId,
+          },
+        },
+        data:
+        {
+          isUnread: false,
+        },
+      });
+      return chMember;
+  }
+  catch (error) {
+    throw new Error(error.message);
+  }
+}
+
 async muteChannel(
   userId: number,
   channelId: number,
 ): Promise<ChannelMember> 
 {
-  
   try
   {
     const channel = await this.prisma.channel.update({
@@ -741,6 +829,8 @@ async muteChannel(
     throw new Error(error.message);
   }
 }
+
+
 
 async unmuteChannel(
   userId: number,

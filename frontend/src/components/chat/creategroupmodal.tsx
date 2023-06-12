@@ -4,6 +4,7 @@ import { MdGroupAdd } from "react-icons/md";
 import { BiArrowBack, BiRightArrowAlt } from "react-icons/bi";
 import Input from "../../components/input";
 import { RiCloseFill } from "react-icons/ri";
+import { FiSend } from "react-icons/fi";
 import ProfileBanner from "../../components/profilebanner";
 import { SocketContext } from "../../context/socket.context";
 import Select from "../select";
@@ -15,6 +16,7 @@ const CreateGroupModal = ({
   setShowModal: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   const [show, setShow] = useState(false);
+  const [showDm, setShowDm] = useState(false);
   const [groupName, setGroupName] = useState("");
   const [showSubmit, setShowSubmit] = useState(false);
   const  socket= useContext(SocketContext);
@@ -24,9 +26,16 @@ const CreateGroupModal = ({
   const {user, users} = useContext(AppContext);
 
   function handleCreateGroup() {
+    console.log(selectedUsers);
     socket?.emit("channel_create", { name: groupName ,avatar: "obeaj", visibility: visibility, members: selectedUsers, password: password});
     setShowModal(false);
   }
+
+  const handleCreateDm = (id : number) => {
+    socket?.emit("dm_create", { senderId: user?.id , receiverId: id});
+    setShowModal(false);
+  }
+  
 
   return (
     <div className="animation-fade animate-duration-500 absolute top-0 left-0 w-screen h-screen flex items-center justify-center">
@@ -61,7 +70,7 @@ const CreateGroupModal = ({
           </Button>
         </div>
         <Divider />
-        {show ? (
+        {(show) ? (
           <>
           <Input
             placeholder="Group Chat Name (required)"
@@ -95,6 +104,7 @@ const CreateGroupModal = ({
           }
           </>
         ) : (
+          !showDm && (
           <>
           <Button
             variant="text"
@@ -111,7 +121,7 @@ const CreateGroupModal = ({
             variant="text"
             className="w-full justify-around"
             onClick={() => {
-              setShow(true);
+              setShowDm(true);
             }}
             >
             <MdGroupAdd />
@@ -119,6 +129,7 @@ const CreateGroupModal = ({
             <BiRightArrowAlt />
           </Button>
             </>
+          )
         )}
         {
           show && (
@@ -152,7 +163,39 @@ const CreateGroupModal = ({
               );
             })}
           </div>
+        )}
+        {
+          showDm && (
+          <div className="w-full h[100px] flex items-center justify-center flex-col align-middle gap-2 pt-2 overflow-y-scroll scrollbar-hide">
+            {users.filter((u : any) => {
+              return u.id !== user?.id;
+            }).map((u : any) => {
+              return (
+                <div key={u.id} className="flex flex-row items-center justify-between w-full p-2">
+                    <ProfileBanner
+                      key={u.id}
+                      avatar={u.avatar}
+                      name={u.username}
+                      description={u.status}
+                    />
+                    <div className="w-8">
+                    <Button
+                    variant="text"
+                    className=" !bg-inherit hover:bg-inherit !text-white p-2 text-xl"
+                    onClick={() => {
+                     handleCreateDm(u.id);
+                    }}
+                    >
+                      <FiSend/>
+                  </Button>
+                    </div>
+                  </div>
+              );
+            })}
+          </div>
           )}
+
+
         
         {showSubmit && (
           <>

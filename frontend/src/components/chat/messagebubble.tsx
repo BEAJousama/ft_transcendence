@@ -25,9 +25,10 @@ const MessageBubble = ({ setOpen, currentChannel, channelMember }: {setOpen: any
   const [messages, setMessages] = useState<any[]>([]);
   const [pinnedMssgsModal, setPinnedMssgsModal] = useState(false);
   const [visibility, setVisibility] = useState<string>(currentChannel.visiblity);
+  const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
   const [pinnedMessages, setPinnedMessages] = useState<any[]>([]);
   const socket = useContext(SocketContext);
-  const {user} = useContext(AppContext)
+  const {user, users} = useContext(AppContext)
 
   
   useEffect(() => {
@@ -67,15 +68,16 @@ const MessageBubble = ({ setOpen, currentChannel, channelMember }: {setOpen: any
   };
 
   return (
-    <div className="relative overflow-auto col-span-10 flex h-screen w-full flex-col justify-start gap-4 rounded-t-3xl bg-secondary-600 lg:col-span-5 xl:col-span-5 2xl:col-span-6">
+    <div className="relative overflow-y-auto overflow-x-hidden col-span-10 flex h-screen w-full flex-col justify-start gap-4 rounded-t-3xl bg-secondary-600 lg:col-span-5 xl:col-span-5 2xl:col-span-6">
       <Button
         className="flex tems-center gap-2 rounded-t-3xl top-0 mb-16 sticky bg-secondary-400 !p-2 text-white hover:bg-secondary-400 z-10"
         onClick={() => {
           setShowModal(true);
         }}
       >
-        <Avatar src={`https://randomuser.me/api/portraits/women/${currentChannel.id}.jpg`} alt="" />
-        <div>{currentChannel.name}</div>
+        <Avatar src={currentChannel.type != "CONVERSATION" ? `https://randomuser.me/api/portraits/women/${currentChannel.id}.jpg` : 
+                     currentChannel.channelMembers?.filter((member: any) => member.userId != user?.id)[0].user?.avatar } alt="" />
+        <div>{currentChannel.type != "CONVERSATION" ? currentChannel.name : currentChannel.channelMembers?.filter((member: any) => member.userId != user?.id)[0].user?.username}</div>
         <Button
           variant="text"
           className=" !hover:bg-inherit absolute right-0 mx-2 !items-end !bg-inherit text-white lg:hidden"
@@ -86,7 +88,7 @@ const MessageBubble = ({ setOpen, currentChannel, channelMember }: {setOpen: any
           <BiLeftArrow />
         </Button>
       </Button>
-      <div className="mb-2 flex h-full flex-col justify-end gap-2 scrollbar-hide z-[0] ">
+      <div className="mb-2 flex h-full flex-col  justify-end gap-2 z-[0] px-[10px] ">
         {
           messages?.map((message) => {
           return (
@@ -203,6 +205,37 @@ const MessageBubble = ({ setOpen, currentChannel, channelMember }: {setOpen: any
                 <Input label="Password" placeholder="*****************" type="password"/>
               ) : null
               }
+
+            <div className="w-full h[100px] flex items-center justify-center flex-col align-middle gap-2 pt-2 overflow-y-scroll scrollbar-hide">
+            <span className="w-full mb-2 text-sm font-medium text-gray-900 dark:text-white">Select new users: </span>
+            {users.filter((u : any) => {
+              return u.id !== user?.id && currentChannel.channelMembers.find((cm : any) => cm.userId === u.id) === undefined;
+            }).map((u : any) => {
+              return (
+                <div key={u.id} className="flex flex-row items-center justify-between w-full">
+                    <ProfileBanner
+                      key={u.id}
+                      avatar={u.avatar}
+                      name={u.username}
+                      description={u.status}
+                    />
+                    <div className="w-8">
+                      <input
+                        type="checkbox"
+                        className="h-5 w-5"
+                        onClick={() => {
+                        }}
+                        onChange={() => {
+                          !selectedUsers.includes(u.id) ?
+                            setSelectedUsers([...selectedUsers, u.id]) :
+                            setSelectedUsers(selectedUsers.filter((id) => id !== u.id));
+                          }}
+                      />
+                    </div>
+                  </div>
+              );
+            })}
+          </div>    
               <div className="flex w-full items-center justify-center gap-4">
                 <Button
                   disabled={visibility==="PROTECTED" } 
@@ -228,11 +261,13 @@ const MessageBubble = ({ setOpen, currentChannel, channelMember }: {setOpen: any
             </div>
           )}
           <Divider/>
-          <div className="flex h-[300px] w-full flex-col items-center  justify-center gap-2 overflow-y-scroll pt-20 scrollbar-hide">
+          {showEdit ? null : (
+            <>
+            <div className="flex h-max w-full flex-col items-center gap-2 overflow-y-scroll pt-2 scrollbar-hide">
             {currentChannel?.channelMembers?.map((member : any) => {
-                return (
-                  <ProfileBanner
-                    channelMember={channelMember}
+              return (
+                <ProfileBanner
+                channelMember={channelMember}
                     user={user?.id}
                     showOptions
                     showStatus
@@ -254,10 +289,12 @@ const MessageBubble = ({ setOpen, currentChannel, channelMember }: {setOpen: any
               leaveGroup();
               setShowModal(false);
             }}
-          >
+            >
             <RiLogoutBoxRLine />
             Leave Group
           </Button>
+          </>
+          )}
         </Modal>
       )}
     </div>

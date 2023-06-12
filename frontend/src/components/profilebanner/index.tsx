@@ -94,7 +94,7 @@ const ProfileBanner = ({
   return (
     <div
       className={clsx(
-        `relative flex w-full items-center gap-4`,
+        `relative flex w-full items-center gap-4 ml-1`,
         className && className
       )}
     >
