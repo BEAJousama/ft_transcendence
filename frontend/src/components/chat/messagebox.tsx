@@ -34,7 +34,7 @@ const MessageBox = ({ right }: { right?: boolean }) => {
     >
       <div
         className={clsx(
-          "relative m-1 flex max-w-[70%] flex-col rounded p-2 text-sm text-white ",
+          "relative m-1 fle  flex-col rounded p-2 text-sm text-white ",
           right && "bg-primary-500",
           !right && "bg-secondary-400"
         )}

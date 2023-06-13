@@ -13,12 +13,12 @@ export default function SocketProvider({
     useEffect(() => {
         const newSocket = io("http://10.12.3.15:3000/game", {
             auth: {
-                token: localStorage.getItem("access_token"),
+                token: localStorage?.getItem("access_token"),
             },
         });
-        console.log(newSocket)
+        // console.log(newSocket)
         newSocket.on("connect", () => {
-            console.log("Connected");
+            // console.log("Connected");
         });
         setSocket(newSocket);
         return () => {

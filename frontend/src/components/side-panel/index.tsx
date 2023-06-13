@@ -32,7 +32,7 @@ const ListItem = ({
   return (
     <li
       className={`flex w-full items-center justify-center pt-2 ${selected &&
-        "relative before:absolute before:-left-2 before:h-full  before:rounded-md before:border-2 before:border-primary-500 before:bg-primary-500 before:text-primary-500 before:content-['1']"
+        "relative before:absolute before:-left-1.5 before:h-full  before:rounded-md before:border-2 before:border-primary-500 before:bg-primary-500 before:text-primary-500 before:content-['1']"
         } ${className}`}
     >
       <button
@@ -96,7 +96,7 @@ const Sidepanel = ({ className }: {
           </ListItem>
         </Link>
         <Link to="/profile">
-          <ListItem selected={path === "/pofile"}>
+          <ListItem selected={path === "/profile"}>
             <CgProfile />
             <span className="hidden md:block">Profile</span>
           </ListItem>
@@ -110,8 +110,8 @@ const Sidepanel = ({ className }: {
       </List>
       <div className="flex w-full flex-col items-center justify-center gap-4">
         <ListItem className="bg-secondary-800 text-secondary-300 hover:bg-secondary-800" onClick={() => {
-          localStorage.removeItem("access_token");
-          localStorage.removeItem("2fa_access_token");
+          localStorage?.removeItem("access_token");
+          localStorage?.removeItem("2fa_access_token");
           window.location.reload();
         }}>
           <RiLogoutBoxRLine />

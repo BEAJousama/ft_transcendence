@@ -1,130 +1,80 @@
 import axios from "axios";
-import React, { useEffect, useState } from "react";
-
-
-
-export type User = {
-  id: number
-  login: string
-  username: string
-  email: string
-  fullname: string
-  country: string
-  phone: string
-  avatar: string
-  twoFactorAuth: boolean
-  tfaSecret: string
-  status: string
-  ladder: string
-  rating: number
-  createdAt: Date
-  updatedAt: Date
-  wins: number
-  losses: number
-}
+import React, { useCallback, useEffect, useState } from "react";
+import IUser from "../interfaces/user";
 
 export interface IAppContext {
-  user: User | undefined;
-  setUser: (user: User) => void;
-  logout: () => void;
-  login: () => void;
-  setUsername: (username: string) => void;
-  setAvatar: (avatar: string) => void;
-  setAuthenticated: (avatar: boolean) => void;
-  setTwoFactorAuth: (avatar: boolean) => void;
+  user: IUser | undefined;
   loading: boolean;
   authenticated: boolean;
-  fetchUser: () => void;
-  twoFactorAuth: boolean;
+  fetchUser: () => Promise<void>;
+  updateUser: () => Promise<void>;
 }
 
 export const AppContext = React.createContext<IAppContext>({
   user: undefined,
-  setUser: (user: User) => {},
-  logout: () => {},
-  login: () => {},
-  setUsername: () => {},
-  setAvatar: () => {},
-  setAuthenticated: () => {},
   loading: true,
   authenticated: false,
-  fetchUser: () => {},
-  setTwoFactorAuth: () => {},
-  twoFactorAuth: false,
+  fetchUser: async () => { },
+  updateUser: async () => { },
 });
 
-const AppProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<User | undefined>(undefined);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [authenticated, setAuthenticated] = useState<boolean>(false);
-  const [twoFactorAuth, setTwoFactorAuth] = useState<boolean>(false);
-
-  const logout = () => {
-    setUser(undefined);
-  };
-
-  const login = () => {};
-
-  const setUsername = (username: string) => {
-    setUser((prevUser) => {
-      if (prevUser) {
-        return { ...prevUser, username };
-      } else {
-        return undefined;
-      }
-    });
-  };
-
-  const setAvatar = (avatar: string) => {
-    setUser((prevUser) => {
-      if (prevUser) {
-        return { ...prevUser, avatar };
-      } else {
-        return undefined;
-      }
-    });
-  };
-
-  const fetchUser = async () => {
-    try {
-      const accessToken = window.localStorage.getItem("access_token"); // Replace with your actual access token
-      const response = await axios.get(
-        `${process.env.REACT_APP_BACK_END_URL}api/auth/42/`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
-      );
-      if (response.data) {
-        setAuthenticated(true);
-        setUser(response.data);
-        setTwoFactorAuth(response.data.twoFactorAuth);
-      }
-      setLoading(false);
-    } catch (error) {
-      setLoading(false);
-      console.error(error);
+export const fetcher = async (url: string) => {
+  const accessToken = window.localStorage.getItem("access_token"); // Replace with your actual access token
+  const response = await axios.get(
+    `${process.env.REACT_APP_BACK_END_URL}${url}`,
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
     }
-  };
+  );
+  return response.data;
+};
+
+const AppProvider = ({ children }: { children: React.ReactNode }) => {
+  const [data, setData] = useState<IUser | undefined>(undefined);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+
+  const fetchUser = useCallback(async () => {
+    if (isAuthenticated) return;
+    try {
+      setIsLoading(true);
+      const data = await fetcher("api/auth/42");
+      setIsAuthenticated(true);
+      setData(data);
+    } catch (error) {
+      setIsAuthenticated(false);
+    }
+    setIsLoading(false);
+  }, [isAuthenticated]);
+
+  const updateUser = useCallback(async () => {
+    try {
+      const data = await fetcher("api/auth/42");
+      setData(data);
+    } catch (error) {
+      setIsAuthenticated(false)
+    }
+  }, []);
 
   useEffect(() => {
     fetchUser();
-  }, []);
+    const handleLocalStorageChange = async () => {
+      await updateUser();
+    };
+    window.addEventListener("storage", handleLocalStorageChange);
+    return () => {
+      window.removeEventListener("storage", handleLocalStorageChange);
+    };
+  }, [fetchUser]);
 
   const appContextValue: IAppContext = {
-    user: user,
-    setUser,
-    logout,
-    login,
-    setUsername,
-    setAvatar,
-    loading,
-    authenticated,
-    setAuthenticated,
+    user: data,
+    loading: isLoading,
+    authenticated: isAuthenticated,
     fetchUser,
-    setTwoFactorAuth,
-    twoFactorAuth,
+    updateUser,
   };
 
   return (
