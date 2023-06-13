@@ -4,6 +4,7 @@ import * as bodyParser from 'body-parser';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AuthGuard } from './auth/guards/auth.guard';
 import { JwtService } from '@nestjs/jwt';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -15,8 +16,7 @@ async function bootstrap() {
       credentials: true,
     },
   });
-  // const app = await NestFactory.create(AppModule);
-  // app.enableCors();
+  app.useGlobalPipes(new ValidationPipe());
   app.use(bodyParser.json({ limit: '10mb' }));
   app.setGlobalPrefix('/api');
 
@@ -28,6 +28,11 @@ async function bootstrap() {
     .setDescription('ft_transcendence API')
     .setVersion('1.0')
     .addTag('api')
+    .addBearerAuth(
+      { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
+      'jwt',
+    )
+    // .addBearerAuth('Authorization', 'header', 'basic')
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('/', app, document);

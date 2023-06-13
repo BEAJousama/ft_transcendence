@@ -4,7 +4,7 @@ import clsx from "clsx";
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   className?: string;
   label?: string;
-  htmlType?: "text" | "select" | "file";
+  htmlType?: string;
   error?: string;
   value?: string;
   placeholder?: string;
@@ -66,7 +66,7 @@ const Input = ({
         onBlur={() => {
           setActive(false);
         }}
-        type="text"
+        type={htmlType}
         className={`flex w-full flex-col items-center justify-center rounded-md border-2 border-quaternary-200 bg-transparent p-3 text-sm font-semibold text-quaternary-200 
         outline-none focus:border-primary-500 focus:text-primary-500 focus:shadow-md focus:shadow-gray-700 
         disabled:border-primary-800 disabled:text-primary-800 ${clsx(
@@ -81,6 +81,7 @@ const Input = ({
         maxLength={MaxLength}
         hidden={hidden}
         ref={inputRef}
+
       />
       {error && (
         <p className="mt-2 text-xs text-red-600 dark:text-red-500">

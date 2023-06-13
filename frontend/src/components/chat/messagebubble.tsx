@@ -14,6 +14,7 @@ import Picker from "@emoji-mart/react";
 import { RiCloseFill } from "react-icons/ri";
 import Divider from "../divider";
 import ProfileBanner from "../profilebanner";
+import AvatarGroup from "../avatarGroup";
 
 const MessageBubble = ({ setOpen }: any) => {
   const [value, setValue] = useState("");
@@ -37,6 +38,7 @@ const MessageBubble = ({ setOpen }: any) => {
           setShowModal(true);
         }}
       >
+
         <Avatar src="https://www.github.com/Hicham-BelHoucin.png" alt="" />
         <div>Hicham Bel Houcin</div>
         <Button
@@ -51,9 +53,6 @@ const MessageBubble = ({ setOpen }: any) => {
       </Button>
 
       <div className="mb-16 flex h-screen flex-col justify-end gap-2 overflow-y-scroll scrollbar-hide">
-        {new Array(15).fill(0).map((_, i) => {
-          return <MessageBox right={i % 2 ? true : false} />;
-        })}
       </div>
       <div className="absolute bottom-0 flex w-full items-center bg-secondary-700 p-1">
         <Button
@@ -143,20 +142,6 @@ const MessageBubble = ({ setOpen }: any) => {
           )}
           <Divider />
           <div className="flex h-[300px] w-full flex-col items-center  justify-center gap-2 overflow-y-scroll pt-20 scrollbar-hide">
-            {new Array(10).fill(0).map((_, i) => {
-              return (
-                <ProfileBanner
-                  showOptions
-                  showStatus
-                  status="Admin"
-                  key={i}
-                  name="User Name"
-                  avatar={`https://randomuser.me/api/portraits/women/${i}.jpg`}
-                  description="Let's make sure we prepare well so we can have a great experience at Gitex Africa and in Marrakech."
-                  // onClick={onClick}
-                />
-              );
-            })}
           </div>
           <Button
             className="w-full justify-center"

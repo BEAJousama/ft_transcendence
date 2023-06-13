@@ -12,19 +12,7 @@ const ChannelList = ({ onClick, setShowModal }: any) => {
         className="px-4"
         setShowModal={setShowModal}
       />
-      {new Array(25).fill(0).map((_, i) => {
-        return (
-          <Channel
-            key={i}
-            name="User Name"
-            pinned={!(i % 2) ? true : false}
-            muted={i % 2 ? true : false}
-            avatar={`https://randomuser.me/api/portraits/women/${i}.jpg`}
-            description="Let's make sure we prepare well so we can have a great experience at Gitex Africa and in Marrakech."
-            onClick={onClick}
-          />
-        );
-      })}
+
     </div>
   );
 };

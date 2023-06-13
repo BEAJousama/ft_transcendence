@@ -1,105 +1,128 @@
-import { Avatar, ProfileBanner, Sidepanel } from "../../components";
+import {
+  Avatar,
+  Container,
+  ChatBanner,
+  GameBanner,
+  UserBanner,
+  Spinner,
+} from "../../components";
+import { useContext } from "react";
+import { AppContext, fetcher } from "../../context/app.context";
+import { Link, Navigate } from "react-router-dom";
+import Layout from "../layout";
+import useSWR from "swr";
+import IUser from "../../interfaces/user";
 
-
-
-const Game = () => {
+const LeaderBoard = () => {
+  const { data: users, isLoading } = useSWR("api/users", fetcher, {
+    errorRetryCount: 0,
+  });
   return (
-    <div className="flex items-center justify-center bg-tertiary-500 rounded-full h-12 m-4 w-full">
-      <div className="flex items-center justify-center w-full">
-        <Avatar
-          src={`https://randomuser.me/api/portraits/women/${2}.jpg`}
-          className="w-16 h-16"
-          alt="" />
-        <div className="flex flex-col text-white items-end justify-end w-full px-4">
-          <span className="text-center w-[20%] font-bold">3</span>
-          <span className="text-center w-[20%] font-bold">login</span>
-        </div>
-      </div>
-      <span className="text-3xl text-primary-500 shadow-lg  shadow-primary-500">•</span>
-      <div className="flex items-center justify-end w-full">
-        <div className="flex flex-col text-white items-start justify-center w-full px-4">
-          <span className="text-center w-[20%] font-bold">3</span>
-          <span className="text-center w-[20%] font-bold">login</span>
-        </div>
-        <Avatar
-          src={`https://randomuser.me/api/portraits/women/${4}.jpg`}
-          className="w-16 h-16"
-          alt="" />
-      </div>
-    </div>
-  )
-}
+    <Container title="Leader Board" icon="/img/3dMedal.svg">
+      {!isLoading ? (
+        users &&
+        users.map((user: IUser, i: number) => {
+          return (
+            <Link to={`/profile/${user?.id}`} key={user?.username}>
+              <UserBanner
+                rank={i + 1}
+                showRank
+                showRating
+                user={user}
+              />
+            </Link>
+          );
+        })
+      ) : (
+        <Spinner />
+      )}
+    </Container>
+  );
+};
 
-const Container = ({
-  children,
-  title,
-  icon,
-}: {
-  children?: React.ReactNode;
-  title: string;
-  icon: string;
-}) => {
+const FriendList = () => {
+  const { user } = useContext(AppContext);
+  const { data: friends, isLoading } = useSWR(
+    `api/users/${user?.id}/friends`,
+    fetcher,
+    {
+      errorRetryCount: 0,
+    }
+  );
   return (
-    <div className="flex w-[88%] max-w-[800px] flex-col gap-2 p-4">
-      <div className="relative m-5 flex h-[500px] rounded border-2 border-secondary-400">
-        <img
-          src={icon}
-          alt="icon"
-          className="absolute -top-10 left-1/2 -translate-x-1/2 transform"
-        />
-        <span className=" absolute left-1/2 top-2 z-10 -translate-x-1/2 transform text-xl font-bold text-white">
-          {title}
-        </span>
-        <div className=" absolute left-1/2 top-10 flex max-h-[450px] w-full -translate-x-1/2 transform flex-col items-center justify-center gap-2 overflow-auto px-5 pt-20 scrollbar-hide">
-          {children}
-        </div>
-      </div>
-    </div>
+    <Container title="FRIEND LIST" icon="/img/friendlist.svg">
+      {!isLoading ? (
+        friends &&
+        friends.map((user: IUser) => {
+          return <Link to={`/profile/${user?.id}`} key={user?.id}>
+            <UserBanner showRating user={user} />
+          </Link>
+        })
+      ) : (
+        <Spinner />
+      )}
+    </Container>
   );
 };
 
 export default function Home() {
+  const { user } = useContext(AppContext);
+
+  if (
+    user &&
+    new Date(user?.createdAt).toLocaleString() ===
+    new Date(user?.updatedAt).toLocaleString()
+  )
+    return <Navigate to="/completeinfo" />;
   return (
-    <div className="grid h-screen w-screen grid-cols-10 overflow-hidden bg-secondary-500">
-      <Sidepanel className="col-span-2 2xl:col-span-1" />
-      <div className="col-span-8 overflow-auto scrollbar-hide">
-        {/* <Container title="Leader Board" icon="/img/3dMedal.svg">
-          {new Array(25).fill(0).map((_, i) => {
-            return (
-              <ProfileBanner
-                key={i}
-                name="User Name"
-                avatar={`https://randomuser.me/api/portraits/women/${i}.jpg`}
-                description="Let's make sure we prepare well so we can have a great experience at Gitex Africa and in Marrakech."
-              />
-            );
-          })}
-        </Container>
-        <Container title="FRIEND LIST" icon="/img/friendlist.svg">
-          {new Array(25).fill(0).map((_, i) => {
-            return (
-              <ProfileBanner
-                key={i}
-                name="User Name"
-                avatar={`https://randomuser.me/api/portraits/women/${i}.jpg`}
-                description="Let's make sure we prepare well so we can have a great experience at Gitex Africa and in Marrakech."
-              />
-            );
-          })}
-        </Container> */}
-        <Container title="LIVE FEED" icon="/img/3dCam.svg">
-          {new Array(25).fill(0).map((_, i) => {
-            return (
-              <Game
-                key={i}
-              // name="User Name"
-              // avatar={`https://randomuser.me/api/portraits/women/${i}.jpg`}
-              // description="Let's make sure we prepare well so we can have a great experience at Gitex Africa and in Marrakech."
-              />
-            );
-          })}
-        </Container>
-      </div>
-    </div>
+    <Layout className="3xl:grid-cols-3 flex flex-col items-center gap-5 2xl:grid 2xl:grid-cols-2 2xl:place-items-center">
+      <Link
+        to={`/profile/${user?.id}`}
+        className=" flex h-[500px] w-[88%] max-w-[800px] animate-fade-right flex-wrap items-center justify-center gap-4 rounded border-2 border-secondary-400 p-4 md:h-[200px] md:flex-nowrap"
+      >
+        <Avatar
+          src={user?.avatar || ""}
+          alt=""
+          className="h-28 w-28 md:h-36 md:w-36"
+        />
+        <div className="flex flex-col justify-center gap-2 p-2">
+          <span className="text-lg font-bold text-white">
+            {user?.fullname || ""}
+          </span>
+          <span className="text-sm text-tertiary-50">@{user?.login || ""}</span>
+        </div>
+        <div className="flex items-start justify-between gap-4 text-sm">
+          <div className="flex flex-col text-secondary-100 ">
+            <span>Score</span>
+            <span>Winning Rate</span>
+            <span>Total Games</span>
+          </div>
+          <div className="flex flex-col text-white">
+            <div className="flex gap-2">
+              <span>{user?.rating}</span>
+              <img src="/img/smalllogo.svg" alt="logo" width={20} />
+            </div>
+            <div className="flex ">
+              <span>87 %</span>
+            </div>
+            <div className="flex">
+              {user && <span>{user.wins + user.losses}</span>}
+            </div>
+          </div>
+        </div>
+      </Link>
+      <LeaderBoard />
+      <FriendList />
+      <Container title="LIVE FEED" icon="/img/3dCam.svg">
+      </Container>
+      <Container title="MATCH HISTORY" icon="/img/history.svg">
+      </Container>
+      <Container
+        title="POPULAR ROOMS"
+        icon="/img/3dchat.svg"
+        className="!grid grid-cols-1 place-items-center xl:grid-cols-2"
+      >
+      </Container>
+    </Layout>
   );
 }

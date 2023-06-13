@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "../../components";
-const FourOhFour: React.FC = () => {
+const FourOhFour = ({ show = true }: { show?: boolean }) => {
   return (
     <div
       tabIndex={0}
@@ -14,7 +14,7 @@ const FourOhFour: React.FC = () => {
           className="w-[80%] rounded-lg shadow-lg shadow-secondary-800 drop-shadow-lg "
         />
         <div className="absolute left-1/2 top-1/2 z-10 flex -translate-x-1/2 -translate-y-1/2 transform flex-col items-center justify-center gap-8 text-primary-500">
-          <span className="text-1xl w-full text-center md:text-7xl">404</span>
+          {show && <span className="text-1xl w-full text-center md:text-7xl">404</span>}
           <span className="text-1xl w-full text-center md:text-4xl">
             Something Went Wrong
           </span>

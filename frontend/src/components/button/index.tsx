@@ -1,7 +1,6 @@
 import clsx from "clsx";
 import { Children } from "react";
 
-
 const Button = ({
   type = "primary",
   className,
@@ -23,14 +22,18 @@ const Button = ({
   if (disabled) {
     return (
       <button
-        className={clsx(`w-full border-primary-800 text-primary-800 font-bold py-2 px-4 rounded flex items-center gap-4 border`, array?.length < 2 && "justify-center")}
+        className={clsx(
+          `flex w-full items-center gap-4 rounded border border-primary-800 px-4 py-2 font-bold text-primary-800`,
+          array?.length == 1 && "justify-center",
+          className && className
+        )}
         disabled={disabled}
         onClick={onClick}
         type={htmlType}
       >
         {children}
       </button>
-    )
+    );
   }
   return (
     <>
@@ -39,12 +42,12 @@ const Button = ({
           <button
             className={`
               ${variant === "contained"
-                ? `bg-primary-400 hover:bg-primary-700 text-white font-bold
-                py-2 px-4 rounded flex items-center gap-4 hover:shadow-sm hover:shadow-primary-800`
+                ? `flex items-center gap-4 rounded
+                bg-primary-400 px-4 py-2 font-bold text-white hover:bg-primary-700`
                 : variant === "outlined"
-                  ? `bg-white hover:bg-gray-200 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded flex items-center gap-4  shadow`
-                  : `bg-white hover:bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded flex items-center gap-4 `
-              } ${className}
+                  ? `flex items-center gap-4 rounded border border-gray-400 bg-white px-4 py-2 font-semibold text-gray-800 shadow  hover:bg-gray-200`
+                  : `flex items-center gap-4 rounded bg-white px-4 py-2 font-semibold text-gray-800 hover:bg-gray-200 `
+              } ${className} ${array?.length === 1 && "!justify-center"}
             `}
             disabled={disabled}
             onClick={onClick}
@@ -58,7 +61,7 @@ const Button = ({
       {type === "success" && (
         <>
           <button
-            className={`bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded flex items-center gap-4 ${className}`}
+            className={`flex items-center gap-4 rounded bg-green-500 px-4 py-2 font-bold text-white hover:bg-green-700 ${className}`}
             disabled={disabled}
             onClick={onClick}
             type={htmlType}
@@ -70,7 +73,7 @@ const Button = ({
       {type === "danger" && (
         <>
           <button
-            className={`bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded flex items-center gap-4 ${className} `}
+            className={`flex items-center gap-4 rounded bg-red-500 px-4 py-2 font-bold text-white hover:bg-red-700 ${className} `}
             disabled={disabled}
             onClick={onClick}
             type={htmlType}
@@ -82,7 +85,7 @@ const Button = ({
       {type === "cuation" && (
         <>
           <button
-            className={`bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded flex items-center gap-4 ${className}`}
+            className={`flex items-center gap-4 rounded bg-yellow-500 px-4 py-2 font-bold text-white hover:bg-yellow-700 ${className}`}
             disabled={disabled}
             onClick={onClick}
             type={htmlType}

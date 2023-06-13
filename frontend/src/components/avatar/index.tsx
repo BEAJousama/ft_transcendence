@@ -11,7 +11,7 @@ const Avatar = ({
 }) => {
   return (
     <img
-      className={clsx("w-10 h-10 rounded-full", className && className)}
+      className={clsx("w-10 h-10 rounded-full object-cover", className && className)}
       src={src}
       alt={alt}
     />

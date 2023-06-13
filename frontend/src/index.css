@@ -1,3 +1,8 @@
 @tailwind base;
 @tailwind components;
+@layer base {
+  html {
+    @apply scroll-smooth font-montserrat;
+  }
+}
 @tailwind utilities;
