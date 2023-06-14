@@ -1,45 +1,77 @@
 version: "3"
 
 services:
+  
+  # Define a container for the frontend
+  frontend:
+    # Build the image from the Dockerfile in ./frontend
+    build: ./frontend
+    # Specify the name of the image
+    image: ft_transcendence-frontend
+    # Specify the name of the container
+    container_name: ft_transcendence-frontend
+    # Restart the container automatically on failure
+    restart: on-failure
+    # Expose port 5000 to the host
+    ports:
+      - 5000:5000
+    # Connect the container to the `ft_transcendence` network
+    networks:
+      - ft_transcendence
+    # Mount the frontend volume to persist data
+    volumes:
+      - ./frontend:/app
+    # Load environment variables from ./frontend/.env file
+    env_file:
+      - ./frontend/.env
+
+  # Define a container for the database
   db:
+    # Use the official postgres image
     image: postgres:13
+    # Specify the name of the container
+    container_name: ft_transcendence-db
+    # Restart the container automatically on failure
+    restart: on-failure
+    # Expose port 5434 to the host
     ports:
       - 5434:5432
+    networks:
+      - ft_transcendence
+    # Load environment variables from ./backend/.env file
     env_file:
       - ./backend/.env
     volumes:
       - ./data:/var/lib/postgresql/data
-    networks:
-      - ft_transcendence
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    volumes:
-      - ./frontend:/app
-    env_file:
-      - ./frontend/.env
-    ports:
-      - 5000:5000
-    restart: always
-    networks:
-      - ft_transcendence
+
+  # Define a container for the backend
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    volumes:
-      - ./backend:/app
-    env_file:
-      - ./backend/.env
+    # Build the image from the Dockerfile in ./backend
+    build: ./backend
+    # Specify the name of the image
+    image: ft_transcendence-backend
+    # Specify the name of the container
+    container_name: ft_transcendence-backend
+    # Restart the container automatically on failure
+    restart: on-failure
+    # Expose ports 3000 and 5555 to the host
     ports:
       - 3000:3000
       - 5555:5555
-    depends_on:
-      - db
+    # Connect the container to the `ft_transcendence` network
     networks:
       - ft_transcendence
-    restart: always
+    # Mount the backend volume to persist data
+    volumes:
+      - ./backend:/app
+    # Load environment variables from ./backend/.env file
+    env_file:
+      - ./backend/.env
+    # Make the backend container depend on the database container
+    depends_on:
+      - db
 
 networks:
   ft_transcendence:
+    driver: bridge
+    name: ft_transcendence
