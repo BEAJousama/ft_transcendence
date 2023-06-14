@@ -26,3 +26,4 @@ export { default as Container } from "./container";
 export { default as ChatBanner } from "./chat-banner";
 export { default as GameBanner } from "./game-banner";
 export { default as UserBanner } from "./user-banner";
+export { default as Toast } from "./toast";

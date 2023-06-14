@@ -28,10 +28,7 @@ async function bootstrap() {
     .setDescription('ft_transcendence API')
     .setVersion('1.0')
     .addTag('api')
-    .addBearerAuth(
-      { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
-      'jwt',
-    )
+    .addBearerAuth()
     // .addBearerAuth('Authorization', 'header', 'basic')
     .build();
   const document = SwaggerModule.createDocument(app, config);
