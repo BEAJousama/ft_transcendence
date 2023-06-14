@@ -1,15 +1,12 @@
-# Use the official Node.js image as the base
-FROM node
+FROM node:18
 
-# Set the working directory inside the container
+RUN mkdir /cache
+WORKDIR /cache
+COPY package.json ./
+RUN npm install && mkdir /app
 WORKDIR /app
 
-# Install the dependencies
-COPY package*.json ./
-# RUN yarn install
-
-# Expose the port your backend application listens on (adjust if needed)
 EXPOSE 3000
+EXPOSE 5555
 
-# Set the command to start your backend application
-CMD ["bash", "entrypoint.sh"]
+ENTRYPOINT ["bash", "script.sh"]
