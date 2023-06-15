@@ -16,4 +16,3 @@ done
 echo "Starting app"
 
 npm run start
-
