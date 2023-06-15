@@ -74,37 +74,37 @@ const Sidepanel = ({ className }: {
         <Link to="/">
           <ListItem selected={path === "/"}>
             <AiFillHome />
-            <span className="hidden md:block">Home</span>
+            <span className="hidden md:block text-left">Home</span>
           </ListItem>
         </Link>
         <Link to="/chat">
           <ListItem selected={path === "/chat"}>
             <BsFillChatDotsFill />
-            <span className="hidden md:block">Chat</span>
+            <span className="hidden md:block text-left">Chat</span>
           </ListItem>
         </Link>
         <Link to="/search">
           <ListItem selected={path === "/search"}>
             <BiSearch />
-            <span className="hidden md:block">Search</span>
+            <span className="hidden md:block text-left">Search</span>
           </ListItem>
         </Link>
         <Link to="/pong">
           <ListItem selected={path === "/pong"}>
             <TbDeviceGamepad2 />
-            <span className="hidden md:block">Pong Game</span>
+            <span className="hidden md:block text-left">Pong Game</span>
           </ListItem>
         </Link>
         <Link to="/profile">
           <ListItem selected={path === "/profile"}>
             <CgProfile />
-            <span className="hidden md:block">Profile</span>
+            <span className="hidden md:block text-left">Profile</span>
           </ListItem>
         </Link>
         <Link to="/settings">
           <ListItem selected={path === "/settings"}>
             <RiListSettingsFill />
-            <span className="hidden md:block">Settings</span>
+            <span className="hidden md:block text-left">Settings</span>
           </ListItem>
         </Link>
       </List>
@@ -115,7 +115,7 @@ const Sidepanel = ({ className }: {
           window.location.reload();
         }}>
           <RiLogoutBoxRLine />
-          <span className="hidden md:block">Log Out</span>
+          <span className="hidden md:block text-left">Log Out</span>
         </ListItem>
       </div>
     </aside>

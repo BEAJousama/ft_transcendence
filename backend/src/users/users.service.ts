@@ -14,9 +14,14 @@ import {
   UpdateUserDto,
 } from './dto';
 import Achievements from './achievements/index.tsx';
+import NotificationService from 'src/notification/notification.service';
+
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) {
+  constructor(
+    private prisma: PrismaService,
+    private notificationService: NotificationService,
+  ) {
     this.createAchievements();
   }
 
@@ -192,6 +197,13 @@ export class UsersService {
           receiverId,
         },
       });
+      this.notificationService.sendNotification(
+        senderId,
+        receiverId,
+        'Friend Request',
+        '',
+        receiverId,
+      );
       return request;
     } catch (error) {
       throw new InternalServerErrorException('Failed to send friend request');
@@ -208,6 +220,14 @@ export class UsersService {
           status: 'ACCEPTED',
         },
       });
+
+      this.notificationService.sendNotification(
+        request.senderId,
+        request.receiverId,
+        'Friend Request Accepted',
+        '',
+        request.senderId,
+      );
       return request;
     } catch (error) {
       throw new InternalServerErrorException('Failed to accept friend request');

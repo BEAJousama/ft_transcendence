@@ -85,7 +85,7 @@ export default function SignUp() {
 
   return (
     <div className="flex h-screen w-screen items-center justify-center bg-secondary-700">
-      <Card className="flex w-full max-w-xs  flex-col items-center justify-center gap-4  border-none bg-secondary-500 p-16 text-white shadow-lg shadow-secondary-500 md:max-w-md lg:max-w-lg lg:gap-4 lg:px-16 lg:py-8">
+      <Card className="flex w-full max-w-xs  flex-col items-center justify-center gap-4  border-none bg-secondary-500 px-8 text-white shadow-lg shadow-secondary-500 md:max-w-md lg:max-w-lg lg:gap-4 lg:px-8 lg:py-16">
         <img src="/img/smalllogo.svg" alt="logo" width={40} />
         <div className="flex flex-col items-center gap-2">
           <h1 className="text-2xl">Let's create your account</h1>

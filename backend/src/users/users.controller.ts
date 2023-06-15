@@ -21,6 +21,8 @@ import {
   BlockUserDoc,
   DeleteDoc,
   FindAllDoc,
+  FindFriendReqDoc,
+  FindFriendRequsetsDoc,
   FindOneDoc,
   GetBlockedUsersDoc,
   GetFriendsDoc,
@@ -98,6 +100,7 @@ export class UsersController {
   }
 
   @Get(':id/friend-requests')
+  @FindFriendRequsetsDoc()
   async findFriendRequests(@Param('id') id: string) {
     try {
       const friends = await this.usersService.getFriendRequests(parseInt(id));
@@ -111,6 +114,7 @@ export class UsersController {
   }
 
   @Get(':id/friend-request')
+  @FindFriendReqDoc()
   async findFriendRequest(
     @Query('senderId') senderId: number,
     @Query('receiverId') receiverId: number,

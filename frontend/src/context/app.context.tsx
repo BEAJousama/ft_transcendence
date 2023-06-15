@@ -1,6 +1,7 @@
 import axios from "axios";
 import React, { useCallback, useEffect, useState } from "react";
 import IUser from "../interfaces/user";
+import { ToastContainer, toast } from 'react-toastify';
 
 export interface IAppContext {
   user: IUser | undefined;
@@ -76,6 +77,7 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
     fetchUser,
     updateUser,
   };
+
 
   return (
     <AppContext.Provider value={appContextValue}>

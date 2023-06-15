@@ -131,6 +131,27 @@ export function AcceptFriendsDoc() {
   );
 }
 
+export function FindFriendRequsetsDoc() {
+  return applyDecorators(
+    ApiOkResponse({
+      description: 'get all friend Requests between users',
+    }),
+    ApiUnauthorizedResponse({
+      description: 'Unauthorized',
+    }),
+  );
+}
+export function FindFriendReqDoc() {
+  return applyDecorators(
+    ApiOkResponse({
+      description: 'get only one friend Request between two users',
+    }),
+    ApiUnauthorizedResponse({
+      description: 'Unauthorized',
+    }),
+  );
+}
+
 export function GetBlockedUsersDoc() {
   return applyDecorators(
     ApiOkResponse({
