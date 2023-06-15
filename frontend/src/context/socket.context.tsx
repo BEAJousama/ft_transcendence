@@ -27,7 +27,8 @@ export default function SocketProvider({
     const { user } = useContext(AppContext);
 
     useEffect(() => {
-        const newSocket = io(`http://e2r2p14.1337.ma:3000/notification`, {
+        // const newSocket = io(`http://e2r2p14.1337.ma:3000/notification`, {
+        const newSocket = io(`${process.env.REACT_APP_BACK_END_URL}notification`, {
             query: {
                 clientId: user?.id,
             },

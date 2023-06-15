@@ -20,10 +20,11 @@ import 'react-toastify/dist/ReactToastify.css';
 import SocketProvider from "./context/socket.context";
 
 const PrivateRoutes = () => {
-  const { authenticated, loading, user } = useContext(AppContext);
+  const { authenticated, loading, user, updateUser } = useContext(AppContext);
   const path = useLocation().pathname;
   const twoFactorAuth = user?.twoFactorAuth || localStorage.getItem("2fa_access_token");
 
+  updateUser();
   if (loading) {
     return <Spinner />;
   }

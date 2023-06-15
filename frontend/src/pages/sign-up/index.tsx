@@ -165,7 +165,7 @@ export default function SignUp() {
                   email: formik.values.email,
                 }
               );
-              if (res.data) {
+              if (res && res.data) {
                 console.log(res.data);
                 setError("");
                 setRedirect(true);
@@ -173,7 +173,8 @@ export default function SignUp() {
               console.log(res)
             } catch (e: any) {
               console.log(e);
-              setError(e.response.data.message);
+              if (e)
+                setError(e.response.data.message);
             }
           }}
         >

@@ -8,5 +8,5 @@ else
 fi
 
 echo "Running server"
-npm run start
+yarn start
 
