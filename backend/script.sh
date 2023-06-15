@@ -1,13 +1,16 @@
-#! /bin/sh
+#!/bin/bash
 
-echo "Installing dependencies"
-npm install
+if [ -d "/app/node_modules" ]; then
+  echo "node_modules already exists, skipping copy"
+else
+  echo "Copying node_modules"
+  cp -r /node_modules/ /app/node_modules/
+fi
 
-echo "Initing database and running migrations"
+echo "initing database"
 npx prisma migrate dev --name init
 npx prisma generate
 npx prisma db push --accept-data-loss
 npx prisma studio -b none &
-
-echo "Starting server"
+echo "running server"
 npm run start:dev

@@ -1,4 +1,4 @@
-#! /bin/sh
+#!/bin/bash
 
 echo "Waiting for server to start..."
 
@@ -16,3 +16,4 @@ done
 echo "Starting app"
 
 npm run start
+
