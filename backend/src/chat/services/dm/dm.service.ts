@@ -21,7 +21,7 @@ export class DmService {
             dm =  await this.prisma.channel.create({
                     data: {
                         name: "Dm" + data.senderId + data.receiverId,
-                        avatar: "https://i.imgur.com/HeIi0wU.png",
+                        avatar: "",
                         owner: {
                             connect: {
                                 id: data.senderId,

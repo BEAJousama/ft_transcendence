@@ -1,11 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { Channel, ChannelMember, ChannelType, MemberStatus, Role, User, Visiblity } from '@prisma/client';
+import { Channel, ChannelMember, ChannelType, MemberStatus, Role, Visiblity } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
-import { use } from 'passport';
 import { ChannelDto } from 'src/chat/dto';
-import { channelmembersI } from 'src/chat/models';
-import { channel } from 'diagnostics_channel';
 import { ChatService } from '../chat/chat.service';
 
 @Injectable()
@@ -24,9 +21,9 @@ export class ChannelService {
             some: {
               userId,
               isArchived: false,
+              // isBanned: false,
             },
           },
-          //deletedfor should't contain the userId
           deletedFor: {
             none: {
               id: {
@@ -42,6 +39,7 @@ export class ChannelService {
               unreadFor: true,
               pinnedFor: true,
               deletedFor: true,
+              bannedUsers: true,
               channelMembers:
               {
                 include: {
@@ -51,12 +49,73 @@ export class ChannelService {
               messages: true,
           },
       });
+      channels.forEach((channel) => {
+        if (channel.type === ChannelType.CONVERSATION && channel.userId !== userId
+            && channel.updatedAt === channel.createAt) {
+            channels.splice(channels.indexOf(channel), 1);
+          }
+      });
       return channels;
     }
     catch (error) {
         throw new Error(error.message);
     }
   }
+
+  async searchChannelsByUserId(userId: number, query: string): Promise<Channel[]>
+  {
+    try {
+      const channels = await this.prisma.channel.findMany({
+        where: {
+          channelMembers: {
+            some: {
+              userId,
+              isArchived: false,
+            },
+          },
+          //deletedfor should't contain the userId
+          deletedFor: {
+            none: {
+              id: {
+                equals: userId,
+              },
+            },
+          },
+          name: {
+            contains: query,
+            mode: 'insensitive',
+          },
+        },
+        include:
+        {
+          archivedFor: true,
+          mutedFor: true,
+          unreadFor: true,
+          pinnedFor: true,
+          deletedFor: true,
+          channelMembers:
+          {
+            include: {
+              user: true,
+            },
+          },
+          messages: true,
+        },
+      });
+      channels.forEach((channel) => {
+        if (channel.type === ChannelType.CONVERSATION && channel.userId !== userId
+          && !channel.messages.length && channel.updatedAt === channel.createAt) {
+            channels.splice(channels.indexOf(channel), 1);
+          }
+      });
+      return channels;
+    }
+    catch (error) {
+      throw new Error(error.message);
+    }
+  }
+
+  
 
   async getArchivedChannelsByUserId(userId: number): Promise<Channel[]>
   {
@@ -369,14 +428,14 @@ export class ChannelService {
 
     async leaveChannel(userId: number, channelId: number): Promise<number> {
       try {
-
+      console.log("leave channel")
        let ru =  await this.prisma.channelMember.updateMany({
             where: {
             userId,
             channelId,
             },
             data: {
-            status: MemberStatus.LEFT,
+              status: MemberStatus.LEFT,
             },
         });
         return ru.count;
@@ -418,6 +477,19 @@ export class ChannelService {
               status: MemberStatus.BANNED,
           },
         });
+        await this.prisma.channel.update({
+          where: {
+            id: channelId,
+          },
+          data: {
+            bannedUsers: {
+              connect: {
+                id: userId,
+              },
+            },
+          },
+        });
+
     }
 
     async getBannedUsers(channelId: number): Promise<ChannelMember[]> {
@@ -1089,10 +1161,22 @@ async unmuteChannel(
               },
             },
             data: {
-              status: MemberStatus.ACTIVE,
+              status: MemberStatus.LEFT,
             },
         });
         }
+        const channel = await this.prisma.channel.update({
+          where: {
+            id: channelId,
+          },
+          data: {
+            bannedUsers: {
+              disconnect: {
+                id: userId,
+              },
+            },
+          },
+        });
       return updated.count;
   }
 

@@ -31,7 +31,7 @@ interface ChannelProps {
 
 const Channel = ({
   id,
-  avatar = "https://www.github.com/Hicham-BelHoucin.png",
+  avatar = "",
   name,
   description,
   members,
@@ -94,7 +94,6 @@ const Channel = ({
     };
 
     const deleteChannel = () => {
-  
       socket?.emit("channel_delete", data);
     };
 

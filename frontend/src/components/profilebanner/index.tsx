@@ -69,10 +69,6 @@ const ProfileBanner = ({
     socket?.emit("set_admin", {userId, channelId});
   };
 
-  const unsetAdmin = () => {
-    socket?.emit("unset_admin", {userId, channelId});
-  };
-
   const banUser = () => {
     socket?.emit("ban_user", {userId, channelId});
   };
@@ -88,6 +84,11 @@ const ProfileBanner = ({
   const unmuteUser = () => {
     socket?.emit("unmute_user", {userId, channelId});
   };
+
+  const kickUser = () => {
+    socket?.emit("kick_user", {userId, channelId});
+  };
+  
 
   useClickAway(ref, () => setShowMenu(false));
 
@@ -166,28 +167,24 @@ const ProfileBanner = ({
             </RightClickMenuItem>
             {((channelMember.role === "ADMIN" || channelMember.role === "OWNER") && role != "OWNER") &&
             <Fragment>
-              {status !== "BANNED" &&
-                <>
-                     <RightClickMenuItem
-                     onClick={() => {
-                       setAsAdmin();
-                       setShowMenu(false);
-                     }}
-                     >
-                     <MdOutlineAdminPanelSettings />
-                     {role === "ADMIN" ? "Remove Admin" : "Set As Admin"}
-                   </RightClickMenuItem>
-                   <RightClickMenuItem
-                     onClick={() => {
-                       status === "MUTED" ? unmuteUser() : muteUser();
-                       setShowMenu(false);
-                      }}
-                      >
-                     <BiVolumeMute />
-                     {status === "MUTED" ? "Unmute" : "Mute"}
-                   </RightClickMenuItem>
-                  </>
-                }
+                  <RightClickMenuItem
+                  onClick={() => {
+                    setAsAdmin();
+                    setShowMenu(false);
+                  }}
+                  >
+                  <MdOutlineAdminPanelSettings />
+                  {role === "ADMIN" ? "Remove Admin" : "Set As Admin"}
+                </RightClickMenuItem>
+                <RightClickMenuItem
+                  onClick={() => {
+                    status === "MUTED" ? unmuteUser() : muteUser();
+                    setShowMenu(false);
+                  }}
+                  >
+                  <BiVolumeMute />
+                  {status === "MUTED" ? "Unmute" : "Mute"}
+                </RightClickMenuItem>
                 <RightClickMenuItem
                   onClick={
                     () => {

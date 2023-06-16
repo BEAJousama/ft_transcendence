@@ -84,6 +84,7 @@ model User {
   losses           Int           @default(0)
   mutedIn          Channel[]     @relation("mutedinChannels")
   bannedIn         Channel[]     @relation("bannedinChannels")
+  kickedIn         Channel[]     @relation("kickedinChannels")
   adminIn          Channel[]     @relation("admininChannels")
   ownedChannels    Channel[]     @relation("ownedChannels")
   pinnedChannels   Channel[]     @relation("pinnedChannels")
@@ -107,6 +108,7 @@ enum RequestStatus {
   ACCEPTED
   REJECTED
 }
+
 
 model Friend {
   id         Int           @id @default(autoincrement())
@@ -159,6 +161,7 @@ model Channel {
   unreadFor           User[]          @relation("unreadChannels")
   bannedUsers         User[]          @relation("bannedinChannels")
   mutedUsers          User[]          @relation("mutedinChannels")
+  kickedUsers         User[]          @relation("kickedinChannels")
   adminUsers          User[]          @relation("admininChannels")
   userId              Int
   type                ChannelType     @default(GROUP)
@@ -192,6 +195,7 @@ model ChannelMember {
   status             MemberStatus         @default(ACTIVE) // if left or banned, the user will be removed from the channel, if muted the user will not be able to send messages
   banStartTime       DateTime?
   banDuration        Int? // time in seconds
+  isKicked           Boolean              @default(false) // if true the user will be removed from the channel
   isBanned           Boolean              @default(false) // this has no sense now -- TO BE REMOVED --
   isMuted            Boolean              @default(false) // if true the user won't get notifications from the channel
   isPinned           Boolean              @default(false) // if true the channel will be pinned to the top of the list

@@ -15,7 +15,7 @@ const Welcome = () => {
   });
 
   return (
-    <div className="relative overflow-auto col-span-10 flex h-screen w-full items-center justify-center flex-col justify-start gap-4 rounded-t-3xl bg-secondary-600 lg:col-span-5 xl:col-span-5 2xl:col-span-6">
+    <div className="relative overflow-hidden col-span-10 flex h-screen w-full items-center justify-center flex-col justify-start gap-4 rounded-t-3xl bg-secondary-600 lg:col-span-5 xl:col-span-5 2xl:col-span-6 max-wd-md">
       <div className="flex items-center justify-center p-1 h-full w-full relative" style={{ backgroundImage: `url('/img/chatmenu.svg')`, backgroundRepeat: 'no-repeat', backgroundSize: 'contain', height: 600, width: 600 }}>
         <div className="flex justify-centerbg-opacity-50 backdrop-filter backdrop-blur-lg absolute top-0 left-0 right-0 bottom-0" >
         </div>

@@ -16,9 +16,16 @@ export class MessageService {
             where: {
                 userId: data.senderId,
                 channelId: data.receiverId,
-                status: "BANNED",
+                status: "BANNED" || "LEFT",
             },
         });
+        const chMember = await this.prisma.channelMember.findFirst({
+            where: {
+                userId: data.senderId,
+                channelId: data.receiverId,
+            },
+        });
+    
         if (channelMember)
             throw new Error("Cannot send message to this channel !");
         let message = await this.prisma.message.create({
@@ -33,22 +40,25 @@ export class MessageService {
             console.log("Cannot create message !");
             return null;
         }
-        await this.prisma.channel.update({
-            where: {
-                id: data.receiverId,
-            },
-            data: {
-                newMessagesCount: {
-                    increment: 1,
+        if (chMember.status !== "BANNED" && chMember.status !== "LEFT")
+        {
+            await this.prisma.channel.update({
+                where: {
+                    id: data.receiverId,
                 },
-                deletedFor: {
-                    set: [],
+                data: {
+                    newMessagesCount: {
+                        increment: 1,
+                    },
+                    deletedFor: {
+                        set: [],
+                    },
+                    lastestMessageDate: message.date,
+                    updatedAt: message.date,
+                                    
                 },
-                lastestMessageDate: message.date,
-                updatedAt: message.date,
-                                
-            },
-        });
+            });
+        }
         return message;
     }
 

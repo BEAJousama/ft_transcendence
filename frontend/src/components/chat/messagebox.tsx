@@ -7,16 +7,20 @@ import { useClickAway, useMedia } from "react-use";
 import { SocketContext } from "../../context/socket.context";
 import { AppContext } from "../../context/app.context";
 
-const MessageBox = ({ message, right }: { message?: any; right?: boolean }) => {
+const MessageBox = ({ message, right, autoScroll }: { message?: any; right?: boolean, autoScroll : any}) => {
   const [showMenu, setShowMenu] = useState(false);
   const socket = useContext(SocketContext);
   const {user} = useContext(AppContext);
   const [sender, setSender] = useState<any>(null);
-  const ref = useRef(null);
   const token = localStorage.getItem("access_token");
+  const ref = useRef(null);
 
   useEffect(() => {
-    fetch(`http://localhost:3000/api/users/${message.senderId}`, {
+    autoScroll();
+  }, []);
+
+  useEffect(() => {
+    fetch(`http://10.11.8.12:3000/api/users/${message.senderId}`, {
       method: 'GET',
       headers: {
           'Authorization': `Bearer ${token}`, // notice the Bearer before your token

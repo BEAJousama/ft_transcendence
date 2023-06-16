@@ -136,6 +136,20 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect  {
       });
     }
   }
+
+  @SubscribeMessage(EVENT.SEARCH_CHANNEL)
+  async searchChannel(client: Socket, payload: any) {
+    try {
+      const channels = await this.channelService.searchChannelsByUserId(client.data.sub, payload.query);
+      client.emit(EVENT.SEARCH_CHANNEL, channels);
+    } catch (err) {
+      throw new WsException({
+        error: EVENT.SEARCH_CHANNEL,
+        message: err.message,
+      });
+    }
+  }
+
   
 
   @SubscribeMessage(EVENT.GET_CH_MEMBER)
@@ -255,15 +269,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect  {
         client.data.sub,
         payload.channelId,
       );
-      client.leave(payload.channelId);
       const channels = await this.channelService.getChannelsByUserId(client.data.sub);
-      client.emit(EVENT.CHANNEL_LEAVE, channels);
       const sockets = this.getConnectedUsers(client.data.sub);
       sockets.forEach((s) => {
         s.leave(payload.channelId);
-        this.server.to(s.id).emit(EVENT.CHANNEL_LEAVE, ru)
+        this.server.to(s.id).emit(EVENT.CHANNEL_LEAVE, channels)
       });
-      this.sendChannels(client.data.sub);
     } catch (err) {
       throw new WsException({
         error: EVENT.CHANNEL_LEAVE,
@@ -427,9 +438,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect  {
               parseInt(payload.channelId), client.data.sub
         );
         const sockets = this.getConnectedUsers(client.data.sub);
+        const channels = await this.channelService.getChannelsByUserId(
+          client.data.sub
+          );
         sockets.forEach((s) => {
           s.leave(payload.channelId);
-          // this.server.to(s.id).emit(EVENT.CHANNEL_DELETE, channel)
+          this.server.to(s.id).emit(EVENT.CHANNEL_DELETE, channels)
         });
         this.sendChannels(client.data.sub);
       } catch (err) {

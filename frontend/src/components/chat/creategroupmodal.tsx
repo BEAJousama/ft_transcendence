@@ -9,6 +9,7 @@ import ProfileBanner from "../../components/profilebanner";
 import { SocketContext } from "../../context/socket.context";
 import Select from "../select";
 import { AppContext } from "../../context/app.context";
+// import addUsers from "./selectusers";
 
 const CreateGroupModal = ({
   setShowModal,
@@ -99,6 +100,10 @@ const CreateGroupModal = ({
                   if (value !== "") setShowSubmit(true);
                 }}
               />
+              {/* add upload avatar or url */
+                
+              }
+                
               </>
             )
           }
@@ -135,7 +140,7 @@ const CreateGroupModal = ({
           show && (
           <div className="w-full h[100px] flex items-center justify-center flex-col align-middle gap-2 pt-2 overflow-y-scroll scrollbar-hide">
             <span className="w-full mb-2 text-sm font-medium text-gray-900 dark:text-white">Select users: </span>
-            {users.filter((u : any) => {
+            {users?.filter((u : any) => {
               return u.id !== user?.id;
             }).map((u : any) => {
               return (
@@ -155,7 +160,7 @@ const CreateGroupModal = ({
                         onChange={() => {
                           !selectedUsers.includes(u.id) ?
                             setSelectedUsers([...selectedUsers, u.id]) :
-                            setSelectedUsers(selectedUsers.filter((id) => id !== u.id));
+                            setSelectedUsers(selectedUsers?.filter((id) => id !== u.id));
                           }}
                       />
                     </div>
@@ -167,7 +172,7 @@ const CreateGroupModal = ({
         {
           showDm && (
           <div className="w-full h[100px] flex items-center justify-center flex-col align-middle gap-2 pt-2 overflow-y-scroll scrollbar-hide">
-            {users.filter((u : any) => {
+            {users?.filter((u : any) => {
               return u.id !== user?.id;
             }).map((u : any) => {
               return (

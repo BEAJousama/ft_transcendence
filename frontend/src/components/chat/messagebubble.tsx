@@ -28,7 +28,19 @@ const MessageBubble = ({ setOpen, currentChannel, channelMember }: {setOpen: any
   const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
   const [pinnedMessages, setPinnedMessages] = useState<any[]>([]);
   const socket = useContext(SocketContext);
-  const {user, users} = useContext(AppContext)
+  const {user, users} = useContext(AppContext);
+  const refMessage = useRef(null);
+
+
+  const autoScroll = () => {
+    const scroll = refMessage.current;
+    if (scroll) {
+      (scroll as HTMLElement).scrollTo({
+        top: (scroll as HTMLElement).scrollHeight,
+        behavior: 'smooth'
+      });
+    }
+  };
 
   
   useEffect(() => {
@@ -45,6 +57,7 @@ const MessageBubble = ({ setOpen, currentChannel, channelMember }: {setOpen: any
         return new Date(a.date).getTime() - new Date(b.date).getTime();
       });
       setMessages(sortedMessages);
+      autoScroll();
     });
   }, [socket, messages, currentChannel]);
 
@@ -64,46 +77,49 @@ const MessageBubble = ({ setOpen, currentChannel, channelMember }: {setOpen: any
   };
 
   const leaveGroup = () => {
-    socket?.emit("channel_leave", { channelId: currentChannel.id, userId: 1 }); // hardcoded for now
+    console.log(currentChannel.id + " " + user?.id)
+    socket?.emit("channel_leave", { channelId: currentChannel.id, userId: user?.id }); // hardcoded for now
   };
 
   return (
-    <div className="relative overflow-y-auto overflow-x-hidden col-span-10 flex h-screen w-full flex-col justify-start gap-4 rounded-t-3xl bg-secondary-600 lg:col-span-5 xl:col-span-5 2xl:col-span-6">
+    <div className="relative overflow-y-auto scrollbar-hide overflow-x-hidden col-span-10 flex h-screen w-full flex-col justify-start gap-4 rounded-t-3xl bg-secondary-600 lg:col-span-5 xl:col-span-5 2xl:col-span-6 md-" ref={refMessage}>
       <Button
         className="flex tems-center gap-2 rounded-t-3xl top-0 mb-16 sticky bg-secondary-400 !p-2 text-white hover:bg-secondary-400 z-10"
         onClick={() => {
+          if (currentChannel.type !== "CONVERSATION" && channelMember.status !== "LEFT" && channelMember.status !== "BANNED" && channelMember.status !== "MUTED") 
           setShowModal(true);
         }}
-      >
-        <Avatar src={currentChannel.type != "CONVERSATION" ? `https://randomuser.me/api/portraits/women/${currentChannel.id}.jpg` : 
-                     currentChannel.channelMembers?.filter((member: any) => member.userId != user?.id)[0].user?.avatar } alt="" />
-        <div>{currentChannel.type != "CONVERSATION" ? currentChannel.name : currentChannel.channelMembers?.filter((member: any) => member.userId != user?.id)[0].user?.username}</div>
+        >
+        <Avatar src={currentChannel.type !== "CONVERSATION" ? `https://randomuser.me/api/portraits/women/${currentChannel.id}.jpg` : 
+                     currentChannel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.avatar } alt="" />
+        <div>{currentChannel.type !== "CONVERSATION" ? currentChannel.name : currentChannel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.username}</div>
         <Button
           variant="text"
           className=" !hover:bg-inherit absolute right-0 mx-2 !items-end !bg-inherit text-white lg:hidden"
           onClick={() => {
             setOpen(false);
           }}
-        >
+          >
           <BiLeftArrow />
         </Button>
       </Button>
       <div className="mb-2 flex h-full flex-col  justify-end gap-2 z-[0] px-[10px] ">
         {
           messages?.map((message) => {
-          return (
-            <>
+            return (
+              <div key={message.id}>
             {new Date(message.date).getDay() !== new Date(messages[messages.indexOf(message) - 1]?.date).getDay() && (
               <Divider center title={ 
                 //check if date is less than 10, if so add a 0 in front of it
                 `${  new Date(message.date).getDate() < 10 ? '0' + new Date(message.date).getDate() : new Date(message.date).getDate()}-${ new Date(message.date).getMonth() < 12 ? '0' + (new Date(message.date).getMonth() + 1) : new Date(message.date).getMonth() + 1}-${new Date(message.date).getFullYear()}`}/>
-            )}
+                )}
             <MessageBox
+            autoScroll={autoScroll}
             key={message.id}
             message={message}
             right={(message.senderId === user?.id)} 
             />          
-            </>
+            </div>
           )
         })}
       </div>      
@@ -114,13 +130,18 @@ const MessageBubble = ({ setOpen, currentChannel, channelMember }: {setOpen: any
           onClick={() => {
             setShowPicker(true);
           }}
+          disabled={channelMember.status === "MUTED" || channelMember.status === "BANNED" || channelMember.status === "LEFT"}
           >
           <BsEmojiSmileFill />
         </Button>
         <Input
-          disabled={channelMember.status === "MUTED" || channelMember.status === "BANNED"}
-          placeholder={(channelMember.status === "MUTED" ? "You are muted, you can't send messages!" : channelMember.status === "BANNED" ? "You are banned, you can't send messages!" : "type something")}
+          disabled={channelMember.status === "MUTED" || channelMember.status === "BANNED" || channelMember.status === "LEFT"}
+          placeholder={(channelMember.status === "MUTED" ? "You are muted, you can't send messages!" : channelMember.status === "BANNED" ? "You are banned, you can't send messages!" : channelMember.status === "LEFT" ? "You have left this channel or have been kicked !" : "type something")}
           value={value}
+          onKeyDown={(event) => {
+            if (event.key === "Enter")
+              handleSendMessage(value);
+          }}
           onChange={(event) => {
             const { value } = event.target;
             setValue(value);
@@ -130,33 +151,13 @@ const MessageBubble = ({ setOpen, currentChannel, channelMember }: {setOpen: any
         <Button
           variant="text"
           className="!hover:bg-inherit !bg-inherit text-primary-500"
-          // onKeyDown={(event) => {
-          //   if (event.key === "Enter")
-          //     handleSendMessage(value);
-          // }}
+          disabled={channelMember.status === "MUTED" || channelMember.status === "BANNED" || channelMember.status === "LEFT"}
           onClick={() => {
             handleSendMessage(value);
           }}
         >
           <BsSendFill />
         </Button>
-        {/* {
-            pinnedMessages.length > 0 && (
-              //open a modal to show pinned messages
-              <div className="absolute bottom-0 flex w-full items-center bg-secondary-700 p-1">
-                <Button
-                  variant="text"
-                  className="!hover:bg-inherit !bg-inherit text-primary-500"
-                  onClick={() => {
-                    setPinnedMssgsModal(true);
-                  }}
-                >
-                  <RiEdit2Fill />
-                </Button>
-              </div>
-    
-            )
-          } */}
       </div>
       {showPicker && (
         <div ref={ref} className="h-50 absolute bottom-14 w-1">
@@ -208,7 +209,7 @@ const MessageBubble = ({ setOpen, currentChannel, channelMember }: {setOpen: any
 
             <div className="w-full h[100px] flex items-center justify-center flex-col align-middle gap-2 pt-2 overflow-y-scroll scrollbar-hide">
             <span className="w-full mb-2 text-sm font-medium text-gray-900 dark:text-white">Select new users: </span>
-            {users.filter((u : any) => {
+            {users?.filter((u : any) => {
               return u.id !== user?.id && currentChannel.channelMembers.find((cm : any) => cm.userId === u.id) === undefined;
             }).map((u : any) => {
               return (
@@ -228,7 +229,7 @@ const MessageBubble = ({ setOpen, currentChannel, channelMember }: {setOpen: any
                         onChange={() => {
                           !selectedUsers.includes(u.id) ?
                             setSelectedUsers([...selectedUsers, u.id]) :
-                            setSelectedUsers(selectedUsers.filter((id) => id !== u.id));
+                            setSelectedUsers(selectedUsers?.filter((id) => id !== u.id));
                           }}
                       />
                     </div>
@@ -264,10 +265,10 @@ const MessageBubble = ({ setOpen, currentChannel, channelMember }: {setOpen: any
           {showEdit ? null : (
             <>
             <div className="flex h-max w-full flex-col items-center gap-2 overflow-y-scroll pt-2 scrollbar-hide">
-            {currentChannel?.channelMembers?.map((member : any) => {
+            {currentChannel?.channelMembers?.filter((member : any) => member.status !== "BANNED" && member.status !== "LEFT"  ).map((member : any) => {
               return (
                 <ProfileBanner
-                channelMember={channelMember}
+                  channelMember={channelMember}
                     user={user?.id}
                     showOptions
                     showStatus

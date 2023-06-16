@@ -16,7 +16,7 @@ export default function Chat() {
 
 
   useEffect(() => {
-    socket?.emit('channel_member', {userId : user?.id, channelId : currentChannel.id });
+    socket?.emit('channel_member', {userId : user?.id, channelId : currentChannel?.id });
     socket?.on('channel_member', (data: any) => {
       setChannelMember(data);
     }
@@ -40,7 +40,7 @@ export default function Chat() {
           setShowModal={setShowModal}
           />
         )}
-      {((open || isMatch) && Object.keys(currentChannel).length ) ? <MessageBubble currentChannel={currentChannel} setOpen={setOpen} channelMember={channelMember}/>
+      {(currentChannel && Object.keys(currentChannel!).length ) ? <MessageBubble currentChannel={currentChannel} setOpen={setOpen} channelMember={channelMember}/>
     : 
       < Welcome />
     }

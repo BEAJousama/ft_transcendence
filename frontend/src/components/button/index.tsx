@@ -20,18 +20,6 @@ const Button = ({
   variant?: "text" | "contained" | "outlined";
 }) => {
   const array = Children.toArray(children).slice(0);
-  if (disabled) {
-    return (
-      <button
-        className={clsx(`w-full border-primary-800 text-primary-800 font-bold py-2 px-4 rounded flex items-center gap-4 border`, array?.length < 2 && "justify-center")}
-        disabled={disabled}
-        onClick={onClick}
-        type={htmlType}
-      >
-        {children}
-      </button>
-    )
-  }
   return (
     <>
       {type === "primary" && (

@@ -45,3 +45,4 @@ export const UNPIN_MESSAGE = 'unpin_message';
 export const GET_PINNED_MESSAGES = 'get_pinned_messages';
 export const MARK_UNREAD = 'mark_unread';
 export const MARK_READ = 'mark_read';
+export const SEARCH_CHANNEL = 'search_channel';
