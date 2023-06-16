@@ -17,17 +17,6 @@ export class PongGateway {
       console.log('connected');
     });
   }
-  @SubscribeMessage('init')
-  init(@ConnectedSocket() client: Socket, @MessageBody() info) {
-    console.log(info);
-    const data = this.pongService.initialize(info);
-    client.emit('init', data);
-  }
-  @SubscribeMessage('update')
-  update(@ConnectedSocket() client: Socket, @MessageBody() info) {
-    const data = this.pongService.update(info);
-    client.emit('update', data);
-  }
   @SubscribeMessage('join-queue')
   handleJoin(@ConnectedSocket() client: Socket) {
     // console.log('client joined');
@@ -38,4 +27,26 @@ export class PongGateway {
     // console.log('client left');
     client.emit('left', 'left');
   }
+  @SubscribeMessage('init')
+  init(@ConnectedSocket() client: Socket, @MessageBody() info) {
+    console.log(info);
+    const data = this.pongService.init(info);
+    client.emit('init', data);
+  }
+  @SubscribeMessage('update')
+  update(@ConnectedSocket() client: Socket, @MessageBody() info) {
+    const data = this.pongService.update();
+    client.emit('update', data);
+  }
+  @SubscribeMessage('keyPressed')
+  keyPressed(@ConnectedSocket() client: Socket, @MessageBody() info) {
+    console.log('hello');
+    const data = this.pongService.keyPressed(info);
+    // client.emit('update', data);
+  }
+  //   @SubscribeMessage('keyReleased')
+  //   keyReleased(@ConnectedSocket() client: Socket, @MessageBody() info) {
+  //     const data = this.pongService.keyReleased(info);
+  //     client.emit('update', data);
+  //   }
 }

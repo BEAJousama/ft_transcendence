@@ -2,6 +2,9 @@ import { Sidepanel } from "../../components";
 import { useMeasure } from "react-use";
 import React, { useContext, useEffect, useRef, useState } from "react";
 import { SocketContext } from "../../context/game.context";
+import Layout from "../layout";
+import { EnumType } from "typescript";
+import { AppContext } from "../../context/app.context";
 
 interface Ball {
 	x: number;
@@ -11,7 +14,16 @@ interface Ball {
 interface Player {
 	x: number;
 	y: number;
+	width: number;
+	height: number;
 	score: number;
+}
+
+interface Game {
+	canvas: any;
+	ball: Ball;
+	player: Player;
+	opponent: Player;
 }
 
 const PongGame: React.FC = () => {
@@ -21,75 +33,57 @@ const PongGame: React.FC = () => {
 		x: 0,
 		y: 0,
 	});
-	const [player1, setPlayer1] = useState<Player>({
+	const [player, setPlayer] = useState<Player>({
 		x: 0,
 		y: 0,
+		width: 0,
+		height: 0,
 		score: 0,
 	});
-	const [player2, setPlayer2] = useState<Player>({
+	const [opponent, setOpponent] = useState<Player>({
 		x: 0,
 		y: 0,
+		width: 0,
+		height: 0,
 		score: 0,
 	});
 
 	const canvasRef = useRef<HTMLCanvasElement>(null);
-	const canvasWidth = window.innerWidth * 0.7;
-	const canvasHeight = window.innerHeight * 0.7;
+	const [gameInitialized, setGameInitialized] = useState(false);
+	const [ref, { width: canvasWidth, height: canvasHeight }] =
+		useMeasure<HTMLDivElement>();
 
 	useEffect(() => {
-		socket?.emit("init", { width: canvasWidth, height: canvasHeight });
-		socket?.on("init", (data: any) => {
-			console.log(data);
-			const { ball, player1, player2 } = data;
-			setPlayer1(player1);
-			setPlayer2(player2);
-			setBall(ball);
-		});
+		if (canvasWidth == 0 && ball.x == 0) return;
+		else if (gameInitialized == false) {
+			setGameInitialized(true);
+			socket?.emit("init", {
+				canvasWidth: canvasWidth * 0.8,
+				canvasHeight: canvasHeight * 0.8,
+			});
+			socket?.on("init", (data: Game) => {
+				console.log(data);
+				setBall(data.ball);
+				setPlayer(data.player);
+				setOpponent(data.opponent);
+			});
+			const interval = setInterval(() => {
+				socket?.emit("update");
+			}, 20);
 
-		const keys = {
-			w: false,
-			s: false,
-			up: false,
-			down: false,
-			reset() {
-				this.w = false;
-				this.s = false;
-				this.up = false;
-				this.down = false;
-			},
-		};
+			socket?.on("update", (data: Game) => {
+				const { ball, player, opponent } = data;
+				setBall(ball);
+				setPlayer(player);
+				setOpponent(opponent);
+			});
 
-		document.addEventListener(
-			"keydown",
-			(event) => {
-				console.log("clicked");
-				keys.reset();
-				var name = event.key;
-				if (name === "w") keys.w = true;
-				else if (name === "s") keys.s = true;
-				if (name === "ArrowUp") keys.up = true;
-				else if (name === "ArrowDown") keys.down = true;
-				socket?.emit("update", keys);
-				keys.reset();
-			},
-			false
-		);
-
-		const interval = setInterval(() => {
-			socket?.emit("update", keys);
-		}, 20);
-
-		socket?.on("update", (data: any) => {
-			const { ball, player1, player2 } = data;
-			setPlayer1(player1);
-			setPlayer2(player2);
-			setBall(ball);
-		});
-
-		return () => {
-			clearInterval(interval);
-		};
-	}, [socket]);
+			return () => {
+				clearInterval(interval);
+			};
+		} else {
+		}
+	}, [canvasWidth, canvasHeight]);
 
 	useEffect(() => {
 		const canvas = canvasRef.current;
@@ -108,12 +102,6 @@ const PongGame: React.FC = () => {
 				context.fill();
 			};
 
-			const putText = (text: string, x: number, y: number) => {
-				context.fillStyle = "black";
-				context.font = "25px fantasy";
-				context.fillText(text, x, y);
-			};
-
 			const drawBall = (x: number, y: number) => {
 				context.fillStyle = "white";
 				context.beginPath();
@@ -124,25 +112,33 @@ const PongGame: React.FC = () => {
 
 			const renderGame = () => {
 				clearCanvas();
-				drawRect(player1.x, player1.y, 40, 100);
+				drawRect(player.x, player.y, player.width, player.height);
 				for (let i = 0; i < canvas.height; ) {
 					drawRect(canvas.width / 2 - 1, i, 2, 8);
 					i += 12;
 				}
 				drawBall(ball.x, ball.y);
-				drawRect(player2.x, player2.y, 40, 100);
+				drawRect(
+					opponent.x,
+					opponent.y,
+					opponent.width,
+					opponent.height
+				);
 			};
 
 			renderGame();
 		}
-	}, [player1, player2, ball]);
+	}, [player, opponent, ball]);
 
 	return (
-		<div>
+		<div
+			ref={ref}
+			className="flex h-full w-full items-center  justify-center"
+		>
 			<canvas
 				ref={canvasRef}
-				width={canvasWidth}
-				height={canvasHeight}
+				width={canvasWidth * 0.8}
+				height={canvasHeight * 0.8}
 				className="rounded-lg bg-secondary-800"
 			/>
 		</div>
@@ -150,16 +146,10 @@ const PongGame: React.FC = () => {
 };
 
 export default function Pong() {
-	const [ref, { width, height }] = useMeasure<HTMLDivElement>();
+	// const [ref, { width, height }] = useMeasure<HTMLDivElement>();
 	return (
-		<div
-			className="relative grid h-screen grid-cols-9 bg-secondary-700 lg:grid-cols-7"
-			ref={ref}
-		>
-			<Sidepanel className=" col-span-2 lg:col-span-1" />
-			<div className="col-span-7 flex items-center  justify-center lg:col-span-6">
-				<PongGame />
-			</div>
-		</div>
+		<Layout className="flex items-center justify-center p-4">
+			<PongGame />
+		</Layout>
 	);
 }

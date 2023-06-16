@@ -92,6 +92,5 @@ export class DeleteUserDto {
 
 export class UpdateUserDto {
   @IsNotEmpty()
-  @IsNumber()
   user: UserDto;
 }
