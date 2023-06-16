@@ -47,7 +47,7 @@ export default function SocketProvider({
 			const { key } = event;
 			if (Object.values(Keys).includes(key as Keys) && !keyState[key]) {
 				keyState[key] = true;
-				console.log(socket, "pressed");
+				console.log(user?.id, "pressed", key);
 				// Emit the event for the specific key press
 				socket?.emit("keyPressed", { key, userId: user?.id });
 			}
@@ -57,7 +57,7 @@ export default function SocketProvider({
 			const { key } = event;
 			if (Object.values(Keys).includes(key as Keys)) {
 				keyState[key] = false;
-				console.log(key, "released");
+				console.log(user?.id, "released", key);
 				// Emit the event for the specific key release
 				socket?.emit("keyReleased", { key, userId: user?.id });
 			}
@@ -69,7 +69,7 @@ export default function SocketProvider({
 			document.removeEventListener("keydown", handleKeyDown, false);
 			document.removeEventListener("keyup", handleKeyUp, false);
 		};
-	}, [socket]);
+	}, [socket, user]);
 
 	return (
 		<SocketContext.Provider value={socket}>

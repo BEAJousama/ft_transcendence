@@ -35,18 +35,17 @@ export class PongGateway {
   }
   @SubscribeMessage('update')
   update(@ConnectedSocket() client: Socket, @MessageBody() info) {
-    const data = this.pongService.update();
+    const data = this.pongService.update(info);
     client.emit('update', data);
   }
   @SubscribeMessage('keyPressed')
   keyPressed(@ConnectedSocket() client: Socket, @MessageBody() info) {
-    console.log('hello');
     const data = this.pongService.keyPressed(info);
     // client.emit('update', data);
   }
-  //   @SubscribeMessage('keyReleased')
-  //   keyReleased(@ConnectedSocket() client: Socket, @MessageBody() info) {
-  //     const data = this.pongService.keyReleased(info);
-  //     client.emit('update', data);
-  //   }
+  @SubscribeMessage('keyReleased')
+  keyReleased(@ConnectedSocket() client: Socket, @MessageBody() info) {
+    const data = this.pongService.keyReleased(info);
+    //   client.emit('update', data);
+  }
 }
