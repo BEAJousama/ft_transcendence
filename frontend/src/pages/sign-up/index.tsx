@@ -39,37 +39,35 @@ export default function SignUp() {
 
       // Validate email
       if (!values.email) {
-        errors.email = "Email is required";
+        errors.email = "Please enter your email";
       } else if (!isValidEmail(values.email)) {
-        errors.email = "Invalid email format";
+        errors.email = "Please enter a valid email";
       }
 
       // Validate username
       if (!values.username) {
-        errors.username = "Username is required";
+        errors.username = "Please enter a username";
       }
 
       // Validate fullname
       if (!values.fullname) {
-        errors.fullname = "Fullname is required";
+        errors.fullname = "Please enter your full name";
       }
 
       // Validate password
       if (!values.password) {
-        errors.password = "Password is required";
+        errors.password = "Please enter a password";
       }
       else if (values.password.length < 12) {
         errors.password = "Password should be at least 12 characters long";
-      } else if (values.password.length < 14) {
-        errors.password = "Consider using a password that is 14 characters or longer for better security";
       }
       else if (!isStrongPassword(values.password)) {
-        errors.password = "Password must contain a combination of uppercase letters, lowercase letters, numbers, and symbols, and should not be a common word or name";
+        errors.password = "Password must contain a combination of uppercase and lowercase letters, numbers, symbols and should not be a common word or name";
       }
 
       // Validate confirmPassword
       if (!values.confirmPassword) {
-        errors.confirmPassword = "Confirm Password is required";
+        errors.confirmPassword = "Please confirm your password";
       } else if (values.password !== values.confirmPassword) {
         errors.confirmPassword = "Passwords do not match";
       }
@@ -129,32 +127,35 @@ export default function SignUp() {
       className="flex h-screen w-screen items-center justify-center overflow-auto bg-secondary-700 scrollbar-hide"
       onKeyDown={handleKeyPress}
     >
-      <Card className="flex w-full max-w-xs  flex-col items-center justify-center gap-4 border-none bg-secondary-500 px-8 text-white shadow-lg shadow-secondary-500 md:max-w-md lg:max-w-lg lg:gap-4 lg:px-8 lg:py-16">
+      <Card className="flex w-full max-w-xs  flex-col items-center justify-center gap-4 border-none bg-secondary-500 px-8 text-white shadow-lg shadow-secondary-500 md:max-w-md lg:max-w-lg lg:gap-4 lg:px-12 lg:py-16">
         <img src="/img/smalllogo.svg" alt="logo" width={40} />
         <div className="flex flex-col items-center gap-2">
           <h1 className="text-2xl">Let's create your account</h1>
           <p className=" text-tertiary-200">Please enter your details</p>
         </div>
         <Input
+          onBlur={formik.handleBlur}
           required
           onChange={formik.handleChange}
           value={formik.values.fullname}
           error={formik.errors.fullname}
           isError={!!formik.errors.fullname}
           name="fullname"
-          label="FullName"
+          label="Full Name"
         />
         <Input
+          onBlur={formik.handleBlur}
           required
           onChange={formik.handleChange}
           value={formik.values.username}
           error={formik.errors.username}
           isError={!!formik.errors.username}
           name="username"
-          label="UserName"
+          label="Username"
           htmlType="email"
         />
         <Input
+          onBlur={formik.handleBlur}
           required
           onChange={formik.handleChange}
           value={formik.values.email}
@@ -164,6 +165,7 @@ export default function SignUp() {
           label="Email"
         />
         <Input
+          onBlur={formik.handleBlur}
           required
           onChange={formik.handleChange}
           value={formik.values.password}
@@ -174,6 +176,7 @@ export default function SignUp() {
           htmlType="password"
         />
         <Input
+          onBlur={formik.handleBlur}
           required
           onChange={formik.handleChange}
           value={formik.values.confirmPassword}
@@ -191,9 +194,9 @@ export default function SignUp() {
         <Button className="w-full" onClick={handleSignUp}>
           Sign Up
         </Button>
-        <div className="w-full pt-1 text-center text-tertiary-300">
+        <div className="w-full pt-1 text-center text-tertiary-300 flex flex-col md:flex-row items-center justify-center">
           Already have an account?
-          <Link to="/login" className="ml-1 text-tertiary-400">
+          <Link to="/login" className="ml-1 text-tertiary-100 underline hover:text-primary-500  hover:scale-105 transition ease-in-out duration-400">
             Sign in
           </Link>
         </div>

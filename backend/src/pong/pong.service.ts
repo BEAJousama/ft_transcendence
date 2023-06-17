@@ -23,7 +23,7 @@ class Ball {
   constructor(canvas: Canvas) {
     this.x = canvas.width / 2;
     this.y = canvas.height / 2;
-    this.speed = 1;
+    this.speed = 10;
     this.velocity = {
       x: 2,
       y: 2,
@@ -32,7 +32,7 @@ class Ball {
   reset(canvas: Canvas) {
     this.x = canvas.width / 2;
     this.y = canvas.height / 2;
-    this.speed = 1;
+    this.speed = 10;
     this.velocity = {
       x: 2,
       y: 2,
@@ -58,7 +58,7 @@ class Player {
     this.id = id;
     this.width = 10;
     this.height = canvas.height / 5;
-    this.x = 10;
+    this.x = 0;
     this.y = canvas.height / 2 - this.height / 2;
     this.canvas = new Canvas(canvas);
     // this.ball = new Ball(canvas);
@@ -224,6 +224,7 @@ class Game {
 export class PongService {
   game: Game;
   ballChangedDirection = false;
+  ballDirection: number = -1;
   constructor() {
     this.game = null;
   }
@@ -235,10 +236,11 @@ export class PongService {
     if (!this.game) {
       this.game = new Game(player);
     } else {
-      player.x = player.canvas.width - player.width - 10;
+      player.x = player.canvas.width - player.width;
       this.game.playerB = player;
     }
 
+    console.log('init ', this.game);
     return this.game;
   }
 
@@ -248,7 +250,6 @@ export class PongService {
     const paddleLeft = player.x;
     const paddleTop = player.y;
     const paddleBottom = player.y + player.height;
-
     return (
       ball.x - ball.radius < paddleRight &&
       ball.x + ball.radius > paddleLeft &&
@@ -277,8 +278,8 @@ export class PongService {
       player.y += 5;
     }
 
-    ball.x += ball.velocity.x * ball.speed;
-    ball.y += ball.velocity.y * ball.speed;
+    ball.x += (ball.velocity.x * ball.speed) / 10;
+    ball.y += (ball.velocity.y * ball.speed) / 10;
 
     // Check if ball hits top or bottom wall
     if (ball.y + ball.radius > height - 10 || ball.y - ball.radius < 10) {
@@ -286,41 +287,38 @@ export class PongService {
     }
 
     // Check if ball hits player A or B
-    if (this.paddleCol(playerA) || this.paddleCol(playerB)) {
-      if (Math.sign(ball.velocity.x) === 1) {
-        ball.velocity.x = -2;
-      } else {
-        ball.velocity.x = 2;
-      }
-
-      if (Math.sign(ball.velocity.y) === 1) {
-        ball.velocity.y = 2;
-      } else {
-        ball.velocity.y = -2;
-      }
-
-      ball.speed += 0.1;
+    if (
+      (this.paddleCol(this.game.playerA) ||
+        this.paddleCol(this.game.playerB)) &&
+      !this.ballChangedDirection
+    ) {
+      this.ballChangedDirection = true;
+      ball.velocity.x = 2 * -Math.sign(ball.velocity.x);
+      ball.velocity.y = Math.random() * 4 - 2;
+      ball.velocity.x +=
+        Math.sign(ball.velocity.x) * (2 - Math.abs(ball.velocity.y));
+      ball.speed++;
+      console.log(ball.velocity);
+      const timeoutId = setTimeout(() => {
+        this.ballChangedDirection = false;
+        clearTimeout(timeoutId);
+      }, 1000);
     }
 
     // Check if ball goes out of bounds (player A scores)
     if (ball.x > width) {
       playerA.score++;
       ball.reset(playerA.canvas);
-      ball.velocity.x = -ball.velocity.x;
+      ball.velocity.x = Math.abs(ball.velocity.x) * this.ballDirection;
+      this.ballDirection = -this.ballDirection;
     }
 
     // Check if ball goes out of bounds (player B scores)
     if (ball.x < 0) {
       playerB.score++;
       ball.reset(playerB.canvas);
-      ball.velocity.x = -ball.velocity.x;
-    }
-
-    if (
-      ball.x + ball.radius > playerA.x &&
-      ball.x - ball.radius < playerB.x + playerB.width
-    ) {
-      this.ballChangedDirection = false;
+      ball.velocity.x = Math.abs(ball.velocity.x) * this.ballDirection;
+      this.ballDirection = -this.ballDirection;
     }
 
     return this.game;

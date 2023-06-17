@@ -33,7 +33,7 @@ export default function SocketProvider({
 		});
 		console.log(newSocket);
 		newSocket.on("connect", () => {
-			console.log("Connected");
+			console.log("Game Connected");
 		});
 		setSocket(newSocket);
 
@@ -47,7 +47,7 @@ export default function SocketProvider({
 			const { key } = event;
 			if (Object.values(Keys).includes(key as Keys) && !keyState[key]) {
 				keyState[key] = true;
-				console.log(user?.id, "pressed", key);
+				// console.log(user?.id, "pressed", key);
 				// Emit the event for the specific key press
 				socket?.emit("keyPressed", { key, userId: user?.id });
 			}
@@ -57,7 +57,7 @@ export default function SocketProvider({
 			const { key } = event;
 			if (Object.values(Keys).includes(key as Keys)) {
 				keyState[key] = false;
-				console.log(user?.id, "released", key);
+				// console.log(user?.id, "released", key);
 				// Emit the event for the specific key release
 				socket?.emit("keyReleased", { key, userId: user?.id });
 			}
@@ -73,8 +73,7 @@ export default function SocketProvider({
 
 	return (
 		<SocketContext.Provider value={socket}>
-			{" "}
-			{children}{" "}
+			{children}
 		</SocketContext.Provider>
 	);
 }

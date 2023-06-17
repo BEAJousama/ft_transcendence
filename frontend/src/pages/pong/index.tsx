@@ -160,10 +160,10 @@ const PongGame: React.FC = () => {
 				context.fillRect(0, 0, canvas.width, canvas.height);
 			};
 
-			const drawRect = (x: number, y: number, w: number, h: number) => {
+			const drawRect = (x: number, y: number, w: number, h: number, r: number[] | number) => {
 				context.fillStyle = "#E5AC7C";
 				context.beginPath();
-				context.roundRect(x, y, w, h, 5);
+				context.roundRect(x, y, w, h, r);
 				context.closePath();
 				context.fill();
 			};
@@ -178,13 +178,13 @@ const PongGame: React.FC = () => {
 
 			const renderGame = () => {
 				clearCanvas();
-				drawRect(playerA.x, playerA.y, playerA.width, playerA.height);
 				for (let i = 0; i < canvas.height;) {
-					drawRect(canvas.width / 2 - 1, i, 2, 8);
+					drawRect(canvas.width / 2 - 1, i, 2, 8, 5);
 					i += 12;
 				}
 				drawBall(ball.x, ball.y);
-				drawRect(playerB.x, playerB.y, playerB.width, playerB.height);
+				drawRect(playerA.x, playerA.y, playerA.width, playerA.height, [0, 5, 5, 0]);
+				drawRect(playerB.x, playerB.y, playerB.width, playerB.height, [5, 0, 0, 5]);
 			};
 
 			renderGame();
