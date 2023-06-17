@@ -42,7 +42,8 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       setIsLoading(true);
       const data = await fetcher("api/auth/42");
-      setIsAuthenticated(true);
+      if (data)
+        setIsAuthenticated(true);
       setData(data);
     } catch (error) {
       setIsAuthenticated(false);

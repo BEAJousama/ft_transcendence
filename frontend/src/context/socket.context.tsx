@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import { Toast } from "../components";
 import IUser from "../interfaces/user";
 import { AppContext } from "./app.context";
+import { Link } from "react-router-dom";
 
 export const SocketContext = createContext<Socket | null>(null);
 
@@ -16,6 +17,7 @@ export interface INotification {
     seen: boolean;
     sender: IUser;
     receiver: IUser;
+    url: string;
 }
 
 export default function SocketProvider({
@@ -27,6 +29,7 @@ export default function SocketProvider({
     const { user } = useContext(AppContext);
 
     useEffect(() => {
+        if (!user) return;
         // const newSocket = io(`http://e2r2p14.1337.ma:3000/notification`, {
         const newSocket = io(`${process.env.REACT_APP_BACK_END_URL}notification`, {
             query: {
@@ -42,12 +45,15 @@ export default function SocketProvider({
         });
 
         newSocket.on("notification", (data: INotification) => {
+            console.log(data.url);
             toast(
-                <Toast
-                    title={data.title}
-                    content={data.content}
-                    sender={data.sender.id === user?.id ? data.receiver : data.sender}
-                />,
+                <Link to={data.url}>
+                    <Toast
+                        title={data.title}
+                        content={data.content}
+                        sender={data.sender.id === user?.id ? data.receiver : data.sender}
+                    />
+                </Link>,
                 {
                     className: "md:w-[400px] md:right-[90px]",
                 }
@@ -58,7 +64,7 @@ export default function SocketProvider({
         return () => {
             newSocket.disconnect();
         };
-    }, []);
+    }, [user]);
 
     return (
         <SocketContext.Provider value={socket}> {children} </SocketContext.Provider>

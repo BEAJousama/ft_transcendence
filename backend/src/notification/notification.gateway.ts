@@ -15,7 +15,6 @@ export class NotificationGateway {
     this.server.on('connect', (socket) => {
       const clientId = socket.handshake.query.clientId;
       this.clients_map.set(clientId, socket.id);
-      console.log(this.clients_map);
     });
   }
 }

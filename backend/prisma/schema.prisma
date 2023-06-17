@@ -221,6 +221,7 @@ model Notification {
   id         Int      @id @default(autoincrement())
   title      String
   content    String
+  url        String?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
   seen       Boolean  @default(false)

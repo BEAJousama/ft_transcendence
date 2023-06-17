@@ -124,7 +124,7 @@ export class UsersController {
         senderId,
         receiverId,
       });
-      // console.log(senderId, receiverId);
+      
       if (!friend) throw 'No Matches Found !!!!!';
       return friend;
     } catch (error) {
@@ -166,7 +166,7 @@ export class UsersController {
   @AddFriendsDoc()
   async addFriend(@Body() body: AddFriendsDto) {
     try {
-      // // console.log(body);
+      
       const friendRequest = await this.usersService.sendFriendRequest(body);
       if (!friendRequest) throw 'No Matches Found !!!!!';
       return friendRequest;

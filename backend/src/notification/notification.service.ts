@@ -11,12 +11,19 @@ export default class NotificationService {
     private readonly notificationGateway: NotificationGateway,
   ) {}
 
-  async createNotification(senderId, receiverId, title, content) {
+  async createNotification(
+    senderId: number,
+    receiverId: number,
+    title: string,
+    content: string,
+    url: string,
+  ) {
     try {
       const notification = await this.prisma.notification.create({
         data: {
           title: title,
           content: content,
+          url: url,
           sender: { connect: { id: senderId } }, // Replace "senderId" with the actual ID of the sender
           receiver: { connect: { id: receiverId } }, // Replace "receiverId" with the actual ID of the receiver
         },
@@ -34,13 +41,31 @@ export default class NotificationService {
     }
   }
 
-  async sendNotification(senderId, receiverId, title, content, ID) {
+  /*
+   * Send notification to a specific user
+   * @param senderId: number
+   * @param receiverId: number
+   * @param title: string
+   * @param content: string
+   * @param ID: number
+   * @param url: string
+   * @return void
+   */
+  async sendNotification(
+    senderId: number,
+    receiverId: number,
+    title: string,
+    content: string,
+    ID: number,
+    url: string,
+  ) {
     try {
       const payload = await this.createNotification(
         senderId,
         receiverId,
         title,
         content,
+        url,
       );
       const id = this.notificationGateway.clients_map.get(ID.toString());
       this.notificationGateway.server.to(id).emit('notification', payload);
@@ -92,9 +117,16 @@ export default class NotificationService {
     }
   }
 
-  async getAllNotifications() {
+  async getAllNotifications(id: number) {
     try {
-      const notifications = await this.prisma.notification.findMany();
+      const notifications = await this.prisma.notification.findMany({
+        where: { OR: [{ senderId: id }, { receiverId: id }] },
+        orderBy: { createdAt: 'desc' },
+        include: {
+          sender: true,
+          receiver: true,
+        },
+      });
 
       return notifications;
     } catch (error) {

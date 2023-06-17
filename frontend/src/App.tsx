@@ -14,6 +14,7 @@ import {
   Profile,
   Search,
   CompleteInfo,
+  Notifications,
 } from "./pages/";
 import { ToastContainer, toast, Slide } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -24,7 +25,7 @@ const PrivateRoutes = () => {
   const path = useLocation().pathname;
   const twoFactorAuth = user?.twoFactorAuth || localStorage.getItem("2fa_access_token");
 
-  updateUser();
+  // updateUser();
   if (loading) {
     return <Spinner />;
   }
@@ -55,6 +56,7 @@ function App() {
             <Route path="/settings" element={<Settings />} />
             <Route path="/search" element={<Search />} />
             <Route path="/tfa" element={<TwoFactorAuth />} />
+            <Route path="/notifications" element={<Notifications />} />
             <Route path="/profile/" element={<Profile />} />
             <Route path="/profile/:id" element={<Profile />} />
           </Route>

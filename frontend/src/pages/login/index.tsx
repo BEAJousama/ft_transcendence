@@ -1,9 +1,11 @@
-import { useContext, useEffect, useState } from "react";
-import { Card, Button, Spinner, Input, Divider } from "./../../components";
+import { useContext, useEffect, useState, KeyboardEvent } from "react";
+import { Card, Button, Spinner, Input } from "./../../components";
 import axios from "axios";
 import { AppContext } from "./../../context/app.context";
 import { Link, Navigate } from "react-router-dom";
 import { useFormik } from "formik";
+
+
 
 // max-w-lg
 export default function Login() {
@@ -16,6 +18,7 @@ export default function Login() {
       username: "",
       password: "",
     },
+    validateOnChange: false,
     validate: (values) => {
       const errors: {
         username?: string;
@@ -34,6 +37,38 @@ export default function Login() {
     },
     onSubmit: async (values) => { }
   })
+
+  const handleLogin = async () => {
+    try {
+      setError("")
+      formik.validateForm();
+
+      if (Object.keys(formik.errors).length > 0) {
+        return;
+      }
+      const res = await axios.post(
+        `${process.env.REACT_APP_BACK_END_URL}api/auth/signin`,
+        {
+          username: formik.values.username,
+          password: formik.values.password,
+        }
+      );
+      if (res.data.name) {
+        setTwoFactorAuth(res.data.name === "2fa_access_token");
+        window.localStorage?.setItem(res.data.name, res.data.value);
+        await fetchUser();
+      }
+    } catch (_e) {
+      setError("Email or Password incorrect ")
+      console.log(_e)
+    }
+  }
+
+  const handleKeyPress = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      handleLogin();
+    }
+  };
 
   useEffect(() => {
     (async () => {
@@ -60,7 +95,7 @@ export default function Login() {
 
   if (twoFactorAuth) return <Navigate to="/tfa" />;
   return (
-    <div className="flex h-screen w-screen items-center justify-center bg-secondary-700 ">
+    <div className="flex h-screen w-screen items-center justify-center bg-secondary-700 overflow-auto scrollbar-hide" onKeyDown={handleKeyPress}>
       {loading ? (
         <Spinner />
       ) : (
@@ -77,31 +112,7 @@ export default function Login() {
               <span className="font-medium">{error}</span>
             </p>
           )}
-          <Button className="w-full" onClick={async () => {
-            try {
-              setError("")
-              formik.validateForm();
-
-              if (Object.keys(formik.errors).length > 0) {
-                return;
-              }
-              const res = await axios.post(
-                `${process.env.REACT_APP_BACK_END_URL}api/auth/signin`,
-                {
-                  username: formik.values.username,
-                  password: formik.values.password,
-                }
-              );
-              if (res.data.name) {
-                setTwoFactorAuth(res.data.name === "2fa_access_token");
-                window.localStorage?.setItem(res.data.name, res.data.value);
-                await fetchUser();
-              }
-            } catch (_e) {
-              setError("Email or Password incorrect ")
-              console.log(_e)
-            }
-          }}>
+          <Button className="w-full" onClick={handleLogin}>
             Sign in
           </Button>
           <div className="w-full flex items-center gap-2">

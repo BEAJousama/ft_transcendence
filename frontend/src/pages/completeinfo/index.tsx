@@ -78,23 +78,28 @@ export default function CompleteInfo() {
             className="w-full justify-center"
             type="success"
             onClick={async () => {
-              const accessToken = window.localStorage.getItem("access_token");
-              await axios.post(
-                `${process.env.REACT_APP_BACK_END_URL}api/users/${user?.id}`,
-                {
-                  user: {
-                    username: formik.values.username,
-                    email: formik.values.email,
-                    phone: formik.values.phone,
-                    avatar: previewImage,
+              try {
+
+                const accessToken = window.localStorage.getItem("access_token");
+                await axios.post(
+                  `${process.env.REACT_APP_BACK_END_URL}api/users/${user?.id}`,
+                  {
+                    user: {
+                      username: formik.values.username,
+                      email: formik.values.email,
+                      phone: formik.values.phone,
+                      avatar: previewImage,
+                    },
                   },
-                },
-                {
-                  headers: {
-                    Authorization: `Bearer ${accessToken}`,
-                  },
-                }
-              );
+                  {
+                    headers: {
+                      Authorization: `Bearer ${accessToken}`,
+                    },
+                  }
+                );
+              } catch (error) {
+                console.log(error)
+              }
               await updateUser();
               setRedirect(true);
             }}
