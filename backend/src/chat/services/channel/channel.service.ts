@@ -84,6 +84,7 @@ export class ChannelService {
           name: {
             contains: query,
             mode: 'insensitive',
+            
           },
         },
         include:
@@ -290,6 +291,61 @@ export class ChannelService {
     return updated.id;
   }
 
+  async kickUser(
+    ownerId: number,
+    userId: number,
+    channelId: number,
+    ): Promise<number> 
+    {
+      try
+      {
+      let updated;
+      const chMem = await this.prisma.channelMember.findUnique({
+        where: {
+          userId_channelId: {
+            userId: ownerId,
+            channelId,
+          },
+        },
+      });
+      if (chMem.role !== Role.OWNER && chMem.role !== Role.ADMIN) {
+        throw new Error("You are not authorized to kick a user");
+      }
+      else
+      {
+        updated = await this.prisma.channelMember.update({
+          where: {
+            userId_channelId: {
+              userId,
+              channelId,
+            },
+          },
+          data: {
+            status: MemberStatus.LEFT,
+          },
+        });
+      }
+      // add userId to bannedFor
+      const channel = await this.prisma.channel.update({
+        where: {
+          id: channelId,
+        },
+        data: {
+          kickedUsers: {
+            connect: {
+              id: userId,
+            },
+          },
+        },
+      });
+      return updated.count;
+    }
+    catch (error) {
+      console.log(error);
+      throw new Error(error.message);
+    }
+}
+
 
     async removeMemberFromChannel(
     adminId: number,
@@ -377,15 +433,14 @@ export class ChannelService {
             if (channel.type === ChannelType.CONVERSATION) throw new Error('Cannot join a conversation');
             if (channel.visiblity === Visiblity.PRIVATE)
             throw new Error('Cannot join a private channel');
-            // const chaneluser = await this.addUserTochannel(userId, channelId, password);
-            return null;
+            const chaneluser = await this.addUserTochannel(userId, channelId, password);
+            return chaneluser;
       }
     
       async addUserTochannel(        
         userId: number,
         channelId: number,
-        role: string,
-        password?: string,)
+        password?: string,) : Promise<ChannelMember>
     {
         const channel = await this.getChannelById(channelId);
         if (!channel) 
@@ -400,7 +455,7 @@ export class ChannelService {
         channelId,
         );
 
-        if (exists) {
+        if (exists && exists.status === MemberStatus.LEFT) {
             const channelMember = await this.prisma.channelMember.update({
                 where: { 
                     userId_channelId: {
@@ -409,7 +464,8 @@ export class ChannelService {
                     },
                 },
                 data: {
-                role: Role[role],
+                    status: MemberStatus.ACTIVE,
+                    role: Role.MEMEBER,
                 },
             });
             return channelMember;
@@ -417,12 +473,11 @@ export class ChannelService {
 
         const channelMember = await this.prisma.channelMember.create({
         data: {
-            role: Role[role],
+            role: Role.MEMEBER,
             channelId,
             userId,
         },
         });
-
         return channelMember;
     }
 
@@ -458,41 +513,17 @@ export class ChannelService {
         });
     }
 
-
-    async BanUserFromChannel(
-        userId: number,
-        channelId: number,
-        banDuration: number,
-        ): Promise<void> {
-        
-        
-        await this.prisma.channelMember.update({
+    async getBannedUsers(channelId: number): Promise<ChannelMember[]> {
+        const channelMembers = await this.prisma.channelMember.findMany({
           where: {
-            userId_channelId: {
-              userId,
-              channelId,
-            },
-          },
-            data: {
-              status: MemberStatus.BANNED,
+            channelId,
+            status: MemberStatus.BANNED,
           },
         });
-        await this.prisma.channel.update({
-          where: {
-            id: channelId,
-          },
-          data: {
-            bannedUsers: {
-              connect: {
-                id: userId,
-              },
-            },
-          },
-        });
-
+        return channelMembers;
     }
 
-    async getBannedUsers(channelId: number): Promise<ChannelMember[]> {
+    async getLeftUsers(channelId: number): Promise<ChannelMember[]> {
         const channelMembers = await this.prisma.channelMember.findMany({
           where: {
             channelId,

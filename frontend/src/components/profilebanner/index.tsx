@@ -14,6 +14,7 @@ import Avatar from "../avatar";
 import Button from "../button";
 import { SlOptionsVertical } from "react-icons/sl";
 import { TbBan } from "react-icons/tb";
+import {IoPersonRemoveOutline} from "react-icons/io5";
 import RightClickMenu, { RightClickMenuItem } from "../rightclickmenu";
 import { BiVolumeMute } from "react-icons/bi";
 import { SocketContext } from "../../context/socket.context";
@@ -157,7 +158,7 @@ const ProfileBanner = ({
           ref={ref}
           className="absolute -bottom-14 right-14 w-56 bg-yellow-500"
         >
-          <RightClickMenu className="w-full !bg-secondary-500">
+          <RightClickMenu className="w-full !bg-secondary-500 max-h-50 absolute right-1/2 left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2">
             <RightClickMenuItem
               onClick={() => {
               }}
@@ -193,7 +194,17 @@ const ProfileBanner = ({
                   }}
                 >
                   <TbBan />
-                  {status === "BANNED" ? "Unban" : "Ban"}
+                   {"Ban"}
+                </RightClickMenuItem>
+                <RightClickMenuItem
+                  onClick={
+                    () => {
+                      kickUser();
+                      setShowMenu(false);
+                  }}
+                >
+                  <IoPersonRemoveOutline />
+                  {"Kick"}
                 </RightClickMenuItem>
             </Fragment>
             }

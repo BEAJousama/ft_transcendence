@@ -201,7 +201,7 @@ return (
               muted={channel.mutedFor?.map((user: any) => user.id).includes(user?.id)}
               archived={channel.archivedFor?.map((user: any) => user.id).includes(user?.id)}
               unread={channel.unreadFor?.map((user: any) => user.id).includes(user?.id)}
-              avatar={channel.type !== "CONVERSATION" ? `https://randomuser.me/api/portraits/women/${channel.id}.jpg` :
+              avatar={channel.type !== "CONVERSATION" ? channel.avatar :
               channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.avatar}
               description={(channel.messages  && !(channel.bannedUsers?.map((user:any) => user.id).includes(user?.id))) ? channel.messages[channel.messages.length - 1]?.content : ""}
               updatedAt={channel.lastestMessageDate}
@@ -222,7 +222,7 @@ return (
                             muted={channel.mutedFor?.map((user: any) => user.id).includes(user?.id)}
                             archived={channel.archivedFor?.map((user: any) => user.id).includes(user?.id)}
                             unread={channel.unreadFor?.map((user: any) => user.id).includes(user?.id)}
-                            avatar={channel.type !== "CONVERSATION" ? `https://randomuser.me/api/portraits/women/${channel.id}.jpg` :
+                            avatar={channel.type !== "CONVERSATION" ? channel.avatar :
                                     channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.avatar
                                     }
                             description={(channel.messages  && !(channel.bannedUsers?.map((user:any) => user.id).includes(user?.id))) ? channel.messages[channel.messages.length - 1]?.content : ""}
@@ -247,7 +247,7 @@ return (
                     muted={channel.mutedFor?.map((user: any) => user.id).includes(user?.id)}
                     archived={channel.archivedFor?.map((user: any) => user.id).includes(user?.id)}
                     unread={channel.unreadFor?.map((user: any) => user.id).includes(user?.id)}
-                    avatar={channel.type !== "CONVERSATION" ? `https://randomuser.me/api/portraits/women/${channel.id}.jpg` :
+                    avatar={channel.type !== "CONVERSATION" ? channel.avatar :
                     channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.avatar
                     }                    
                     description={(channel.messages  && !(channel.bannedUsers?.map((user:any) => user.id).includes(user?.id))) ? channel.messages[channel.messages.length - 1]?.content : ""}
@@ -270,7 +270,7 @@ return (
                                   muted={channel.mutedFor?.map((user: any) => user.id).includes(user?.id)}
                                   archived={channel.archivedFor?.map((user: any) => user.id).includes(user?.id)}
                                   unread={channel.unreadFor?.map((user: any) => user.id).includes(user?.id)}
-                                  avatar={channel.type !== "CONVERSATION" ? `https://randomuser.me/api/portraits/women/${channel.id}.jpg` :
+                                  avatar={channel.type !== "CONVERSATION" ? channel.avatar :
                                   channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.avatar
                                   }                                  
                                   description={(channel.messages  && !(channel.bannedUsers?.map((user:any) => user.id).includes(user?.id))) ? channel.messages[channel.messages.length - 1]?.content : ""}

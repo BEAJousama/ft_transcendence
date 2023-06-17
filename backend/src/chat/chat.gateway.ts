@@ -150,6 +150,32 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect  {
     }
   }
 
+  @SubscribeMessage(EVENT.KICK_USER)
+  async kickUser(client: Socket, payload: any) {
+    try {
+      const kicked = await this.channelService.kickUser(client.data.sub, payload.userId, payload.channelId);
+      if (!kicked)
+      {
+        throw new WsException({
+          error: EVENT.KICK_USER,
+          message: 'Cannot kick user',
+        });
+      }
+      const channel = await this.channelService.getChannelById(parseInt(payload.channelId));
+      const sockets = this.getConnectedUsers(client.data.sub);
+      sockets.forEach((s) => {
+        this.server.to(s.id).emit(EVENT.SET_ADMIN, channel)
+      });
+      this.sendChannels(client.data.sub);
+    } catch (err) {
+      throw new WsException({
+        error: EVENT.KICK_USER,
+        message: err.message,
+      });
+    }
+      
+  }
+
   
 
   @SubscribeMessage(EVENT.GET_CH_MEMBER)
@@ -292,7 +318,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect  {
         parseInt(payload.channelId),
         );
         const channel = await this.channelService.getChannelById(parseInt(payload.channelId));
-        // client.emit(EVENT.SET_ADMIN, channel);
         const sockets = this.getConnectedUsers(client.data.sub);
         sockets.forEach((s) => {
           this.server.to(s.id).emit(EVENT.SET_ADMIN, channel)
@@ -816,7 +841,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect  {
     const sockets = this.getConnectedUsers(userId);
     const channels = await this.channelService.getChannelsByUserId(userId);
     for (const socket of sockets) {
-      this.server.to(socket.id).emit("channelsList", channels);
+      this.server.to(socket.id).emit(EVENT.GET_CHANNELS, channels);
     }
   }
 }

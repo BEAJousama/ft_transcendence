@@ -1,5 +1,5 @@
 import React, {Fragment, useContext, useEffect, useState } from "react";
-import {  Button, Card, Divider } from "../../components";
+import {  Button, Card, Divider, UpdateAvatar } from "../../components";
 import { MdGroupAdd } from "react-icons/md";
 import { BiArrowBack, BiRightArrowAlt } from "react-icons/bi";
 import Input from "../../components/input";
@@ -25,10 +25,12 @@ const CreateGroupModal = ({
   const [visibility, setVisibility] = useState<string>("PUBLIC");
   const [password, setPassword] = useState<string>("");
   const {user, users} = useContext(AppContext);
+  const [previewImage, setPreviewImage] = useState<string>("https://i.ibb.co/vHD1C8Z/users-group-1.png" || "");
+
 
   function handleCreateGroup() {
     console.log(selectedUsers);
-    socket?.emit("channel_create", { name: groupName ,avatar: "obeaj", visibility: visibility, members: selectedUsers, password: password});
+    socket?.emit("channel_create", { name: groupName ,avatar: previewImage, visibility: visibility, members: selectedUsers, password: password});
     setShowModal(false);
   }
 
@@ -59,7 +61,7 @@ const CreateGroupModal = ({
               <BiArrowBack />
             </Button>
           )}
-          <span className="text-lg"> New Chat</span>
+          <span className="text-lg">New Chat</span>
           <Button
             variant="text"
             className=" !bg-inherit hover:bg-inherit !text-white text-2xl"
@@ -73,6 +75,7 @@ const CreateGroupModal = ({
         <Divider />
         {(show) ? (
           <>
+          <UpdateAvatar previewImage={previewImage} setPreviewImage={setPreviewImage}  />
           <Input
             placeholder="Group Chat Name (required)"
             value={groupName}
@@ -85,7 +88,7 @@ const CreateGroupModal = ({
           />
           <Select label= "Visibility" setVisibility={setVisibility} options={["PUBLIC", "PRIVATE", "PROTECTED"]} />
           {
-            (visibility === "PROTECTED" ||  visibility === "PRIVATE") && (
+            (visibility === "PROTECTED") && (
               <>
               <span className="w-full mb-2 text-sm font-medium text-gray-900 dark:text-white">Enter password: </span>
               <Input

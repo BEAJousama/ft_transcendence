@@ -16,6 +16,7 @@ import ProfileBanner from "../profilebanner";
 import { SocketContext } from "../../context/socket.context";
 import { AppContext } from "../../context/app.context";
 import Select from "../select";
+import { channel } from "diagnostics_channel";
 
 const MessageBubble = ({ setOpen, currentChannel, channelMember }: {setOpen: any, currentChannel: any, channelMember: any}) => {
   const [value, setValue] = useState("");
@@ -90,7 +91,7 @@ const MessageBubble = ({ setOpen, currentChannel, channelMember }: {setOpen: any
           setShowModal(true);
         }}
         >
-        <Avatar src={currentChannel.type !== "CONVERSATION" ? `https://randomuser.me/api/portraits/women/${currentChannel.id}.jpg` : 
+        <Avatar src={currentChannel.type !== "CONVERSATION" ? currentChannel.avatar : 
                      currentChannel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.avatar } alt="" />
         <div>{currentChannel.type !== "CONVERSATION" ? currentChannel.name : currentChannel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.username}</div>
         <Button
@@ -268,7 +269,7 @@ const MessageBubble = ({ setOpen, currentChannel, channelMember }: {setOpen: any
             {currentChannel?.channelMembers?.filter((member : any) => member.status !== "BANNED" && member.status !== "LEFT"  ).map((member : any) => {
               return (
                 <ProfileBanner
-                  channelMember={channelMember}
+                    channelMember={channelMember}
                     user={user?.id}
                     showOptions
                     showStatus
@@ -284,6 +285,7 @@ const MessageBubble = ({ setOpen, currentChannel, channelMember }: {setOpen: any
                 );
             })}
           </div>
+            
           <Button
             className="w-full justify-center"
             onClick={() => {

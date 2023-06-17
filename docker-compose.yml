@@ -1,7 +1,6 @@
 version: "3"
 
 services:
-  
   # Define a container for the frontend
   frontend:
     # Build the image from the Dockerfile in ./frontend
@@ -41,8 +40,6 @@ services:
     # Load environment variables from ./backend/.env file
     env_file:
       - ./backend/.env
-    volumes:
-      - ./data:/var/lib/postgresql/data
 
   # Define a container for the backend
   backend:

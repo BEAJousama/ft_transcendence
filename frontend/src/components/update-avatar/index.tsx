@@ -18,7 +18,7 @@ const UpdateAvatar = ({
                 <Avatar
                     src={previewImage}
                     alt="porfile-picture"
-                    className="h-36 w-36 md:h-52 md:w-52"
+                    className="h-36 w-36 md:h-52 md:w-52 object-cover"
                 />
                 <Button
                     variant="contained"
