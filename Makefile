@@ -50,10 +50,16 @@ voldown:
 
 # Target to remove the project volumes and clean up the project directory
 fclean: voldown
-	@rm -rf $(VOLUMES)
+	@$(COMPOSE) rm -v
+	@rm -rf ./backend/.env
+	@rm -rf ./frontend/.env
+
+clear: fclean
+	@rm -rf ./backend/node_modules
+	@rm -rf ./frontend/node_modules
 
 # Target to perform a full rebuild of the project
 re: fclean $(NAME)
 
 # Declare these targets as phony, meaning they don't correspond to actual files
-.PHONY: all build ps up down voldown fclean re
+.PHONY: all build ps clear up down voldown fclean re
