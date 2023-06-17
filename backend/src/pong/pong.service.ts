@@ -14,6 +14,7 @@ class Canvas {
 class Ball {
   public x: number;
   public y: number;
+  public radius: number = 10;
   public speed: number;
   public velocity: {
     x: number;
@@ -82,128 +83,264 @@ class Game {
   }
 }
 
+// @Injectable()
+// export class PongService {
+//   game: Game;
+
+//   init(info: { userId: number; playerCanvas: Canvas }) {
+//     const player = new Player(info.userId, info.playerCanvas);
+//     if (!this.game) {
+//       //   console.log('playerA');
+//       this.game = new Game(player);
+//     } else {
+//       //   console.log('playerB');
+//       player.x = player.canvas.width - player.width - 10;
+//       this.game.playerB = player;
+//     }
+//     console.log(this.game);
+//     return this.game;
+//   }
+
+//   paddleCol(player: Player) {
+//     const ballRight = this.game.ball.x + this.game.ball.radius;
+//     const ballLeft = this.game.ball.x - this.game.ball.radius;
+//     const paddleRight = player.x + player.width;
+//     const paddleLeft = player.x;
+
+//     if (player === this.game.playerA) {
+//       return (
+//         ballLeft <= paddleRight &&
+//         ballRight > paddleRight &&
+//         this.game.ball.y + this.game.ball.radius > player.y &&
+//         this.game.ball.y - this.game.ball.radius < player.y + player.height
+//       );
+//     } else if (player === this.game.playerB) {
+//       return (
+//         ballRight >= paddleLeft &&
+//         ballLeft < paddleLeft &&
+//         this.game.ball.y + this.game.ball.radius > player.y &&
+//         this.game.ball.y - this.game.ball.radius < player.y + player.height
+//       );
+//     }
+
+//     return false;
+//   }
+
+//   ballChangedDirection = false;
+
+//   ballInMiddle() {
+//     return (
+//       this.game.ball.x + this.game.ball.radius > this.game.playerA.x &&
+//       this.game.ball.x - this.game.ball.radius <
+//         this.game.playerB.x + this.game.playerB.width
+//     );
+//   }
+
+//   update(info: { userId: number; playerCanvas: Canvas }) {
+//     const { userId, playerCanvas } = info;
+//     if (!this.game || !this.game.playerB) return;
+
+//     if (userId === this.game.playerA.id) {
+//       // Update player A's position
+//       if (this.game.playerA.keyState['ArrowUp'] && this.game.playerA.y > 5) {
+//         this.game.playerA.y -= 5;
+//       } else if (
+//         this.game.playerA.keyState['ArrowDown'] &&
+//         this.game.playerA.y < playerCanvas.height - this.game.playerA.height - 5
+//       ) {
+//         this.game.playerA.y += 5;
+//       }
+//     } else {
+//       // Update player B's position
+//       if (this.game.playerB.keyState['ArrowUp'] && this.game.playerB.y > 5) {
+//         this.game.playerB.y -= 5;
+//       } else if (
+//         this.game.playerB.keyState['ArrowDown'] &&
+//         this.game.playerB.y < playerCanvas.height - this.game.playerB.height - 5
+//       ) {
+//         this.game.playerB.y += 5;
+//       }
+//     }
+
+//     this.game.ball.x += this.game.ball.velocity.x * this.game.ball.speed;
+//     this.game.ball.y += this.game.ball.velocity.y * this.game.ball.speed;
+
+//     // Check if ball hits top or bottom wall
+//     if (
+//       this.game.ball.y + this.game.ball.velocity.y >
+//         this.game.playerA.canvas.height - 10 ||
+//       this.game.ball.y + this.game.ball.velocity.y < 10
+//     ) {
+//       this.game.ball.velocity.y = -this.game.ball.velocity.y;
+//     }
+//     // Check if ball hits player A or B
+//     if (
+//       (this.paddleCol(this.game.playerA) ||
+//         this.paddleCol(this.game.playerB)) &&
+//       !this.ballChangedDirection
+//     ) {
+//       this.ballChangedDirection = true;
+//       // Randomize the ball's velocity
+//       this.game.ball.velocity.x = Math.random() > 0.5 ? 2 : -2;
+//       this.game.ball.velocity.y = Math.random() > 0.5 ? 2 : -2;
+//       this.game.ball.speed += 0.1;
+//     }
+
+//     // Check if ball goes out of bounds (player A scores)
+//     if (this.game.ball.x > this.game.playerA.canvas.width) {
+//       this.game.playerA.score++;
+//       this.game.ball.reset(this.game.playerA.canvas);
+//       this.game.ball.velocity.x = -this.game.ball.velocity.x;
+//     }
+//     // Check if ball goes out of bounds (player B scores)
+//     if (this.game.ball.x < 0) {
+//       this.game.playerB.score++;
+//       this.game.ball.reset(this.game.playerB.canvas);
+//       this.game.ball.velocity.x = -this.game.ball.velocity.x;
+//     }
+
+//     if (this.ballInMiddle()) {
+//       this.ballChangedDirection = false;
+//     }
+//     return this.game;
+//   }
+
+//   keyPressed(info: { key: string; userId: number }) {
+//     if (info.userId === this.game.playerA.id)
+//       this.game.playerA.keyState[info.key] = true;
+//     else this.game.playerB.keyState[info.key] = true;
+//     return this.game;
+//   }
+
+//   keyReleased(info: { key: string; userId: number }) {
+//     if (info.userId === this.game.playerA.id)
+//       this.game.playerA.keyState[info.key] = false;
+//     else this.game.playerB.keyState[info.key] = false;
+//     return this.game;
+//   }
+// }
+
 @Injectable()
 export class PongService {
   game: Game;
-
-  paddleCol(
-    rectX: number,
-    rectY: number,
-    rectWidth: number,
-    rectHeight: number,
-  ) {
-    return (
-      this.game.ball.x > rectX &&
-      this.game.ball.x < rectX + rectWidth &&
-      this.game.ball.y > rectY &&
-      this.game.ball.y < rectY + rectHeight
-    );
+  ballChangedDirection = false;
+  constructor() {
+    this.game = null;
   }
 
   init(info: { userId: number; playerCanvas: Canvas }) {
-    const player = new Player(info.userId, info.playerCanvas);
+    const { userId, playerCanvas } = info;
+    const player = new Player(userId, playerCanvas);
+
     if (!this.game) {
-      //   console.log('playerA');
       this.game = new Game(player);
     } else {
-      //   console.log('playerB');
       player.x = player.canvas.width - player.width - 10;
       this.game.playerB = player;
     }
-    console.log(this.game);
+
     return this.game;
+  }
+
+  paddleCol(player: Player) {
+    const ball = this.game.ball;
+    const paddleRight = player.x + player.width;
+    const paddleLeft = player.x;
+    const paddleTop = player.y;
+    const paddleBottom = player.y + player.height;
+
+    return (
+      ball.x - ball.radius < paddleRight &&
+      ball.x + ball.radius > paddleLeft &&
+      ball.y - ball.radius < paddleBottom &&
+      ball.y + ball.radius > paddleTop
+    );
   }
 
   update(info: { userId: number; playerCanvas: Canvas }) {
     const { userId, playerCanvas } = info;
-    if (!this.game || !this.game.playerB) return;
+    const playerA = this.game.playerA;
+    const playerB = this.game.playerB;
+    const ball = this.game.ball;
+    const { width, height } = playerCanvas;
 
-    if (userId === this.game.playerA.id) {
-      // Update player A's position
-      if (this.game.playerA.keyState['ArrowUp'] && this.game.playerA.y > 5) {
-        this.game.playerA.y -= 5;
-      } else if (
-        this.game.playerA.keyState['ArrowDown'] &&
-        this.game.playerA.y < playerCanvas.height - this.game.playerA.height - 5
-      ) {
-        this.game.playerA.y += 5;
-      }
-    } else {
-      // Update player B's position
-      if (this.game.playerB.keyState['ArrowUp'] && this.game.playerB.y > 5) {
-        this.game.playerB.y -= 5;
-      } else if (
-        this.game.playerB.keyState['ArrowDown'] &&
-        this.game.playerB.y < playerCanvas.height - this.game.playerB.height - 5
-      ) {
-        this.game.playerB.y += 5;
-      }
+    if (!this.game || !playerB) return;
+
+    const player = userId === playerA.id ? playerA : playerB;
+
+    if (player.keyState['ArrowUp'] && player.y > 5) {
+      player.y -= 5;
+    } else if (
+      player.keyState['ArrowDown'] &&
+      player.y < height - player.height - 5
+    ) {
+      player.y += 5;
     }
 
-    this.game.ball.x += this.game.ball.velocity.x * this.game.ball.speed;
-    this.game.ball.y += this.game.ball.velocity.y * this.game.ball.speed;
+    ball.x += ball.velocity.x * ball.speed;
+    ball.y += ball.velocity.y * ball.speed;
 
     // Check if ball hits top or bottom wall
-    if (
-      this.game.ball.y + this.game.ball.velocity.y >
-        this.game.playerA.canvas.height - 10 ||
-      this.game.ball.y + this.game.ball.velocity.y < 10
-    ) {
-      this.game.ball.velocity.y = -this.game.ball.velocity.y;
+    if (ball.y + ball.radius > height - 10 || ball.y - ball.radius < 10) {
+      ball.velocity.y = -ball.velocity.y;
     }
+
     // Check if ball hits player A or B
-    if (
-      this.paddleCol(
-        this.game.playerA.x,
-        this.game.playerA.y,
-        this.game.playerA.width,
-        this.game.playerA.height,
-      )
-    ) {
-      // Randomize the ball's velocity
-      this.game.ball.velocity.x = Math.random() > 0.5 ? 2 : -2;
-      this.game.ball.velocity.y = Math.random() > 0.5 ? 2 : -2;
-      this.game.ball.speed += 0.1;
-    }
-    if (
-      this.paddleCol(
-        this.game.playerB.x,
-        this.game.playerB.y,
-        this.game.playerB.width,
-        this.game.playerB.height,
-      )
-    ) {
-      // Randomize the ball's velocity
-      this.game.ball.velocity.x = Math.random() > 0.5 ? 2 : -2;
-      this.game.ball.velocity.y = Math.random() > 0.5 ? 2 : -2;
-      this.game.ball.speed += 0.1;
+    if (this.paddleCol(playerA) || this.paddleCol(playerB)) {
+      if (Math.sign(ball.velocity.x) === 1) {
+        ball.velocity.x = -2;
+      } else {
+        ball.velocity.x = 2;
+      }
+
+      if (Math.sign(ball.velocity.y) === 1) {
+        ball.velocity.y = 2;
+      } else {
+        ball.velocity.y = -2;
+      }
+
+      ball.speed += 0.1;
     }
 
     // Check if ball goes out of bounds (player A scores)
-    if (this.game.ball.x > this.game.playerA.canvas.width) {
-      this.game.playerA.score++;
-      this.game.ball.reset(this.game.playerA.canvas);
-      this.game.ball.velocity.x = -this.game.ball.velocity.x;
+    if (ball.x > width) {
+      playerA.score++;
+      ball.reset(playerA.canvas);
+      ball.velocity.x = -ball.velocity.x;
     }
+
     // Check if ball goes out of bounds (player B scores)
-    if (this.game.ball.x < 0) {
-      this.game.playerB.score++;
-      this.game.ball.reset(this.game.playerB.canvas);
+    if (ball.x < 0) {
+      playerB.score++;
+      ball.reset(playerB.canvas);
+      ball.velocity.x = -ball.velocity.x;
     }
+
+    if (
+      ball.x + ball.radius > playerA.x &&
+      ball.x - ball.radius < playerB.x + playerB.width
+    ) {
+      this.ballChangedDirection = false;
+    }
+
     return this.game;
   }
 
   keyPressed(info: { key: string; userId: number }) {
-    if (info.userId === this.game.playerA.id)
-      this.game.playerA.keyState[info.key] = true;
-    else this.game.playerB.keyState[info.key] = true;
+    const player =
+      info.userId === this.game.playerA.id
+        ? this.game.playerA
+        : this.game.playerB;
+    player.keyState[info.key] = true;
     return this.game;
   }
 
   keyReleased(info: { key: string; userId: number }) {
-    if (info.userId === this.game.playerA.id)
-      this.game.playerA.keyState[info.key] = false;
-    else this.game.playerB.keyState[info.key] = false;
+    const player =
+      info.userId === this.game.playerA.id
+        ? this.game.playerA
+        : this.game.playerB;
+    player.keyState[info.key] = false;
     return this.game;
   }
 }
