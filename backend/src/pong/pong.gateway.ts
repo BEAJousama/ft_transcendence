@@ -5,7 +5,7 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
-import { Socket } from 'net';
+import { Socket } from 'socket.io';
 import { PongService } from './pong.service';
 
 @WebSocketGateway({ namespace: 'pong', cors: true, origins: '*' })
@@ -17,35 +17,51 @@ export class PongGateway {
       console.log('connected');
     });
   }
+  @SubscribeMessage('play-with-ai')
+  playWithAi(@ConnectedSocket() client: Socket) {
+    this.pongService.playWithAI(client);
+    client.emit('init-game');
+  }
+
   @SubscribeMessage('join-queue')
   handleJoin(@ConnectedSocket() client: Socket) {
-    // console.log('client joined');
-    client.emit('joined', 'joined');
+    this.pongService.joinQueue(client);
   }
   @SubscribeMessage('leave-queue')
   handleLeave(@ConnectedSocket() client: Socket) {
-    // console.log('client left');
-    client.emit('left', 'left');
+    this.pongService.leaveQueue(client);
   }
-  @SubscribeMessage('init')
-  init(@ConnectedSocket() client: Socket, @MessageBody() info) {
-    console.log(info);
-    const data = this.pongService.init(info);
-    client.emit('init', data);
-  }
+
   @SubscribeMessage('update')
   update(@ConnectedSocket() client: Socket, @MessageBody() info) {
-    const data = this.pongService.update(info);
-    client.emit('update', data);
+    try {
+      const data = this.pongService.update(info);
+      if (data) {
+        client.emit('update', data.ball);
+        client.emit('update-player-a', {
+          id: data.playerA.id,
+          x: data.playerA.x,
+          y: data.playerA.y,
+          score: data.playerA.score,
+        });
+        client.emit('update-player-b', {
+          id: data.playerB.id,
+          x: data.playerB.x,
+          y: data.playerB.y,
+          score: data.playerB.score,
+        });
+      }
+    } catch (err) {
+      console.error(err);
+    }
   }
+
   @SubscribeMessage('keyPressed')
   keyPressed(@ConnectedSocket() client: Socket, @MessageBody() info) {
-    const data = this.pongService.keyPressed(info);
-    // client.emit('update', data);
+    this.pongService.keyPressed(client, info);
   }
   @SubscribeMessage('keyReleased')
   keyReleased(@ConnectedSocket() client: Socket, @MessageBody() info) {
-    const data = this.pongService.keyReleased(info);
-    //   client.emit('update', data);
+    this.pongService.keyReleased(client, info);
   }
 }
