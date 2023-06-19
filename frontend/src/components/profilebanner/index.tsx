@@ -19,6 +19,7 @@ import RightClickMenu, { RightClickMenuItem } from "../rightclickmenu";
 import { BiVolumeMute } from "react-icons/bi";
 import { SocketContext } from "../../context/socket.context";
 import { stat } from "fs";
+import { ChatContext } from "../../context/chat.context";
 
 const ProfileBanner = ({
   channelMember,
@@ -57,7 +58,7 @@ const ProfileBanner = ({
 }) => {
   const [showMenu, setShowMenu] = useState(false);
   const ref = useRef(null);
-  const socket = useContext(SocketContext);
+  const socket = useContext(ChatContext);
 
 /* TODO: I wanna see immediate changes in the UI when I click on the button to setAsAdmin
      its not working, I have to refresh the page to see the changes

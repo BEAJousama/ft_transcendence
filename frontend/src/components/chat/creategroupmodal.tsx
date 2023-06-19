@@ -9,6 +9,7 @@ import ProfileBanner from "../../components/profilebanner";
 import { SocketContext } from "../../context/socket.context";
 import Select from "../select";
 import { AppContext } from "../../context/app.context";
+import { ChatContext } from "../../context/chat.context";
 // import addUsers from "./selectusers";
 
 const CreateGroupModal = ({
@@ -20,7 +21,7 @@ const CreateGroupModal = ({
   const [showDm, setShowDm] = useState(false);
   const [groupName, setGroupName] = useState("");
   const [showSubmit, setShowSubmit] = useState(false);
-  const  socket= useContext(SocketContext);
+  const  socket= useContext(ChatContext);
   const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
   const [visibility, setVisibility] = useState<string>("PUBLIC");
   const [password, setPassword] = useState<string>("");

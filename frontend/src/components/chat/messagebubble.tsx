@@ -18,8 +18,11 @@ import { AppContext } from "../../context/app.context";
 import Select from "../select";
 import { channel } from "diagnostics_channel";
 import UpdateAvatar from "../update-avatar";
+import { Chat } from "../../pages";
+import { ChatContext } from "../../context/chat.context";
+import clsx from "clsx";
 
-const MessageBubble = ({ setOpen, currentChannel, channelMember }: {setOpen: any, currentChannel: any, channelMember: any}) => {
+const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {className?: string, setOpen: any, currentChannel: any, channelMember: any}) => {
   const [value, setValue] = useState("");
   const [showPicker, setShowPicker] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -42,7 +45,7 @@ const MessageBubble = ({ setOpen, currentChannel, channelMember }: {setOpen: any
   //   pinnedMessages: [],
   //   previewImage: currentChannel?.avatar || "",
   // });
-  const socket = useContext(SocketContext);
+  const socket = useContext(ChatContext);
   const {user, users} = useContext(AppContext);
   const refMessage = useRef(null);
 
@@ -104,7 +107,7 @@ const MessageBubble = ({ setOpen, currentChannel, channelMember }: {setOpen: any
   };
 
   return (
-    <div className="relative overflow-y-auto scrollbar-hide overflow-x-hidden col-span-10 flex h-screen w-full flex-col justify-start gap-4 rounded-t-3xl bg-secondary-600 lg:col-span-5 xl:col-span-5 2xl:col-span-6 md-" ref={refMessage}>
+    <div className={clsx("relative overflow-y-auto scrollbar-hide overflow-x-hidden col-span-10 flex h-screen w-full flex-col justify-start gap-4 rounded-t-3xl bg-secondary-600 lg:col-span-5 xl:col-span-5 2xl:col-span-6", className && className)} ref={refMessage}>
       <Button
         className="flex tems-center gap-2 rounded-t-3xl top-0 mb-16 sticky bg-secondary-400 !p-2 text-white hover:bg-secondary-400 z-10"
         onClick={() => {

@@ -20,7 +20,7 @@ export interface INotification {
     url: string;
 }
 
-export default function GameProvider({
+export default function SocketProvider({
     children,
 }: {
     children: React.ReactNode;
@@ -58,41 +58,6 @@ export default function GameProvider({
                     className: "md:w-[400px] md:right-[90px]",
                 }
             );
-        });
-        setSocket(newSocket);
-
-        return () => {
-            newSocket.disconnect();
-        };
-    }, [user]);
-
-    return (
-        <SocketContext.Provider value={socket}> {children} </SocketContext.Provider>
-    );
-}
-
-export function SocketProvider ({
-    children,
-}: {
-    children: React.ReactNode;
-}) {
-    const [socket, setSocket] = useState<Socket | null>(null);
-    const { user } = useContext(AppContext);
-
-    useEffect(() => {
-        if (!user) return;
-        // const newSocket = io(`http://e2r2p14.1337.ma:3000/notification`, {
-        const newSocket = io(`${process.env.REACT_APP_BACK_END_URL}chat`, {
-            query: {
-                clientId: user?.id,
-            },
-            auth: {
-                token: localStorage.getItem("access_token"),
-            },
-        });
-        // console.log(newSocket)
-        newSocket.on("connect", () => {
-            console.log("Connected");
         });
         setSocket(newSocket);
 

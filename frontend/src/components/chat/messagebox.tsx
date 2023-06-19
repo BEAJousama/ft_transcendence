@@ -6,10 +6,12 @@ import { MdDelete } from "react-icons/md";
 import { useClickAway, useMedia } from "react-use";
 import { SocketContext } from "../../context/socket.context";
 import { AppContext } from "../../context/app.context";
+import { Chat } from "../../pages";
+import { ChatContext } from "../../context/chat.context";
 
 const MessageBox = ({ message, right, autoScroll }: { message?: any; right?: boolean, autoScroll : any}) => {
   const [showMenu, setShowMenu] = useState(false);
-  const socket = useContext(SocketContext);
+  const socket = useContext(ChatContext);
   const {user} = useContext(AppContext);
   const [sender, setSender] = useState<any>(null);
   const token = localStorage.getItem("access_token");

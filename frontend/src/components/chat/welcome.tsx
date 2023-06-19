@@ -2,11 +2,12 @@ import { useState, useRef, useContext, useEffect } from "react";
 import { useClickAway } from "react-use";
 import { SocketContext } from "../../context/socket.context";
 import { AppContext } from "../../context/app.context";
+import { ChatContext } from "../../context/chat.context";
 
 
 const Welcome = () => {
   const [showPicker, setShowPicker] = useState(false);
-  const socket = useContext(SocketContext);
+  const socket = useContext(ChatContext);
   const {user} = useContext(AppContext)
 
   const ref = useRef(null);

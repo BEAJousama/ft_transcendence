@@ -14,7 +14,7 @@ enum Keys {
 	// Space = " ",
 }
 
-export default function SocketProvider({
+export default function GameProvider({
 	children,
 }: {
 	children: React.ReactNode;

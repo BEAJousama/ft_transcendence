@@ -6,9 +6,9 @@ import { MdDelete } from "react-icons/md";
 import { useContext, useRef, useState } from "react";
 import RightClickMenu, { RightClickMenuItem } from "../rightclickmenu";
 import { useClickAway } from "react-use";
-import { SocketContext } from "../../context/socket.context";
 import { channel } from "diagnostics_channel";
 import clsx from "clsx";
+import { ChatContext } from "../../context/chat.context";
 
 interface ChannelProps {
   id: string;
@@ -48,7 +48,7 @@ const Channel = ({
   pinned,
 }: ChannelProps) => {
 
-  const socket = useContext(SocketContext);
+  const socket = useContext(ChatContext);
   const [showMenu, setShowMenu] = useState(false);
   const ref = useRef(null);
 

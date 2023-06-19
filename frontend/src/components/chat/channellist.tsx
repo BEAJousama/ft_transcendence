@@ -5,15 +5,17 @@ import { SocketContext } from "../../context/socket.context";
 import { AppContext } from "../../context/app.context";
 import {BsFillChatLeftTextFill} from "react-icons/bs";
 import {BiFilter} from "react-icons/bi";
+import { ChatContext } from "../../context/chat.context";
+import clsx from "clsx";
 
-const ChannelList = ({setShowModal, setCurrentChannel, setChannelMember} : 
-  {setShowModal: any,  setCurrentChannel: any, setChannelMember: any}) => {
+const ChannelList = ({className, setShowModal, setCurrentChannel, setChannelMember} : 
+  {className?: string, setShowModal: any,  setCurrentChannel: any, setChannelMember: any}) => {
   
   const[channels, setChannels] = useState<any>([]);
   const [archiveChannels, setArchiveChannels] = useState<any>([]);
   const [showArchive, setShowArchive] = useState<boolean>(false);
   const [search, setSearch] = useState<string>("");
-  const socket = useContext(SocketContext);
+  const socket = useContext(ChatContext);
   let {user, setUser} = useContext(AppContext)
   const [isFocused, setIsFocused] = useState(false);
   
@@ -135,7 +137,7 @@ const onChange = (e: any) => {
 }
 
 return (
-    <div className="lg:col-span-3 col-span-8 flex flex-col justify-start gap-4 py-2 w-full h-screen overflow-y-scroll scrollbar-hide">
+    <div className={clsx("lg:col-span-3 col-span-8 flex flex-col justify-start gap-4 py-2 w-full h-screen overflow-y-scroll scrollbar-hide", className && className)}>
       <div className=" relative flex items-center gap-2 w-full pr-2 rounded-xl py-2">
         <form className="pl-4 pr-1 w-full">
                 <div className="relative">

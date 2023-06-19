@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { BiX } from "react-icons/bi";
 import { Button, ChannelList, CreateGroupModal, MessageBubble } from "../../components";
 import Welcome from "../../components/chat/welcome";
@@ -6,6 +5,8 @@ import Sidepanel from "../../components/side-panel";
 import { SocketContext } from "../../context/socket.context";
 import { useContext, useEffect, useState } from "react";
 import { useMedia } from "react-use";
+import { ChatContext } from "../../context/chat.context";
+import { AppContext } from "../../context/app.context";
 
 export default function Chat() {
   const [open, setOpen] = useState<boolean>(false);
@@ -13,8 +14,8 @@ export default function Chat() {
   let   isMatch = useMedia("(min-width:1024px)", false);
   const [currentChannel, setCurrentChannel] = useState<any>({});
   const [channelMember, setChannelMember] = useState<any>([]);
-  const { user } = useContext<any>(SocketContext);
-  const socket = useContext(SocketContext);
+  const { user } = useContext(AppContext);
+  const socket = useContext(ChatContext);
   const [error, setError] = useState<any>("");
 
 
@@ -57,26 +58,17 @@ export default function Chat() {
       }
       {!open && (
         <ChannelList
-          // className="col-span-8 "
+          // className="col-span-8"
           setCurrentChannel={setCurrentChannel}
           setChannelMember={setChannelMember}
           setShowModal={setShowModal}
           />
         )}
-      {(currentChannel && Object.keys(currentChannel!).length ) ? <MessageBubble currentChannel={currentChannel} setOpen={setOpen} channelMember={channelMember}/>
+      {(currentChannel && Object.keys(currentChannel!).length ) ? <MessageBubble className="" currentChannel={currentChannel} setOpen={setOpen} channelMember={channelMember}/>
     : 
       < Welcome />
     }
       {showModal && <CreateGroupModal setShowModal={setShowModal} />}
     </div>
-=======
-import Layout from "../layout";
-
-export default function Chat() {
-  return (
-    <Layout>
-
-    </Layout>
->>>>>>> fa560532b3c64f59bbb3aafdb5d7187bb303b463
   );
 }

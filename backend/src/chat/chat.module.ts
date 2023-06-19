@@ -8,6 +8,8 @@ import { ChatService } from './services/chat/chat.service';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
 import { ChannelController } from './controllers/channel/channel.controller';
+import NotificationService from 'src/notification/notification.service';
+import { NotificationGateway } from 'src/notification/notification.gateway';
 
 @Module({
   imports: [],
@@ -20,6 +22,8 @@ import { ChannelController } from './controllers/channel/channel.controller';
               MessageService,
               JwtService,
               UsersService,
+              NotificationService,
+              NotificationGateway
             ],
 })
 export class ChatModule {}

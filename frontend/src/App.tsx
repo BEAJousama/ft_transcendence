@@ -2,7 +2,7 @@ import { useContext } from "react";
 import { Navigate, Outlet, Route, Routes, useLocation } from "react-router-dom";
 import AppProvider, { AppContext } from "./context/app.context";
 import { Spinner } from "./components";
-import {SocketProvider} from "./context/socket.context";
+import SocketProvider from "./context/socket.context";
 
 import {
   TwoFactorAuth,
@@ -21,6 +21,7 @@ import {
 import { ToastContainer, toast, Slide } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import GameProvider from "./context/game.context";
+import  ChatProvider  from "./context/chat.context";
 
 const PrivateRoutes = () => {
   const { authenticated, loading, user, updateUser } = useContext(AppContext);
@@ -48,8 +49,9 @@ function App() {
 
   return (
     <AppProvider>
-      <SocketProvider>
+<ChatProvider>
         <GameProvider>
+      <SocketProvider>
           <Routes>
             <Route element={<PrivateRoutes />}>
               <Route path="/" element={<Home />} />
@@ -79,9 +81,10 @@ function App() {
             pauseOnHover
             theme="colored"
             transition={Slide}
-          />
-        </GameProvider>
+            />
       </SocketProvider>
+        </GameProvider>
+            </ChatProvider>
     </AppProvider>
   );
 }
