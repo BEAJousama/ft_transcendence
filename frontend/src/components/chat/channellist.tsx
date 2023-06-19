@@ -188,6 +188,7 @@ return (
       {
         !showArchive ? 
         (
+          
           channels?.filter(
             (channel: any) => channel.pinnedFor?.map((user: any) => user.id).includes(user?.id)
           )?.map((channel: any) => {
@@ -203,7 +204,7 @@ return (
               unread={channel.unreadFor?.map((user: any) => user.id).includes(user?.id)}
               avatar={channel.type !== "CONVERSATION" ? channel.avatar :
               channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.avatar}
-              description={(channel.messages  && !(channel.bannedUsers?.map((user:any) => user.id).includes(user?.id))) ? channel.messages[channel.messages.length - 1]?.content : ""}
+              description={(channel.messages  && !(channel.bannedUsers?.map((user:any) => user.id).includes(user?.id)) && !(channel.kickedUsers?.map((user:any) => user.id).includes(user?.id)) )  ? channel.messages[channel.messages.length - 1]?.content : ""}
               updatedAt={channel.lastestMessageDate}
               newMessages={channel.newMessagesCount}
               onClick={() => onClick(channel)}
@@ -225,7 +226,7 @@ return (
                             avatar={channel.type !== "CONVERSATION" ? channel.avatar :
                                     channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.avatar
                                     }
-                            description={(channel.messages  && !(channel.bannedUsers?.map((user:any) => user.id).includes(user?.id))) ? channel.messages[channel.messages.length - 1]?.content : ""}
+                            description={(channel.messages  && !(channel.bannedUsers?.map((user:any) => user.id).includes(user?.id)) && !(channel.kickedUsers?.map((user:any) => user.id).includes(user?.id)) )  ? channel.messages[channel.messages.length - 1]?.content : ""}
                             updatedAt={channel.lastestMessageDate}
                             newMessages={channel.newMessagesCount}
                             onClick={() => onClick(channel)}
@@ -250,7 +251,7 @@ return (
                     avatar={channel.type !== "CONVERSATION" ? channel.avatar :
                     channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.avatar
                     }                    
-                    description={(channel.messages  && !(channel.bannedUsers?.map((user:any) => user.id).includes(user?.id))) ? channel.messages[channel.messages.length - 1]?.content : ""}
+                    description={(channel.messages  && !(channel.bannedUsers?.map((user:any) => user.id).includes(user?.id)) && !(channel.kickedUsers?.map((user:any) => user.id).includes(user?.id)))  ? channel.messages[channel.messages.length - 1]?.content : ""}
                     updatedAt={channel.lastestMessageDate}
                     newMessages={channel.newMessagesCount}
                     onClick={() => onClick(channel)}
@@ -273,7 +274,7 @@ return (
                                   avatar={channel.type !== "CONVERSATION" ? channel.avatar :
                                   channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.avatar
                                   }                                  
-                                  description={(channel.messages  && !(channel.bannedUsers?.map((user:any) => user.id).includes(user?.id))) ? channel.messages[channel.messages.length - 1]?.content : ""}
+                                  description={(channel.messages  && !(channel.bannedUsers?.map((user:any) => user.id).includes(user?.id)) && !(channel.kickedUsers?.map((user:any) => user.id).includes(user?.id)))  ? channel.messages[channel.messages.length - 1]?.content : ""}
                                   updatedAt={channel.lastestMessageDate}
                                   newMessages={channel.newMessagesCount}
                                   onClick={() => onClick(channel)}

@@ -1,4 +1,5 @@
-import { ChannelList, CreateGroupModal, MessageBubble } from "../../components";
+import { BiX } from "react-icons/bi";
+import { Button, ChannelList, CreateGroupModal, MessageBubble } from "../../components";
 import Welcome from "../../components/chat/welcome";
 import Sidepanel from "../../components/side-panel";
 import { SocketContext } from "../../context/socket.context";
@@ -13,6 +14,7 @@ export default function Chat() {
   const [channelMember, setChannelMember] = useState<any>([]);
   const { user } = useContext<any>(SocketContext);
   const socket = useContext(SocketContext);
+  const [error, setError] = useState<any>("");
 
 
   useEffect(() => {
@@ -27,11 +29,31 @@ export default function Chat() {
     );
   }, [channelMember, socket, currentChannel]);
 
-  //add logic to get current channel
+  useEffect(() => {
+    let timeoutId : any = null;
+    socket?.on("error", (data: any) => {
+      setError(data);
+       timeoutId = setTimeout(() => {
+         setError("");
+        }, 4000);
+    });
+    return () => clearTimeout(timeoutId);
+  }, []);
 
   return (
-    <div className="grid grid-cols-10 h -screen w-screen bg-secondary-500 overflow-hidden">
+    <div className="grid grid-cols-10 h-screen w-screen bg-secondary-500 overflow-hidden">
       {!open && <Sidepanel className="col-span-2 2xl:col-span-1" />}
+      {
+        error &&
+        (
+          <div className="fixed inset-0 z-20 flex justify-end items-start pt-4 pr-4">
+          <div className="bg-red-500 text-white px-4 py-2 rounded-md">
+            <p className="font-bold mb-2">Error:</p>
+            <p>{error}</p>
+          </div>
+          </div>
+        )
+      }
       {!open && (
         <ChannelList
           // className="col-span-8 "

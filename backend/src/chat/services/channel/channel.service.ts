@@ -40,6 +40,7 @@ export class ChannelService {
               pinnedFor: true,
               deletedFor: true,
               bannedUsers: true,
+              kickedUsers: true,
               channelMembers:
               {
                 include: {
@@ -207,6 +208,8 @@ export class ChannelService {
       const ch = await this.getChannelByName(channelData.name);
       if (ch)
         throw new Error(`Channel ${ch.name} already exists`);
+      if (channelData.visibility === Visiblity.PROTECTED && !channelData.password)
+        throw new Error('Password is required for protected channel');
       if (channelData.visibility === Visiblity.PROTECTED
         || (channelData.visibility === Visiblity.PRIVATE && channelData.password))
         hashPassword = await this.hashPassword(channelData.password);
@@ -259,20 +262,84 @@ export class ChannelService {
     }
   }
         
-
-  async updateChannel(
-    channelId: number,
-    channelData: {
-        name?: string;
-        description?: string;
-    },
-  ): Promise<Channel> 
+  async updateChannel(userId: number, channelData: ChannelDto): Promise<Channel> 
   {
-    const channel = await this.prisma.channel.update({
-        where: { id: channelId },
-        data: channelData,
-    });
-    return channel;
+  // Check if another channel exists with the same name
+    let hashPassword;
+    let channelMembers;
+    console.log(channelData);
+    try {
+      const ch = await this.getChannelByName(channelData.name);
+      if (channelData.visibility === Visiblity.PROTECTED && !channelData.password)
+        throw new Error('Password is required for protected channel');
+      if (channelData.visibility === Visiblity.PROTECTED
+        || (channelData.visibility === Visiblity.PRIVATE && channelData.password))
+        hashPassword = await this.hashPassword(channelData.password);
+      if (channelData.members)
+      {
+          channelMembers = channelData.members?.map((memberId: number) => {
+          return {
+              userId: memberId,
+              channelId: channelData.id,
+              role: 'MEMBER',
+              status: 'ACTIVE',
+              isKicked: false,
+              isBanned: false,
+              isMuted: false,
+              isPinned: false,
+              isUnread: false,
+              isArchived: false,
+              isDeleted: false,              
+          };
+        });
+        console.log(channelMembers);
+        const chMembers = await this.prisma.channelMember.createMany({
+          data: channelMembers,
+          skipDuplicates: true,
+        });
+      }
+
+      const chm = await this.prisma.channelMember.findMany({
+        where: {
+          channelId: channelData.id,
+        },
+        //exclude channelId
+        select: {
+          userId: true,
+          role: true,
+          status: true,
+          isKicked: true,
+          isBanned: true,
+          isMuted: true,
+          isPinned: true,
+          isUnread: true,
+          isArchived: true,
+          isDeleted: true,
+        },
+      });
+        const channel = await this.prisma.channel.update({
+        where: {
+          id: channelData.id,
+        },
+        data:
+        {
+          name: channelData.name,
+          password: hashPassword,
+          avatar: channelData.avatar,
+          visiblity: Visiblity[channelData.visibility],
+          type: ChannelType[ChannelType.GROUP],
+          channelMembers:
+          {
+            create : chm,
+          },
+        },
+      });
+      return channel;
+    } 
+    catch (error) {
+      console.log(error);
+      throw new Error(error.message);
+    }
   }
 
   async deleteChannel(channelId: number, userId): Promise<number>
@@ -375,7 +442,10 @@ export class ChannelService {
         let channel = await this.prisma.channel.findFirst(
         {
             where: { name },
-        }
+            include: {
+                channelMembers: true,
+            },
+        },
         );
         return channel;
       } catch (error) {
@@ -483,7 +553,6 @@ export class ChannelService {
 
     async leaveChannel(userId: number, channelId: number): Promise<number> {
       try {
-      console.log("leave channel")
        let ru =  await this.prisma.channelMember.updateMany({
             where: {
             userId,
@@ -493,7 +562,21 @@ export class ChannelService {
               status: MemberStatus.LEFT,
             },
         });
+         await this.prisma.channel.update({
+          where: {
+            id: channelId,
+          },
+          data: {
+            kickedUsers: {
+              connect: {
+                id: userId,
+              },
+            },
+          },
+        });
+
         return ru.count;
+
       }
       catch (error) {
           throw new Error(error.message);

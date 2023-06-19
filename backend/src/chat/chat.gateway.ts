@@ -221,8 +221,43 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect  {
       this.sendChannels(client.data.sub);
     } 
     catch (error) {
+      client.emit(EVENT.ERROR, error.message);
       throw new WsException({
-        error: EVENT.CHANNEL_CREATE,
+        error: EVENT.ERROR,
+        message: error.message,
+      });
+    }
+  }
+
+  @SubscribeMessage(EVENT.CHANNEL_UPDATE)
+  async updateChannel(client: Socket, payload: ChannelDto) {
+    // this.validatePayload(payload);
+    try {
+      const channel = await this.channelService.updateChannel(client.data.sub, payload);
+      if (!channel)
+      {
+        throw new WsException({
+          error: EVENT.CHANNEL_UPDATE,
+          message: 'Cannot create channel',
+        });
+      }
+      const channelTosend = await this.channelService.getChannelById(channel.id);
+      let sockets = this.getConnectedUsers(client.data.sub);
+      payload.members.forEach((m) => {
+        if (!this.chatService.isBlocked(client.data.sub, m))
+          sockets = sockets.concat(this.getConnectedUsers(m));
+      })
+      if (!sockets || sockets.length === 0) return;
+      sockets.forEach((s) => {
+        s.join(channel.id.toString());
+        this.server.to(s.id).emit(EVENT.CHANNEL_UPDATE, channelTosend);
+      });
+      this.sendChannels(client.data.sub);
+    } 
+    catch (error) {
+      client.emit(EVENT.ERROR, error.message);
+      throw new WsException({
+        error: EVENT.ERROR,
         message: error.message,
       });
     }

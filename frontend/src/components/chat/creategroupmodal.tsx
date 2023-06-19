@@ -38,6 +38,9 @@ const CreateGroupModal = ({
     socket?.emit("dm_create", { senderId: user?.id , receiverId: id});
     setShowModal(false);
   }
+
+
+
   
 
   return (
@@ -50,18 +53,35 @@ const CreateGroupModal = ({
         setShowModal={setShowModal}
       >
         <div className="flex items-center justify-between w-full">
+          { !show && !showDm && <span className="text-lg">New Chat</span>}
           {show && (
+            <>
             <Button
               variant="text"
               className=" !bg-inherit hover:bg-inherit !text-white text-2xl"
               onClick={() => {
                 setShow(false);
               }}
+              >
+              <BiArrowBack />
+            </Button>
+              <span className="text-lg">New Group Chat</span>
+            </>
+          )}
+          {showDm && (
+            <>
+            <Button
+            variant="text"
+            className=" !bg-inherit hover:bg-inherit !text-white text-2xl"
+            onClick={() => {
+              setShowDm(false);
+            }}
             >
               <BiArrowBack />
             </Button>
+            <span className="text-lg">Send Message</span>
+            </>
           )}
-          <span className="text-lg">New Chat</span>
           <Button
             variant="text"
             className=" !bg-inherit hover:bg-inherit !text-white text-2xl"
@@ -92,24 +112,36 @@ const CreateGroupModal = ({
               <>
               <span className="w-full mb-2 text-sm font-medium text-gray-900 dark:text-white">Enter password: </span>
               <Input
-                label="Password"
+                label="Password [Required]"
                 type="password"
-                placeholder="Password"
+                placeholder="********************"
                 value={password}
                 onChange={(e) => {
                   const { value } = e.target;
                   setPassword(value);
-                  setShowSubmit(false);
-                  if (value !== "") setShowSubmit(true);
                 }}
               />
-              {/* add upload avatar or url */
-                
-              }
-                
               </>
             )
           }
+          {
+            (visibility === "PRIVATE") && (
+              <>
+              <span className="w-full mb-2 text-sm font-medium text-gray-900 dark:text-white">Enter password: </span>
+              <Input
+                label="Password [Optional]"
+                type="password"
+                placeholder="********************"
+                value={password}
+                onChange={(e) => {
+                  const { value } = e.target;
+                  setPassword(value);
+                }}
+              />
+              </>
+            )
+          }
+
           </>
         ) : (
           !showDm && (
@@ -157,7 +189,7 @@ const CreateGroupModal = ({
                     <div className="w-8">
                       <input
                         type="checkbox"
-                        className="h-5 w-5"
+                        className="h-5 w-5 text-primary-500 dark:text-primary-400 border-gray-300 dark:border-gray-700 rounded"
                         onClick={() => {
                         }}
                         onChange={() => {
@@ -174,6 +206,7 @@ const CreateGroupModal = ({
         )}
         {
           showDm && (
+            
           <div className="w-full h[100px] flex items-center justify-center flex-col align-middle gap-2 pt-2 overflow-y-scroll scrollbar-hide">
             {users?.filter((u : any) => {
               return u.id !== user?.id;

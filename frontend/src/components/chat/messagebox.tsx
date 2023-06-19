@@ -20,7 +20,7 @@ const MessageBox = ({ message, right, autoScroll }: { message?: any; right?: boo
   }, []);
 
   useEffect(() => {
-    fetch(`http://10.11.7.15:3000/api/users/${message.senderId}`, {
+    fetch(`http://10.11.8.12:3000/api/users/${message.senderId}`, {
       method: 'GET',
       headers: {
           'Authorization': `Bearer ${token}`, // notice the Bearer before your token
@@ -113,7 +113,7 @@ const MessageBox = ({ message, right, autoScroll }: { message?: any; right?: boo
       </div>
 
         {showMenu && (
-          <RightClickMenu>
+          <RightClickMenu className="-translate-x-1/2 -translate-y-1/2">
             <RightClickMenuItem
             onClick={() => {
               {message.pinned ? unpinMessage() : pinMessage()}

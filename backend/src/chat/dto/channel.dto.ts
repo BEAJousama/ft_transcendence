@@ -5,6 +5,9 @@ import { MessageI } from "../models/message.interface";
 
 export class ChannelDto
 {
+    @IsNumber()
+    @IsNotEmpty()
+    id? : number;
     @IsString()
     @IsNotEmpty()
     name : string;

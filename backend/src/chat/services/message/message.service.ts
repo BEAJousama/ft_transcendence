@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { MemberStatus, Message } from '@prisma/client';
+import { constants } from 'buffer';
 import { MessageDto } from 'src/chat/dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 
@@ -16,18 +17,20 @@ export class MessageService {
             where: {
                 userId: data.senderId,
                 channelId: data.receiverId,
-                status: "BANNED" || "LEFT",
+                status: MemberStatus.BANNED || MemberStatus.LEFT,
             },
         });
-        const chMember = await this.prisma.channelMember.findFirst({
+        if (channelMember)
+            throw new Error("Cannot send message to this channel !");
+        let ch = await this.prisma.channel.findUnique({
             where: {
-                userId: data.senderId,
-                channelId: data.receiverId,
+                id: data.receiverId,
+            },
+            include: {  
+                channelMembers: true,
             },
         });
     
-        if (channelMember)
-            throw new Error("Cannot send message to this channel !");
         let message = await this.prisma.message.create({
             data: {
                 content: data.content,
@@ -40,7 +43,8 @@ export class MessageService {
             console.log("Cannot create message !");
             return null;
         }
-        if (chMember.status !== "BANNED" && chMember.status !== "LEFT")
+        ch.channelMembers.forEach(async (member) => {
+        if (member.status !== MemberStatus.BANNED && member.status !== MemberStatus.LEFT)
         {
             await this.prisma.channel.update({
                 where: {
@@ -51,7 +55,9 @@ export class MessageService {
                         increment: 1,
                     },
                     deletedFor: {
-                        set: [],
+                        disconnect: {
+                            id: member.userId,
+                        },
                     },
                     lastestMessageDate: message.date,
                     updatedAt: message.date,
@@ -59,6 +65,7 @@ export class MessageService {
                 },
             });
         }
+        });
         return message;
     }
 
@@ -175,22 +182,23 @@ export class MessageService {
     async getMessagesByChannelId(channelId: number, userId: number) : Promise<Message[]> {
 
         const channel = await this.prisma.channel.findUnique(
-            {
-                where:{
-                    id: channelId,
-                },
-            });
-        const channelmember = await this.prisma.channelMember.findFirst(
-            {
-                where:
-                {
-                    channelId,
-                    userId,
-                }
-            });
-        if (!channelmember || channelmember.status === MemberStatus.BANNED)
         {
-            throw new Error("User cannot get messages!");
+            where:{
+                id: channelId,
+            },
+        });
+        const channelmember = await this.prisma.channelMember.findFirst(
+        {
+            where:
+            {
+                channelId,
+                userId,
+            }
+        });
+        if (!channelmember || channelmember.status === MemberStatus.BANNED || channelmember.status === MemberStatus.LEFT)
+        {
+            const messages : Message[] = [];
+            return messages;
         }
 
         const messages = await this.prisma.message.findMany({
@@ -218,7 +226,8 @@ export class MessageService {
             });
         if (!channelmember || channelmember.status === MemberStatus.BANNED)
         {
-            throw new Error("User cannot get messages!");
+            const messages : Message[] = [];
+            return messages;
         }
         
         const messages = await this.prisma.message.findMany({
@@ -234,7 +243,6 @@ export class MessageService {
         return messages;
     }
 
-    
 
     formatingMessage(message: any): any {
         return {

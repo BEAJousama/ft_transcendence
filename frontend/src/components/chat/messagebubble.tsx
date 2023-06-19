@@ -17,6 +17,7 @@ import { SocketContext } from "../../context/socket.context";
 import { AppContext } from "../../context/app.context";
 import Select from "../select";
 import { channel } from "diagnostics_channel";
+import UpdateAvatar from "../update-avatar";
 
 const MessageBubble = ({ setOpen, currentChannel, channelMember }: {setOpen: any, currentChannel: any, channelMember: any}) => {
   const [value, setValue] = useState("");
@@ -24,10 +25,23 @@ const MessageBubble = ({ setOpen, currentChannel, channelMember }: {setOpen: any
   const [showModal, setShowModal] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
   const [messages, setMessages] = useState<any[]>([]);
-  const [pinnedMssgsModal, setPinnedMssgsModal] = useState(false);
-  const [visibility, setVisibility] = useState<string>(currentChannel.visiblity);
+  let [visibility, setVisibility] = useState<string>(currentChannel.visiblity);
   const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
-  const [pinnedMessages, setPinnedMessages] = useState<any[]>([]);
+  let [previewImage, setPreviewImage] = useState<string>(currentChannel?.avatar || "");
+  let [groupName, setGroupName] = useState(currentChannel?.name || "");
+  const [password, setPassword] = useState<string>("");
+  // const []
+  // const [state, setState] = useState({
+  //   value: "",
+  //   showPicker: false,
+  //   showModal: false,
+  //   showEdit: false,
+  //   messages: [],
+  //   visibility: currentChannel.visiblity,
+  //   selectedUsers: [],
+  //   pinnedMessages: [],
+  //   previewImage: currentChannel?.avatar || "",
+  // });
   const socket = useContext(SocketContext);
   const {user, users} = useContext(AppContext);
   const refMessage = useRef(null);
@@ -43,15 +57,17 @@ const MessageBubble = ({ setOpen, currentChannel, channelMember }: {setOpen: any
     }
   };
 
+  useEffect(() => {
+    setVisibility(currentChannel.visibility);
+    setPreviewImage(currentChannel.avatar || "");
+    setGroupName(currentChannel.name || "");
+  }, [currentChannel]);
+
   
   useEffect(() => {
     socket?.emit("getChannelMessages", {channelId : currentChannel.id, user: {id: user?.id}});
     socket?.on("getChannelMessages", (message: any) => {
       setMessages(message);
-    });
-    socket?.emit("get_pinned_messages", {channelId : currentChannel.id});
-    socket?.on("get_pinned_messages", (message: any) => {
-      setPinnedMessages(message);
     });
     socket?.on("messsage", (message: any) => {
       const sortedMessages = [...messages, message].sort((a, b) => {
@@ -80,6 +96,11 @@ const MessageBubble = ({ setOpen, currentChannel, channelMember }: {setOpen: any
   const leaveGroup = () => {
     console.log(currentChannel.id + " " + user?.id)
     socket?.emit("channel_leave", { channelId: currentChannel.id, userId: user?.id }); // hardcoded for now
+  };
+
+  const handleEditChannel = () => {
+    socket?.emit("channel_update", { id: currentChannel.id, name: groupName || currentChannel.name , visibility: visibility || 
+      currentChannel.visibility, password: password , avatar: previewImage || currentChannel.avatar });
   };
 
   return (
@@ -198,13 +219,38 @@ const MessageBubble = ({ setOpen, currentChannel, channelMember }: {setOpen: any
           </div>
           {showEdit && (
             <div className="flex w-full flex-col items-center justify-center gap-4 bg-inherit">
-              <Input label="Name" placeholder="channel name" />
+              <UpdateAvatar previewImage={previewImage} setPreviewImage={setPreviewImage} />
+              <Input label="Name" placeholder={currentChannel.name}
+                value={groupName}
+                onChange={
+                  (event) => {
+                    const { value } = event.target;
+                    setGroupName(value);
+                  }
+                }
+              />
               <Select label= "Visibility" setVisibility={setVisibility} options={["PUBLIC", "PRIVATE", "PROTECTED"]} value={currentChannel.visiblity} />
               {visibility === "PRIVATE" ? ( 
-                <Input label="Password [optional]" placeholder="*****************" type="password"/>
+                <Input label="Password [optional]" placeholder="*****************" type="password"
+                value={password}
+                onChange={
+                  (event) => {
+                    const { value } = event.target;
+                    setPassword(value);
+                  }
+                }
+                />
               ) : 
               visibility === "PROTECTED" ? (
-                <Input label="Password" placeholder="*****************" type="password"/>
+                <Input label="Password [required]" placeholder="*****************" type="password"
+                value={password}
+                onChange={
+                  (event) => {
+                    const { value } = event.target;
+                    setPassword(value);
+                  }
+                }
+                />
               ) : null
               }
 
@@ -244,6 +290,7 @@ const MessageBubble = ({ setOpen, currentChannel, channelMember }: {setOpen: any
                   onClick={() => {
                     setShowEdit(false);
                     setVisibility(currentChannel.visiblity);
+                    handleEditChannel();
                   }}
                   className="w-full justify-center"
                 >
