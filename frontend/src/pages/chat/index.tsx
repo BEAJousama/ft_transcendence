@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { BiX } from "react-icons/bi";
 import { Button, ChannelList, CreateGroupModal, MessageBubble } from "../../components";
 import Welcome from "../../components/chat/welcome";
@@ -68,5 +69,14 @@ export default function Chat() {
     }
       {showModal && <CreateGroupModal setShowModal={setShowModal} />}
     </div>
+=======
+import Layout from "../layout";
+
+export default function Chat() {
+  return (
+    <Layout>
+
+    </Layout>
+>>>>>>> fa560532b3c64f59bbb3aafdb5d7187bb303b463
   );
 }

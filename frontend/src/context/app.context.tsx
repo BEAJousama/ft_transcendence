@@ -1,7 +1,7 @@
 import axios from "axios";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import IUser from "../interfaces/user";
-import useSWR, { KeyedMutator, mutate, mutate as swrMutate } from "swr"
+import { ToastContainer, toast } from 'react-toastify';
 
 export interface IAppContext {
   // user: User | undefined;
@@ -16,9 +16,9 @@ export interface IAppContext {
   setTwoFactorAuth: (avatar: boolean) => void;
   user: IUser | undefined;
   loading: boolean;
-  authenticated: boolean,
-  fetchUser: () => Promise<void>
-  updateUser: () => Promise<void>
+  authenticated: boolean;
+  fetchUser: () => Promise<void>;
+  updateUser: () => Promise<void>;
 }
 
 export const AppContext = React.createContext<IAppContext>({
@@ -34,7 +34,7 @@ export const AppContext = React.createContext<IAppContext>({
   loading: true,
   authenticated: false,
   fetchUser: async () => {
-    // updateUser: async () => {};
+    updateUser: async () => {};
   },
   setTwoFactorAuth: function (avatar: boolean): void {
     throw new Error("Function not implemented.");
@@ -55,7 +55,7 @@ export const fetcher = async (url: string) => {
     }
   );
   return response.data;
-}
+};
 
 const AppProvider = ({ children }: { children: React.ReactNode }) => {
   const [data, setData] = useState<IUser | undefined>(undefined);
@@ -105,40 +105,40 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
 
-  const fetchUser = async () => {
-
-    if (isAuthenticated) return
+  const fetchUser = useCallback(async () => {
+    if (isAuthenticated) return;
     try {
-      setIsLoading(true)
-      const data = await fetcher('api/auth/42');
-      setIsAuthenticated(true)
+      setIsLoading(true);
+      const data = await fetcher("api/auth/42");
+      if (data)
+        setIsAuthenticated(true);
+      setData(data);
+    } catch (error) {
+      setIsAuthenticated(false);
+    }
+    setIsLoading(false);
+  }, [isAuthenticated]);
+
+  const updateUser = useCallback(async () => {
+    try {
+      const data = await fetcher("api/auth/42");
       setData(data);
     } catch (error) {
       setIsAuthenticated(false)
-      // setIsLoading(false)
     }
-    setIsLoading(false)
-  }
-
-  const updateUser = async () => {
-    try {
-      const data = await fetcher('api/auth/42');
-      setData(data);
-    } catch (error) { }
-  }
+  }, []);
 
   useEffect(() => {
     fetchUsers();
     fetchUser();
     const handleLocalStorageChange = async () => {
-      await fetchUser()
+      await updateUser();
     };
-    window.addEventListener('storage', handleLocalStorageChange);
+    window.addEventListener("storage", handleLocalStorageChange);
     return () => {
-      window.removeEventListener('storage', handleLocalStorageChange);
+      window.removeEventListener("storage", handleLocalStorageChange);
     };
-
-  }, [])
+  }, [fetchUser]);
 
   const appContextValue: IAppContext = {
     users: users,
@@ -162,6 +162,7 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
       throw new Error("Function not implemented.");
     }
   };
+
 
   return (
     <AppContext.Provider value={appContextValue}>

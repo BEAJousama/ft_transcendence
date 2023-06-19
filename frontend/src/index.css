@@ -2,7 +2,11 @@
 @tailwind components;
 @layer base {
   html {
-    @apply font-montserrat;
+    @apply scroll-smooth font-montserrat;
   }
 }
 @tailwind utilities;
+
+/* .Toastify__toast {
+  width: 500px;
+} */

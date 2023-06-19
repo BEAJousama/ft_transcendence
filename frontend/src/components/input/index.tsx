@@ -4,12 +4,13 @@ import clsx from "clsx";
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   className?: string;
   label?: string;
-  htmlType?: "text" | "select" | "file";
+  htmlType?: string;
   error?: string;
   value?: string;
   placeholder?: string;
   onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => void;
+  onBlur?: (event: React.FocusEvent<HTMLInputElement>) => void;
   options?: string[];
   pattern?: string;
   isError?: boolean;
@@ -33,6 +34,7 @@ const Input = ({
   value,
   onChange,
   onKeyDown,
+  onBlur,
   htmlType = "text",
   placeholder,
   options,
@@ -67,8 +69,9 @@ const Input = ({
         onFocus={() => {
           setActive(true);
         }}
-        onBlur={() => {
+        onBlur={(e: React.FocusEvent<HTMLInputElement>) => {
           setActive(false);
+          onBlur && onBlur(e);
         }}
         type={type}
         className={`flex w-full flex-col items-center justify-center rounded-md border-2 border-quaternary-200 bg-transparent p-3 text-sm font-semibold text-quaternary-200 
@@ -86,6 +89,7 @@ const Input = ({
         maxLength={MaxLength}
         hidden={hidden}
         ref={inputRef}
+
       />
       {error && (
         <p className="mt-2 text-xs text-red-600 dark:text-red-500">

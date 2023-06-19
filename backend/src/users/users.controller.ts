@@ -6,6 +6,7 @@ import {
   InternalServerErrorException,
   Param,
   Post,
+  Query,
   Req,
 } from '@nestjs/common';
 import {
@@ -20,6 +21,8 @@ import {
   BlockUserDoc,
   DeleteDoc,
   FindAllDoc,
+  FindFriendReqDoc,
+  FindFriendRequsetsDoc,
   FindOneDoc,
   GetBlockedUsersDoc,
   GetFriendsDoc,
@@ -28,6 +31,8 @@ import {
   UpdateDoc,
 } from './users.decorator';
 import { UsersService } from './users.service';
+import { Public } from 'src/public.decorator';
+import { assignAchievementsDto } from './dto/achievements.dto';
 
 @Controller('users')
 export class UsersController {
@@ -35,9 +40,9 @@ export class UsersController {
 
   @Get()
   @FindAllDoc()
-  async findAll() {
+  async findAll(@Query('fullname') fullname: string) {
     try {
-      return this.usersService.findAllUsers();
+      return this.usersService.findAllUsers(fullname);
     } catch (error) {
       return null;
     }
@@ -55,18 +60,14 @@ export class UsersController {
 
   @Post('achievements')
   @FindAllDoc()
-  async assignAchievements(
-    @Body() body: { userId: number; achievementId: number },
-  ) {
+  async assignAchievements(@Body() body: assignAchievementsDto) {
     try {
       return await this.usersService.assignAchievements(
         body.userId,
         body.achievementId,
       );
     } catch (error) {
-      return {
-        message: 'Could not Assign the achievement',
-      };
+      throw error;
     }
   }
 
@@ -99,11 +100,33 @@ export class UsersController {
   }
 
   @Get(':id/friend-requests')
+  @FindFriendRequsetsDoc()
   async findFriendRequests(@Param('id') id: string) {
     try {
       const friends = await this.usersService.getFriendRequests(parseInt(id));
       if (!friends) throw 'No Matches Found !!!!!';
       return friends;
+    } catch (error) {
+      return {
+        message: 'No Matches Found !!!!!',
+      };
+    }
+  }
+
+  @Get(':id/friend-request')
+  @FindFriendReqDoc()
+  async findFriendRequest(
+    @Query('senderId') senderId: number,
+    @Query('receiverId') receiverId: number,
+  ) {
+    try {
+      const friend = await this.usersService.getFriendRequest({
+        senderId,
+        receiverId,
+      });
+      
+      if (!friend) throw 'No Matches Found !!!!!';
+      return friend;
     } catch (error) {
       return {
         message: 'No Matches Found !!!!!',
@@ -143,7 +166,7 @@ export class UsersController {
   @AddFriendsDoc()
   async addFriend(@Body() body: AddFriendsDto) {
     try {
-      // // console.log(body);
+      
       const friendRequest = await this.usersService.sendFriendRequest(body);
       if (!friendRequest) throw 'No Matches Found !!!!!';
       return friendRequest;
@@ -154,7 +177,7 @@ export class UsersController {
     }
   }
 
-  @Post('remove-friend/:id')
+  @Delete('remove-friend/:id')
   @RemoveFriendsDoc()
   async removeFriend(@Param('id') id: string) {
     try {
@@ -170,7 +193,7 @@ export class UsersController {
     }
   }
 
-  @Post('accept-friend/:id')
+  @Get('accept-friend/:id')
   @AcceptFriendsDoc()
   async acceptFriend(@Param('id') id: string) {
     try {

@@ -3,7 +3,6 @@
 echo "Installing dependencies"
 npm install
 
-
 echo "Initing database and running migrations"
 npx prisma migrate dev --name init
 npx prisma generate

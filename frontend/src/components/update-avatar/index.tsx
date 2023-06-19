@@ -11,7 +11,6 @@ const UpdateAvatar = ({
     setPreviewImage: React.Dispatch<React.SetStateAction<string>>;
 }) => {
     const ref = useRef<HTMLInputElement>(null);
-    const [file, setFile] = useState<Blob>();
     return (
         <div className="flex items-center justify-center pt-4 ">
             <div className="relative">
@@ -35,13 +34,12 @@ const UpdateAvatar = ({
                         accept="image/png, image/jpeg"
                         onChange={(e) => {
                             if (e.target.files) {
-                                setFile(e.target.files[0]);
                                 if (e.target.files[0]) {
                                     const reader = new FileReader();
                                     reader.onloadend = () => {
                                         setPreviewImage(reader.result as string);
                                     };
-                                    reader.readAsDataURL(file ? file : e.target.files[0]);
+                                    reader.readAsDataURL(e.target.files[0]);
                                 }
                             }
                         }}

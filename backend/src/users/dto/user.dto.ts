@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { IsNotEmpty, IsNumber } from 'class-validator';
 
 export class UserDto {
   @ApiProperty({
@@ -59,12 +60,24 @@ export class UserDto {
   })
   losses: number;
 
+  @ApiProperty({
+    description: 'email of the user',
+  })
   email: string;
 
+  @ApiProperty({
+    description: 'fullname of the user',
+  })
   fullname: string;
 
+  @ApiProperty({
+    description: 'country of the user',
+  })
   country: string;
 
+  @ApiProperty({
+    description: 'phone of the user',
+  })
   phone: string;
 }
 
@@ -72,9 +85,15 @@ export class DeleteUserDto {
   @ApiProperty({
     description: 'The id of the user',
   })
+  @IsNotEmpty()
+  @IsNumber()
   id: number;
 }
 
 export class UpdateUserDto {
+  @IsNotEmpty()
+  @ApiProperty({
+    description: 'The user object to update',
+  })
   user: UserDto;
 }

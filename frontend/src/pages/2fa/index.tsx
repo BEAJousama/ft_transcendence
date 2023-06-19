@@ -1,12 +1,13 @@
 import axios from "axios";
 import { Button, Card, Input } from "./../../components";
-import { useRef, useState } from "react";
+import { useContext, useRef, useState } from "react";
 import { Navigate } from "react-router-dom";
+import { AppContext } from "../../context/app.context";
 
 const TwoFactorAuth = () => {
+  const { fetchUser, authenticated } = useContext(AppContext);
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
-  const [shouldRedirect, setShouldRedirect] = useState<boolean>(false);
 
   const inputsRef = [
     useRef<HTMLInputElement>(null),
@@ -33,7 +34,7 @@ const TwoFactorAuth = () => {
     }
   };
 
-  if (shouldRedirect) return <Navigate to="/" />;
+  if (authenticated) return <Navigate to="/" />;
 
   return (
     <div className="flex h-screen w-screen flex-col items-center justify-center gap-5 bg-secondary-800 text-gray-200">
@@ -126,7 +127,7 @@ const TwoFactorAuth = () => {
           onClick={async () => {
             try {
               const accessToken =
-                window.localStorage.getItem("2fa_access_token");
+                window.localStorage?.getItem("2fa_access_token");
               const response = await axios.post(
                 `${process.env.REACT_APP_BACK_END_URL}api/auth/2fa/verify`,
                 { code },
@@ -138,12 +139,11 @@ const TwoFactorAuth = () => {
               );
 
               if (response.data) {
-                window.localStorage.setItem(
+                window.localStorage?.setItem(
                   "access_token",
                   response.data.access_token
                 );
-                // await fetchUser();
-                setShouldRedirect(true);
+                await fetchUser();
               }
               setError("Invalid Code");
             } catch (error) {

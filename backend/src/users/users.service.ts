@@ -14,9 +14,14 @@ import {
   UpdateUserDto,
 } from './dto';
 import Achievements from './achievements/index.tsx';
+import NotificationService from 'src/notification/notification.service';
+
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) {
+  constructor(
+    private prisma: PrismaService,
+    private notificationService: NotificationService,
+  ) {
     this.createAchievements();
   }
 
@@ -43,7 +48,7 @@ export class UsersService {
   async getAllAchievements() {
     try {
       const achievements = await this.prisma.achievement.findMany();
-      // console.log(achievements.length);
+
       return achievements;
     } catch (error) {}
   }
@@ -60,7 +65,9 @@ export class UsersService {
           },
         },
       });
-    } catch (error) {}
+    } catch (error) {
+      throw new NotFoundException('user or Achievement Not Found');
+    }
   }
 
   async createUser(data: {
@@ -70,6 +77,7 @@ export class UsersService {
     fullname: string;
     phone: string;
     email: string;
+    password?: string;
   }) {
     try {
       const user = await this.prisma.user.create({
@@ -81,13 +89,20 @@ export class UsersService {
           fullname: data.fullname,
           phone: data.phone,
           email: data.email,
+          password: data.password,
           country: 'none',
         },
       });
 
       return user;
     } catch (error) {
-      return error;
+      if (error?.code === 'P2002') {
+        throw new BadRequestException(
+          `${error.meta?.target?.toString()} already exists`,
+        );
+      }
+
+      throw new InternalServerErrorException('Failed to create user');
     }
   }
 
@@ -115,9 +130,6 @@ export class UsersService {
         where: {
           login,
         },
-        include: {
-          achievements: true,
-        },
       });
       return user;
     } catch (error) {
@@ -125,9 +137,13 @@ export class UsersService {
     }
   }
 
-  async findAllUsers() {
+  async findAllUsers(fullname: string) {
     try {
-      const users = await this.prisma.user.findMany();
+      const users = await this.prisma.user.findMany({
+        orderBy: {
+          rating: 'desc',
+        },
+      });
       return users;
     } catch (error) {
       throw new NotFoundException(`no users found ? `);
@@ -195,22 +211,39 @@ export class UsersService {
           receiverId,
         },
       });
+      this.notificationService.sendNotification(
+        senderId,
+        receiverId,
+        'Friend Request',
+        '',
+        receiverId,
+        `/profile/${senderId}`,
+      );
       return request;
     } catch (error) {
       throw new InternalServerErrorException('Failed to send friend request');
     }
   }
 
-  async acceptFriendRequest(senderId: number) {
+  async acceptFriendRequest(id: number) {
     try {
       const request = await this.prisma.friend.update({
         where: {
-          id: senderId,
+          id: id,
         },
         data: {
           status: 'ACCEPTED',
         },
       });
+
+      this.notificationService.sendNotification(
+        request.senderId,
+        request.receiverId,
+        'Friend Request Accepted',
+        '',
+        request.senderId,
+        '/notifications/',
+      );
       return request;
     } catch (error) {
       throw new InternalServerErrorException('Failed to accept friend request');
@@ -247,16 +280,30 @@ export class UsersService {
 
   async getFriendRequests(id: number) {
     try {
-      const requests = await this.prisma.friend.findMany({
+      const requests = await this.prisma.friend.findMany();
+      return requests;
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to get friend requests');
+    }
+  }
+
+  async getFriendRequest({ senderId, receiverId }) {
+    try {
+      const request = await this.prisma.friend.findMany({
         where: {
-          receiverId: id,
-          status: 'PENDING',
-        },
-        include: {
-          sender: true,
+          OR: [
+            {
+              senderId: parseInt(senderId),
+              receiverId: parseInt(receiverId),
+            },
+            {
+              receiverId: parseInt(senderId),
+              senderId: parseInt(receiverId),
+            },
+          ],
         },
       });
-      return requests;
+      return request[0];
     } catch (error) {
       throw new InternalServerErrorException('Failed to get friend requests');
     }
@@ -282,7 +329,11 @@ export class UsersService {
           receiver: true,
         },
       });
-      return friends;
+      const result = friends.map((item) => {
+        if (item.senderId !== id) return item.sender;
+        return item.receiver;
+      });
+      return result;
     } catch (error) {
       throw new InternalServerErrorException('Failed to get friends');
     }

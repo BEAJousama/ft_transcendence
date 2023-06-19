@@ -5,6 +5,8 @@ import {
   ApiResponse,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
+import { SignInDto } from './dto/signin.dto';
+import { SignUpDto } from './dto/signup.dto';
 
 export function ProfileDoc() {
   return applyDecorators(
@@ -15,6 +17,42 @@ export function ProfileDoc() {
     ApiUnauthorizedResponse({
       description: 'Unauthorized',
     }),
+  );
+}
+
+export function GoogleLoginDoc() {
+  return applyDecorators(
+    ApiBearerAuth(),
+    ApiOkResponse({ description: 'Redirects to Google login page' }),
+    ApiUnauthorizedResponse({ description: 'Unauthorized' }),
+  );
+}
+
+export function SignUpDoc() {
+  return applyDecorators(
+    ApiBearerAuth(),
+    ApiOkResponse({ description: 'creates a new user', type: SignUpDto }),
+  );
+}
+export function SignInDoc() {
+  return applyDecorators(
+    ApiBearerAuth(),
+    ApiOkResponse({ description: 'Returns the access token', type: SignInDto }),
+    ApiUnauthorizedResponse({ description: 'Unauthorized' }),
+  );
+}
+export function LoginDoc() {
+  return applyDecorators(
+    ApiBearerAuth(),
+    ApiOkResponse({ description: 'Returns the access token' }),
+    ApiUnauthorizedResponse({ description: 'Unauthorized' }),
+  );
+}
+
+export function GoogleCallbackDoc() {
+  return applyDecorators(
+    ApiOkResponse({ description: 'Redirects to frontend URL' }),
+    ApiUnauthorizedResponse({ description: 'Unauthorized' }),
   );
 }
 
@@ -63,18 +101,6 @@ export function VerifyDoc() {
     ApiOkResponse({
       description:
         "Returns true and set's access token in cookie if code is valid otherwise returns false",
-    }),
-    ApiUnauthorizedResponse({
-      description: 'Unauthorized',
-    }),
-  );
-}
-
-export function LogoutDoc() {
-  return applyDecorators(
-    ApiBearerAuth(),
-    ApiOkResponse({
-      description: 'message: "Logout successful"',
     }),
     ApiUnauthorizedResponse({
       description: 'Unauthorized',

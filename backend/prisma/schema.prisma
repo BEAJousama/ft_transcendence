@@ -101,6 +101,8 @@ model User {
   player           Player[]        @relation("player")
   gamesWon         Game[]          @relation("winner")
   gamesLost        Game[]          @relation("loser")
+  sentNotifications     Notification[]  @relation("sent")
+  receivedNotifications Notification[]  @relation("received")
 }
 
 enum RequestStatus {
@@ -113,9 +115,9 @@ enum RequestStatus {
 model Friend {
   id         Int           @id @default(autoincrement())
   sender     User          @relation("SentRequest", fields: [senderId], references: [id])
-  senderId   Int           @unique
+  senderId   Int
   receiver   User          @relation("ReceivedRequest", fields: [receiverId], references: [id])
-  receiverId Int           @unique
+  receiverId Int
   status     RequestStatus @default(PENDING)
 }
 
@@ -247,4 +249,18 @@ model Game {
   date      DateTime   @default(now())
   duration  Int        @default(0)
   status    GameStatus
+}
+
+model Notification {
+  id         Int      @id @default(autoincrement())
+  title      String
+  content    String
+  url        String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  seen       Boolean  @default(false)
+  senderId   Int
+  receiverId Int
+  sender     User     @relation("sent", fields: [senderId], references: [id])
+  receiver   User     @relation("received", fields: [receiverId], references: [id])
 }

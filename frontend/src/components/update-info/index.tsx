@@ -91,14 +91,14 @@ const UpdateInfo = ({
                                 setModalText("Error : You haven't made any changes");
                                 return;
                             } else if (
-                                formik.values.phone !== "hidden" &&
+                                formik.values.phone !== "" &&
                                 !validatePhoneNumber(formik.values.phone)
                             ) {
                                 setModalText("Error : Invalid phone number");
                                 return;
                             }
                             setLoading(true);
-                            const accessToken = window.localStorage.getItem("access_token");
+                            const accessToken = window?.localStorage?.getItem("access_token");
                             await axios.post(
                                 `${process.env.REACT_APP_BACK_END_URL}api/users/${user?.id}`,
                                 {
