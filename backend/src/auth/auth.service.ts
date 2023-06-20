@@ -51,9 +51,7 @@ export class AuthService {
         email: body.email,
         password: password,
       });
-      return {
-        message: 'success',
-      };
+      return this.signIn({ username: body.username, password: body.password });
     } catch (error) {
       throw error;
     }
@@ -157,7 +155,6 @@ export class AuthService {
         value: access_token,
       };
     } catch (error: any) {
-      console.log(error);
       throw new InternalServerErrorException(error.response.message);
     }
   }
@@ -179,7 +176,6 @@ export class AuthService {
         message: 'fail',
       };
     } catch (error) {
-      // console.log(error);
       throw new InternalServerErrorException(
         'An internal server error occurred.',
       );

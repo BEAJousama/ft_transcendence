@@ -60,7 +60,7 @@ const Achievements = ({ user }: { user: IUser }) => {
       <div className="flex w-full max-w-[1024px] items-center justify-center">
         {isLoading ? (
           <Spinner />
-        ) : achievements.length ? (
+        ) : achievements && achievements.length ? (
           <div className="grid grid-cols-1 gap-2 md:grid-cols-2 md:gap-4 lg:grid-cols-3 xl:gap-8">
             {achievements.sort(
               (a: IAchievement, b: IAchievement) => {

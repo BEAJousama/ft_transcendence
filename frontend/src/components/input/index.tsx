@@ -9,6 +9,7 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   value?: string;
   placeholder?: string;
   onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onBlur?: (event: React.FocusEvent<HTMLInputElement>) => void;
   options?: string[];
   pattern?: string;
   isError?: boolean;
@@ -30,6 +31,7 @@ const Input = ({
   name,
   value,
   onChange,
+  onBlur,
   htmlType = "text",
   placeholder,
   options,
@@ -63,8 +65,9 @@ const Input = ({
         onFocus={() => {
           setActive(true);
         }}
-        onBlur={() => {
+        onBlur={(e: React.FocusEvent<HTMLInputElement>) => {
           setActive(false);
+          onBlur && onBlur(e);
         }}
         type={htmlType}
         className={`flex w-full flex-col items-center justify-center rounded-md border-2 border-quaternary-200 bg-transparent p-3 text-sm font-semibold text-quaternary-200 

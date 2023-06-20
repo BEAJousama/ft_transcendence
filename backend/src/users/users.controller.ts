@@ -21,6 +21,8 @@ import {
   BlockUserDoc,
   DeleteDoc,
   FindAllDoc,
+  FindFriendReqDoc,
+  FindFriendRequsetsDoc,
   FindOneDoc,
   GetBlockedUsersDoc,
   GetFriendsDoc,
@@ -98,6 +100,7 @@ export class UsersController {
   }
 
   @Get(':id/friend-requests')
+  @FindFriendRequsetsDoc()
   async findFriendRequests(@Param('id') id: string) {
     try {
       const friends = await this.usersService.getFriendRequests(parseInt(id));
@@ -111,6 +114,7 @@ export class UsersController {
   }
 
   @Get(':id/friend-request')
+  @FindFriendReqDoc()
   async findFriendRequest(
     @Query('senderId') senderId: number,
     @Query('receiverId') receiverId: number,
@@ -120,7 +124,7 @@ export class UsersController {
         senderId,
         receiverId,
       });
-      // console.log(senderId, receiverId);
+      
       if (!friend) throw 'No Matches Found !!!!!';
       return friend;
     } catch (error) {
@@ -162,7 +166,7 @@ export class UsersController {
   @AddFriendsDoc()
   async addFriend(@Body() body: AddFriendsDto) {
     try {
-      // // console.log(body);
+      
       const friendRequest = await this.usersService.sendFriendRequest(body);
       if (!friendRequest) throw 'No Matches Found !!!!!';
       return friendRequest;

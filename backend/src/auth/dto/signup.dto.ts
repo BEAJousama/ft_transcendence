@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger';
 import {
   IsEmail,
   IsNotEmpty,
@@ -48,13 +49,22 @@ export class SignUpDto {
     message:
       'FullName must be between 3 and 20 characters and can contain only letters, numbers, and underscores',
   })
+  @ApiProperty({
+    description: 'fullname of user',
+  })
   fullname: string;
   @IsNotEmpty()
   @IsUsername({
     message:
       'Username must be between 3 and 20 characters and can contain only letters, numbers, and underscores',
   })
+  @ApiProperty({
+    description: 'username of user',
+  })
   username: string;
+  @ApiProperty({
+    description: 'password of user',
+  })
   @IsNotEmpty()
   @IsString()
   @IsStrongPassword({
@@ -67,5 +77,8 @@ export class SignUpDto {
   password: string;
   @IsNotEmpty()
   @IsEmail()
+  @ApiProperty({
+    description: 'email of user',
+  })
   email: string;
 }

@@ -1,13 +1,12 @@
-import { Avatar, Card, Button, Input } from "../../components";
-import { useContext, useState } from "react";
-import { MdOutlineModeEdit } from "react-icons/md";
-import { useRef } from "react";
+import { Card, Button, Input } from "../../components";
+import { useContext, useState, KeyboardEvent } from "react";
 import { useFormik } from "formik";
 import { AppContext } from "../../context/app.context";
 import axios from "axios";
-import { Link, Navigate, redirect } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 
 export default function SignUp() {
+  const { fetchUser } = useContext(AppContext);
   function isValidEmail(email: string) {
     // Regular expression pattern for email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -15,8 +14,9 @@ export default function SignUp() {
   }
   function isStrongPassword(password: string) {
     // Check for a combination of uppercase letters, lowercase letters, numbers, and symbols
-    const passwordRegex = /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[^\w\s]).*$/;
-    return passwordRegex.test(password)
+    const passwordRegex =
+      /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[^\w\s]).*$/;
+    return passwordRegex.test(password);
   }
 
   const formik = useFormik({
@@ -27,6 +27,7 @@ export default function SignUp() {
       password: "",
       confirmPassword: "",
     },
+    validateOnChange: false,
     validate: (values) => {
       const errors: {
         email?: string;
@@ -38,42 +39,40 @@ export default function SignUp() {
 
       // Validate email
       if (!values.email) {
-        errors.email = "Email is required";
+        errors.email = "Please enter your email";
       } else if (!isValidEmail(values.email)) {
-        errors.email = "Invalid email format";
+        errors.email = "Please enter a valid email";
       }
 
       // Validate username
       if (!values.username) {
-        errors.username = "Username is required";
+        errors.username = "Please enter a username";
       }
 
       // Validate fullname
       if (!values.fullname) {
-        errors.fullname = "Fullname is required";
+        errors.fullname = "Please enter your full name";
       }
 
       // Validate password
       if (!values.password) {
-        errors.password = "Password is required";
+        errors.password = "Please enter a password";
       }
-      // else if (values.password.length < 12) {
-      //   errors.password = "Password should be at least 12 characters long";
-      // } else if (values.password.length < 14) {
-      //   errors.password = "Consider using a password that is 14 characters or longer for better security";
-      // }
-      // else if (!isStrongPassword(values.password)) {
-      //   errors.password = "Password must contain a combination of uppercase letters, lowercase letters, numbers, and symbols, and should not be a common word or name";
-      // }
+      else if (values.password.length < 12) {
+        errors.password = "Password should be at least 12 characters long";
+      }
+      else if (!isStrongPassword(values.password)) {
+        errors.password = "Password must contain a combination of uppercase and lowercase letters, numbers, symbols and should not be a common word or name";
+      }
 
       // Validate confirmPassword
       if (!values.confirmPassword) {
-        errors.confirmPassword = "Confirm Password is required";
+        errors.confirmPassword = "Please confirm your password";
       } else if (values.password !== values.confirmPassword) {
         errors.confirmPassword = "Passwords do not match";
       }
 
-      return errors
+      return errors;
     },
     onSubmit: (values) => { },
   });
@@ -81,36 +80,82 @@ export default function SignUp() {
   const [error, setError] = useState("");
   const [redirect, setRedirect] = useState<boolean>();
 
-  if (redirect) return <Navigate to="/login" />;
+  const handleSignUp = async () => {
+    try {
+      setError("");
+
+      if (
+        Object.keys(formik.errors).length > 0 ||
+        Object.keys(await formik.validateForm()).length > 0
+      ) {
+        return;
+      }
+
+      const res = await axios.post(
+        `${process.env.REACT_APP_BACK_END_URL}api/auth/signup`,
+        {
+          fullname: formik.values.fullname,
+          username: formik.values.username,
+          password: formik.values.password,
+          email: formik.values.email,
+        }
+      );
+      if (res && res.data) {
+        console.log(res.data);
+        window.localStorage?.setItem(res.data.name, res.data.value);
+        await fetchUser();
+        setError("");
+        setRedirect(true);
+      }
+      console.log(res);
+    } catch (e: any) {
+      console.log(e);
+      if (e) setError(e.response.data.message);
+    }
+  };
+
+  const handleKeyPress = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter") {
+      handleSignUp();
+    }
+  };
+
+  if (redirect) return <Navigate to="/" />;
 
   return (
-    <div className="flex h-screen w-screen items-center justify-center bg-secondary-700">
-      <Card className="flex w-full max-w-xs  flex-col items-center justify-center gap-4  border-none bg-secondary-500 p-16 text-white shadow-lg shadow-secondary-500 md:max-w-md lg:max-w-lg lg:gap-4 lg:px-16 lg:py-8">
+    <div
+      className="flex h-screen w-screen items-center justify-center overflow-auto bg-secondary-700 scrollbar-hide"
+      onKeyDown={handleKeyPress}
+    >
+      <Card className="flex w-full max-w-xs  flex-col items-center justify-center gap-4 border-none bg-secondary-500 px-8 text-white shadow-lg shadow-secondary-500 md:max-w-md lg:max-w-lg lg:gap-4 lg:px-12 lg:py-16">
         <img src="/img/smalllogo.svg" alt="logo" width={40} />
         <div className="flex flex-col items-center gap-2">
           <h1 className="text-2xl">Let's create your account</h1>
           <p className=" text-tertiary-200">Please enter your details</p>
         </div>
         <Input
+          onBlur={formik.handleBlur}
           required
           onChange={formik.handleChange}
           value={formik.values.fullname}
           error={formik.errors.fullname}
           isError={!!formik.errors.fullname}
           name="fullname"
-          label="FullName"
+          label="Full Name"
         />
         <Input
+          onBlur={formik.handleBlur}
           required
           onChange={formik.handleChange}
           value={formik.values.username}
           error={formik.errors.username}
           isError={!!formik.errors.username}
           name="username"
-          label="UserName"
+          label="Username"
           htmlType="email"
         />
         <Input
+          onBlur={formik.handleBlur}
           required
           onChange={formik.handleChange}
           value={formik.values.email}
@@ -120,6 +165,7 @@ export default function SignUp() {
           label="Email"
         />
         <Input
+          onBlur={formik.handleBlur}
           required
           onChange={formik.handleChange}
           value={formik.values.password}
@@ -130,6 +176,7 @@ export default function SignUp() {
           htmlType="password"
         />
         <Input
+          onBlur={formik.handleBlur}
           required
           onChange={formik.handleChange}
           value={formik.values.confirmPassword}
@@ -144,44 +191,12 @@ export default function SignUp() {
             <span className="font-medium">{error}</span>
           </p>
         )}
-        <Button
-          className="w-full"
-          onClick={async () => {
-            try {
-              setError("")
-              formik.validateForm();
-
-              if (Object.keys(formik.errors).length > 0) {
-                return;
-              }
-
-
-              const res = await axios.post(
-                `${process.env.REACT_APP_BACK_END_URL}api/auth/signup`,
-                {
-                  fullname: formik.values.fullname,
-                  username: formik.values.username,
-                  password: formik.values.password,
-                  email: formik.values.email,
-                }
-              );
-              if (res.data) {
-                console.log(res.data);
-                setError("");
-                setRedirect(true);
-              }
-              console.log(res)
-            } catch (e: any) {
-              console.log(e);
-              setError(e.response.data.message);
-            }
-          }}
-        >
+        <Button className="w-full" onClick={handleSignUp}>
           Sign Up
         </Button>
-        <div className="w-full pt-1 text-center text-tertiary-300">
+        <div className="w-full pt-1 text-center text-tertiary-300 flex flex-col md:flex-row items-center justify-center">
           Already have an account?
-          <Link to="/login" className="ml-1 text-tertiary-400">
+          <Link to="/login" className="ml-1 text-tertiary-100 underline hover:text-primary-500  hover:scale-105 transition ease-in-out duration-400">
             Sign in
           </Link>
         </div>

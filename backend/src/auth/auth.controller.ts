@@ -10,8 +10,12 @@ import {
 } from '@nestjs/common';
 import {
   CallbackDoc,
-  LogoutDoc,
+  GoogleCallbackDoc,
+  GoogleLoginDoc,
+  LoginDoc,
   ProfileDoc,
+  SignInDoc,
+  SignUpDoc,
   TurnOffDoc,
   TurnOnDoc,
   VerifyDoc,
@@ -25,6 +29,7 @@ import * as qrcode from 'qrcode';
 import { GoogleGuard } from './guards/google.guard';
 import { SignInDto } from './dto/signin.dto';
 import { SignUpDto } from './dto/signup.dto';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
 @Controller('auth')
 export class AuthController {
@@ -33,10 +38,12 @@ export class AuthController {
   @Public()
   @Get('google/login')
   @UseGuards(GoogleGuard)
+  @GoogleLoginDoc()
   async googleAuth(@Req() req) {}
 
   @Public()
   @Get('google/callback')
+  @GoogleCallbackDoc()
   @UseGuards(GoogleGuard)
   async googleAuthRedirect(@Req() req, @Res() res) {
     await this.authService.callback(req);
@@ -45,12 +52,14 @@ export class AuthController {
 
   @Public()
   @Post('signin')
+  @SignInDoc()
   async signIn(@Body() body: SignInDto) {
     return await this.authService.signIn(body);
   }
 
   @Public()
   @Post('signup')
+  @SignUpDoc()
   async signUp(@Body() body: SignUpDto) {
     return await this.authService.signUp(body);
   }
@@ -66,6 +75,7 @@ export class AuthController {
   }
 
   @Public()
+  @LoginDoc()
   @Get('42/login')
   async login() {
     try {
