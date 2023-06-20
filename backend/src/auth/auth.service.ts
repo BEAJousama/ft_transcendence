@@ -37,6 +37,7 @@ export class AuthService {
     return isMatch;
   }
 
+
   async signUp(body: SignUpDto) {
     try {
       const secret = authenticator.generateSecret();

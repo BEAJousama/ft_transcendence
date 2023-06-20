@@ -12,7 +12,7 @@ export class ChannelService {
   constructor(private prisma: PrismaService, private chatService: ChatService) 
   {}
 
-  async getChannelsByUserId(userId: number): Promise<Channel[]> 
+  async getChannelsByUserId(userId: number) : Promise<any[]>
   {
       try {
       const channels = await this.prisma.channel.findMany({
@@ -21,7 +21,6 @@ export class ChannelService {
             some: {
               userId,
               isArchived: false,
-              // isBanned: false,
             },
           },
           deletedFor: {
@@ -32,8 +31,17 @@ export class ChannelService {
             },
           },
         },
-          include:
+          select:
           {
+              id: true,
+              name: true,
+              type: true,
+              avatar: true,
+              userId: true,
+              lastestMessageDate: true,
+              visiblity: true,
+              createAt: true,
+              updatedAt: true,
               archivedFor: true,
               mutedFor: true,
               unreadFor: true,
@@ -56,6 +64,7 @@ export class ChannelService {
             channels.splice(channels.indexOf(channel), 1);
           }
       });
+
       return channels;
     }
     catch (error) {
@@ -63,6 +72,60 @@ export class ChannelService {
     }
   }
 
+
+  async getAllChannels(userId: number) : Promise<any[]>
+  {
+      try {
+      const channels = await this.prisma.channel.findMany({
+        where:
+        {
+          bannedUsers:
+          {
+            none:
+            {
+              id: userId,
+            }
+          },
+          type: ChannelType.GROUP,
+          visiblity:
+          {
+            not: Visiblity.PRIVATE,
+          }
+        },
+          select:
+          {
+              id: true,
+              name: true,
+              type: true,
+              avatar: true,
+              userId: true,
+              lastestMessageDate: true,
+              visiblity: true,
+              createAt: true,
+              updatedAt: true,
+              archivedFor: true,
+              mutedFor: true,
+              unreadFor: true,
+              pinnedFor: true,
+              deletedFor: true,
+              bannedUsers: true,
+              kickedUsers: true,
+              channelMembers:
+              {
+                include: {
+                  user: true,
+                },
+              },
+              messages: true,
+          },
+      });
+
+      return channels;
+    }
+    catch (error) {
+        throw new Error(error.message);
+    }
+  }
   async searchChannelsByUserId(userId: number, query: string): Promise<Channel[]>
   {
     try {

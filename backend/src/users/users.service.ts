@@ -4,7 +4,7 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { User, UserStatus } from '@prisma/client';
+import { User } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 import { PrismaService } from 'src/prisma/prisma.service';
 import {
@@ -15,6 +15,7 @@ import {
 } from './dto';
 import Achievements from './achievements/index.tsx';
 import NotificationService from 'src/notification/notification.service';
+import { authenticator } from 'otplib';
 
 @Injectable()
 export class UsersService {
@@ -42,6 +43,32 @@ export class UsersService {
       }
     } catch (error) {
       return error;
+    }
+  }
+
+  async findOrCreateUser(data : {
+    login:string,
+    avatar:string,
+    fullname:string,
+    phone:string,
+    email:string,
+  }) {
+    try {
+      let user: User = await this.findUserByLogin(data.login);
+      if (!user) {
+        const secret = authenticator.generateSecret();
+        user = await this.createUser({
+          login: data.login,
+          avatar: data.avatar,
+          tfaSecret: secret,
+          fullname: data.fullname,
+          phone: data.phone,
+          email: data.email,
+        });
+      }
+      return user;
+    } catch (error) {
+      throw new InternalServerErrorException();
     }
   }
 
@@ -147,22 +174,6 @@ export class UsersService {
       return users;
     } catch (error) {
       throw new NotFoundException(`no users found ? `);
-    }
-  }
-
-  async updateUserStatus(id: number, status: UserStatus) {
-    try {
-      const user = await this.prisma.user.update({
-        where: {
-          id,
-        },
-        data: {
-          status,
-        },
-      });
-      return user;
-    } catch (error) {
-      throw new InternalServerErrorException('Failed to update user status');
     }
   }
 

@@ -65,6 +65,13 @@ const ChannelList = ({className, setShowModal, setCurrentChannel, setChannelMemb
         socket?.emit('getChannels', {user: {id}});
         socket?.on('getChannels', (channels: any) => {   
         // sort the channels by last updated
+        //update the name of channels if type is conversation
+        channels.forEach((channel: any) => {
+          if (channel.type === "CONVERSATION") {
+              channel.name = channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.username;
+              channel.avatar = channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.avatar;
+          }
+        });
         channels.sort((a: any, b: any) => {
           if (a.updatedAt < b.updatedAt) return 1;
           else return -1;
@@ -126,13 +133,9 @@ const onChange = (e: any) => {
   e.preventDefault();
   setSearch(e.target.value)
   if (search !== "") {
-    try {
-      const timeoutId = setTimeout(() => {
-      socket?.emit('search_channel', {query: search});
-      }, 1500);
-    } catch (error) {
-      console.log(error);
-    }
+    setChannels(channels.filter((item: any) => item.name.toLowerCase().includes(search.toLowerCase())));
+  } else {
+    getuserChannels(user?.id);
   }
 }
 
@@ -257,7 +260,6 @@ return (
                     updatedAt={channel.lastestMessageDate}
                     newMessages={channel.newMessagesCount}
                     onClick={() => onClick(channel)}
-
                       />
                       )
                     }).concat(

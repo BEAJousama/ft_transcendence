@@ -91,7 +91,7 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
   };
   const fetchUsers = async () => {
     const accessToken = window.localStorage.getItem("access_token");
-    fetch("http://10.11.8.12:3000/api/users", {
+    fetch("http://10.11.5.12:3000/api/users", {
       method: 'GET',
       headers: {
           'Authorization': `Bearer ${accessToken}`, // notice the Bearer before your token

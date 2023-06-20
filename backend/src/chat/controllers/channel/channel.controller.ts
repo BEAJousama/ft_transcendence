@@ -1,7 +1,6 @@
 import { Controller, Get, HttpException, HttpStatus, Param, Req, UseGuards } from '@nestjs/common';
 import { Channel } from '@prisma/client';
 import { Request } from 'express';
-import { JwtAuthGuard } from 'src/auth/guards';
 import { ChannelService } from 'src/chat/services/channel/channel.service';
 
     /* 
@@ -13,26 +12,18 @@ import { ChannelService } from 'src/chat/services/channel/channel.service';
         4 - get friends list to add to group
         5 - get only searched channels
     */
-
-// @UseGuards(new JwtAuthGuard())
-@Controller('channel')
+@Controller('channels')
 export class ChannelController 
 {
 
     constructor(private channelService : ChannelService)
     {
     }
-    
-    @Get()    
-    async global(@Req() req: Request) {
-        console.log("Hellooooo");
-        return "Hellooooo";
-    }
 
-    @Get('channels/:id')
-    async getChats(@Req() req: Request, @Param('id') id: string): Promise<Channel[]> {
-      try { 
-        return await this.channelService.getChannelsByUserId(parseInt(id));
+    @Get('')
+    async getChats(@Req() req: Request): Promise<Channel[]> {
+      try {
+        return await this.channelService.getAllChannels((req.user as any).sub);
       } catch (error) {
         throw new HttpException(error.message, HttpStatus.NOT_FOUND);
       }

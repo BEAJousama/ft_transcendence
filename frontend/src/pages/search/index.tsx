@@ -1,15 +1,18 @@
 import { Input, Spinner, UserBanner } from "../../components";
 import useSWR from "swr";
-import { fetcher } from "../../context/app.context";
+import { AppContext, fetcher } from "../../context/app.context";
 import Layout from "../layout";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import axios from "axios";
 import IUser from "../../interfaces/user";
 import { Link } from "react-router-dom";
+import ChannelBanner from "../../components/channel-banner";
+
+// const {user} = useContext(AppContext);
 
 const options = [
   { value: "api/users", label: "users" },
-  { value: "api/channels", label: "channels" },
+  { value: `api/channels`, label: "channels" },
   { value: "api/games", label: "games" },
 ];
 
@@ -64,9 +67,17 @@ export default function Search() {
     errorRetryCount: 0,
   });
 
+
+
+
   useEffect(() => {
     if (users && (filtred || !value))
-      setFiltred(users.filter((item: IUser) => item.fullname.toLowerCase().includes(value.toLowerCase())))
+    {
+      if (selected === "api/users")
+        setFiltred(users.filter((item: IUser) => item.fullname.toLowerCase().includes(value.toLowerCase())))
+        else if (selected === "api/channels")
+        setFiltred(users.filter((item: any) => item.name.toLowerCase().includes(value.toLowerCase())))
+    }
     else
       setFiltred(users)
   }, [value, users])
@@ -99,6 +110,7 @@ export default function Search() {
             filtred?.length ? (
               filtred.map((item: any) => {
                 return (
+                  selected === "api/users" ?
                   <Link to={`/profile/${item.id}`} className="w-full">
                     <UserBanner
                       key={item.id}
@@ -107,6 +119,15 @@ export default function Search() {
                       rank={item.rating}
                     />
                   </Link>
+                  :
+                  <Link to={`/chat`} className="w-full">
+                    <ChannelBanner
+                      key={item.id}
+                      channel={item}
+                      showRating
+                      rank={item.rating}
+                    />
+                    </Link>
                 );
               })
             ) : <div className="h-[500px] flex items-center justify-center text-2xl text-primary-500">

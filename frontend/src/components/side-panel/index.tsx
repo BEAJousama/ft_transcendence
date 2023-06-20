@@ -115,12 +115,6 @@ const Sidepanel = ({ className }: {
             <span className="hidden md:block text-left">Settings</span>
           </ListItem>
         </Link>
-        <Link to="/notifs">
-          <ListItem selected={path === "/notifs"}>
-            <IoMdNotifications />
-            <span className="hidden md:block">Notifications</span>
-          </ListItem>
-        </Link>
       </List>
       <div className="flex w-full flex-col items-center justify-center gap-4">
         <ListItem className="bg-secondary-800 text-secondary-300 hover:bg-secondary-800" onClick={() => {
