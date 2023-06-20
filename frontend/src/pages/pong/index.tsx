@@ -16,6 +16,7 @@ interface Ball {
 	x: number;
 	y: number;
 	speed: number;
+	radius: number;
 	velocity: {
 		x: number;
 		y: number;
@@ -73,11 +74,15 @@ const PongGame = ({
 	const socket = useContext(GameContext);
 	const { user } = useContext(AppContext);
 
+
+
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 	const [ref, { width: canvasWidth, height: canvasHeight }] =
 		useMeasure<HTMLDivElement>();
 
 	useEffect(() => {
+		const widthScaleFactor = 450 / 650;
+		const heightScaleFactor = 280 / 480;
 		const id = setInterval(() => {
 			socket?.emit("update", {
 				userId: user?.id,
@@ -87,27 +92,79 @@ const PongGame = ({
 				},
 			});
 		}, 25);
+
 		socket?.on("update", (data: any) => {
-			setBall(data);
+			// Update the ball position with the scaled values
+			setBall((prev) => {
+				const scaledBall = {
+					x: data.x * widthScaleFactor,
+					y: data.y * heightScaleFactor,
+					radius: data.radius * Math.min(widthScaleFactor, heightScaleFactor),
+				};
+				return {
+					...prev,
+					...scaledBall,
+				}
+			});
 		});
-		socket?.on(
-			"update-player-a",
-			(data: any) => {
-				// (data: { x: number; y: number; score: number }) => {
-				setPlayerA((prev) => {
-					return { ...prev, ...data };
-				});
-			}
-		);
-		socket?.on(
-			"update-player-b",
-			// (data: { x: number; y: number; score: number }) => {
-			(data: any) => {
-				setPlayerB((prev) => {
-					return { ...prev, ...data };
-				});
-			}
-		);
+
+		socket?.on("update-player-a", (data: any) => {
+			// Convert the received positions and dimensions to frontend coordinates
+
+
+			// Update player A position with the scaled values
+			setPlayerA((prev) => {
+				const scaledData = {
+					...data,
+					x: data.x * widthScaleFactor,
+					y: data.y * heightScaleFactor,
+					width: data.width * widthScaleFactor,
+					height: data.height * heightScaleFactor,
+				};
+				return { ...prev, ...scaledData };
+			});
+		});
+
+		socket?.on("update-player-b", (data: any) => {
+			// Convert the received positions and dimensions to frontend coordinates
+
+
+			// Update player B position with the scaled values
+			setPlayerB((prev) => {
+				const scaledData = {
+					...data,
+					x: data.x * widthScaleFactor,
+					y: data.y * heightScaleFactor,
+					width: data.width * widthScaleFactor,
+					height: data.height * heightScaleFactor,
+				};
+				return { ...prev, ...scaledData };
+			});
+		});
+
+		// socket?.on("update", (data: any) => {
+		// 	data.x =
+		// 		data.y =
+		// 		setBall(data);
+		// });
+		// socket?.on(
+		// 	"update-player-a",
+		// 	(data: any) => {
+		// 		// (data: { x: number; y: number; score: number }) => {
+		// 		setPlayerA((prev) => {
+		// 			return { ...prev, ...data };
+		// 		});
+		// 	}
+		// );
+		// socket?.on(
+		// 	"update-player-b",
+		// 	// (data: { x: number; y: number; score: number }) => {
+		// 	(data: any) => {
+		// 		setPlayerB((prev) => {
+		// 			return { ...prev, ...data };
+		// 		});
+		// 	}
+		// );
 
 		socket?.on("game-over", (data: { winner: number }) => {
 			//setShow(false)
@@ -115,15 +172,42 @@ const PongGame = ({
 			setWinnerId(data.winner);
 		});
 
+
 		socket?.on("disconnect", () => clearInterval(id));
 
 		return () => clearInterval(id);
 	}, [canvasWidth, canvasHeight]);
 
+
+	// function rotateCanvas() {
+	// 	const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+	// 	const canvas = canvasRef.current;
+	// 	const context = canvas?.getContext("2d");
+
+	// 	if (isMobile && canvas && context) {
+	// 		canvas.style.transform = 'rotate(90deg)';
+	// 		canvas.width = window.innerHeight;
+	// 		canvas.height = window.innerWidth;
+	// 		context.translate(canvas.height, 0);
+	// 		context.rotate(Math.PI / 2);
+	// 	} else {
+	// 		// if (canvas && context) {
+
+	// 		// 	canvas.style.transform = 'none';
+	// 		// 	canvas.width = 500; // Set your desired width
+	// 		// 	canvas.height = 500; // Set your desired height
+	// 		// 	context.setTransform(1, 0, 0, 1, 0, 0);
+	// 		// }
+	// 	}
+
+	// 	// Your drawing code goes here
+	// }
+
 	useEffect(() => {
 		const canvas = canvasRef.current;
 		const context = canvas?.getContext("2d");
 		if (canvas && context) {
+
 			const clearCanvas = () => {
 				context.fillStyle = "#0F1019";
 				context.fillRect(0, 0, canvas.width, canvas.height);
@@ -143,10 +227,10 @@ const PongGame = ({
 				context.fill();
 			};
 
-			const drawBall = (x: number, y: number) => {
+			const drawBall = (x: number, y: number, raduis: number) => {
 				context.fillStyle = "white";
 				context.beginPath();
-				context.arc(x, y, 10, 0, Math.PI * 2);
+				context.arc(x, y, raduis, 0, Math.PI * 2);
 				context.closePath();
 				context.fill();
 			};
@@ -157,7 +241,7 @@ const PongGame = ({
 					drawRect(canvas.width / 2 - 1, i, 2, 8, 5);
 					i += 12;
 				}
-				drawBall(ball.x, ball.y);
+				drawBall(ball.x, ball.y, ball.radius);
 				drawRect(
 					playerA.x,
 					playerA.y,
@@ -182,9 +266,9 @@ const PongGame = ({
 		<div ref={ref} className="flex w-full items-center  justify-center">
 			<canvas
 				ref={canvasRef}
-				width={650}
-				height={480}
-				className="rounded-lg bg-secondary-800"
+				width={450}
+				height={280}
+				className="rounded-lg bg-secondary-800 transform rotate-90"
 			/>
 		</div>
 	);
@@ -212,6 +296,7 @@ export default function Pong() {
 		x: 650 / 2,
 		y: 480 / 2,
 		speed: 0,
+		radius: 10,
 		velocity: {
 			x: 0,
 			y: 0,

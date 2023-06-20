@@ -43,12 +43,16 @@ export class PongGateway {
           x: data.playerA.x,
           y: data.playerA.y,
           score: data.playerA.score,
+          width: data.playerA.width,
+          height: data.playerA.height,
         });
         client.emit('update-player-b', {
           id: data.playerB.id,
           x: data.playerB.x,
           y: data.playerB.y,
           score: data.playerB.score,
+          width: data.playerB.width,
+          height: data.playerB.height,
         });
       }
     } catch (err) {

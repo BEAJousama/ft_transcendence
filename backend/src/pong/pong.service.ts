@@ -15,7 +15,7 @@ class Canvas {
 class Ball {
   public x: number;
   public y: number;
-  public radius: number = 10;
+  public radius: number;
   public speed: number;
   public velocity: {
     x: number;
@@ -25,6 +25,7 @@ class Ball {
     this.x = canvas.width / 2;
     this.y = canvas.height / 2;
     this.speed = 10;
+    this.radius = 10;
     this.velocity = {
       x: 2,
       y: 2,
