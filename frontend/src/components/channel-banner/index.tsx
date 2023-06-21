@@ -1,6 +1,14 @@
 import { useMedia } from "react-use";
 import Avatar from "../avatar";
 import clsx from "clsx";
+import Button from "../button";
+import { AppContext } from "../../context/app.context";
+import { useContext, useState } from "react";
+import { ChatContext } from "../../context/chat.context";
+import Modal from "../modal";
+import Card from "../card";
+import Input from "../input";
+import { Link } from "react-router-dom";
 
 const ChannelBanner = ({
     showRank,
@@ -14,6 +22,18 @@ const ChannelBanner = ({
     channel?: any;
 }) => {
     const isMatch = useMedia("(max-width: 530px)");
+    const {user} = useContext(AppContext);
+    const  socket= useContext(ChatContext);
+    const [password, setPassword] = useState("");
+    const [showModal, setshowModal] = useState(false);
+
+    const handleJoin = () => {
+        if (channel.visiblity === "PROTECTED") {
+            setshowModal(true);
+        } else 
+            socket?.emit("channel_join", {channelId: channel.id, userId: user?.id});
+    }
+
     return (
         <div className="my-3 flex h-12 w-full items-center gap-2 justify-between rounded-full bg-tertiary-500">
             <Avatar
@@ -45,7 +65,43 @@ const ChannelBanner = ({
                     {channel.name || ""}
                 </span>
             </div>
-            <div
+            {
+                !channel.channelMembers?.map((item: any) => item.userId).includes(user?.id) &&
+                <Button
+                    className="h-8 w-20 bg-primary-500 text-white text-xs rounded-full mr-4"
+                    onClick={handleJoin}
+                >
+                    <span className="text-xs">Join</span>
+                </Button>
+            }
+            { showModal && (
+                <Card
+                    setShowModal={setshowModal}
+                    className="z-10 bg-secondary-800 
+                    border-none flex flex-col items-center justify-start shadow-lg shadow-secondary-500 gap-4 text-white min-w-[90%]
+                     lg:min-w-[40%] xl:min-w-[800px] animate-jump-in animate-ease-out animate-duration-400"
+                >
+                    <span className="text-xs">This channel is protected</span>
+                    <Input
+                        className="h-[40px] rounded-md border-2 border-primary-500 text-white text-xs bg-transparent"
+                        type="text"
+                        placeholder="Enter Password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        />
+                    <Button
+                        className="h-8 w-20 bg-primary-500 text-white text-xs rounded-full mr-4"
+                        onClick={() => {
+                            socket?.emit("channel_join", {channelId: channel.id, userId: user?.id, password: password});
+                            setshowModal(false);
+                        }}
+                        >
+                        <span className="text-xs">Join</span>
+                    </Button>
+                </Card>
+                )
+                }
+            {/* <div
                 className={clsx(
                     "flex items-center gap-2 pr-8 text-xs text-white",
                     (isMatch || !showRating) && "hidden"
@@ -53,7 +109,7 @@ const ChannelBanner = ({
             >
                 {channel?.rating}
                 <img src="/img/smalllogo.svg" alt="logo" width={20} />
-            </div>
+            </div> */}
         </div>
     );
 };

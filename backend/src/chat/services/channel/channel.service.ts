@@ -576,13 +576,16 @@ export class ChannelService {
         password?: string,) : Promise<ChannelMember>
     {
         const channel = await this.getChannelById(channelId);
+        console.log("join channel12");
         if (!channel) 
-          throw new Error('Channel does not exist');
+        throw new Error('Channel does not exist');
+        console.log("join channel13");
         if (channel.visiblity === Visiblity.PROTECTED &&
-        !(await this.verifyPassword(password, channel.password))
-        )
+          !(await this.verifyPassword(password, channel.password))
+          )
           throw new Error('Incorrect Channel password');
-
+          
+          console.log("join channel1");
         const exists: ChannelMember = await this.getchannelMemberByUserIdAndChannelId(
         userId,
         channelId,
@@ -601,6 +604,18 @@ export class ChannelService {
                     role: Role.MEMEBER,
                 },
             });
+            await this.prisma.channel.update({
+            where: {
+                id: channelId,
+            },
+            data: {
+              kickedUsers: {
+                disconnect: {
+                  id: userId,
+                },
+              },
+            },
+            });
             return channelMember;
         }
 
@@ -611,6 +626,7 @@ export class ChannelService {
             userId,
         },
         });
+
         return channelMember;
     }
 
@@ -1382,13 +1398,15 @@ async unmuteChannel(
         userId: number,
         channelId: number,
         ): Promise<ChannelMember> {
-        const channelMember = await this.prisma.channelMember.findFirst({
+        const channelMember = await this.prisma.channelMember.findUnique({
             where: {
-            userId,
-            channelId,
+            userId_channelId: {
+                userId,
+                channelId,
+            },
             },
         });
-        if (!channelMember) throw new Error('Channel member does not exist');
+        if (!channelMember) return null;
         return channelMember;
   }
 

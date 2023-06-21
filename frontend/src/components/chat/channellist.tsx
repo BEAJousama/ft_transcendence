@@ -31,41 +31,23 @@ const ChannelList = ({className, setShowModal, setCurrentChannel, setChannelMemb
     }
     socket?.on('channel_leave', (channels: any) => {
       setCurrentChannel();
-      // setChannels(channels);
     });
-
+  
     socket?.on('channel_delete', (channels: any) => {
       setCurrentChannel();
-      // setChannels(channels);
     });
-
-    socket?.on('search_channel', (channels: any) => {
-      setChannels(channels);
-    }
-    );
     socket?.on("connect_user", (data: any) => {
       setUser(data);
     }
     );
     //eslint-disable-next-line
   }, [channels, socket]);
+
   
   const getuserChannels = async (id: any) => {
-    // prefer getting it through http 
-    // try {
-      //     fetch("http://:3000/api/channel/channels/1").then((res) => {
-        //         res.json().then((data) => {
-          //             setChannels(data);
-    //           });
-    //         });
-    // } catch (error) {
-      //     console.log(error);
-      // }
       try {
         socket?.emit('getChannels', {user: {id}});
         socket?.on('getChannels', (channels: any) => {   
-        // sort the channels by last updated
-        //update the name of channels if type is conversation
         channels.forEach((channel: any) => {
           if (channel.type === "CONVERSATION") {
               channel.name = channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.username;
@@ -76,7 +58,6 @@ const ChannelList = ({className, setShowModal, setCurrentChannel, setChannelMemb
           if (a.updatedAt < b.updatedAt) return 1;
           else return -1;
         });
-
         setChannels(channels);
       }
       );

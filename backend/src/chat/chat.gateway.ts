@@ -16,7 +16,7 @@ import { DmService } from './services/dm/dm.service';
 import { ChannelService } from './services/channel/channel.service';
 import { MessageService } from './services/message/message.service';
 import { ChannelDto, DmDto, MessageDto } from './dto';
-import { MemberStatus } from '@prisma/client';
+import { ChannelType, MemberStatus, Visiblity } from '@prisma/client';
 import { UsersService } from 'src/users/users.service';
 import * as EVENT from  "./utils/"
 
@@ -189,6 +189,47 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect  {
     {
       throw new WsException({
         error: EVENT.GET_CH_MEMBER,
+        message: err.message,
+      });
+    }
+  }
+
+  @SubscribeMessage(EVENT.CHANNEL_JOIN)
+  async joinChannel(client: Socket, payload: any) {
+    try
+    {
+      let ch ;
+      const channel = await this.channelService.getChannelById(payload.channelId);
+      if (!channel || channel.type === ChannelType.CONVERSATION)
+      {
+        throw new WsException({
+          error: EVENT.CHANNEL_JOIN,
+          message: 'Channel does not exist',
+        });
+      }
+      if (channel.visiblity === Visiblity.PRIVATE || channel.visiblity === Visiblity.PROTECTED )
+      ch = await this.channelService.JoinChannel(client.data.sub, payload.channelId, payload.password);
+      else
+      ch = await this.channelService.JoinChannel(client.data.sub, payload.channelId);
+      if (!ch)
+      {
+        throw new WsException({
+          error: EVENT.CHANNEL_JOIN,
+          message: 'Cannot join channel',
+        });
+      }
+      let sockets = this.getConnectedUsers(client.data.sub);
+      if (!sockets || sockets.length === 0) return;
+      sockets.forEach((s) => {
+        s.join(payload.channelId.toString());
+        this.server.to(s.id).emit(EVENT.CHANNEL_JOIN, channel);
+      }
+    
+    )}
+    catch (err)
+    {
+      throw new WsException({
+        error: EVENT.CHANNEL_JOIN,
         message: err.message,
       });
     }

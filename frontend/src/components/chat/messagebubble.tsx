@@ -20,6 +20,7 @@ import { channel } from "diagnostics_channel";
 import UpdateAvatar from "../update-avatar";
 import { Chat } from "../../pages";
 import { ChatContext } from "../../context/chat.context";
+import  Spinner  from "../spinner";
 import clsx from "clsx";
 
 const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {className?: string, setOpen: any, currentChannel: any, channelMember: any}) => {
@@ -33,6 +34,7 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
   let [previewImage, setPreviewImage] = useState<string>(currentChannel?.avatar || "");
   let [groupName, setGroupName] = useState(currentChannel?.name || "");
   const [password, setPassword] = useState<string>("");
+  const [spinner, setSpinner] = useState(true);
   // const []
   // const [state, setState] = useState({
   //   value: "",
@@ -71,6 +73,7 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
     socket?.emit("getChannelMessages", {channelId : currentChannel.id, user: {id: user?.id}});
     socket?.on("getChannelMessages", (message: any) => {
       setMessages(message);
+      setSpinner(false);
     });
     socket?.on("messsage", (message: any) => {
       const sortedMessages = [...messages, message].sort((a, b) => {
@@ -128,26 +131,36 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
           <BiLeftArrow />
         </Button>
       </Button>
+      
+      {
+      !spinner ?
       <div className="mb-2 flex h-full flex-col  justify-end gap-2 z-[0] px-[10px] ">
         {
-          messages?.map((message) => {
+          messages?.map((message, index) => {
             return (
-              <div key={message.id}>
+              <div key={message.id} className={`transition-all duration-500 transform ${index > 0 ? 'translate-y-2' : ''}`}>
             {new Date(message.date).getDay() !== new Date(messages[messages.indexOf(message) - 1]?.date).getDay() && (
               <Divider center title={ 
                 //check if date is less than 10, if so add a 0 in front of it
                 `${  new Date(message.date).getDate() < 10 ? '0' + new Date(message.date).getDate() : new Date(message.date).getDate()}-${ new Date(message.date).getMonth() < 12 ? '0' + (new Date(message.date).getMonth() + 1) : new Date(message.date).getMonth() + 1}-${new Date(message.date).getFullYear()}`}/>
                 )}
-            <MessageBox
-            autoScroll={autoScroll}
-            key={message.id}
-            message={message}
-            right={(message.senderId === user?.id)} 
-            />          
+              <MessageBox
+              autoScroll={autoScroll}
+              key={message.id}
+              message={message}
+              right={(message.senderId === user?.id)} 
+              />          
             </div>
           )
         })}
-      </div>      
+      </div>
+      : 
+      <div className="mb-2 flex h-full flex-col  justify-end gap-2 z-[0] px-[10px] ">
+        <div className="flex justify-center items-center h-full">
+          <Spinner/>
+        </div>
+      </div>
+      }
       <div className="absolute sticky bottom-0 flex w-full  items-center bg-secondary-700 p-1 ">
         <Button
           variant="text"
@@ -233,18 +246,8 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
                 }
               />
               <Select label= "Visibility" setVisibility={setVisibility} options={["PUBLIC", "PRIVATE", "PROTECTED"]} value={currentChannel.visiblity} />
-              {visibility === "PRIVATE" ? ( 
-                <Input label="Password [optional]" placeholder="*****************" type="password"
-                value={password}
-                onChange={
-                  (event) => {
-                    const { value } = event.target;
-                    setPassword(value);
-                  }
-                }
-                />
-              ) : 
-              visibility === "PROTECTED" ? (
+              { 
+                visibility === "PROTECTED" && (
                 <Input label="Password [required]" placeholder="*****************" type="password"
                 value={password}
                 onChange={
@@ -254,7 +257,7 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
                   }
                 }
                 />
-              ) : null
+              )
               }
 
             <div className="w-full h[100px] flex items-center justify-center flex-col align-middle gap-2 pt-2 overflow-y-scroll scrollbar-hide">

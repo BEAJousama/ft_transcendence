@@ -1,12 +1,10 @@
-import { Input, Spinner, UserBanner } from "../../components";
+import { ChatBanner, Input, Spinner, UserBanner } from "../../components";
 import useSWR from "swr";
-import { AppContext, fetcher } from "../../context/app.context";
+import { fetcher } from "../../context/app.context";
 import Layout from "../layout";
-import { useContext, useEffect, useState } from "react";
-import axios from "axios";
+import { useEffect, useState } from "react";
 import IUser from "../../interfaces/user";
 import { Link } from "react-router-dom";
-import ChannelBanner from "../../components/channel-banner";
 
 // const {user} = useContext(AppContext);
 
@@ -63,8 +61,9 @@ export default function Search() {
   const [value, setValue] = useState<string>("");
   const [selected, setSelected] = useState<string>("api/users");
   const [filtred, setFiltred] = useState<IUser[]>();
-  const { data: users, isLoading } = useSWR(selected, fetcher, {
+  let { data: users, isLoading } = useSWR(selected, fetcher, {
     errorRetryCount: 0,
+    timeout : 1000
   });
 
 
@@ -75,8 +74,10 @@ export default function Search() {
     {
       if (selected === "api/users")
         setFiltred(users.filter((item: IUser) => item.fullname.toLowerCase().includes(value.toLowerCase())))
-        else if (selected === "api/channels")
+      else if (selected === "api/channels")
+      {
         setFiltred(users.filter((item: any) => item.name.toLowerCase().includes(value.toLowerCase())))
+      }
     }
     else
       setFiltred(users)
@@ -120,14 +121,12 @@ export default function Search() {
                     />
                   </Link>
                   :
-                  <Link to={`/chat`} className="w-full">
-                    <ChannelBanner
+                    <ChatBanner
                       key={item.id}
                       channel={item}
                       showRating
                       rank={item.rating}
                     />
-                    </Link>
                 );
               })
             ) : <div className="h-[500px] flex items-center justify-center text-2xl text-primary-500">

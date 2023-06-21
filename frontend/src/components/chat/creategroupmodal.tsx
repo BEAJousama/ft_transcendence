@@ -125,23 +125,6 @@ const CreateGroupModal = ({
               </>
             )
           }
-          {
-            (visibility === "PRIVATE") && (
-              <>
-              <span className="w-full mb-2 text-sm font-medium text-gray-900 dark:text-white">Enter password: </span>
-              <Input
-                label="Password [Optional]"
-                type="password"
-                placeholder="********************"
-                value={password}
-                onChange={(e) => {
-                  const { value } = e.target;
-                  setPassword(value);
-                }}
-              />
-              </>
-            )
-          }
 
           </>
         ) : (
