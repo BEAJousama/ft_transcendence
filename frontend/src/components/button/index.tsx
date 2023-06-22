@@ -23,7 +23,7 @@ const Button = ({
     return (
       <button
         className={clsx(
-          `flex w-full items-center gap-4 rounded border border-primary-800 px-4 py-2 font-bold text-primary-800`,
+          `flex items-center gap-4 rounded border border-primary-800 px-4 py-2 font-bold text-primary-800`,
           array?.length == 1 && "justify-center",
           className && className
         )}

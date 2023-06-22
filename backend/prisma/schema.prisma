@@ -89,7 +89,8 @@ model User {
   sentMessages          Message[]       @relation("send")
   sentRequests          Friend[]        @relation("SentRequest")
   receivedRequests      Friend[]        @relation("ReceivedRequest")
-  player                Player[]        @relation("player")
+  gamesAsPlayer1        Game[]          @relation("player1")
+  gamesAsPlayer2        Game[]          @relation("player2")
   gamesWon              Game[]          @relation("winner")
   gamesLost             Game[]          @relation("loser")
   sentNotifications     Notification[]  @relation("sent")
@@ -187,15 +188,6 @@ model Message {
   date       DateTime @default(now())
 }
 
-model Player {
-  id             Int    @id @default(autoincrement())
-  player         User   @relation("player", fields: [playerId], references: [id])
-  playerId       Int
-  gamesAsPlayer1 Game[] @relation("player1")
-  gamesAsPlayer2 Game[] @relation("player2")
-  score          String
-}
-
 enum GameStatus {
   PENDING
   IN_PROGRESS
@@ -203,18 +195,19 @@ enum GameStatus {
 }
 
 model Game {
-  id        Int        @id @default(autoincrement())
-  player1   Player     @relation("player1", fields: [player1Id], references: [id])
-  player1Id Int
-  player2   Player     @relation("player2", fields: [player2Id], references: [id])
-  player2Id Int
-  winner    User?      @relation("winner", fields: [winnerId], references: [id])
-  winnerId  Int?
-  loser     User?      @relation("loser", fields: [loserId], references: [id])
-  loserId   Int?
-  date      DateTime   @default(now())
-  duration  Int        @default(0)
-  status    GameStatus
+  id           Int        @id @default(autoincrement())
+  player1      User       @relation("player1", fields: [player1Id], references: [id])
+  player1Id    Int
+  player2      User       @relation("player2", fields: [player2Id], references: [id])
+  player2Id    Int
+  winner       User?      @relation("winner", fields: [winnerId], references: [id])
+  winnerId     Int?
+  loser        User?      @relation("loser", fields: [loserId], references: [id])
+  loserId      Int?
+  date         DateTime   @default(now())
+  player1Score Int        @default(0)
+  player2Score Int        @default(0)
+  status       GameStatus @default(IN_PROGRESS)
 }
 
 model Notification {

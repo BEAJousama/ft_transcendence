@@ -30,6 +30,14 @@ export class UsersService {
     try {
       const achievements = await this.prisma.achievement.findMany();
       if (achievements.length === 0) {
+        await this.createUser({
+          login: 'PongMastersAi',
+          avatar: '/img/default.jpg',
+          tfaSecret: 'admin',
+          fullname: 'PongMastersAi',
+          phone: '',
+          email: 'PongMastersAi@PongMasters.pg',
+        })
         const keys = Object.keys(Achievements);
         keys.map(async (key, i) => {
           await this.prisma.achievement.create({

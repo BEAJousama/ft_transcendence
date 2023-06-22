@@ -2,7 +2,26 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import io, { Socket } from "socket.io-client";
 import { AppContext } from "./app.context";
 
-export const GameContext = createContext<Socket | null>(null);
+
+interface Ball {
+	x: number;
+	y: number;
+	speed: number;
+	radius: number;
+	velocity: {
+		x: number;
+		y: number;
+	};
+}
+
+interface Player {
+	id: number;
+	x: number;
+	y: number;
+	width: number;
+	height: number;
+	score: number;
+}
 
 enum Keys {
 	ArrowUp = "ArrowUp",
@@ -14,11 +33,82 @@ enum Keys {
 	// Space = " ",
 }
 
+export interface IGameContext {
+	socket: Socket | null;
+	playerA: Player;
+	setPlayerA: React.Dispatch<React.SetStateAction<Player>>;
+	playerB: Player;
+	setPlayerB: React.Dispatch<React.SetStateAction<Player>>;
+	ball: Ball;
+	setBall: React.Dispatch<React.SetStateAction<Ball>>;
+}
+
+export const GameContext = createContext<IGameContext>({
+	socket: null,
+	playerA: {
+		id: 0,
+		x: 0,
+		y: 0,
+		width: 0,
+		height: 0,
+		score: 0,
+	},
+	setPlayerA: () => { },
+	playerB: {
+		id: 0,
+		x: 0,
+		y: 0,
+		width: 0,
+		height: 0,
+		score: 0,
+	},
+	setPlayerB: () => { },
+	ball: {
+		x: 0,
+		y: 0,
+		speed: 0,
+		radius: 0,
+		velocity: {
+			x: 0,
+			y: 0,
+		},
+	},
+	setBall: () => { },
+});
+
+
 export default function SocketProvider({
 	children,
 }: {
 	children: React.ReactNode;
 }) {
+	const [playerA, setPlayerA] = useState<Player>({
+		id: 0,
+		x: 0,
+		y: 175,
+		width: 10,
+		height: 96,
+		score: 0,
+	});
+
+	const [playerB, setPlayerB] = useState<Player>({
+		id: 0,
+		x: 640,
+		y: 175,
+		width: 10,
+		height: 96,
+		score: 0,
+	});
+	const [ball, setBall] = useState<Ball>({
+		x: 650 / 2,
+		y: 480 / 2,
+		speed: 0,
+		radius: 10,
+		velocity: {
+			x: 0,
+			y: 0,
+		},
+	});
 	const { user } = useContext(AppContext);
 
 	const [socket, setSocket] = useState<Socket | null>(null);
@@ -75,8 +165,18 @@ export default function SocketProvider({
 		};
 	}, [socket, user]);
 
+	const gameContextValue: IGameContext = {
+		socket,
+		playerA,
+		playerB,
+		ball,
+		setPlayerA,
+		setPlayerB,
+		setBall,
+	}
+
 	return (
-		<GameContext.Provider value={socket}>
+		<GameContext.Provider value={gameContextValue}>
 			{children}
 		</GameContext.Provider>
 	);

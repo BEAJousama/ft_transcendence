@@ -1,4 +1,4 @@
-import { Avatar, Button, ConfirmationModal, JoinGameCard, Sidepanel } from "../../components";
+import { Avatar, Button, Card, ConfirmationModal, Divider, GameBanner, Input, JoinGameCard, Sidepanel, Spinner } from "../../components";
 import { useMeasure } from "react-use";
 import React, { useContext, useEffect, useRef, useState } from "react";
 import { GameContext } from "../../context/game.context";
@@ -45,7 +45,7 @@ const ScoreBoard = ({ id, score }: { id: number; score: number }) => {
 			<Avatar
 				src={user?.avatar || "/img/default.jpg"}
 				alt="logo"
-				className="!h-20 !w-20"
+				className="!md:h-20 !md:w-20"
 			/>
 			<span>{score}</span>
 		</div>
@@ -71,18 +71,18 @@ const PongGame = ({
 	setShow: React.Dispatch<React.SetStateAction<boolean>>;
 	setWinnerId: React.Dispatch<React.SetStateAction<number>>;
 }) => {
-	const socket = useContext(GameContext);
+	const { socket } = useContext(GameContext);
 	const { user } = useContext(AppContext);
-
-
+	const [widthScaleFactor, setWidthScaleFactor] = useState<number>((window.innerWidth * 0.8) / 650)
+	const [heightScaleFactor, setHeightScaleFactor] = useState<number>((window.innerHeight * 0.4) / 480)
 
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 	const [ref, { width: canvasWidth, height: canvasHeight }] =
 		useMeasure<HTMLDivElement>();
 
 	useEffect(() => {
-		const widthScaleFactor = 450 / 650;
-		const heightScaleFactor = 280 / 480;
+		// const widthScaleFactor = (window.innerWidth * 0.8) / 650;
+		// const heightScaleFactor = (window.innerHeight * 0.4) / 480;
 		const id = setInterval(() => {
 			socket?.emit("update", {
 				userId: user?.id,
@@ -109,10 +109,6 @@ const PongGame = ({
 		});
 
 		socket?.on("update-player-a", (data: any) => {
-			// Convert the received positions and dimensions to frontend coordinates
-
-
-			// Update player A position with the scaled values
 			setPlayerA((prev) => {
 				const scaledData = {
 					...data,
@@ -126,10 +122,6 @@ const PongGame = ({
 		});
 
 		socket?.on("update-player-b", (data: any) => {
-			// Convert the received positions and dimensions to frontend coordinates
-
-
-			// Update player B position with the scaled values
 			setPlayerB((prev) => {
 				const scaledData = {
 					...data,
@@ -142,66 +134,27 @@ const PongGame = ({
 			});
 		});
 
-		// socket?.on("update", (data: any) => {
-		// 	data.x =
-		// 		data.y =
-		// 		setBall(data);
-		// });
-		// socket?.on(
-		// 	"update-player-a",
-		// 	(data: any) => {
-		// 		// (data: { x: number; y: number; score: number }) => {
-		// 		setPlayerA((prev) => {
-		// 			return { ...prev, ...data };
-		// 		});
-		// 	}
-		// );
-		// socket?.on(
-		// 	"update-player-b",
-		// 	// (data: { x: number; y: number; score: number }) => {
-		// 	(data: any) => {
-		// 		setPlayerB((prev) => {
-		// 			return { ...prev, ...data };
-		// 		});
-		// 	}
-		// );
-
 		socket?.on("game-over", (data: { winner: number }) => {
-			//setShow(false)
 			setShow(false);
 			setWinnerId(data.winner);
 		});
 
-
 		socket?.on("disconnect", () => clearInterval(id));
 
 		return () => clearInterval(id);
-	}, [canvasWidth, canvasHeight]);
+	}, []);
 
 
-	// function rotateCanvas() {
-	// 	const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-	// 	const canvas = canvasRef.current;
-	// 	const context = canvas?.getContext("2d");
+	useEffect(() => {
+		// (window.innerWidth * 0.8) / 650
+		// 	(window.innerHeight * 0.4) / 480
 
-	// 	if (isMobile && canvas && context) {
-	// 		canvas.style.transform = 'rotate(90deg)';
-	// 		canvas.width = window.innerHeight;
-	// 		canvas.height = window.innerWidth;
-	// 		context.translate(canvas.height, 0);
-	// 		context.rotate(Math.PI / 2);
-	// 	} else {
-	// 		// if (canvas && context) {
-
-	// 		// 	canvas.style.transform = 'none';
-	// 		// 	canvas.width = 500; // Set your desired width
-	// 		// 	canvas.height = 500; // Set your desired height
-	// 		// 	context.setTransform(1, 0, 0, 1, 0, 0);
-	// 		// }
-	// 	}
-
-	// 	// Your drawing code goes here
-	// }
+		const canvas = canvasRef.current;
+		if (!canvas) return
+		setWidthScaleFactor(canvas.width / 650)
+		setHeightScaleFactor(canvas.height / 480)
+		console.log(canvasHeight, canvasWidth)
+	}, [canvasHeight, canvasWidth]);
 
 	useEffect(() => {
 		const canvas = canvasRef.current;
@@ -250,7 +203,8 @@ const PongGame = ({
 					[0, 5, 5, 0]
 				);
 				drawRect(
-					playerB.x,
+					// playerB.x,
+					canvas.width - playerB.width,
 					playerB.y,
 					playerB.width,
 					playerB.height,
@@ -260,93 +214,144 @@ const PongGame = ({
 
 			renderGame();
 		}
-	}, [playerA, playerB, ball]);
+	}, [playerA, playerB, ball, canvasHeight, canvasWidth, widthScaleFactor, heightScaleFactor]);
 
 	return (
-		<div ref={ref} className="flex w-full items-center  justify-center">
+		<div ref={ref} className="flex w-full items-center justify-center">
 			<canvas
 				ref={canvasRef}
-				width={450}
-				height={280}
-				className="rounded-lg bg-secondary-800 transform rotate-90"
+				width={window.innerWidth * 0.8}
+				height={window.innerHeight * 0.4}
+				className="rounded-lg bg-secondary-800 transform rotate-90 md:rotate-0"
 			/>
 		</div>
 	);
 };
 
-export default function Pong() {
-	const [playerA, setPlayerA] = useState<Player>({
-		id: 0,
-		x: 0,
-		y: 175,
-		width: 10,
-		height: 96,
-		score: 0,
-	});
+const RadioCheck = ({ options, label, htmlFor }: {
+	label?: string;
+	htmlFor?: string
+	options: string[]
+}) => {
+	return (
+		<div className="flex flex-col gap-2 w-full items-center pt-2">
+			<div className="text-white">{label}</div>
+			<ul>
+				{options.map((option: string) => {
+					return (
+						<div className="flex items-center">
+							<input checked id={htmlFor} type="radio" value="" name={htmlFor} className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300ring-offset-gray-800 focus:ring-2 " />
+							<label htmlFor={htmlFor} className="ml-2 text-sm font-medium ">{option}</label>
+						</div>
+					)
+				})}
+			</ul>
+		</div>
+	)
+}
 
-	const [playerB, setPlayerB] = useState<Player>({
-		id: 0,
-		x: 640,
-		y: 175,
-		width: 10,
-		height: 96,
-		score: 0,
-	});
-	const [ball, setBall] = useState<Ball>({
-		x: 650 / 2,
-		y: 480 / 2,
-		speed: 0,
-		radius: 10,
-		velocity: {
-			x: 0,
-			y: 0,
-		},
-	});
+const InviteFriend = () => {
+	return (
+		<Card className="text-white flex flex-col gap-4 items-center divide-y text-gray-400 !md:max-w-lg  bg-gradient-to-tr from-secondary-500 to-secondary-800">
+			<h1 className="text-xl text-center text-white">Invite Your Friends to Play</h1>
+			<RadioCheck htmlFor="gamemode" label="Select Game Mode" options={["Normal Mode", "Ranked Mode", "survival Mode"]} />
+			<RadioCheck htmlFor="gameoption" label="Select Game Options" options={["Classic", "Power Ups"]} />
+		</Card>
+	)
+}
+
+export default function Pong() {
 
 	const [show, setShow] = useState<boolean>(false);
+	const [showLoading, setShowLoading] = useState<boolean>(false);
 	const [winnerId, setWinnerId] = useState<number>(0);
-	const socket = useContext(GameContext);
+	const { socket, playerA,
+		setPlayerA,
+		playerB,
+		setPlayerB,
+		ball,
+		setBall, } = useContext(GameContext);
+	const { user } = useContext(AppContext)
 
 	useEffect(() => {
 		if (!socket) return;
 		socket.on("init-game", () => {
 			setShow(true);
-			console.log("starting the fucking game : => ");
 		});
 	}, [socket]);
 
 	return (
-		<Layout className="flex flex-col items-center justify-center gap-8 p-4">
-			{!show && winnerId === 0 ? (
-				<JoinGameCard />
-			) : winnerId !== 0 ? (
-				<>
-					<Modal>
-						<ScoreBoard id={winnerId} score={7} />
-						<Button onClick={() => {
-							setWinnerId(0)
-						}}>
-							close
+		<Layout className="grid place-items-center gap-8 p-4">
+			{!show ? (
+				<div className="grid lg:grid-cols-2 grid-rows-1 place-items-center w-full max-w-[1024px] gap-8">
+					<Card className="text-white flex flex-col gap-4 items-center text-gray-400 w-full !max-w-md  bg-gradient-to-tr from-secondary-500 to-secondary-800">
+						<h1 className="text-xl text-center text-white">Invite Your Friends to Play</h1>
+						<RadioCheck htmlFor="gamemode" label="Select Game Mode" options={["Normal Mode", "Ranked Mode", "survival Mode"]} />
+						<RadioCheck htmlFor="gameoption" label="Select Game Options" options={["Classic", "Power Ups"]} />
+						<Button className="px-16" disabled={show}>
+							Invite
 						</Button>
-					</Modal>
-				</>
-			) : (
-				<>
-					<div className="flex w-full max-w-[650px] items-center justify-between">
-						<ScoreBoard id={playerA.id} score={playerA.score} />
-						<ScoreBoard id={playerB.id} score={playerB.score} />
-					</div>
-					<PongGame
-						playerA={playerA}
-						setPlayerA={setPlayerA}
-						playerB={playerB}
-						setPlayerB={setPlayerB}
-						ball={ball}
-						setBall={setBall}
-						setShow={setShow}
-						setWinnerId={setWinnerId}
-					/>
-				</>
+					</Card>
+					<Card className="text-white flex flex-col gap-4 items-center text-gray-400 w-full !max-w-md  bg-gradient-to-tr from-secondary-500 to-secondary-800">
+						<h1 className="text-xl text-center text-white">Play Against Ai</h1>
+						<img src="/img/3839218-removebg-preview.png" alt="" width={200} />
+						<Button className="px-16" disabled={show} onClick={() => {
+							socket?.emit("play-with-ai", {
+								userId: user?.id,
+							})
+						}}>
+							Play Now
+						</Button>
+					</Card>
+					<Card className="text-white relative overflow-hidden flex flex-col gap-4 items-center text-gray-400 w-full !max-w-md  bg-gradient-to-tr from-secondary-500 to-secondary-800">
+						<h1 className="text-xl text-center text-white">Play Against Random Users</h1>
+						<RadioCheck htmlFor="gamemode" label="Select Game Mode" options={["Normal Mode", "Ranked Mode", "survival Mode"]} />
+						<RadioCheck htmlFor="gameoption" label="Select Game Options" options={["Classic", "Power Ups"]} />
+						<Button className="px-16" onClick={() => {
+							socket?.emit("join-queue", {
+								userId: user?.id,
+							})
+							// setShow(true)
+							setShowLoading(true)
+						}}>
+							Join The Queue
+						</Button>
+						{
+							showLoading && (
+								<>
+									<div className="absolute inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm"></div>
+									<div role="status" className="absolute -translate-x-1/2 -translate-y-1/2 top-2/4 left-1/2
+             grid place-items-center gap-4">
+										<Spinner />
+										<p className="text-white">Waiting for opponent</p>
+										<Button onClick={() => {
+											socket?.emit("leave-queue", {
+												userId: user?.id,
+											})
+											setShow(false)
+										}}>
+											Cancel
+										</Button>
+									</div>
+								</>
+							)
+						}
+					</Card>
+					<Card className="text-white h-full max-h-[350px] overflow-auto scrollbar-hide flex flex-col gap-4 items-center text-gray-400 w-full !max-w-md  bg-gradient-to-tr from-secondary-500 to-secondary-800">
+						<h1 className="text-xl text-center text-white">Watch Live Games</h1>
+
+					</Card>
+				</div>) : (
+				<PongGame
+					playerA={playerA}
+					setPlayerA={setPlayerA}
+					playerB={playerB}
+					setPlayerB={setPlayerB}
+					ball={ball}
+					setBall={setBall}
+					setShow={setShow}
+					setWinnerId={setWinnerId}
+				/>
 			)}
 		</Layout>
 	);
