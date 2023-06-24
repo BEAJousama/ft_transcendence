@@ -1,0 +1,31 @@
+import { CgClose } from "react-icons/cg"
+import Button from "../button"
+import Avatar from "../avatar"
+import React from "react";
+import { toast } from 'react-toastify';
+import IUser from "../../interfaces/user";
+
+const Toast = ({
+    title,
+    content,
+    sender,
+}: { title: string, content: string, sender: IUser }) => {
+    const toastId = React.useRef<HTMLDivElement>(null);
+
+    return (
+        <div className="flex items-center justify-between gap-4 bg-white" role="alert" ref={toastId}>
+            <Avatar src={sender.avatar} alt="" className=" !w-12 !h-12" />
+            <div>
+                <p className="text-black">{title}</p>
+                <p className="text-xs text-tertiary-200">{content || sender.fullname}</p>
+            </div>
+            <Button variant="text" onClick={() => {
+                toast.dismiss(toastId.current?.id)
+            }}>
+                <CgClose />
+            </Button>
+        </div>
+    )
+}
+
+export default Toast

@@ -4,6 +4,7 @@ import { TbDeviceGamepad2 } from "react-icons/tb";
 import { CgProfile } from "react-icons/cg";
 import { RiListSettingsFill } from "react-icons/ri";
 import { RiLogoutBoxRLine } from "react-icons/ri";
+import { IoIosNotifications } from "react-icons/io";
 import clsx from "clsx";
 import { Link, useLocation } from "react-router-dom";
 import { BiSearch } from "react-icons/bi";
@@ -56,7 +57,7 @@ const Sidepanel = ({ className }: {
   return (
     <aside
       className={clsx(
-        "sticky flex h-screen flex-col items-center justify-between bg-secondary-800 py-4 text-secondary-300 md:py-8",
+        "sticky flex h-screen flex-col items-center justify-between bg-secondary-800 py-4 text-secondary-300 md:py-8 overflow-auto scrollbar-hide",
         className && className
       )}
     >
@@ -73,38 +74,44 @@ const Sidepanel = ({ className }: {
       <List className="flex w-full flex-col gap-2 text-lg md:gap-4 md:text-sm">
         <Link to="/">
           <ListItem selected={path === "/"}>
-            <AiFillHome />
-            <span className="hidden md:block">Home</span>
+            <AiFillHome size={18} />
+            <span className="hidden md:block text-left">Home</span>
           </ListItem>
         </Link>
         <Link to="/chat">
           <ListItem selected={path === "/chat"}>
-            <BsFillChatDotsFill />
-            <span className="hidden md:block">Chat</span>
+            <BsFillChatDotsFill size={18} />
+            <span className="hidden md:block text-left">Chat</span>
           </ListItem>
         </Link>
         <Link to="/search">
           <ListItem selected={path === "/search"}>
-            <BiSearch />
-            <span className="hidden md:block">Search</span>
+            <BiSearch size={18} />
+            <span className="hidden md:block text-left">Search</span>
           </ListItem>
         </Link>
         <Link to="/pong">
-          <ListItem selected={path === "/pong"}>
-            <TbDeviceGamepad2 />
-            <span className="hidden md:block">Pong Game</span>
+          <ListItem selected={path.includes("/pong")}>
+            <TbDeviceGamepad2 size={18} />
+            <span className="hidden md:block text-left">Pong Game</span>
+          </ListItem>
+        </Link>
+        <Link to="/notifications">
+          <ListItem selected={path === "/notifications"}>
+            <IoIosNotifications size={18} />
+            <span className="hidden md:block text-left truncate">Notifications</span>
           </ListItem>
         </Link>
         <Link to="/profile">
-          <ListItem selected={path === "/profile"}>
-            <CgProfile />
-            <span className="hidden md:block">Profile</span>
+          <ListItem selected={path.includes("/profile")}>
+            <CgProfile size={18} />
+            <span className="hidden md:block text-left">Profile</span>
           </ListItem>
         </Link>
         <Link to="/settings">
           <ListItem selected={path === "/settings"}>
-            <RiListSettingsFill />
-            <span className="hidden md:block">Settings</span>
+            <RiListSettingsFill size={18} />
+            <span className="hidden md:block text-left">Settings</span>
           </ListItem>
         </Link>
       </List>
@@ -114,8 +121,8 @@ const Sidepanel = ({ className }: {
           localStorage?.removeItem("2fa_access_token");
           window.location.reload();
         }}>
-          <RiLogoutBoxRLine />
-          <span className="hidden md:block">Log Out</span>
+          <RiLogoutBoxRLine size={18} />
+          <span className="hidden md:block text-left">Log Out</span>
         </ListItem>
       </div>
     </aside>

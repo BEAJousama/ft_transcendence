@@ -14,9 +14,15 @@ import {
   UpdateUserDto,
 } from './dto';
 import Achievements from './achievements/index.tsx';
+import NotificationService from 'src/notification/notification.service';
+import { authenticator } from 'otplib';
+
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) {
+  constructor(
+    private prisma: PrismaService,
+    private notificationService: NotificationService,
+  ) {
     this.createAchievements();
   }
 
@@ -24,6 +30,14 @@ export class UsersService {
     try {
       const achievements = await this.prisma.achievement.findMany();
       if (achievements.length === 0) {
+        await this.createUser({
+          login: 'PongMastersAi',
+          avatar: '/img/default.jpg',
+          tfaSecret: 'admin',
+          fullname: 'PongMastersAi',
+          phone: '',
+          email: 'PongMastersAi@PongMasters.pg',
+        })
         const keys = Object.keys(Achievements);
         keys.map(async (key, i) => {
           await this.prisma.achievement.create({
@@ -40,10 +54,36 @@ export class UsersService {
     }
   }
 
+  async findOrCreateUser(data : {
+    login:string,
+    avatar:string,
+    fullname:string,
+    phone:string,
+    email:string,
+  }) {
+    try {
+      let user: User = await this.findUserByLogin(data.login);
+      if (!user) {
+        const secret = authenticator.generateSecret();
+        user = await this.createUser({
+          login: data.login,
+          avatar: data.avatar,
+          tfaSecret: secret,
+          fullname: data.fullname,
+          phone: data.phone,
+          email: data.email,
+        });
+      }
+      return user;
+    } catch (error) {
+      throw new InternalServerErrorException();
+    }
+  }
+
   async getAllAchievements() {
     try {
       const achievements = await this.prisma.achievement.findMany();
-      // console.log(achievements.length);
+
       return achievements;
     } catch (error) {}
   }
@@ -61,7 +101,6 @@ export class UsersService {
         },
       });
     } catch (error) {
-      // console.log(error);
       throw new NotFoundException('user or Achievement Not Found');
     }
   }
@@ -93,7 +132,6 @@ export class UsersService {
       return user;
     } catch (error) {
       if (error?.code === 'P2002') {
-        console.log(error.meta);
         throw new BadRequestException(
           `${error.meta?.target?.toString()} already exists`,
         );
@@ -192,6 +230,14 @@ export class UsersService {
           receiverId,
         },
       });
+      this.notificationService.sendNotification(
+        senderId,
+        receiverId,
+        'Friend Request',
+        '',
+        receiverId,
+        `/profile/${senderId}`,
+      );
       return request;
     } catch (error) {
       throw new InternalServerErrorException('Failed to send friend request');
@@ -208,6 +254,15 @@ export class UsersService {
           status: 'ACCEPTED',
         },
       });
+
+      this.notificationService.sendNotification(
+        request.senderId,
+        request.receiverId,
+        'Friend Request Accepted',
+        '',
+        request.senderId,
+        '/notifications/',
+      );
       return request;
     } catch (error) {
       throw new InternalServerErrorException('Failed to accept friend request');
@@ -253,7 +308,6 @@ export class UsersService {
 
   async getFriendRequest({ senderId, receiverId }) {
     try {
-      // console.log(senderId, receiverId);
       const request = await this.prisma.friend.findMany({
         where: {
           OR: [

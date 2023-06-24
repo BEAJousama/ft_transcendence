@@ -92,6 +92,8 @@ export class DeleteUserDto {
 
 export class UpdateUserDto {
   @IsNotEmpty()
-  @IsNumber()
+  @ApiProperty({
+    description: 'The user object to update',
+  })
   user: UserDto;
 }

@@ -1,6 +1,7 @@
 import axios from "axios";
 import React, { useCallback, useEffect, useState } from "react";
 import IUser from "../interfaces/user";
+import { ToastContainer, toast } from 'react-toastify';
 
 export interface IAppContext {
   user: IUser | undefined;
@@ -41,7 +42,8 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       setIsLoading(true);
       const data = await fetcher("api/auth/42");
-      setIsAuthenticated(true);
+      if (data)
+        setIsAuthenticated(true);
       setData(data);
     } catch (error) {
       setIsAuthenticated(false);
@@ -76,6 +78,7 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
     fetchUser,
     updateUser,
   };
+
 
   return (
     <AppContext.Provider value={appContextValue}>

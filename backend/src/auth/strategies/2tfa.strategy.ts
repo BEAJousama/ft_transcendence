@@ -1,11 +1,13 @@
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { Request } from 'express';
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class Jwt2faStrategy extends PassportStrategy(Strategy, 'jwt-2fa') {
-  constructor() {
+  constructor(@Inject(UsersService)
+    private readonly usersService: UsersService,) {
     super({
       jwtFromRequest: (req: Request) => {
         const authorizationHeader = req.headers.authorization;
