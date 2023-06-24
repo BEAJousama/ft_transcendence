@@ -1,6 +1,10 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import io, { Socket } from "socket.io-client";
 import { AppContext } from "./app.context";
+import { toast } from "react-toastify";
+import { Toast } from "../components";
+import { Link } from "react-router-dom";
+import { INotification } from "./socket.context";
 
 export const ChatContext = createContext<Socket | null>(null);
 
@@ -14,7 +18,6 @@ export  default function ChatProvider ({
 
     useEffect(() => {
         if (!user) return;
-        // const newSocket = io(`http://e2r2p14.1337.ma:3000/notification`, {
         const newSocket = io(`${process.env.REACT_APP_BACK_END_URL}chat`, {
             query: {
                 clientId: user?.id,
@@ -26,6 +29,22 @@ export  default function ChatProvider ({
         // console.log(newSocket)
         newSocket.on("connect", () => {
             console.log("Connected");
+        });
+        newSocket.on("notification", (data: INotification) => {
+            console.log(data);
+            if (data.sender.id === user?.id) return;
+            toast(
+                <Link to={data.url}>
+                    <Toast
+                        title={data.title}
+                        content={data.content}
+                        sender={data.sender.id === user?.id ? data.receiver : data.sender}
+                    />
+                </Link>,
+                {
+                    className: "md:w-[400px] md:right-[90px]",
+                }
+            );
         });
         setSocket(newSocket);
         return () => {

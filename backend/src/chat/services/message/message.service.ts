@@ -43,6 +43,18 @@ export class MessageService {
             console.log("Cannot create message !");
             return null;
         }
+        message = await this.prisma.message.findUnique(
+            {
+                where:{
+                    id: message.id,
+                },
+                include: {
+                    sender: true,
+                    receiver: true,
+                },
+            }
+        );
+    
         ch.channelMembers.forEach(async (member) => {
         if (member.status !== MemberStatus.BANNED && member.status !== MemberStatus.LEFT)
         {
@@ -86,7 +98,6 @@ export class MessageService {
                 id: messageId,
             },
         });
-        console.log("Message deleted !");
         return {message: "message deleted !"};
     };
 
@@ -244,18 +255,4 @@ export class MessageService {
     }
 
 
-    formatingMessage(message: any): any {
-        return {
-        id: message.id,
-        content: message.content,
-        createdAt: message.date,
-        channelId: message.receiverId,
-        channelName: message.channel.name,
-        user: {
-            id: message.channelMember.user.id,
-            username: message.channelMember.user.username,
-            avatar: message.channelMember.user.avatar,
-        },
-        };
-    }
 }

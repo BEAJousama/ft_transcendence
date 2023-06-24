@@ -20,7 +20,7 @@ export default function Notifs() {
       setChannelMember(data);
     }
     );
-    socket?.on('set_admin', (data: any) => {
+    socket?.on('current_ch_update', (data: any) => {
       setCurrentChannel(data);
     }
     );

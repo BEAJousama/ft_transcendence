@@ -6,7 +6,7 @@ import { BiLeftArrow } from "react-icons/bi";
 import { RiEdit2Fill, RiLogoutBoxRLine } from "react-icons/ri";
 import Avatar from "../avatar";
 import { useState, useRef, useContext, useEffect } from "react";
-import { useClickAway } from "react-use";
+import { useClickAway, useMedia } from "react-use";
 import Modal from "../modal";
 import data from "@emoji-mart/data";
 import Picker from "@emoji-mart/react";
@@ -22,6 +22,7 @@ import { Chat } from "../../pages";
 import { ChatContext } from "../../context/chat.context";
 import  Spinner  from "../spinner";
 import clsx from "clsx";
+import { useNavigate } from "react-router-dom";
 
 const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {className?: string, setOpen: any, currentChannel: any, channelMember: any}) => {
   const [value, setValue] = useState("");
@@ -30,11 +31,14 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
   const [showEdit, setShowEdit] = useState(false);
   const [messages, setMessages] = useState<any[]>([]);
   let [visibility, setVisibility] = useState<string>(currentChannel.visiblity);
+  const  isMatch = useMedia("(max-width:1024px)", false);
   const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
   let [previewImage, setPreviewImage] = useState<string>(currentChannel?.avatar || "");
   let [groupName, setGroupName] = useState(currentChannel?.name || "");
   const [password, setPassword] = useState<string>("");
   const [spinner, setSpinner] = useState(true);
+  const [banned, setBanned] = useState(false);
+  const navigate = useNavigate();
   // const []
   // const [state, setState] = useState({
   //   value: "",
@@ -76,10 +80,10 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
       setSpinner(false);
     });
     socket?.on("messsage", (message: any) => {
-      const sortedMessages = [...messages, message].sort((a, b) => {
-        return new Date(a.date).getTime() - new Date(b.date).getTime();
-      });
-      setMessages(sortedMessages);
+      // const sortedMessages = [...messages, message].sort((a, b) => {
+      //   return new Date(a.date).getTime() - new Date(b.date).getTime();
+      // });
+      // setMessages(sortedMessages);
       autoScroll();
     });
   }, [socket, messages, currentChannel]);
@@ -106,16 +110,20 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
 
   const handleEditChannel = () => {
     socket?.emit("channel_update", { id: currentChannel.id, name: groupName || currentChannel.name , visibility: visibility || 
-      currentChannel.visibility, password: password , avatar: previewImage || currentChannel.avatar });
+      currentChannel.visiblity, password: password , avatar: previewImage || currentChannel.avatar, members: selectedUsers });
   };
 
   return (
     <div className={clsx("relative overflow-y-auto scrollbar-hide overflow-x-hidden col-span-10 flex h-screen w-full flex-col justify-start gap-4 rounded-t-3xl bg-secondary-600 lg:col-span-5 xl:col-span-5 2xl:col-span-6", className && className)} ref={refMessage}>
       <Button
+        type="simple"
         className="flex tems-center gap-2 rounded-t-3xl top-0 mb-16 sticky bg-secondary-400 !p-2 text-white hover:bg-secondary-400 z-10"
         onClick={() => {
           if (currentChannel.type !== "CONVERSATION" && channelMember.status !== "LEFT" && channelMember.status !== "BANNED" && channelMember.status !== "MUTED") 
-          setShowModal(true);
+            setShowModal(true);
+          else if (currentChannel.type === "CONVERSATION")
+            navigate(`/profile/${currentChannel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.id}`);
+
         }}
         >
         <Avatar src={currentChannel.type !== "CONVERSATION" ? currentChannel.avatar : 
@@ -277,8 +285,6 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
                       <input
                         type="checkbox"
                         className="h-5 w-5"
-                        onClick={() => {
-                        }}
                         onChange={() => {
                           !selectedUsers.includes(u.id) ?
                             setSelectedUsers([...selectedUsers, u.id]) :
@@ -292,7 +298,6 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
           </div>    
               <div className="flex w-full items-center justify-center gap-4">
                 <Button
-                  disabled={visibility==="PROTECTED" } 
                   onClick={() => {
                     setShowEdit(false);
                     setVisibility(currentChannel.visiblity);
@@ -334,10 +339,55 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
                     name={member.user.username}
                     avatar={member.user.avatar}
                     description={member.user.status}
+                    
                   />
                 );
             })}
           </div>
+        {/* Button to show banned users */}
+          <Button
+          onClick={() => {
+            setBanned(true);
+            }
+          }
+          >
+            Show Banned Users
+          </Button>
+
+          {
+            banned && (
+              <div className="flex h-max w-full flex-col items-center gap-2 overflow-y-scroll pt-2 scrollbar-hide">
+              {currentChannel?.channelMembers?.filter((member : any) => member.status === "BANNED" ).map((member : any) => {
+                return (
+                  <>
+                  <ProfileBanner
+                      channelMember={channelMember}
+                      user={user?.id}
+                      showOptions
+                      showStatus
+                      key={member.userId}
+                      status={member.status}
+                      role={member.role}
+                      channelId={currentChannel.id}
+                      userId={member.userId}
+                      name={member.user.username}
+                      avatar={member.user.avatar}
+                      description={member.user.status}
+                      />
+                    <Button
+                      onClick={() => {
+                        // unbanUser(member.userId);
+                      }}
+                      className="w-full justify-center"
+                    >
+                      Unban
+                    </Button>
+                    </>
+                  );
+              })}
+            </div>
+            )
+          }
             
           <Button
             className="w-full justify-center"

@@ -20,6 +20,7 @@ import { BiVolumeMute } from "react-icons/bi";
 import { SocketContext } from "../../context/socket.context";
 import { stat } from "fs";
 import { ChatContext } from "../../context/chat.context";
+import { useNavigate } from "react-router-dom";
 
 const ProfileBanner = ({
   channelMember,
@@ -59,6 +60,8 @@ const ProfileBanner = ({
   const [showMenu, setShowMenu] = useState(false);
   const ref = useRef(null);
   const socket = useContext(ChatContext);
+  const navigate = useNavigate();
+  const [isMuted, setIsMuted] = useState(status === "MUTED");
 
 /* TODO: I wanna see immediate changes in the UI when I click on the button to setAsAdmin
      its not working, I have to refresh the page to see the changes
@@ -66,6 +69,22 @@ const ProfileBanner = ({
      But i can't change props in useEffect
 */
 
+  // check for mute duratin in real time
+  // useEffect(() => {
+  //   if (isMuted) {
+  //     console.log("isMuted", isMuted)
+  //     socket?.emit("check_mute", {userId, channelId});
+  //     socket?.on("check_mute", (data: any) => {
+  //       console.log("data", data)
+  //       if (data === false) {
+  //         setIsMuted(!isMuted);
+  //         // socket?.off("check_mute");
+  //         socket?.emit("unmute_user", {userId, channelId});
+  //       }
+  //     });
+  // }
+  // }, []);
+  
 
   const setAsAdmin = () => {
     socket?.emit("set_admin", {userId, channelId});
@@ -80,7 +99,7 @@ const ProfileBanner = ({
   };
 
   const muteUser = () => {
-    socket?.emit("mute_user", {userId, channelId});
+    socket?.emit("mute_user", {userId, channelId, banDuration : 10});
   };
 
   const unmuteUser = () => {
@@ -166,6 +185,15 @@ const ProfileBanner = ({
             >
               <BsPersonAdd />
               Invite To Play
+            </RightClickMenuItem>
+            <RightClickMenuItem
+              onClick={() => {
+                navigate(`/profile/${userId}`);
+                setShowMenu(false);
+              }}
+            >
+              <BsPersonAdd />
+              Go to profile
             </RightClickMenuItem>
             {((channelMember.role === "ADMIN" || channelMember.role === "OWNER") && role != "OWNER") &&
             <Fragment>

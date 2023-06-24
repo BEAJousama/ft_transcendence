@@ -156,6 +156,7 @@ model Channel {
   avatar              String
   visiblity           Visiblity       @default(PUBLIC)
   password            String?
+  accessPassword      String?
   owner               User            @relation("ownedChannels", fields: [userId], references: [id])
   pinnedFor           User[]          @relation("pinnedChannels")
   mutedFor            User[]          @relation("mutedChannels")
@@ -195,16 +196,9 @@ model ChannelMember {
   channel            Channel              @relation("membersInChannels", fields: [channelId], references: [id])
   channelId          Int
   role               Role                 @default(MEMEBER)
-  status             MemberStatus         @default(ACTIVE) // if left or banned, the user will be removed from the channel, if muted the user will not be able to send messages
+  status             MemberStatus         @default(ACTIVE)
   banStartTime       DateTime?
-  banDuration        Int? // time in seconds
-  isKicked           Boolean              @default(false) // if true the user will be removed from the channel
-  isBanned           Boolean              @default(false) // this has no sense now -- TO BE REMOVED --
-  isMuted            Boolean              @default(false) // if true the user won't get notifications from the channel
-  isPinned           Boolean              @default(false) // if true the channel will be pinned to the top of the list
-  isUnread           Boolean              @default(false) // if true the channel will be marked as unread
-  isArchived         Boolean              @default(false) // if true the channel will be archived
-  isDeleted          Boolean              @default(false) // if true the channel will be deleted only from th ui but not from the database
+  banDuration        Int? 
   @@id([userId, channelId])
 }
 

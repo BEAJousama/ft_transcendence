@@ -10,7 +10,7 @@ const Button = ({
   onClick,
   variant = "contained",
 }: {
-  type?: "primary" | "danger" | "success" | "cuation" | "secondary";
+  type?: "primary" | "danger" | "success" | "cuation" | "secondary" | "simple";
   className?: string;
   htmlType?: "button" | "submit" | "reset";
   children: React.ReactNode;
@@ -21,6 +21,26 @@ const Button = ({
   const array = Children.toArray(children).slice(0);
   return (
     <>
+      {type === "simple" && (
+        <>
+          <button
+            className={`
+              ${variant === "contained"
+                ? `flex items-center gap-4 rounded
+                bg-primary-500 px-4 py-2 font-bold text-secondary-500 hover:ring-2 hover:ring-primary-500 hover:ring-opacity-40 hover:shadow-primary-500 hover:shadow-[0px_0px_6px] transition ease-in-out duration-400`
+                : variant === "outlined"
+                  ? `flex items-center gap-4 rounded border border-gray-400 bg-white px-4 py-2 font-semibold text-gray-800 shadow  hover:bg-gray-200`
+                  : `flex items-center gap-4 rounded bg-white px-4 py-2 font-semibold text-gray-800 hover:bg-gray-200 `
+              } ${className} ${array?.length === 1 && "!justify-center"}
+            `}
+            disabled={disabled}
+            onClick={onClick}
+            type={htmlType}
+          >
+            {children}
+          </button>
+        </>
+      )}
       {type === "primary" && (
         <>
           <button

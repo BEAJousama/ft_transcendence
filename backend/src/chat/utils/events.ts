@@ -47,4 +47,7 @@ export const MARK_UNREAD = 'mark_unread';
 export const MARK_READ = 'mark_read';
 export const SEARCH_CHANNEL = 'search_channel';
 export const KICK_USER = 'kick_user';
+export const CURRENT_CH_UPDATE = 'current_ch_update';
 export const ERROR = 'error';
+export const NOTIFICATION = 'notification';
+export const CHECK_MUTE = 'check_mute';

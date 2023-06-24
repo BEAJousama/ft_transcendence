@@ -11,24 +11,36 @@ import { AppContext } from "../../context/app.context";
 export default function Chat() {
   const [open, setOpen] = useState<boolean>(false);
   const [showModal, setShowModal] = useState<boolean>(false);
-  let   isMatch = useMedia("(min-width:1024px)", false);
+  const  isMatch = useMedia("(max-width:1024px)", false);
   const [currentChannel, setCurrentChannel] = useState<any>({});
   const [channelMember, setChannelMember] = useState<any>([]);
   const { user } = useContext(AppContext);
   const socket = useContext(ChatContext);
   const [error, setError] = useState<any>("");
+  const [isMuted, setIsMuted] = useState<boolean>(false);
 
 
   useEffect(() => {
     socket?.emit('channel_member', {userId : user?.id, channelId : currentChannel?.id });
     socket?.on('channel_member', (data: any) => {
       setChannelMember(data);
+      setIsMuted(data?.status === "MUTED");
     }
     );
-    socket?.on('set_admin', (data: any) => {
+    socket?.on('current_ch_update', (data: any) => {
       setCurrentChannel(data);
     }
     );
+    if (isMuted) {
+      socket?.emit("check_mute", {userId : user?.id, channelId : currentChannel?.id});
+      socket?.on("check_mute", (data: any) => {
+        if (data === false) {
+          setIsMuted(!isMuted);
+          socket?.off("check_mute");
+          socket?.emit("unmute_user", {userId : user?.id, channelId : currentChannel?.id});
+        }
+      });
+    }
   }, [channelMember, socket, currentChannel]);
 
   useEffect(() => {
@@ -48,7 +60,7 @@ export default function Chat() {
       {
         error &&
         (
-          <div className="fixed inset-0 z-20 flex justify-end items-start pt-4 pr-4">
+          <div className="fixed inset-0 z-20 flex justify-end items-start mt-4 mr-4">
           <div className="bg-red-500 text-white px-4 py-2 rounded-md">
             <p className="font-bold mb-2">Error:</p>
             <p>{error}</p>
@@ -58,15 +70,15 @@ export default function Chat() {
       }
       {!open && (
         <ChannelList
-          // className="col-span-8"
+          className="col-span-8 animate-fade-right"
           setCurrentChannel={setCurrentChannel}
           setChannelMember={setChannelMember}
           setShowModal={setShowModal}
           />
         )}
-      {(currentChannel && Object.keys(currentChannel!).length ) ? <MessageBubble className="" currentChannel={currentChannel} setOpen={setOpen} channelMember={channelMember}/>
+      {(currentChannel && Object.keys(currentChannel!).length ) ? <MessageBubble className="mt-4 mb-4 pb-3" currentChannel={currentChannel} setOpen={setOpen} channelMember={channelMember}/>
     : 
-      < Welcome />
+      < Welcome className="mt-4 mb-4 pb-3" />
     }
       {showModal && <CreateGroupModal setShowModal={setShowModal} />}
     </div>
