@@ -1,27 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import io, { Socket } from "socket.io-client";
 import { AppContext } from "./app.context";
-
-
-interface Ball {
-	x: number;
-	y: number;
-	speed: number;
-	radius: number;
-	velocity: {
-		x: number;
-		y: number;
-	};
-}
-
-interface Player {
-	id: number;
-	x: number;
-	y: number;
-	width: number;
-	height: number;
-	score: number;
-}
+import { Ball, Player } from "../interfaces/game";
 
 enum Keys {
 	ArrowUp = "ArrowUp",
@@ -66,12 +46,7 @@ export const GameContext = createContext<IGameContext>({
 	ball: {
 		x: 0,
 		y: 0,
-		speed: 0,
 		radius: 0,
-		velocity: {
-			x: 0,
-			y: 0,
-		},
 	},
 	setBall: () => { },
 });
@@ -102,12 +77,7 @@ export default function SocketProvider({
 	const [ball, setBall] = useState<Ball>({
 		x: 650 / 2,
 		y: 480 / 2,
-		speed: 0,
 		radius: 10,
-		velocity: {
-			x: 0,
-			y: 0,
-		},
 	});
 	const { user } = useContext(AppContext);
 

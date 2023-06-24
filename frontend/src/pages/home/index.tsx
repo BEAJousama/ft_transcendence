@@ -75,7 +75,7 @@ const LiveFeed = () => {
       {!isLoading ? (
         matches &&
         matches.map((match: any) => {
-          return <Link to={``} key={match?.id}>
+          return <Link to={`/pong/${match.player1.id}`} key={match?.id}>
             <GameBanner player1={match.player1} player2={match.player2} player1Score={match.player1Score}
               player2Score={match.player2Score} />
           </Link>

@@ -139,10 +139,10 @@ class GameProvider {
   public ballDirection: number = -1;
   constructor() {
     this.game = null;
-    const id = setTimeout(() => {
-      this.gameStarted = true;
-      clearTimeout(id);
-    }, 5000);
+    // const id = setTimeout(() => {
+    this.gameStarted = true;
+    //   clearTimeout(id);
+    // }, 5000);
   }
 
   init(playerA: Player, playerB: Player) {
@@ -391,6 +391,7 @@ export class PongService {
   }
 
   hanldelClientDisconnect(client: Socket, playerA, playerB, game, winnerId) {
+    if (!client) return;
     client.on('disconnect', () => {
       this.updateScore(
         game.id,
@@ -479,6 +480,18 @@ export class PongService {
     );
   }
 
+  getGameProviderById(gameId: number): GameProvider {
+    return this.gameProviders.find(
+      (gameProvider) => gameProvider.id === gameId,
+    );
+  }
+
+  // liveWatch(gameId: number) {
+  //   const gameProvider = this.getGameProviderById(gameId);
+  //   if (!gameProvider) return null;
+  //   return this.gameProvider.game;
+  // }
+
   update(info: { userId: number; playerCanvas: Canvas }) {
     const gameProvider = this.getGameProviderByUserId(info.userId);
     if (!gameProvider) return null;
@@ -492,12 +505,14 @@ export class PongService {
       playerB.id,
     );
     if (playerA.score >= 7 || playerB.score >= 7) {
-      playerA.socket.emit('game-over', {
-        winner: playerA.score > playerB.score ? playerA.id : playerB.id,
-      });
-      playerB.socket.emit('game-over', {
-        winner: playerA.score > playerB.score ? playerA.id : playerB.id,
-      });
+      if (playerA.socket && playerB.socket) {
+        playerA.socket.emit('game-over', {
+          winner: playerA.score > playerB.score ? playerA.id : playerB.id,
+        });
+        playerB.socket.emit('game-over', {
+          winner: playerA.score > playerB.score ? playerA.id : playerB.id,
+        });
+      }
       // this.updateWinnerandLoser(
       //   playerA.score > playerB.score ? playerA.id : playerB.id,
       //   playerA.score > playerB.score ? playerB.id : playerA.id,
