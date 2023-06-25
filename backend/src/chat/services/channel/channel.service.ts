@@ -60,6 +60,7 @@ export class ChannelService {
                 },
               },
               messages: true,
+              isacessPassword: true,
           },
       });
 
@@ -312,36 +313,133 @@ export class ChannelService {
     let channelMembers;
 
     try {
-      const ch = await this.getChannelByName(channelData.name);
-      if (ch)
-        throw new Error(`Channel ${ch.name} already exists`);
-      if (ch.visiblity !== Visiblity.PROTECTED && channelData.visibility === Visiblity.PROTECTED && !channelData.password)
-        throw new Error('Password is required for protected channel');
-      if (channelData.visibility === Visiblity.PROTECTED && channelData.password)
-        hashPassword = await this.hashPassword(channelData.password);
-      if (channelData.members)
+      let channel = await this.getChannelById(channelData.id);
+      if (channelData.type === "name")
       {
-          channelMembers = channelData.members.map((member) => {
-          return { user: { connect: { id: member } } };
+        const ch = await this.getChannelByName(channelData.name);
+        const chbyid = await this.getChannelById(channelData.id);
+        if (chbyid.name === channelData.name)
+           return chbyid;
+        if (ch)
+          throw new Error(`Channel ${ch.name} already exists`);
+        await this.prisma.channel.update({
+          where: {
+            id: channelData.id,
+          },
+          data:
+          {
+            name: channelData.name,
+          },
         });
+        return channel;
       }
-      const channel = await this.prisma.channel.update({
-      where: {
-        id: channelData.id,
-      },
-      data:
+      if (channelData.type === "avatar")
       {
-        name: channelData.name,
-        password: hashPassword,
-        avatar: channelData.avatar,
-        visiblity: Visiblity[channelData.visibility],
-        type: ChannelType[ChannelType.GROUP],
-        channelMembers:
+        let channel = await this.prisma.channel.update({
+          where: {
+            id: channelData.id,
+          },
+          data:
+          {
+            avatar: channelData.avatar,
+          },
+        });
+        return channel;
+      }
+      if (channelData.type === "visibility")
+      {
+        const ch = await this.getChannelById(channelData.id);
+        if (ch.visiblity !== Visiblity.PROTECTED && channelData.visibility === Visiblity.PROTECTED && !channelData.password)
+          throw new Error('Password is required for protected channel');
+        else if (ch.visiblity === Visiblity.PROTECTED && channelData.visibility === Visiblity.PROTECTED && channelData.password)
         {
-          create : channelMembers,
+          hashPassword = await this.hashPassword(channelData.password);
+          let channel = await this.prisma.channel.update({
+            where: {
+              id: channelData.id,
+            },
+            data:
+            {
+              visiblity: Visiblity[channelData.visibility],
+              password: hashPassword,
+            },
+          });
+          return channel;
+        }
+        else if (ch.visiblity === Visiblity.PROTECTED && channelData.visibility === Visiblity.PROTECTED && !channelData.password)
+        {
+          let channel = await this.prisma.channel.update({
+            where: {
+              id: channelData.id,
+            },
+            data:
+            {
+              visiblity: Visiblity[channelData.visibility],
+            },
+          });
+          return channel;
+        }
+        let channel = await this.prisma.channel.update({
+          where: {
+            id: channelData.id,
+          },
+          data:
+          {
+            visiblity: Visiblity[channelData.visibility],
+          },
+        });
+        return channel;
+      }
+      if (channelData.type === "members")
+      {
+        // check if member already exists and its status is LEFT and make it active
+
+        await this.prisma.channel.update({
+        where: {
+          id: channelData.id,
         },
-      },
-      });
+        data:
+        {
+          channelMembers:
+          {
+            create : channelMembers,
+          },
+        },
+        });
+        channelData.members.forEach(async (memberId) => {
+          const channelMember = await this.getChannelMemberByUserIdAndChannelId(memberId, channelData.id);
+          if (channelMember.status === MemberStatus.LEFT)
+          {
+            await this.prisma.channelMember.update({
+              where: {
+                userId_channelId: {
+                  userId: memberId,
+                  channelId: channelData.id,
+                },
+              },
+              data: {
+                status: MemberStatus.ACTIVE,
+              },
+            });
+          }
+        });
+        return channel;
+      }
+      if (channelData.type === "access_pass")
+      {
+        hashPassword = await this.hashPassword(channelData.password);
+        let channel = await this.prisma.channel.update({
+          where: {
+            id: channelData.id,
+          },
+          data:
+          {
+            accessPassword: hashPassword,
+            isacessPassword: true,
+          },
+        });
+        return channel;
+      }
       return channel;
     } 
     catch (error) {

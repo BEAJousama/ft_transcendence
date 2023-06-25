@@ -19,7 +19,12 @@ export class ChannelDto
     visibility : string;
     @IsString()
     password? : string;
+    @IsString()
+    access_pass? : string;
     @IsArray()
     @IsNumber({}, {each: true})
     members? : number[] ;
+    @IsString()
+    // @IsNotEmpty()
+    type? : string; 
 }

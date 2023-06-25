@@ -15,7 +15,7 @@ const Modal = ({
       <div className="fixed inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm"></div>
       <Card
         setShowModal={setShowModal}
-        className={clsx(`animate-duration-400 z-10 
+        className={clsx(`animate-duration-400 z-10  h-fit
       flex min-w-[90%] animate-jump-in flex-col items-center justify-start gap-4 border-none bg-secondary-800 text-white
        shadow-lg shadow-secondary-500 animate-ease-out lg:min-w-[40%] xl:min-w-[800px]`, className && className)}
       >

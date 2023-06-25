@@ -157,6 +157,7 @@ model Channel {
   visiblity           Visiblity       @default(PUBLIC)
   password            String?
   accessPassword      String?
+  isacessPassword     Boolean         @default(false)
   owner               User            @relation("ownedChannels", fields: [userId], references: [id])
   pinnedFor           User[]          @relation("pinnedChannels")
   mutedFor            User[]          @relation("mutedChannels")

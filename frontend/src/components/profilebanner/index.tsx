@@ -178,67 +178,91 @@ const ProfileBanner = ({
           ref={ref}
           className="absolute -bottom-14 right-14 w-56 bg-yellow-500"
         >
-          <RightClickMenu className="w-full !bg-secondary-500 max-h-50 absolute right-1/2 left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2">
-            <RightClickMenuItem
-              onClick={() => {
-              }}
-            >
-              <BsPersonAdd />
-              Invite To Play
-            </RightClickMenuItem>
-            <RightClickMenuItem
-              onClick={() => {
-                navigate(`/profile/${userId}`);
-                setShowMenu(false);
-              }}
-            >
-              <BsPersonAdd />
-              Go to profile
-            </RightClickMenuItem>
-            {((channelMember.role === "ADMIN" || channelMember.role === "OWNER") && role != "OWNER") &&
-            <Fragment>
-                  <RightClickMenuItem
+          {
+            status !== "BANNED" ?
+            (
+              <RightClickMenu className="w-full !bg-secondary-400 max-h-50 absolute right-1/2 left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2">
+                <RightClickMenuItem
                   onClick={() => {
-                    setAsAdmin();
-                    setShowMenu(false);
                   }}
-                  >
-                  <MdOutlineAdminPanelSettings />
-                  {role === "ADMIN" ? "Remove Admin" : "Set As Admin"}
+                >
+                  <BsPersonAdd />
+                  Invite To Play
                 </RightClickMenuItem>
                 <RightClickMenuItem
                   onClick={() => {
-                    status === "MUTED" ? unmuteUser() : muteUser();
+                    navigate(`/profile/${userId}`);
                     setShowMenu(false);
                   }}
-                  >
-                  <BiVolumeMute />
-                  {status === "MUTED" ? "Unmute" : "Mute"}
-                </RightClickMenuItem>
-                <RightClickMenuItem
-                  onClick={
-                    () => {
-                      status === "BANNED" ? unbanUser() : banUser();
-                      setShowMenu(false);
-                  }}
                 >
-                  <TbBan />
-                   {"Ban"}
+                  <BsPersonAdd />
+                  Go to profile
                 </RightClickMenuItem>
-                <RightClickMenuItem
-                  onClick={
-                    () => {
-                      kickUser();
-                      setShowMenu(false);
-                  }}
-                >
-                  <IoPersonRemoveOutline />
-                  {"Kick"}
-                </RightClickMenuItem>
-            </Fragment>
-            }
+                {((channelMember.role === "ADMIN" || channelMember.role === "OWNER") && role != "OWNER") &&
+                <Fragment>
+                      <RightClickMenuItem
+                      onClick={() => {
+                        setAsAdmin();
+                        setShowMenu(false);
+                      }}
+                      >
+                      <MdOutlineAdminPanelSettings />
+                      {role === "ADMIN" ? "Remove Admin" : "Set As Admin"}
+                    </RightClickMenuItem>
+                    <RightClickMenuItem
+                      onClick={() => {
+                        status === "MUTED" ? unmuteUser() : muteUser();
+                        setShowMenu(false);
+                      }}
+                      >
+                      <BiVolumeMute />
+                      {status === "MUTED" ? "Unmute" : "Mute"}
+                    </RightClickMenuItem>
+                    <RightClickMenuItem
+                      onClick={
+                        () => {
+                          status === "BANNED" ? unbanUser() : banUser();
+                          setShowMenu(false);
+                      }}
+                    >
+                      <TbBan />
+                      {
+                          status === "BANNED" ? "Unban" : "Ban"
+                      }
+                    </RightClickMenuItem>
+                    <RightClickMenuItem
+                      onClick={
+                        () => {
+                          kickUser();
+                          setShowMenu(false);
+                      }}
+                    >
+                      <IoPersonRemoveOutline />
+                      {"Kick"}
+                    </RightClickMenuItem>
+                </Fragment>
+                }
 
-          </RightClickMenu>
+              </RightClickMenu>
+            ) :
+            (
+              <RightClickMenu className="w-full !bg-secondary-400 max-h-50 absolute right-1/2 left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2">
+                    <RightClickMenuItem
+                      onClick={
+                        () => {
+                          status === "BANNED" ? unbanUser() : banUser();
+                          setShowMenu(false);
+                      }}
+                    >
+                      <TbBan />
+                      {
+                          status === "BANNED" ? "Unban" : "Ban"
+                      }
+                    </RightClickMenuItem>
+              </RightClickMenu>
+              
+            )
+          }
             
         </div>
       )}

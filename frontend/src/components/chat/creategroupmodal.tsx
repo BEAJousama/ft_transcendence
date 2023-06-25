@@ -96,8 +96,9 @@ const CreateGroupModal = ({
         <Divider />
         {(show) ? (
           <>
-          <UpdateAvatar previewImage={previewImage} setPreviewImage={setPreviewImage}  />
+          <UpdateAvatar previewImage={previewImage} setPreviewImage={setPreviewImage}/>
           <Input
+            label="Channel name"
             placeholder="Group Chat Name (required)"
             value={groupName}
             onChange={(e) => {
@@ -111,7 +112,6 @@ const CreateGroupModal = ({
           {
             (visibility === "PROTECTED") && (
               <>
-              <span className="w-full mb-2 text-sm font-medium text-gray-900 dark:text-white">Enter password: </span>
               <Input
                 label="Password [Required]"
                 type="password"
@@ -125,7 +125,7 @@ const CreateGroupModal = ({
               </>
             )
           }
-
+          {/* add access password */}
           </>
         ) : (
           !showDm && (
@@ -188,6 +188,7 @@ const CreateGroupModal = ({
             })}
           </div>
         )}
+
         {
           showDm && (
             
