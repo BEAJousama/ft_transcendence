@@ -25,13 +25,14 @@ const CreateGroupModal = ({
   const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
   const [visibility, setVisibility] = useState<string>("PUBLIC");
   const [password, setPassword] = useState<string>("");
+  const [accesspass, setaccesspass] = useState<string>("");
   const {user, users} = useContext(AppContext);
   const [previewImage, setPreviewImage] = useState<string>("https://i.ibb.co/vHD1C8Z/users-group-1.png" || "");
 
 
   function handleCreateGroup() {
     console.log(selectedUsers);
-    socket?.emit("channel_create", { name: groupName ,avatar: previewImage, visibility: visibility, members: selectedUsers, password: password});
+    socket?.emit("channel_create", { name: groupName ,avatar: previewImage, visibility: visibility, members: selectedUsers, password: password, access_pass : accesspass});
     setShowModal(false);
   }
 
@@ -125,6 +126,18 @@ const CreateGroupModal = ({
               </>
             )
           }
+
+          <Input
+          label="Access password"
+          type="password"
+          placeholder="********************"
+          value={accesspass}
+          onChange={(e) => {
+            const { value } = e.target;
+            setaccesspass(value);
+          }}
+          />
+
           {/* add access password */}
           </>
         ) : (

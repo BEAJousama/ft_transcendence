@@ -12,8 +12,8 @@ import Input from "../input";
 import Button from "../button";
 import Card from "../card";
 
-const ChannelList = ({className, setShowModal, setCurrentChannel, setChannelMember} : 
-  {className?: string, setShowModal: any,  setCurrentChannel: any, setChannelMember: any}) => {
+const ChannelList = ({className, setModal, setShowModal, setCurrentChannel, setChannelMember} : 
+  {className?: string, setModal?:any, setShowModal: any,  setCurrentChannel: any, setChannelMember: any}) => {
   
   const[channels, setChannels] = useState<any>([]);
   const [archiveChannels, setArchiveChannels] = useState<any>([]);
@@ -22,20 +22,17 @@ const ChannelList = ({className, setShowModal, setCurrentChannel, setChannelMemb
   const socket = useContext(ChatContext);
   let {user, setUser} = useContext(AppContext)
   const [isFocused, setIsFocused] = useState(false);
-  const [modal, setModal] = useState(false);
-  const [password, setPassword] = useState<string>("")
   
   const onClick = (channel : any) : void | undefined => {
     if (channel.isacessPassword) {
+      console.log("AAAAAAACCCEEEEESS")
       setModal(true);
     }
-    setCurrentChannel(channel);
-    getChannelMember(channel.id);
-  }
-
-  const accessChannel = () =>
-  {
-    
+    else
+    {
+      setCurrentChannel(channel);
+      getChannelMember(channel.id);
+    }
   }
 
   useEffect(() => {
@@ -186,36 +183,7 @@ return (
           </div>
         )
       }
-      { modal && (
-          <Modal>
-          <Card
-          setShowModal={setModal}
-          className="z-10 bg-secondary-800 border-none flex flex-col items-center justify-start shadow-lg shadow-secondary-500 gap-4 text-white min-w-[90%] lg:min-w-[40%] xl:min-w-[50%] animate-jump-in animate-ease-out animate-duration-400 max-w-[100%] w-full"
-          >
-              <span className="text-md">This channel require access pass </span>
-              <div className="flex flex-col justify-center items-center w-full">
-                  <Input
-                      label="Password"
-                      className="h-[40px] w-[80%] rounded-md border-2 border-primary-500 text-white text-xs bg-transparent md:mr-2"
-                      type="password"
-                      placeholder="*****************"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      />
-                  <Button
-                      className="h-8 w-auto md:w-20 bg-primary-500 text-white text-xs rounded-full mt-2"
-                      onClick={() => {
-                          accessChannel()
-                          setModal(false);
-                        }}
-                      >
-                      <span className="text-xs">Access</span>
-                  </Button>
-              </div>
-          </Card>
-          </Modal>
-          )
-      }
+
       {
         !showArchive ? 
         (

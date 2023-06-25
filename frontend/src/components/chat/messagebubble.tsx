@@ -8,6 +8,7 @@ import { RiCloseFill, RiEdit2Fill, RiLogoutBoxRLine } from "react-icons/ri";
 import {RxAvatar} from "react-icons/rx";
 import {MdOutlineVisibilityOff, MdOutlinePassword, MdOutlineManageAccounts} from "react-icons/md";
 import {AiOutlineUsergroupAdd} from "react-icons/ai";
+import {TbUserOff} from "react-icons/tb"
 
 import Avatar from "../avatar";
 import { useState, useRef, useContext, useEffect } from "react";
@@ -25,6 +26,7 @@ import  Spinner  from "../spinner";
 import clsx from "clsx";
 import { useNavigate } from "react-router-dom";
 import UpdateChannel from "./updateChannel";
+import { channel } from "diagnostics_channel";
 
 const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {className?: string, setOpen: any, currentChannel: any, channelMember: any}) => {
   const [value, setValue] = useState("");
@@ -145,7 +147,7 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
   };
 
   const handleEditChannelPassword = () => {
-    socket?.emit("channel_update", { id: currentChannel.id, accessPassword: accessPassword, type: "access_pass" });
+    socket?.emit("channel_update", { id: currentChannel.id, access_pass: accessPassword, type: "access_pass" });
   };
 
   const handleEditChannelVisibility = () => {
@@ -154,8 +156,13 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
 
   const handleEditChannelAvatar = () => {
     socket?.emit("channel_update", { id: currentChannel.id, avatar: previewImage, type: "avatar"   });
-
+    
   };
+  
+  const handleRemovePassword = () =>
+  {
+    socket?.emit("channel_update", { id: currentChannel.id, type: "rm_access_pass"});
+  }
 
   const handleAddMembers = () => {
     socket?.emit("channel_update", { id: currentChannel.id, members: selectedUsers, type: "members" });
@@ -371,7 +378,7 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
                     }}
                   >
                     Banned users
-                    <AiOutlineUsergroupAdd />
+                    <TbUserOff />
               </Button>
 
               <Button
@@ -517,7 +524,8 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
                 setShowEdit={setShowEdit}
               >
                 <Input
-                  label=" Set password"
+                  label={currentChannel?.isacessPassword ? "Edit password" : "Set password"}
+                  type="password"
                   placeholder="*****************"
                   value={accessPassword}
                   onChange={
@@ -527,6 +535,19 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
                     }
                   }
                 />
+                {
+                  currentChannel?.isacessPassword &&
+                  (
+                    <Button
+                    className="bg-red-400 !text-white hover:bg-inherit justify-between !w-[40%] !font-medium ml-1 mt-4"
+                    onClick={() => {
+                      handleRemovePassword();
+                    }}
+                    >
+                    Remove
+                    </Button>
+                  )
+                }
               </UpdateChannel>
             )
           }

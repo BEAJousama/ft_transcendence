@@ -21,7 +21,6 @@ import { UsersService } from 'src/users/users.service';
 import {ArrayMultimap} from '@teppeis/multimaps';
 import * as EVENT from  "./utils/"
 import { randomInt } from 'crypto';
-import { AnyNsRecord } from 'dns';
 import NotificationService from 'src/notification/notification.service';
 
 
