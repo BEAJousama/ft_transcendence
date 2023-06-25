@@ -32,6 +32,7 @@ export class FortyTwoStrategy extends PassportStrategy(Strategy, '42') {
     //   email,
     // };
     // console.log(user)
+    // console.log(user)
     return user;
   }
 }

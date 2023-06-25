@@ -119,7 +119,7 @@ export default function Notifications() {
             <div className="flex w-full items-center justify-center">
                 <Card className="w-full flex flex-col gap-4 !max-w-[680px] !bg-secondary-600 border-none h-[90vh] shadow-md shadow-secondary-800 overflow-auto scrollbar-hide">
                     <h1 className="text-2xl text-bold text-white">Notifications</h1>
-                    <div className="flex gap-2">
+                    {/* <div className="flex gap-2">
                         <Button className={
                             clsx("!bg-tertiary-500 !hover:bg-tertiary-500 rounded-full", !filter && "!text-primary-500")
                         } onClick={() => {
@@ -134,7 +134,7 @@ export default function Notifications() {
                         }}>
                             Unread
                         </Button>
-                    </div>
+                    </div> */}
                     {isLoading ? (
                         <Spinner />
                     ) : (

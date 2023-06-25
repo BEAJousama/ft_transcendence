@@ -92,7 +92,7 @@ const Sidepanel = ({ className }: {
           </ListItem>
         </Link>
         <Link to="/pong">
-          <ListItem selected={path === "/pong"}>
+          <ListItem selected={path.includes("/pong")}>
             <TbDeviceGamepad2 size={18} />
             <span className="hidden md:block text-left">Pong Game</span>
           </ListItem>
@@ -104,7 +104,7 @@ const Sidepanel = ({ className }: {
           </ListItem>
         </Link>
         <Link to="/profile">
-          <ListItem selected={path === "/profile"}>
+          <ListItem selected={path.includes("/profile")}>
             <CgProfile size={18} />
             <span className="hidden md:block text-left">Profile</span>
           </ListItem>

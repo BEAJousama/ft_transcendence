@@ -17,6 +17,7 @@ import {
   Search,
   CompleteInfo,
   Notifications,
+  LivePong
 } from "./pages/";
 import { ToastContainer, toast, Slide } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -57,6 +58,7 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path="/completeinfo" element={<CompleteInfo />} />
               <Route path="/pong" element={<Pong />} />
+              <Route path="/pong/:id" element={<LivePong />} />
               <Route path="/chat" element={<Chat />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/search" element={<Search />} />

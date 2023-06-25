@@ -7,7 +7,7 @@ import { AppContext } from "../../context/app.context";
 
 const JoinGameCard = () => {
     const [show, setShow] = useState<boolean>(false)
-    const socket = useContext(GameContext)
+    const { socket } = useContext(GameContext)
     const { user } = useContext(AppContext)
 
     useEffect(() => {
@@ -36,29 +36,6 @@ const JoinGameCard = () => {
                 // })
                 setShow(true)
             }}>Play Now</Button>
-
-            {
-                show && (
-                    <>
-                        <div className="absolute inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm"></div>
-                        <div role="status" className="absolute -translate-x-1/2 -translate-y-1/2 top-2/4 left-1/2
-             grid place-items-center gap-4">
-                            <Spinner />
-                            <p className="text-white">Waiting for opponent</p>
-                            <Button onClick={() => {
-                                socket?.emit("leave-queue", {
-                                    userId: user?.id,
-                                })
-                                setShow(false)
-                            }}>
-                                Cancel
-                            </Button>
-                        </div>
-                    </>
-                )
-            }
-
-
         </Card>
     );
 };
