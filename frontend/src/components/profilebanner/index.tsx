@@ -1,50 +1,122 @@
-import React, { useState, useRef } from "react";
-import { MdAddBox, MdOutlineAdminPanelSettings } from "react-icons/md";
+import React, { useContext, useState, useRef, useEffect, Fragment } from "react";
+
+import {
+  MdAddBox,
+  MdGroupAdd,
+  MdOutlineAdminPanelSettings,
+} from "react-icons/md";
+import { BiArrowBack, BiRightArrowAlt, BiArchiveIn, BiArchiveOut} from "react-icons/bi";
 import { useClickAway } from "react-use";
 import { BsPersonAdd } from "react-icons/bs";
+
 import clsx from "clsx";
 import Avatar from "../avatar";
 import Button from "../button";
 import { SlOptionsVertical } from "react-icons/sl";
 import { TbBan } from "react-icons/tb";
+import {IoPersonRemoveOutline} from "react-icons/io5";
 import RightClickMenu, { RightClickMenuItem } from "../rightclickmenu";
 import { BiVolumeMute } from "react-icons/bi";
+import { SocketContext } from "../../context/socket.context";
+import { stat } from "fs";
+import { ChatContext } from "../../context/chat.context";
+import { useNavigate } from "react-router-dom";
 
 const ProfileBanner = ({
-  avatar = "https://www.github.com/Hicham-BelHoucin.png",
-  show,
+  channelMember,
+  user,
+  avatar,
   name,
   description,
-  setSelectedUsers,
   showAddGroup,
   className,
   setShowModal,
+  setShowArchive,
+  showArchive,
   showOptions,
   showStatus,
+  role,
   status,
+  channelId,
+  userId,
 }: {
+  channelMember?: any;
+  user?: number | undefined;
   avatar?: string;
-  show?: boolean;
-  name: string;
-  description: string;
-  setSelectedUsers?: React.Dispatch<React.SetStateAction<number | undefined>>;
+  name: string | undefined;
+  description: string | undefined;
   showAddGroup?: boolean;
   className?: string;
   setShowModal?: React.Dispatch<React.SetStateAction<boolean>>;
+  setShowArchive?: React.Dispatch<React.SetStateAction<boolean>>;
+  showArchive?: boolean;
   showOptions?: boolean;
   showStatus?: boolean;
+  role?: string;
   status?: string;
+  channelId?: string;
+  userId?: string;
 }) => {
-  const [isChecked, setIsChecked] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const ref = useRef(null);
+  const socket = useContext(ChatContext);
+  const navigate = useNavigate();
+  const [isMuted, setIsMuted] = useState(status === "MUTED");
+
+/* TODO: I wanna see immediate changes in the UI when I click on the button to setAsAdmin
+     its not working, I have to refresh the page to see the changes
+     I think I have to use useEffect to see the changes in the UI
+     But i can't change props in useEffect
+*/
+
+  // check for mute duratin in real time
+  // useEffect(() => {
+  //   if (isMuted) {
+  //     console.log("isMuted", isMuted)
+  //     socket?.emit("check_mute", {userId, channelId});
+  //     socket?.on("check_mute", (data: any) => {
+  //       console.log("data", data)
+  //       if (data === false) {
+  //         setIsMuted(!isMuted);
+  //         // socket?.off("check_mute");
+  //         socket?.emit("unmute_user", {userId, channelId});
+  //       }
+  //     });
+  // }
+  // }, []);
+  
+
+  const setAsAdmin = () => {
+    socket?.emit("set_admin", {userId, channelId});
+  };
+
+  const banUser = () => {
+    socket?.emit("ban_user", {userId, channelId});
+  };
+
+  const unbanUser = () => {
+    socket?.emit("unban_user", {userId, channelId});
+  };
+
+  const muteUser = () => {
+    socket?.emit("mute_user", {userId, channelId, banDuration : 10});
+  };
+
+  const unmuteUser = () => {
+    socket?.emit("unmute_user", {userId, channelId});
+  };
+
+  const kickUser = () => {
+    socket?.emit("kick_user", {userId, channelId});
+  };
+  
 
   useClickAway(ref, () => setShowMenu(false));
 
   return (
     <div
       className={clsx(
-        `relative flex w-full items-center gap-4`,
+        `relative flex w-full items-center gap-4 ml-1`,
         className && className
       )}
     >
@@ -58,24 +130,23 @@ const ProfileBanner = ({
         <span className="text-white">{name}</span>
         <span className="text-secondary-300 ">{description}</span>
       </div>
-      {show && (
-        <div className="w-10">
-          <input
-            type="checkbox"
-            className="h-5 w-5"
-            onClick={() => {
-              setIsChecked(!isChecked);
-            }}
-            onChange={() => {}}
-          />
-        </div>
-      )}
       {showAddGroup && (
         <div className="flex items-center justify-end">
           <Button
             className=" !hover:bg-inherit !bg-inherit hover:animate-jump hover:animate-once hover:animate-ease-in"
             onClick={() => {
+              setShowArchive && setShowArchive(!showArchive);
+            }}
+          >
+            {
+              showArchive ? <BiArchiveOut /> : <BiArchiveIn />
+            }
+          </Button>
+          <Button
+            className=" !hover:bg-inherit !bg-inherit hover:animate-jump hover:animate-once hover:animate-ease-in"
+            onClick={() => {
               setShowModal && setShowModal(true);
+              
             }}
           >
             <MdAddBox />
@@ -84,19 +155,22 @@ const ProfileBanner = ({
       )}
       {showStatus && (
         <div className="flex h-full flex-col items-end justify-end text-tertiary-200">
-          {status}
+          {role}
         </div>
       )}
       {showOptions && (
         <div className="flex items-center justify-end">
-          <Button
-            className=" !hover:bg-inherit !bg-inherit hover:animate-jump hover:animate-once hover:animate-ease-in"
-            onClick={() => {
-              setShowMenu(true);
-            }}
-          >
-            <SlOptionsVertical />
-          </Button>
+          {
+            userId !== user && 
+              <Button
+              className=" !hover:bg-inherit !bg-inherit hover:animate-jump hover:animate-once hover:animate-ease-in"
+              onClick={() => {
+                setShowMenu(true);
+              }}
+            >
+              <SlOptionsVertical />
+            </Button>
+          }
         </div>
       )}
       {showMenu && (
@@ -104,24 +178,92 @@ const ProfileBanner = ({
           ref={ref}
           className="absolute -bottom-14 right-14 w-56 bg-yellow-500"
         >
-          <RightClickMenu className="w-full !bg-secondary-500">
-            <RightClickMenuItem>
-              <BsPersonAdd />
-              Invite To Play
-            </RightClickMenuItem>
-            <RightClickMenuItem>
-              <MdOutlineAdminPanelSettings />
-              Make Group Admin
-            </RightClickMenuItem>
-            <RightClickMenuItem>
-              <BiVolumeMute />
-              Mute
-            </RightClickMenuItem>
-            <RightClickMenuItem>
-              <TbBan />
-              Ban
-            </RightClickMenuItem>
-          </RightClickMenu>
+          {
+            status !== "BANNED" ?
+            (
+              <RightClickMenu className="w-full !bg-secondary-400 max-h-50 absolute right-1/2 left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2">
+                <RightClickMenuItem
+                  onClick={() => {
+                  }}
+                >
+                  <BsPersonAdd />
+                  Invite To Play
+                </RightClickMenuItem>
+                <RightClickMenuItem
+                  onClick={() => {
+                    navigate(`/profile/${userId}`);
+                    setShowMenu(false);
+                  }}
+                >
+                  <BsPersonAdd />
+                  Go to profile
+                </RightClickMenuItem>
+                {((channelMember.role === "ADMIN" || channelMember.role === "OWNER") && role != "OWNER") &&
+                <Fragment>
+                      <RightClickMenuItem
+                      onClick={() => {
+                        setAsAdmin();
+                        setShowMenu(false);
+                      }}
+                      >
+                      <MdOutlineAdminPanelSettings />
+                      {role === "ADMIN" ? "Remove Admin" : "Set As Admin"}
+                    </RightClickMenuItem>
+                    <RightClickMenuItem
+                      onClick={() => {
+                        status === "MUTED" ? unmuteUser() : muteUser();
+                        setShowMenu(false);
+                      }}
+                      >
+                      <BiVolumeMute />
+                      {status === "MUTED" ? "Unmute" : "Mute"}
+                    </RightClickMenuItem>
+                    <RightClickMenuItem
+                      onClick={
+                        () => {
+                          status === "BANNED" ? unbanUser() : banUser();
+                          setShowMenu(false);
+                      }}
+                    >
+                      <TbBan />
+                      {
+                          status === "BANNED" ? "Unban" : "Ban"
+                      }
+                    </RightClickMenuItem>
+                    <RightClickMenuItem
+                      onClick={
+                        () => {
+                          kickUser();
+                          setShowMenu(false);
+                      }}
+                    >
+                      <IoPersonRemoveOutline />
+                      {"Kick"}
+                    </RightClickMenuItem>
+                </Fragment>
+                }
+
+              </RightClickMenu>
+            ) :
+            (
+              <RightClickMenu className="w-full !bg-secondary-400 max-h-50 absolute right-1/2 left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2">
+                    <RightClickMenuItem
+                      onClick={
+                        () => {
+                          status === "BANNED" ? unbanUser() : banUser();
+                          setShowMenu(false);
+                      }}
+                    >
+                      <TbBan />
+                      {
+                          status === "BANNED" ? "Unban" : "Ban"
+                      }
+                    </RightClickMenuItem>
+              </RightClickMenu>
+              
+            )
+          }
+            
         </div>
       )}
     </div>

@@ -111,6 +111,16 @@ const MatchHistory = () => {
 
 export default function Home() {
   const { user } = useContext(AppContext);
+  const { data: channels, isLoading } = useSWR("api/channels", fetcher, {
+    errorRetryCount: 0,
+  });
+
+//order channels by number of members
+  channels?.sort((a: any, b: any) => {
+    return b.channelMembers.length - a.channelMembers.length;
+  });
+
+  if (isLoading) return <Spinner />;
 
   if (
     user &&
@@ -164,6 +174,11 @@ export default function Home() {
         icon="/img/3dchat.svg"
         className="!grid grid-cols-1 place-items-center xl:grid-cols-2"
       >
+        {
+          channels?.filter((channel: any) => channel.channelMembers.length >= 3).map((channel: any) => {
+            return <ChatBanner key={channel.id} channel={channel} />
+          })
+        }
       </Container>
     </Layout>
   );

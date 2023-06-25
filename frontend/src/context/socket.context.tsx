@@ -20,7 +20,7 @@ export interface INotification {
     url: string;
 }
 
-export default function GameProvider({
+export default function SocketProvider({
     children,
 }: {
     children: React.ReactNode;

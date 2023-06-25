@@ -1,14 +1,16 @@
-import React, { useState } from "react";
-
+import React, {Fragment, useContext, useEffect, useState } from "react";
+import {  Button, Card, Divider, UpdateAvatar } from "../../components";
 import { MdGroupAdd } from "react-icons/md";
 import { BiArrowBack, BiRightArrowAlt } from "react-icons/bi";
-
+import Input from "../../components/input";
 import { RiCloseFill } from "react-icons/ri";
-import Card from "../card";
-import Button from "../button";
-import Divider from "../divider";
-import Input from "../input";
-import ProfileBanner from "../profilebanner";
+import { FiSend } from "react-icons/fi";
+import ProfileBanner from "../../components/profilebanner";
+import { SocketContext } from "../../context/socket.context";
+import Select from "../select";
+import { AppContext } from "../../context/app.context";
+import { ChatContext } from "../../context/chat.context";
+// import addUsers from "./selectusers";
 
 const CreateGroupModal = ({
   setShowModal,
@@ -16,35 +18,75 @@ const CreateGroupModal = ({
   setShowModal: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   const [show, setShow] = useState(false);
+  const [showDm, setShowDm] = useState(false);
   const [groupName, setGroupName] = useState("");
   const [showSubmit, setShowSubmit] = useState(false);
-  // const [selectedUsers, setSelectedUsers] = useState<number>();
+  const  socket= useContext(ChatContext);
+  const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
+  const [visibility, setVisibility] = useState<string>("PUBLIC");
+  const [password, setPassword] = useState<string>("");
+  const [accesspass, setaccesspass] = useState<string>("");
+  const {user, users} = useContext(AppContext);
+  const [previewImage, setPreviewImage] = useState<string>("https://i.ibb.co/vHD1C8Z/users-group-1.png" || "");
+
+
+  function handleCreateGroup() {
+    console.log(selectedUsers);
+    socket?.emit("channel_create", { name: groupName ,avatar: previewImage, visibility: visibility, members: selectedUsers, password: password, access_pass : accesspass});
+    setShowModal(false);
+  }
+
+  const handleCreateDm = (id : number) => {
+    socket?.emit("dm_create", { senderId: user?.id , receiverId: id});
+    setShowModal(false);
+  }
+
+
+
+  
 
   return (
-    <div className="animation-fade absolute left-0 top-0 flex h-screen w-screen items-center justify-center animate-duration-500">
+    <div className="animation-fade animate-duration-500 absolute top-0 left-0 w-screen h-screen flex items-center justify-center">
       <div className="fixed inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm"></div>
       <Card
-        className="animate-duration-400 z-10 
-      flex min-w-[90%] animate-jump-in flex-col items-center justify-start gap-4 border-none bg-secondary-800 text-white
-       shadow-lg shadow-secondary-500 animate-ease-out lg:min-w-[40%] xl:min-w-[800px]"
+        className="z-10 bg-secondary-800 
+      border-none flex flex-col items-center justify-start shadow-lg shadow-secondary-500 gap-4 text-white min-w-[90%]
+       lg:min-w-[40%] xl:min-w-[800px] animate-jump-in animate-ease-out animate-duration-400"
         setShowModal={setShowModal}
       >
-        <div className="flex w-full items-center justify-between">
+        <div className="flex items-center justify-between w-full">
+          { !show && !showDm && <span className="text-lg">New Chat</span>}
           {show && (
+            <>
             <Button
               variant="text"
-              className=" !bg-inherit text-2xl !text-white hover:bg-inherit"
+              className=" !bg-inherit hover:bg-inherit !text-white text-2xl"
               onClick={() => {
                 setShow(false);
               }}
+              >
+              <BiArrowBack />
+            </Button>
+              <span className="text-lg">New Group Chat</span>
+            </>
+          )}
+          {showDm && (
+            <>
+            <Button
+            variant="text"
+            className=" !bg-inherit hover:bg-inherit !text-white text-2xl"
+            onClick={() => {
+              setShowDm(false);
+            }}
             >
               <BiArrowBack />
             </Button>
+            <span className="text-lg">Send Message</span>
+            </>
           )}
-          <span className="text-lg"> New Chat</span>
           <Button
             variant="text"
-            className=" !bg-inherit text-2xl !text-white hover:bg-inherit"
+            className=" !bg-inherit hover:bg-inherit !text-white text-2xl"
             onClick={() => {
               setShowModal(false);
             }}
@@ -53,8 +95,11 @@ const CreateGroupModal = ({
           </Button>
         </div>
         <Divider />
-        {show ? (
+        {(show) ? (
+          <>
+          <UpdateAvatar previewImage={previewImage} setPreviewImage={setPreviewImage}/>
           <Input
+            label="Channel name"
             placeholder="Group Chat Name (required)"
             value={groupName}
             onChange={(e) => {
@@ -64,7 +109,40 @@ const CreateGroupModal = ({
               if (value !== "") setShowSubmit(true);
             }}
           />
+          <Select label= "Visibility" setVisibility={setVisibility} options={["PUBLIC", "PRIVATE", "PROTECTED"]} />
+          {
+            (visibility === "PROTECTED") && (
+              <>
+              <Input
+                label="Password [Required]"
+                type="password"
+                placeholder="********************"
+                value={password}
+                onChange={(e) => {
+                  const { value } = e.target;
+                  setPassword(value);
+                }}
+              />
+              </>
+            )
+          }
+
+          <Input
+          label="Access password"
+          type="password"
+          placeholder="********************"
+          value={accesspass}
+          onChange={(e) => {
+            const { value } = e.target;
+            setaccesspass(value);
+          }}
+          />
+
+          {/* add access password */}
+          </>
         ) : (
+          !showDm && (
+          <>
           <Button
             variant="text"
             className="w-full justify-around"
@@ -76,30 +154,100 @@ const CreateGroupModal = ({
             New Group Chat
             <BiRightArrowAlt />
           </Button>
+          <Button
+            variant="text"
+            className="w-full justify-around"
+            onClick={() => {
+              setShowDm(true);
+            }}
+            >
+            <MdGroupAdd />
+            Send Message
+            <BiRightArrowAlt />
+          </Button>
+            </>
+          )
         )}
-        <span className="w-full">Users</span>
+        {
+          show && (
+          <div className="w-full h[100px] flex items-center justify-center flex-col align-middle gap-2 pt-2 overflow-y-scroll scrollbar-hide">
+            <span className="w-full mb-2 text-sm font-medium text-gray-900 dark:text-white">Select users: </span>
+            {users?.filter((u : any) => {
+              return u.id !== user?.id;
+            }).map((u : any) => {
+              return (
+                <div key={u.id} className="flex flex-row items-center justify-between w-full">
+                    <ProfileBanner
+                      key={u.id}
+                      avatar={u.avatar}
+                      name={u.username}
+                      description={u.status}
+                    />
+                    <div className="w-8">
+                      <input
+                        type="checkbox"
+                        className="h-5 w-5 text-primary-500 dark:text-primary-400 border-gray-300 dark:border-gray-700 rounded"
+                        onClick={() => {
+                        }}
+                        onChange={() => {
+                          !selectedUsers.includes(u.id) ?
+                            setSelectedUsers([...selectedUsers, u.id]) :
+                            setSelectedUsers(selectedUsers?.filter((id) => id !== u.id));
+                          }}
+                      />
+                    </div>
+                  </div>
+              );
+            })}
+          </div>
+        )}
 
-        <div className="flex h-[300px] w-full flex-col items-center justify-center gap-2 overflow-y-scroll pt-20 scrollbar-hide">
-          {new Array(16).fill(0).map((_, i) => {
-            return (
-              <ProfileBanner
-                key={i}
-                avatar={`https://randomuser.me/api/portraits/women/${i}.jpg`}
-                show={show}
-                name="hatim"
-                description="something ? "
-                setSelectedUsers={() => {}}
-              />
-            );
-          })}
-        </div>
+        {
+          showDm && (
+            
+          <div className="w-full h[100px] flex items-center justify-center flex-col align-middle gap-2 pt-2 overflow-y-scroll scrollbar-hide">
+            {users?.filter((u : any) => {
+              return u.id !== user?.id;
+            }).map((u : any) => {
+              return (
+                <div key={u.id} className="flex flex-row items-center justify-between w-full p-2">
+                    <ProfileBanner
+                      key={u.id}
+                      avatar={u.avatar}
+                      name={u.username}
+                      description={u.status}
+                    />
+                    <div className="w-8">
+                    <Button
+                    variant="text"
+                    className=" !bg-inherit hover:bg-inherit !text-white p-2 text-xl"
+                    onClick={() => {
+                     handleCreateDm(u.id);
+                    }}
+                    >
+                      <FiSend/>
+                  </Button>
+                    </div>
+                  </div>
+              );
+            })}
+          </div>
+          )}
+
+
+        
         {showSubmit && (
           <>
             <Divider />
-            <div className="flex w-full items-center justify-end">
+            <div className="w-full flex items-center justify-end">
               <Button
                 htmlType="submit"
-                className="justify-end !bg-inherit !text-white hover:bg-inherit"
+                className="!bg-inherit hover:bg-inherit !text-white justify-end"
+                onClick={
+                  () => {
+                    handleCreateGroup();
+                  }
+                }
               >
                 Create Group Chat
               </Button>
