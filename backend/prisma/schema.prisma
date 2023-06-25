@@ -63,36 +63,46 @@ enum Ladder {
 // }
 
 model User {
-  id                    Int             @id @default(autoincrement())
-  login                 String          @unique
-  username              String          @unique
-  email                 String          @unique
-  password              String?
-  fullname              String
-  country               String
-  phone                 String
-  avatar                String
-  twoFactorAuth         Boolean         @default(false)
-  tfaSecret             String
-  status                UserStatus      @default(OFFLINE)
-  ladder                Ladder          @default(BEGINNER)
-  rating                Int             @default(0)
-  createdAt             DateTime        @default(now())
-  updatedAt             DateTime        @updatedAt
-  achievements          Achievement[]   @relation("AchievementPlayers")
-  blocking              Block[]         @relation("blocking")
-  blockers              Block[]         @relation("blocker")
-  wins                  Int             @default(0)
-  losses                Int             @default(0)
-  ownedChannels         Channel[]
-  memberInChannels      ChannelMember[]
-  sentMessages          Message[]       @relation("send")
-  sentRequests          Friend[]        @relation("SentRequest")
-  receivedRequests      Friend[]        @relation("ReceivedRequest")
+  id               Int           @id @default(autoincrement())
+  login            String        @unique
+  username         String        @unique
+  email            String        @unique
+  password         String?
+  fullname         String
+  country          String
+  phone            String
+  avatar           String
+  twoFactorAuth    Boolean       @default(false)
+  tfaSecret        String
+  status           UserStatus    @default(OFFLINE)
+  ladder           Ladder        @default(BEGINNER)
+  rating           Int           @default(0)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  blocking         Block[]       @relation("blocking")
+  blockers         Block[]       @relation("blocker")
+  wins             Int           @default(0)
+  losses           Int           @default(0)
+  mutedIn          Channel[]     @relation("mutedinChannels")
+  bannedIn         Channel[]     @relation("bannedinChannels")
+  kickedIn         Channel[]     @relation("kickedinChannels")
+  adminIn          Channel[]     @relation("admininChannels")
+  ownedChannels    Channel[]     @relation("ownedChannels")
+  pinnedChannels   Channel[]     @relation("pinnedChannels")
+  mutedChannels    Channel[]     @relation("mutedChannels")
+  archivedChannels Channel[]     @relation("archivedChannels")
+  deletedChannels  Channel[]     @relation("deletedChannels")
+  unreadChannels   Channel[]     @relation("unreadChannels")
+  achievements     Achievement[]   @relation("AchievementPlayers")
+  memberInChannels ChannelMember[]
+  sentMessages     Message[]       @relation("send")
+  pineedMessages   Message[]       @relation("pinner")
+  sentRequests     Friend[]        @relation("SentRequest")
+  receivedRequests Friend[]        @relation("ReceivedRequest")
+  gamesWon         Game[]          @relation("winner")
+  gamesLost        Game[]          @relation("loser")
   gamesAsPlayer1        Game[]          @relation("player1")
   gamesAsPlayer2        Game[]          @relation("player2")
-  gamesWon              Game[]          @relation("winner")
-  gamesLost             Game[]          @relation("loser")
   sentNotifications     Notification[]  @relation("sent")
   receivedNotifications Notification[]  @relation("received")
 }
@@ -102,6 +112,7 @@ enum RequestStatus {
   ACCEPTED
   REJECTED
 }
+
 
 model Friend {
   id         Int           @id @default(autoincrement())
@@ -141,20 +152,35 @@ enum ChannelType {
 }
 
 model Channel {
-  id             Int             @id @default(autoincrement())
-  name           String
-  avatar         String
-  visiblity      Visiblity       @default(PUBLIC)
-  password       String?
-  owner          User            @relation(fields: [userId], references: [id])
-  userId         Int
-  type           ChannelType     @default(GROUP)
-  channelMembers ChannelMember[]
-  createAt       DateTime        @default(now())
-  messages       Message[]       @relation("receive")
+  id                  Int             @id @default(autoincrement())
+  name                String
+  avatar              String
+  visiblity           Visiblity       @default(PUBLIC)
+  password            String?
+  accessPassword      String?
+  isacessPassword     Boolean         @default(false)
+  owner               User            @relation("ownedChannels", fields: [userId], references: [id])
+  pinnedFor           User[]          @relation("pinnedChannels")
+  mutedFor            User[]          @relation("mutedChannels")
+  archivedFor         User[]          @relation("archivedChannels")
+  deletedFor          User[]          @relation("deletedChannels")
+  unreadFor           User[]          @relation("unreadChannels")
+  bannedUsers         User[]          @relation("bannedinChannels")
+  mutedUsers          User[]          @relation("mutedinChannels")
+  kickedUsers         User[]          @relation("kickedinChannels")
+  adminUsers          User[]          @relation("admininChannels")
+  userId              Int
+  type                ChannelType     @default(GROUP)
+  channelMembers      ChannelMember[] @relation("membersInChannels")
+  createAt            DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+  messages            Message[]       @relation("receive")
+  lastestMessageDate  DateTime?       @default(now())
+  newMessagesCount    Int?            @default(0)
 }
 
 enum Role {
+  OWNER
   MEMEBER
   ADMIN
 }
@@ -163,29 +189,33 @@ enum MemberStatus {
   MUTED
   BANNED
   ACTIVE
+  LEFT
 }
 
 model ChannelMember {
-  user         User         @relation(fields: [userId], references: [id])
-  userId       Int
-  channel      Channel      @relation(fields: [channelId], references: [id])
-  channelId    Int
-  role         Role         @default(MEMEBER)
-  status       MemberStatus @default(ACTIVE)
-  banStartTime DateTime?
-  banDuration  Int? // time in seconds
-
+  user               User                 @relation(fields: [userId], references: [id])
+  userId             Int
+  channel            Channel              @relation("membersInChannels", fields: [channelId], references: [id])
+  channelId          Int
+  role               Role                 @default(MEMEBER)
+  status             MemberStatus         @default(ACTIVE)
+  banStartTime       DateTime?
+  banDuration        Int? 
   @@id([userId, channelId])
 }
 
 model Message {
-  id         Int      @id @default(autoincrement())
-  content    String
-  receiver   Channel  @relation("receive", fields: [receiverId], references: [id])
-  receiverId Int
-  sender     User     @relation("send", fields: [senderId], references: [id])
-  senderId   Int
-  date       DateTime @default(now())
+  id                 Int                  @id @default(autoincrement())
+  content            String
+  receiver           Channel              @relation("receive", fields: [receiverId], references: [id])
+  receiverId         Int
+  sender             User                 @relation("send", fields: [senderId], references: [id])
+  senderId           Int
+  pinned             Boolean?              @default(false)
+  pinner             User?                 @relation("pinner", fields: [pinnerId], references: [id])
+  pinnerId           Int?                  
+  date               DateTime             @default(now())  
+  
 }
 
 enum GameStatus {

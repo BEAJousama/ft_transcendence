@@ -5,7 +5,7 @@ const Avatar = ({
   alt,
   className,
 }: {
-  src: string;
+  src: string | undefined;
   alt: string;
   className?: string;
 }) => {

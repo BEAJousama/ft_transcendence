@@ -19,18 +19,18 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe());
   app.use(bodyParser.json({ limit: '10mb' }));
   app.setGlobalPrefix('/api');
-
+  
   const reflector = app.get(Reflector);
   const jwt = app.get(JwtService);
   app.useGlobalGuards(new AuthGuard(reflector, jwt));
   const config = new DocumentBuilder()
-    .setTitle('ft_transcendence')
-    .setDescription('ft_transcendence API')
-    .setVersion('1.0')
-    .addTag('api')
-    .addBearerAuth()
-    // .addBearerAuth('Authorization', 'header', 'basic')
-    .build();
+  .setTitle('ft_transcendence')
+  .setDescription('ft_transcendence API')
+  .setVersion('1.0')
+  .addTag('api')
+  .addBearerAuth()
+  // .addBearerAuth('Authorization', 'header', 'basic')
+  .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('/', app, document);
   SwaggerModule.setup('api', app, document);

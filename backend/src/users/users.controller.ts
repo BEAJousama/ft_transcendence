@@ -33,6 +33,7 @@ import {
 import { UsersService } from './users.service';
 import { Public } from 'src/public.decorator';
 import { assignAchievementsDto } from './dto/achievements.dto';
+import { Request } from 'express';
 
 @Controller('users')
 export class UsersController {
@@ -84,10 +85,10 @@ export class UsersController {
       };
     }
   }
-
+  
   @Get(':id/friends')
   @GetFriendsDoc()
-  async findFriends(@Param('id') id: string) {
+  async findFriends(@Req() req: Request, @Param('id') id: string) {
     try {
       const friends = await this.usersService.getFriends(parseInt(id));
       if (!friends) throw 'No Matches Found !!!!!';
