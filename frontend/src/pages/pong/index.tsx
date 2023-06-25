@@ -22,6 +22,7 @@ import Modal from "../../components/modal";
 import { Player, Ball } from "../../interfaces/game";
 import useSWR from "swr";
 import IUser from "../../interfaces/user";
+import { Socket } from "socket.io-client";
 
 export const ScoreBoard = ({ id, score }: { id: number; score: number }) => {
   const { data: user } = useSwr(`api/users/${id}`, fetcher);
@@ -188,10 +189,13 @@ const CreateGameCard = ({
   });
   const [value, setValue] = useState<string>("");
   const [show, setShow] = useState<boolean>(false);
+  const [showModal, setShowModal] = useState<boolean>(false);
   const [gameMode, setGameMode] = useState<string>("Normal Mode");
   const [gameOption, setGameOption] = useState<string>("Classic");
-
+  const [selectedUser, setSelectedUser] = useState<IUser>();
   const [filtred, setFiltred] = useState<IUser[]>();
+  const { socket } = useContext(GameContext)
+  const { user } = useContext(AppContext)
 
   useEffect(() => {
     if (users && (filtred || !value))
@@ -206,8 +210,8 @@ const CreateGameCard = ({
 	${className}
 	`}>
       <h1 className="text-center text-xl text-white">{title}</h1>
-      {invite && (
-        <Modal className="flex w-full flex-col items-center justify-center gap-2">
+      {invite && showModal && (
+        <Modal className="flex w-full flex-col items-center justify-center gap-2 ">
           <Input
             className="w-full"
             placeholder="Search Users ...."
@@ -221,23 +225,55 @@ const CreateGameCard = ({
             <Spinner />
           ) : (
             filtred?.length ? (
-              filtred.map((item: IUser) => {
-                return (
-                  <UserBanner
-                    key={item.id}
-                    user={item}
-                    showRating
-                    rank={item.rating}
-                  />
-                );
-              })
+              <div className="flex flex-col h-full max-h-[500px] w-full">
+                {filtred.map((item: IUser) => {
+                  return (
+                    <Button variant="text" className="w-full !bg-inherit !hover:bg-inherit !p-0" onClick={() => {
+                      setSelectedUser(item)
+                    }}>
+                      <UserBanner
+                        key={item.id}
+                        user={item}
+                        showRating
+                        rank={item.rating}
+                      />
+                    </Button>
+                  );
+                })}
+              </div>
             ) : <div className="flex items-center justify-center text-xs md:text-2xl text-primary-500">
               No matches found
             </div>
           )}
-          <Button>
-            Cancel
-          </Button>
+          <span className="w-full">Selected User : </span>
+          {selectedUser && (
+            <UserBanner key={selectedUser.id}
+              user={selectedUser}
+              showRating
+              rank={selectedUser.rating} />
+          )}
+          <div className="w-full flex items-center justify-center gap-4">
+            <Button onClick={() => {
+              setShowModal(false)
+            }}>
+              Cancel
+            </Button>
+            <Button onClick={() => {
+              // socket?.emit("invite", {
+              //   id: selectedUser?.id,
+              //   gameMode,
+              //   gameOption,
+              // });
+              socket?.emit('invite-friend', {
+                inviterId: user?.id,
+                invitedFriendId: selectedUser?.id,
+              })
+              setShowModal(false)
+              setShow(true)
+            }}>
+              Invite
+            </Button>
+          </div>
         </Modal>
       )}
       {showOptions ? (
@@ -270,8 +306,9 @@ const CreateGameCard = ({
       <Button
         className="px-16"
         onClick={() => {
-          onClick();
-          setShow(true);
+          !invite && onClick();
+          !invite && setShow(true);
+          invite && setShowModal(true)
         }}
         disabled={disabled}
       >
@@ -318,6 +355,10 @@ export default function Pong() {
     socket.on("init-game", () => {
       setShow(true);
     });
+    socket.emit("accept-invitation", {
+      invitedFriendId: 2,
+      // invitedFriendId: user?.id,
+    });
   }, [socket]);
 
   return (
@@ -326,14 +367,10 @@ export default function Pong() {
         <div className="grid w-full max-w-[1024px] grid-rows-1 place-items-center gap-8 lg:grid-cols-2">
           <CreateGameCard
             invite
-            className="row-span-2 h-full"
             title="Invite Your Friends to Play"
-            content="Invite"
+            content="Select Friend"
             name="Invite"
             onClick={() => {
-              socket?.emit("invite-friend", {
-                userId: user?.id,
-              });
               setDisabled({
                 invite: false,
                 join: true,
@@ -371,7 +408,7 @@ export default function Pong() {
                 userId: user?.id,
               });
               setDisabled({
-                invite: true,
+                invite: false,
                 join: false,
               });
             }}
@@ -380,7 +417,7 @@ export default function Pong() {
                 userId: user?.id,
               });
               setDisabled({
-                invite: false,
+                invite: true,
                 join: false,
               });
             }}
