@@ -68,7 +68,7 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
     setData(undefined);
   };
 
-  const login = () => {};
+  const login = () => { };
 
   const setUsername = (username: string) => {
     setData((prevUser) => {
@@ -91,17 +91,17 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
   };
   const fetchUsers = async () => {
     const accessToken = window.localStorage.getItem("access_token");
-    fetch("http://10.11.8.12:3000/api/users", {
+    fetch("http://localhost:3000/api/users", {
       method: 'GET',
       headers: {
-          'Authorization': `Bearer ${accessToken}`, // notice the Bearer before your token
+        'Authorization': `Bearer ${accessToken}`, // notice the Bearer before your token
       }
     })
       .then((res) => res.json())
       .then((data) => {
         setUsers(data);
       }
-    );
+      );
   };
 
 

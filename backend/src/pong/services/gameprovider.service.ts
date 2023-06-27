@@ -26,12 +26,19 @@ class GameProvider {
     const paddleLeft = player.x;
     const paddleTop = player.y;
     const paddleBottom = player.y + player.height;
-    return (
+    const col =
       ball.x - ball.radius < paddleRight &&
       ball.x + ball.radius > paddleLeft &&
       ball.y - ball.radius < paddleBottom &&
-      ball.y + ball.radius > paddleTop
-    );
+      ball.y + ball.radius > paddleTop;
+    if (col) {
+      player.AllBlockedShots++;
+      player.consecutiveBlockedShots++;
+    } else {
+      player.consecutiveBlockedShots = 0;
+    }
+
+    return col;
   }
 
   update(info: { userId: number; playerCanvas: Canvas }) {
@@ -43,6 +50,8 @@ class GameProvider {
     const { width, height } = playerCanvas;
 
     if (!this.game || !playerB) return;
+
+    // this.game.acheivementsWatcher.checkAchievementsWhenPlayerScores(playerA);
 
     const player = userId === playerA.id ? playerA : playerB;
 
@@ -78,6 +87,9 @@ class GameProvider {
         this.paddleCol(this.game.playerB)) &&
       !this.ballChangedDirection
     ) {
+      this.game.consecutiveHits++;
+      playerA.acheivementsWatcher.checkAchievementsWhenHitPaddle(playerA);
+      playerB.acheivementsWatcher.checkAchievementsWhenHitPaddle(playerB);
       this.ballChangedDirection = true;
       ball.velocity.x = 2 * -Math.sign(ball.velocity.x);
       ball.velocity.y = Math.random() * 4 - 2;
@@ -94,14 +106,25 @@ class GameProvider {
     // Check if ball goes out of bounds (player A scores)
     if (ball.x > width) {
       playerA.score++;
+      // this.game.acheivementsWatcher.checkAchievementsWhenPlayerScores(playerA);
+      playerA.acheivementsWatcher.checkAchievementsWhenPlayerScores(
+        playerA,
+        this.game,
+      );
       ball.reset(playerA.canvas);
       ball.velocity.x = Math.abs(ball.velocity.x) * this.ballDirection;
       this.ballDirection = -this.ballDirection;
+      this.game.consecutiveHits = 0;
     }
 
     // Check if ball goes out of bounds (player B scores)
     if (ball.x < 0) {
       playerB.score++;
+      playerB.acheivementsWatcher.checkAchievementsWhenPlayerScores(
+        playerB,
+        this.game,
+      );
+      this.game.consecutiveHits = 0;
       ball.reset(playerB.canvas);
       ball.velocity.x = Math.abs(ball.velocity.x) * this.ballDirection;
       this.ballDirection = -this.ballDirection;

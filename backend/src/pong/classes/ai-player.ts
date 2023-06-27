@@ -6,7 +6,7 @@ class AIPlayer extends Player {
   public ball: Ball;
   public interval: NodeJS.Timeout;
   constructor(id: number, canvas: Canvas, difficulty: number, ball: Ball) {
-    super(id, canvas, null);
+    super(id, canvas, null, []);
     this.speed = 5;
     this.keyState = {
       ArrowUp: false,
