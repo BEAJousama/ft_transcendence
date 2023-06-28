@@ -4,18 +4,33 @@ import {
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
+  // WebSocketDisconnect,
+  OnGatewayDisconnect,
 } from '@nestjs/websockets';
 import { Invitation } from './interfaces/index';
 import { Socket } from 'socket.io';
 import { PongService } from './pong.service';
+import { UsersService } from 'src/users/users.service';
 
 @WebSocketGateway({ namespace: 'pong', cors: true, origins: '*' })
 export class PongGateway {
-  constructor(private readonly pongService: PongService) {}
+  constructor(
+    private readonly pongService: PongService,
+    private usersService: UsersService,
+  ) {}
   @WebSocketServer() server;
+
+  // constructor(private usersService: UsersService) {}
+
   onModuleInit() {
     this.server.on('connect', (socket) => {
-      console.log('connected');
+      const clientId = socket.handshake.query.clientId;
+      this.usersService.changeUserStatus(parseInt(clientId), 'ONLINE');
+      console.log('connected', clientId);
+      socket.on('disconnect', () => {
+        this.usersService.changeUserStatus(parseInt(clientId), 'OFFLINE');
+        console.log('disconnect', clientId);
+      });
     });
   }
 

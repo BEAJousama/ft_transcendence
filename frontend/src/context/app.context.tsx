@@ -1,19 +1,11 @@
 import axios from "axios";
 import React, { useCallback, useEffect, useState } from "react";
 import IUser from "../interfaces/user";
-import { ToastContainer, toast } from 'react-toastify';
 
 export interface IAppContext {
-  // user: User | undefined;
   users: IUser[];
   setUser: (user: IUser) => void;
   setUsers: (users: IUser[]) => void;
-  logout: () => void;
-  login: () => void;
-  setUsername: (username: string) => void;
-  setAvatar: (avatar: string) => void;
-  setAuthenticated: (avatar: boolean) => void;
-  setTwoFactorAuth: (avatar: boolean) => void;
   user: IUser | undefined;
   loading: boolean;
   authenticated: boolean;
@@ -26,22 +18,11 @@ export const AppContext = React.createContext<IAppContext>({
   users: [],
   setUser: (user: IUser) => { },
   setUsers: (users: IUser[]) => { },
-  logout: () => { },
-  login: () => { },
-  setUsername: () => { },
-  setAvatar: () => { },
-  setAuthenticated: () => { },
   loading: true,
   authenticated: false,
   fetchUser: async () => {
-    // updateUser: async () => {};
   },
-  setTwoFactorAuth: function (avatar: boolean): void {
-    throw new Error("Function not implemented.");
-  },
-  updateUser: function (): Promise<void> {
-    throw new Error("Function not implemented.");
-  }
+  updateUser: async () => { }
 });
 
 export const fetcher = async (url: string) => {
@@ -62,47 +43,23 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [users, setUsers] = useState<IUser[]>([]);
-  const [twoFactorAuth, setTwoFactorAuth] = useState<boolean>(false);
 
-  const logout = () => {
-    setData(undefined);
-  };
-
-  const login = () => { };
-
-  const setUsername = (username: string) => {
-    setData((prevUser) => {
-      if (prevUser) {
-        return { ...prevUser, username };
-      } else {
-        return undefined;
-      }
-    });
-  };
-
-  const setAvatar = (avatar: string) => {
-    setData((prevUser) => {
-      if (prevUser) {
-        return { ...prevUser, avatar };
-      } else {
-        return undefined;
-      }
-    });
-  };
-  const fetchUsers = async () => {
-    const accessToken = window.localStorage.getItem("access_token");
-    fetch("http://localhost:3000/api/users", {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${accessToken}`, // notice the Bearer before your token
-      }
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        setUsers(data);
-      }
-      );
-  };
+  const fetchUsers = useCallback(async () => {
+    // const accessToken = window.localStorage.getItem("access_token");
+    // fetch("http://localhost:3000/api/users", {
+    //   method: 'GET',
+    //   headers: {
+    //     'Authorization': `Bearer ${accessToken}`, // notice the Bearer before your token
+    //   }
+    // })
+    //   .then((res) => res.json())
+    //   .then((data) => {
+    //     setUsers(data);
+    //   }
+    //   );
+    const data = await fetcher("api/users");
+    setUsers(data);
+  }, []);
 
 
   const fetchUser = useCallback(async () => {
@@ -143,10 +100,6 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
   const appContextValue: IAppContext = {
     users: users,
     setUsers,
-    logout,
-    login,
-    setUsername,
-    setAvatar,
     user: data,
     loading: isLoading,
     authenticated: isAuthenticated,
@@ -155,12 +108,7 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
     setUser: function (user: IUser): void {
       throw new Error("Function not implemented.");
     },
-    setAuthenticated: function (avatar: boolean): void {
-      throw new Error("Function not implemented.");
-    },
-    setTwoFactorAuth: function (avatar: boolean): void {
-      throw new Error("Function not implemented.");
-    }
+
   };
 
 

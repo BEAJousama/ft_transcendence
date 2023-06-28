@@ -1,7 +1,7 @@
 import { assignAchievementsDto } from './../users/dto/achievements.dto';
 import NotificationService from 'src/notification/notification.service';
-import { Injectable } from '@nestjs/common';
-import { GameStatus } from '@prisma/client';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { GameStatus, Ladder } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Socket } from 'socket.io';
 import { AIPlayer, Ball, Canvas, Player } from './classes';
@@ -228,6 +228,7 @@ export class PongService {
   handleClientDisconnect(client: Socket, playerA, playerB, game, winnerId) {
     if (!client) return;
     client.on('disconnect', () => {
+      // this.usersService.changeUserStatus('ONLINE');
       // Update the score and remove the game provider
       this.updateScore(
         game.id,
@@ -396,6 +397,8 @@ export class PongService {
   async gameOver(gameProvider: GameProvider) {
     const { playerA, playerB } = gameProvider.game;
 
+    const winner = playerA.score > playerB.score ? playerA : playerB;
+    const loser = playerA.score < playerB.score ? playerA : playerB;
     const playerAUser = await this.usersService.findUserById(playerA.id);
     playerA.acheivementsWatcher.checkAchievementsWhenGameIDone(
       playerA,
@@ -408,16 +411,19 @@ export class PongService {
       playerA,
       playerBUser,
     );
-    if (playerA.socket && playerB.socket && playerB.id !== 1) {
+    if (playerA.socket) {
       playerA.socket.emit('game-over', {
-        winner: playerA.score > playerB.score ? playerA.id : playerB.id,
+        winner: winner.id,
       });
+    }
+    if (playerB.socket) {
       playerB.socket.emit('game-over', {
-        winner: playerA.score > playerB.score ? playerA.id : playerB.id,
+        winner: winner.id,
       });
     }
     this.assingAchievements(playerA);
     this.assingAchievements(playerB);
+    await this.adjustPlayerRating(winner.id, loser.id);
   }
   update(info: { userId: number; playerCanvas: Canvas }) {
     const gameProvider = this.getGameProviderByUserId(info.userId);
@@ -452,7 +458,107 @@ export class PongService {
     if (gameProvider) gameProvider.keyReleased(info);
   }
 
-  // adjustPlayerRating(playerA: Player, playerB: Player) {
+  // // 2 - Point Adjustments:  :
+  // /*
+  //   * When a player wins a game, they earn points based on the ladder level of their opponent.
+  //       - If a player wins against an opponent with a lower ladder level, they earn a base amount of points (50 points).
+  //       - If a player wins against an opponent with the same ladder level, they earn a slightly higher amount of points (75 points).
+  //       - If a player wins against an opponent with a higher ladder level, they earn an even higher amount of points (100 points).
+  //   * When a player loses a game, they lose points based on the ladder level of their opponent.
+  //       - If a player loses against an opponent with a lower ladder level, they lose a base amount of points (150 points).
+  //       - If a player loses against an opponent with the same ladder level, they lose a slightly higher amount of points (100 points).
+  //       - If a player loses against an opponent with a higher ladder level, they lose an even higher amount of points (50 points).
+  // */
 
-  // }
+  // // 3 - Ladder Level Adjustments:
+  // /*
+  //   from begginer to amateur
+  //    * 0 - 500
+  //   from amteur to semi-professional
+  //    * 500 - 1200
+  //   from semi-professional to professional
+  //    * 1200 - 3500
+  //   from professional to worldclass
+  //    * 3500 - 7000
+  //   from worldclass to legendary
+  //    * 7000 - 10000
+  // */
+
+  /*
+  BEGINNER
+  AMATEUR
+  SEMI_PROFESSIONAL
+  PROFESSIONAL
+  WORLD_CLASS
+  LEGENDARY
+  */
+  adjustLadderLevel(points: number): string {
+    if (points >= 0 && points <= 500) {
+      return 'BEGINNER';
+    } else if (points > 500 && points <= 1200) {
+      return 'AMATEUR';
+    } else if (points > 1200 && points <= 3500) {
+      return 'SEMI_PROFESSIONAL';
+    } else if (points > 3500 && points <= 7000) {
+      return 'PROFESSIONAL';
+    } else if (points > 7000 && points <= 10000) {
+      return 'WORLD_CLASS';
+    } else {
+      return 'LEGENDARY';
+    }
+  }
+
+  async adjustPlayerRating(winnerId: number, loserId: number) {
+    try {
+      const winner = await this.usersService.findUserById(winnerId);
+      const loser = await this.usersService.findUserById(loserId);
+
+      // Assume winner.ladderLevel and loser.ladderLevel represent the ladder levels of the players
+
+      let winPoints = 0;
+      let lossPoints = 0;
+
+      if (winner.ladder < loser.ladder) {
+        winPoints = 50;
+        lossPoints = 150;
+      } else if (winner.ladder > loser.ladder) {
+        winPoints = 100;
+        lossPoints = 50;
+      } else {
+        winPoints = 75;
+        lossPoints = 100;
+      }
+
+      // Update the winner's points and ladder level
+      winner.rating += winPoints;
+      loser.ladder = this.adjustLadderLevel(winner.rating) as Ladder;
+      // Adjust ladder level if needed
+      // ...
+
+      // Update the loser's points and ladder level
+      loser.rating -= lossPoints;
+      loser.rating = loser.rating < 0 ? 0 : loser.rating;
+      loser.ladder = this.adjustLadderLevel(loser.rating) as Ladder;
+      // Adjust ladder level if needed
+      // ...
+
+      // Save the updated player data
+      const { sentRequests, receivedRequests, achievements, ...winnerData } =
+        winner;
+      const {
+        sentRequests: _,
+        receivedRequests: __,
+        achievements: ___,
+        ...loserData
+      } = loser;
+      await this.usersService.updateUser({ user: winnerData }, winnerId);
+      await this.usersService.updateUser({ user: loserData }, loserId);
+    } catch (e) {
+      console.log(e);
+      throw new InternalServerErrorException(
+        'Could not update user rating and ladder',
+      );
+      // Handle any errors that occur during the adjustment process
+    }
+  }
 }

@@ -286,6 +286,22 @@ export class UsersService {
     }
   }
 
+  async changeUserStatus(id: number, status: 'OFFLINE' | 'INGAME' | 'ONLINE') {
+    try {
+      const user = await this.prisma.user.update({
+        where: {
+          id,
+        },
+        data: {
+          status,
+        },
+      });
+      console.log(user.username + ' : ' + user.status);
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to change user status');
+    }
+  }
+
   async declineFriendRequest(senderId: number) {
     try {
       const request = await this.prisma.friend.delete({
