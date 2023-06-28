@@ -36,7 +36,7 @@ const RightClickMenu = ({
   return (
     <ul
       className={clsx(
-        "max-h-50 absolute left-1/2 top-1/2 z-10 -translate-x-1 -translate-y-1 transform overflow-scroll rounded !bg-secondary-800 text-white scrollbar-hide",
+        "max-h-50 absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 transform overflow-scroll rounded !bg-secondary-800 text-white scrollbar-hide",
         className && className
       )}
     >

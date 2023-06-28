@@ -37,7 +37,7 @@ export class UsersService {
           fullname: 'PongMastersAi',
           phone: '',
           email: 'PongMastersAi@PongMasters.pg',
-        })
+        });
         const keys = Object.keys(Achievements);
         keys.map(async (key, i) => {
           await this.prisma.achievement.create({
@@ -54,12 +54,12 @@ export class UsersService {
     }
   }
 
-  async findOrCreateUser(data : {
-    login:string,
-    avatar:string,
-    fullname:string,
-    phone:string,
-    email:string,
+  async findOrCreateUser(data: {
+    login: string;
+    avatar: string;
+    fullname: string;
+    phone: string;
+    email: string;
   }) {
     try {
       let user: User = await this.findUserByLogin(data.login);
@@ -88,18 +88,35 @@ export class UsersService {
     } catch (error) {}
   }
 
-  async assignAchievements(userId: number, achievementId: number) {
+  async assignAchievements(userId: number, achievementName: string) {
     try {
+      const achievement = await this.prisma.achievement.findFirst({
+        where: {
+          name: achievementName,
+        },
+      });
+
       await this.prisma.user.update({
         where: { id: userId },
         data: {
           achievements: {
             connect: {
-              id: achievementId,
+              id: achievement.id,
             },
           },
         },
       });
+
+      await this.notificationService.sendNotification(
+        userId,
+        userId,
+        'Achievement Unlocked',
+        `You have unlocked ${achievement.name} achievement`,
+        userId,
+        '/pong',
+      );
+
+      return achievement;
     } catch (error) {
       throw new NotFoundException('user or Achievement Not Found');
     }
@@ -266,6 +283,22 @@ export class UsersService {
       return request;
     } catch (error) {
       throw new InternalServerErrorException('Failed to accept friend request');
+    }
+  }
+
+  async changeUserStatus(id: number, status: 'OFFLINE' | 'INGAME' | 'ONLINE') {
+    try {
+      const user = await this.prisma.user.update({
+        where: {
+          id,
+        },
+        data: {
+          status,
+        },
+      });
+      console.log(user.username + ' : ' + user.status);
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to change user status');
     }
   }
 

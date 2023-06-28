@@ -1,273 +1,100 @@
+import { assignAchievementsDto } from './../users/dto/achievements.dto';
+import NotificationService from 'src/notification/notification.service';
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { GameStatus, User } from '@prisma/client';
+import { GameStatus, Ladder } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Socket } from 'socket.io';
-
-class Canvas {
-  public width: number;
-  public height: number;
-  constructor(canvas = { width: 650, height: 480 }) {
-    this.width = canvas.width;
-    this.height = canvas.height;
-  }
-}
-
-class Ball {
-  public x: number;
-  public y: number;
-  public radius: number;
-  public speed: number;
-  public velocity: {
-    x: number;
-    y: number;
-  };
-  constructor(canvas: Canvas) {
-    this.x = canvas.width / 2;
-    this.y = canvas.height / 2;
-    this.speed = 10;
-    this.radius = 10;
-    this.velocity = {
-      x: 2,
-      y: 2,
-    };
-  }
-  reset(canvas: Canvas) {
-    this.x = canvas.width / 2;
-    this.y = canvas.height / 2;
-    this.speed = 10;
-    this.velocity = {
-      x: 2,
-      y: 2,
-    };
-  }
-}
-
-class Player {
-  public id: number;
-  public x: number;
-  public y: number;
-  public width: number;
-  public height: number;
-  public canvas: Canvas;
-  public score: number;
-  public speed: number;
-  public interval: NodeJS.Timer;
-  public keyState: {
-    ArrowUp: boolean;
-    ArrowDown: boolean;
-  };
-  public socket: Socket;
-  constructor(id: number, canvas: Canvas, socket: Socket) {
-    this.id = id;
-    this.width = 10;
-    this.height = canvas.height / 5;
-    this.x = 0;
-    this.y = canvas.height / 2 - this.height / 2;
-    this.canvas = new Canvas(canvas);
-    this.score = 0;
-    this.interval = null;
-    this.keyState = {
-      ArrowUp: false,
-      ArrowDown: false,
-    };
-    this.socket = socket;
-  }
-}
-
-class Game {
-  public playerA: Player;
-  public playerB: Player;
-  public ball: Ball;
-
-  constructor(playerA: Player) {
-    this.playerA = playerA;
-    this.playerB = null;
-    this.ball = new Ball(playerA.canvas);
-  }
-}
-
-class AIPlayer extends Player {
-  public ball: Ball;
-  constructor(id: number, canvas: Canvas, difficulty: number, ball: Ball) {
-    super(id, canvas, null);
-    this.speed = 5;
-    this.keyState = {
-      ArrowUp: false,
-      ArrowDown: false,
-    };
-    this.ball = ball;
-    // this.interval = setInterval(() => {
-    //   const ball = this.ball;
-    //   const paddleCenter = this.y + this.height / 2;
-    //   const ballCenter = ball.y;
-    //   if (paddleCenter < ballCenter) {
-    //     this.keyState.ArrowDown = true;
-    //     this.keyState.ArrowUp = false;
-    //   } else {
-    //     this.keyState.ArrowUp = true;
-    //     this.keyState.ArrowDown = false;
-    //   }
-    // }, 1000 / difficulty);
-    this.interval = setInterval(() => {
-      const ball = this.ball;
-      const paddleCenter = this.y + this.height / 2;
-      const ballCenter = ball.y;
-      const timeToReachPaddle =
-        (0.8 * (ball.x - this.x - this.width)) / Math.abs(ball.velocity.x);
-      const predictedY = ball.y + timeToReachPaddle * ball.velocity.y;
-      const paddleTop = predictedY - this.height / 2;
-      const paddleBottom = predictedY + this.height / 2;
-      if (paddleCenter < paddleTop) {
-        this.keyState.ArrowDown = true;
-        this.keyState.ArrowUp = false;
-      } else if (paddleCenter > paddleBottom) {
-        this.keyState.ArrowUp = true;
-        this.keyState.ArrowDown = false;
-      } else {
-        this.keyState.ArrowUp = false;
-        this.keyState.ArrowDown = false;
-      }
-    }, 500 / difficulty);
-  }
-}
-
-class GameProvider {
-  public id: number;
-  public game: Game;
-  public gameStarted: boolean = false;
-  public ballChangedDirection = false;
-  public ballDirection: number = -1;
-  constructor() {
-    this.game = null;
-    // const id = setTimeout(() => {
-    this.gameStarted = true;
-    //   clearTimeout(id);
-    // }, 5000);
-  }
-
-  init(playerA: Player, playerB: Player) {
-    this.game = new Game(playerA);
-    playerB.x = playerB.canvas.width - playerB.width;
-    this.game.playerB = playerB;
-    return this.game;
-  }
-
-  paddleCol(player: Player) {
-    const ball = this.game.ball;
-    const paddleRight = player.x + player.width;
-    const paddleLeft = player.x;
-    const paddleTop = player.y;
-    const paddleBottom = player.y + player.height;
-    return (
-      ball.x - ball.radius < paddleRight &&
-      ball.x + ball.radius > paddleLeft &&
-      ball.y - ball.radius < paddleBottom &&
-      ball.y + ball.radius > paddleTop
-    );
-  }
-
-  update(info: { userId: number; playerCanvas: Canvas }) {
-    if (!this.gameStarted) return;
-    const { userId, playerCanvas } = info;
-    const playerA = this.game.playerA;
-    const playerB = this.game.playerB;
-    const ball = this.game.ball;
-    const { width, height } = playerCanvas;
-
-    if (!this.game || !playerB) return;
-
-    const player = userId === playerA.id ? playerA : playerB;
-
-    if (playerA.keyState['ArrowUp'] && playerA.y > 5) {
-      playerA.y -= 5;
-    } else if (
-      playerA.keyState['ArrowDown'] &&
-      playerA.y < height - playerA.height - 5
-    ) {
-      playerA.y += 5;
-    }
-
-    if (playerB.keyState['ArrowUp'] && playerB.y > 5) {
-      playerB.y -= 5;
-    } else if (
-      playerB.keyState['ArrowDown'] &&
-      playerB.y < height - playerB.height - 5
-    ) {
-      playerB.y += 5;
-    }
-
-    ball.x += (ball.velocity.x * ball.speed) / 10;
-    ball.y += (ball.velocity.y * ball.speed) / 10;
-
-    // Check if ball hits top or bottom wall
-    if (ball.y + ball.radius > height - 10 || ball.y - ball.radius < 10) {
-      ball.velocity.y = -ball.velocity.y;
-    }
-
-    // Check if ball hits player A or B
-    if (
-      (this.paddleCol(this.game.playerA) ||
-        this.paddleCol(this.game.playerB)) &&
-      !this.ballChangedDirection
-    ) {
-      this.ballChangedDirection = true;
-      ball.velocity.x = 2 * -Math.sign(ball.velocity.x);
-      ball.velocity.y = Math.random() * 4 - 2;
-      ball.velocity.x +=
-        Math.sign(ball.velocity.x) * (2 - Math.abs(ball.velocity.y));
-      ball.speed++;
-      // console.log(ball.velocity);
-      const timeoutId = setTimeout(() => {
-        this.ballChangedDirection = false;
-        clearTimeout(timeoutId);
-      }, 1000);
-    }
-
-    // Check if ball goes out of bounds (player A scores)
-    if (ball.x > width) {
-      playerA.score++;
-      ball.reset(playerA.canvas);
-      ball.velocity.x = Math.abs(ball.velocity.x) * this.ballDirection;
-      this.ballDirection = -this.ballDirection;
-    }
-
-    // Check if ball goes out of bounds (player B scores)
-    if (ball.x < 0) {
-      playerB.score++;
-      ball.reset(playerB.canvas);
-      ball.velocity.x = Math.abs(ball.velocity.x) * this.ballDirection;
-      this.ballDirection = -this.ballDirection;
-    }
-
-    return this.game;
-  }
-
-  keyPressed(info: { key: string; userId: number }) {
-    const player =
-      info.userId === this.game.playerA.id
-        ? this.game.playerA
-        : this.game.playerB;
-    player.keyState[info.key] = true;
-    return this.game;
-  }
-
-  keyReleased(info: { key: string; userId: number }) {
-    const player =
-      info.userId === this.game.playerA.id
-        ? this.game.playerA
-        : this.game.playerB;
-    player.keyState[info.key] = false;
-    return this.game;
-  }
-}
+import { AIPlayer, Ball, Canvas, Player } from './classes';
+import { Invitation } from './interfaces/index';
+import { GameProvider } from './services/gameprovider.service';
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class PongService {
-  private queue: Socket[] = []; // Socket[]
-  private gameProviders: GameProvider[] = []; // Array to store game providers
+  private queue: Socket[] = []; // Socket[] - Queue to store players waiting to join a game
+  private gameProviders: GameProvider[] = []; // Array to store active game providers
+  private activeInvitations: Map<number, Invitation> = new Map<
+    number,
+    Invitation
+  >(); // Map to store active invitations
+  use: any;
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notificationService: NotificationService,
+    private usersService: UsersService,
+  ) {}
 
+  inviteFriend(inviterId: number, invitedFriendId: number, client: Socket) {
+    // Check if the invited friend is already in an active invitation
+    if (this.isInvited(invitedFriendId)) {
+      console.log('Invitation already sent to the friend.');
+      return;
+    }
+
+    // Create an invitation object
+    const invitation: Invitation = {
+      inviterId,
+      inviterSocket: client,
+      invitedFriendId,
+      timestamp: Date.now(),
+    };
+
+    // Add the invitation to the active invitations dictionary
+    this.activeInvitations.set(inviterId, invitation);
+    this.notificationService.sendNotification(
+      inviterId,
+      invitedFriendId,
+      'Game Invite',
+      '',
+      invitedFriendId,
+      '/pong',
+    );
+
+    // Start a timer to reset the invitation after 30 seconds
+    setTimeout(() => {
+      this.resetInvitation(inviterId);
+    }, 30000); // 30 seconds
+  }
+
+  acceptInvitation(invitedFriendId: number, client: Socket) {
+    // Check if the invited friend has an active invitation
+    // if (this.isInvited(invitedFriendId)) {
+    //   // Remove the invitation from the active invitations dictionary
+    //   this.activeInvitations.delete(invitedFriendId);
+    //   const invitation = this.activeInvitations.get(invitedFriendId);
+    //   // Proceed with joining the game or taking any other action
+    //   // to fulfill the invitation request
+    //   const playerA = this.createPlayer(invitation.inviterSocket);
+    //   const playerB = this.createPlayer(client);
+    //   playerB.x = playerB.canvas.width - playerB.width;
+    //   this.createGameProvider(playerA, playerB);
+    //   playerA.socket.emit('init-game');
+    //   playerB.socket.emit('init-game');
+    //   // return;
+    //   console.log('Invitation accepted. Joining the game...');
+    // } else {
+    //   console.log('No active invitation found for the friend.');
+    //   console.log(this.activeInvitations);
+    // }
+  }
+
+  resetInvitation(inviterId: number) {
+    // Check if the inviter has an active invitation
+    if (this.isInvited(inviterId)) {
+      // Remove the invitation from the active invitations dictionary
+      this.activeInvitations.delete(inviterId);
+
+      // Proceed with any necessary reset or clean-up actions
+      console.log('Invitation reset.');
+    }
+  }
+
+  isInvited(playerId: number): boolean {
+    return this.activeInvitations.has(playerId);
+  }
+
+  // Fetches the list of ongoing games with player information
   async getLiveGames() {
     try {
       const games = await this.prisma.game.findMany({
@@ -285,6 +112,7 @@ export class PongService {
     }
   }
 
+  // Fetches the match history of a specific user
   async getMatchHistory(userId: number) {
     try {
       const games = await this.prisma.game.findMany({
@@ -310,6 +138,7 @@ export class PongService {
     }
   }
 
+  // Updates the winner and loser of a game
   async updateWinnerandLoser(
     winnerId: number,
     loserId: number,
@@ -336,9 +165,13 @@ export class PongService {
         },
       });
       console.log(game);
-    } catch (error) {}
+    } catch (error) {
+      // Handle the error here
+      console.log(error);
+    }
   }
 
+  // Updates the score of a game
   async updateScore(
     gameId: number,
     player1score: number,
@@ -364,14 +197,14 @@ export class PongService {
         },
       });
     } catch (error) {
+      // Handle the error here
       console.log(error);
     }
   }
 
+  // Creates a game between two players
   async createGame(player1Id: number, player2Id: number) {
     try {
-      // await this.createPlayerIfNotExist(player1Id);
-      // await this.createPlayerIfNotExist(player2Id);
       const game = await this.prisma.game.create({
         data: {
           player1: { connect: { id: player1Id } },
@@ -381,18 +214,22 @@ export class PongService {
       });
       return game;
     } catch (error) {
+      // Handle the error here
       console.log(error);
-      // throw new InternalServerErrorException();
     }
   }
 
+  // Retrieves the client ID from the socket client
   private getClientIdFromClient(client: Socket): string {
     return client.handshake.query.clientId[0];
   }
 
-  hanldelClientDisconnect(client: Socket, playerA, playerB, game, winnerId) {
+  // Handles client disconnection
+  handleClientDisconnect(client: Socket, playerA, playerB, game, winnerId) {
     if (!client) return;
     client.on('disconnect', () => {
+      // this.usersService.changeUserStatus('ONLINE');
+      // Update the score and remove the game provider
       this.updateScore(
         game.id,
         playerA.id === winnerId ? 7 : 0,
@@ -404,25 +241,80 @@ export class PongService {
     });
   }
 
-  joinQueue(client: Socket) {
+  // Adds a player to the queue
+  async joinQueue(client: Socket) {
     client.on('disconnect', () => {
       this.leaveQueue(client);
     });
-    this.queue.push(client);
-    // Check if there are at least two players in the queue
-    if (this.queue.length >= 2) {
-      const playerA = this.createPlayer(this.queue.shift());
-      console.log(playerA.id);
-      const playerB = this.createPlayer(this.queue.shift());
+
+    const gameMode: string = this.getClientGameMode(client);
+    const playMode: string = this.getClientPlayMode(client);
+    // Check if the player is already in the queue
+    if (this.isInQueue(client)) {
+      console.log('Player is already in the queue.');
+      return;
+    }
+
+    const matchingPlayers = this.queue.filter(
+      (player) =>
+        this.isMatchingGameMode(player, gameMode) &&
+        this.isMatchingPlayMode(player, playMode),
+    );
+
+    // Check if there is a matching player in the queue
+    if (matchingPlayers.length > 0) {
+      const playerA = await this.createPlayer(matchingPlayers.shift());
+      const playerB = await this.createPlayer(client);
       playerB.x = playerB.canvas.width - playerB.width;
       this.createGameProvider(playerA, playerB);
       playerA.socket.emit('init-game');
       playerB.socket.emit('init-game');
+      return;
+    }
+
+    this.queue.push(client);
+  }
+
+  getClientGameMode(client) {
+    return 'classic';
+  }
+
+  getClientPlayMode(client) {
+    return 'single';
+  }
+
+  // get players acheivements
+  async getPlayerAchievements(playerId: number) {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: {
+          id: playerId,
+        },
+        include: {
+          achievements: true,
+        },
+      });
+      return user.achievements.map((item) => item.name);
+    } catch (error) {
+      console.log(error);
     }
   }
 
+  // Checks if a player's game mode matches the requested game mode
+  private isMatchingGameMode(client: Socket, gameMode: string): boolean {
+    const playerGameMode = this.getClientGameMode(client); // Implement a function to get the player's game mode
+    return playerGameMode === gameMode;
+  }
+
+  // Checks if a player's play mode matches the requested play mode
+  private isMatchingPlayMode(client: Socket, playMode: string): boolean {
+    const playerPlayMode = this.getClientPlayMode(client); // Implement a function to get the player's play mode
+    return playerPlayMode === playMode;
+  }
+
+  // Plays the game with an AI player
   async playWithAI(client: Socket) {
-    const playerA = this.createPlayer(client);
+    const playerA = await this.createPlayer(client);
     const playerB = new AIPlayer(1, playerA.canvas, 3, new Ball(new Canvas()));
     const game = await this.createGameProvider(playerA, playerB);
     playerB.ball = game.game.ball;
@@ -433,30 +325,35 @@ export class PongService {
     return game;
   }
 
+  // Removes a player from the queue
   leaveQueue(client: Socket) {
     this.queue = this.queue.filter((socket) => socket !== client);
   }
 
-  private createPlayer(client: Socket): Player {
+  // Creates a player instance from a client socket
+  private async createPlayer(client: Socket): Promise<Player> {
     const userId = this.getClientIdFromClient(client); // Implement a function to get the user ID from the client
     const playerCanvas = new Canvas(); // Replace canvasWidth and canvasHeight with actual values
-    return new Player(parseInt(userId), playerCanvas, client);
+    const achievements = await this.getPlayerAchievements(parseInt(userId));
+
+    return new Player(parseInt(userId), playerCanvas, client, achievements);
   }
 
+  // Creates a game provider with two players
   private async createGameProvider(playerA: Player, playerB: Player) {
     const gameProvider = new GameProvider();
     const game = await this.createGame(playerA.id, playerB.id);
     gameProvider.id = game.id;
     gameProvider.init(playerA, playerB);
     this.gameProviders.push(gameProvider);
-    this.hanldelClientDisconnect(
+    this.handleClientDisconnect(
       playerA.socket,
       playerA,
       playerB,
       game,
       playerB.id,
     );
-    this.hanldelClientDisconnect(
+    this.handleClientDisconnect(
       playerB.socket,
       playerA,
       playerB,
@@ -466,12 +363,14 @@ export class PongService {
     return gameProvider;
   }
 
+  // Removes a game provider from the list
   removeGameProvider(gameProvider: GameProvider) {
     this.gameProviders = this.gameProviders.filter(
       (provider) => provider.id !== gameProvider.id,
     );
   }
 
+  // Retrieves the game provider based on a user ID
   private getGameProviderByUserId(userId: number): GameProvider {
     return this.gameProviders.find(
       (gameProvider) =>
@@ -480,23 +379,60 @@ export class PongService {
     );
   }
 
-  getGameProviderById(gameId: number): GameProvider {
-    return this.gameProviders.find(
-      (gameProvider) => gameProvider.id === gameId,
-    );
+  // Checks if a client is in the queue
+  private isInQueue(client: Socket): boolean {
+    return this.queue.includes(client);
   }
 
-  // liveWatch(gameId: number) {
-  //   const gameProvider = this.getGameProviderById(gameId);
-  //   if (!gameProvider) return null;
-  //   return this.gameProvider.game;
-  // }
+  assingAchievements(player: Player) {
+    const achievements = player.acheivementsWatcher.toAssignAchievements;
 
+    for (const achievement of achievements) {
+      this.usersService.assignAchievements(player.id, achievement);
+    }
+
+    player.acheivementsWatcher.toAssignAchievements.clear();
+  }
+
+  async gameOver(gameProvider: GameProvider) {
+    const { playerA, playerB } = gameProvider.game;
+
+    const winner = playerA.score > playerB.score ? playerA : playerB;
+    const loser = playerA.score < playerB.score ? playerA : playerB;
+    const playerAUser = await this.usersService.findUserById(playerA.id);
+    playerA.acheivementsWatcher.checkAchievementsWhenGameIDone(
+      playerA,
+      playerB,
+      playerAUser,
+    );
+    const playerBUser = await this.usersService.findUserById(playerB.id);
+    playerB.acheivementsWatcher.checkAchievementsWhenGameIDone(
+      playerB,
+      playerA,
+      playerBUser,
+    );
+    if (playerA.socket) {
+      playerA.socket.emit('game-over', {
+        winner: winner.id,
+      });
+    }
+    if (playerB.socket) {
+      playerB.socket.emit('game-over', {
+        winner: winner.id,
+      });
+    }
+    this.assingAchievements(playerA);
+    this.assingAchievements(playerB);
+    await this.adjustPlayerRating(winner.id, loser.id);
+  }
   update(info: { userId: number; playerCanvas: Canvas }) {
     const gameProvider = this.getGameProviderByUserId(info.userId);
     if (!gameProvider) return null;
     const game = gameProvider.update(info);
     const { playerA, playerB } = game;
+    // await this.use
+    this.assingAchievements(playerA);
+    this.assingAchievements(playerB);
     this.updateScore(
       gameProvider.id,
       playerA.score,
@@ -505,32 +441,124 @@ export class PongService {
       playerB.id,
     );
     if (playerA.score >= 7 || playerB.score >= 7) {
-      if (playerA.socket && playerB.socket) {
-        playerA.socket.emit('game-over', {
-          winner: playerA.score > playerB.score ? playerA.id : playerB.id,
-        });
-        playerB.socket.emit('game-over', {
-          winner: playerA.score > playerB.score ? playerA.id : playerB.id,
-        });
-      }
-      // this.updateWinnerandLoser(
-      //   playerA.score > playerB.score ? playerA.id : playerB.id,
-      //   playerA.score > playerB.score ? playerB.id : playerA.id,
-      //   gameProvider.id,
-      // );
+      this.gameOver(gameProvider);
       this.removeGameProvider(gameProvider);
       return;
     }
     return game;
   }
 
-  keyPressed(client: Socket, info: { key: string; userId: number }) {
+  keyPressed(info: { key: string; userId: number }) {
     const gameProvider = this.getGameProviderByUserId(info.userId);
     if (gameProvider) gameProvider.keyPressed(info);
   }
 
-  keyReleased(client: Socket, info: { key: string; userId: number }) {
+  keyReleased(info: { key: string; userId: number }) {
     const gameProvider = this.getGameProviderByUserId(info.userId);
     if (gameProvider) gameProvider.keyReleased(info);
+  }
+
+  // // 2 - Point Adjustments:  :
+  // /*
+  //   * When a player wins a game, they earn points based on the ladder level of their opponent.
+  //       - If a player wins against an opponent with a lower ladder level, they earn a base amount of points (50 points).
+  //       - If a player wins against an opponent with the same ladder level, they earn a slightly higher amount of points (75 points).
+  //       - If a player wins against an opponent with a higher ladder level, they earn an even higher amount of points (100 points).
+  //   * When a player loses a game, they lose points based on the ladder level of their opponent.
+  //       - If a player loses against an opponent with a lower ladder level, they lose a base amount of points (150 points).
+  //       - If a player loses against an opponent with the same ladder level, they lose a slightly higher amount of points (100 points).
+  //       - If a player loses against an opponent with a higher ladder level, they lose an even higher amount of points (50 points).
+  // */
+
+  // // 3 - Ladder Level Adjustments:
+  // /*
+  //   from begginer to amateur
+  //    * 0 - 500
+  //   from amteur to semi-professional
+  //    * 500 - 1200
+  //   from semi-professional to professional
+  //    * 1200 - 3500
+  //   from professional to worldclass
+  //    * 3500 - 7000
+  //   from worldclass to legendary
+  //    * 7000 - 10000
+  // */
+
+  /*
+  BEGINNER
+  AMATEUR
+  SEMI_PROFESSIONAL
+  PROFESSIONAL
+  WORLD_CLASS
+  LEGENDARY
+  */
+  adjustLadderLevel(points: number): string {
+    if (points >= 0 && points <= 500) {
+      return 'BEGINNER';
+    } else if (points > 500 && points <= 1200) {
+      return 'AMATEUR';
+    } else if (points > 1200 && points <= 3500) {
+      return 'SEMI_PROFESSIONAL';
+    } else if (points > 3500 && points <= 7000) {
+      return 'PROFESSIONAL';
+    } else if (points > 7000 && points <= 10000) {
+      return 'WORLD_CLASS';
+    } else {
+      return 'LEGENDARY';
+    }
+  }
+
+  async adjustPlayerRating(winnerId: number, loserId: number) {
+    try {
+      const winner = await this.usersService.findUserById(winnerId);
+      const loser = await this.usersService.findUserById(loserId);
+
+      // Assume winner.ladderLevel and loser.ladderLevel represent the ladder levels of the players
+
+      let winPoints = 0;
+      let lossPoints = 0;
+
+      if (winner.ladder < loser.ladder) {
+        winPoints = 50;
+        lossPoints = 150;
+      } else if (winner.ladder > loser.ladder) {
+        winPoints = 100;
+        lossPoints = 50;
+      } else {
+        winPoints = 75;
+        lossPoints = 100;
+      }
+
+      // Update the winner's points and ladder level
+      winner.rating += winPoints;
+      loser.ladder = this.adjustLadderLevel(winner.rating) as Ladder;
+      // Adjust ladder level if needed
+      // ...
+
+      // Update the loser's points and ladder level
+      loser.rating -= lossPoints;
+      loser.rating = loser.rating < 0 ? 0 : loser.rating;
+      loser.ladder = this.adjustLadderLevel(loser.rating) as Ladder;
+      // Adjust ladder level if needed
+      // ...
+
+      // Save the updated player data
+      const { sentRequests, receivedRequests, achievements, ...winnerData } =
+        winner;
+      const {
+        sentRequests: _,
+        receivedRequests: __,
+        achievements: ___,
+        ...loserData
+      } = loser;
+      await this.usersService.updateUser({ user: winnerData }, winnerId);
+      await this.usersService.updateUser({ user: loserData }, loserId);
+    } catch (e) {
+      console.log(e);
+      throw new InternalServerErrorException(
+        'Could not update user rating and ladder',
+      );
+      // Handle any errors that occur during the adjustment process
+    }
   }
 }
