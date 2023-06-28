@@ -1,111 +1,32 @@
-import { useContext, useState } from "react";
-import { AppContext } from "../../context/app.context";
-import { ChatContext } from "../../context/chat.context";
 import Avatar from "../avatar";
 import AvatarGroup from "../avatarGroup";
 import Button from "../button";
 import { BsKeyFill, BsFillPeopleFill } from "react-icons/bs";
-import Card from "../card";
-import Input from "../input";
-import { useNavigate } from 'react-router-dom';
 
-const ChatBanner = ({
-    showRank,
-    rank,
-    showRating,
-    channel,
-}: {
-    showRank?: boolean;
-    showRating?: boolean;
-    rank?: number;
-    channel?: any;
-}) => {
-    const navigate = useNavigate();
-    const { user } = useContext(AppContext);
-    const socket = useContext(ChatContext);
-    const [password, setPassword] = useState("");
-    const [showModal, setshowModal] = useState(false);
-    const handleJoin = () => {
-        if (channel.visiblity === "PROTECTED") {
-            setshowModal(true);
-        } else 
-        {
-            socket?.emit("channel_join", { channelId: channel.id, userId: user?.id });
-            socket?.emit('channel_member', {userId : user?.id, channelId : channel.id });
-            navigate(`/chat`);
-        }
-    };
-    
-    const handleLeave = () => {
-        socket?.emit("channel_leave", { channelId: channel.id, userId: user?.id });
-        socket?.emit('channel_member', {userId : user?.id, channelId : channel.id });
-        navigate(`/chat`);      
-    };
-    console.log(channel);
+const ChatBanner = () => {
     return (
-        <>
         <div className="flex flex-col  gap-2 border-2 border-secondary-400 rounded-md p-2 sm:p-4 shadow-sm shadow-secondary-400 max-w-[500px] w-full">
             <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
                 <div className="w-full">
-                    <div className="text-white text-lg ">{channel.name}</div>
+                    <div className="text-white text-lg ">l3aba9ira</div>
                     <div className="flex items-center text-sm text-tertiary-200 justify-between w-full sm:justify-start sm:gap-4">
-                        <div>{channel.channelMembers?.length} Members</div>
+                        <div>5 Members</div>
                         <div className="flex items-center gap-2">
-                            {channel.visiblity === "PROTECTED" && <BsKeyFill />}
-                            <BsFillPeopleFill /> {channel.visiblity}
+                            {/* <BsKeyFill /> Protected */}
+                            <BsFillPeopleFill /> Public
                         </div>
                     </div>
                 </div>
-                {
-                    !channel.channelMembers?.map((item: any) => item.userId).includes(user?.id) || channel.kickedUsers.map((u : any) => u.id).includes(user?.id) ?
-                    <Button onClick={handleJoin} className="w-full sm:w-auto ">Join</Button>
-                    :
-                    <Button onClick={handleLeave} className="w-full sm:w-auto ">Leave</Button>
-                    
-                }
+                <Button className="w-full sm:w-auto ">Join</Button>
             </div>
-            <AvatarGroup max={3}>
-                {
-                    channel.channelMembers &&
-                    channel.channelMembers?.map((item: any) => {
-                        return (<Avatar key={item.userId} src={item.user.avatar} alt={item.user.username} />)
-                    }
-                    ) 
-                }
+            <AvatarGroup max={4}>
+                <Avatar src="https://github.com/Hicham-BelHoucin.png" alt="" />
+                <Avatar src="https://github.com/BEAJousama.png" alt="" />
+                <Avatar src="https://github.com/Ysrbolles.png" alt="" />
+                <Avatar src="https://github.com/AnouarSaadi.png" alt="" />
+                <Avatar src="https://github.com/imabid99.png" alt="" />
             </AvatarGroup>
         </div>
-            { showModal && (
-                <Card
-                setShowModal={setshowModal}
-                className="z-10 bg-secondary-800 border-none flex flex-col items-center justify-start shadow-lg shadow-secondary-500 gap-4 text-white min-w-[90%] lg:min-w-[40%] xl:min-w-[50%] animate-jump-in animate-ease-out animate-duration-400 max-w-[100%] w-full"
-                >
-                    <span className="text-md">This channel is protected</span>
-                    <div className="flex flex-col justify-center items-center w-full">
-                        <Input
-                            label="Password"
-                            className="h-[40px] w-[80%] rounded-md border-2 border-primary-500 text-white text-xs bg-transparent md:mr-2"
-                            type="password"
-                            placeholder="*****************"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            />
-                        <Button
-                            className="h-8 w-auto md:w-20 bg-primary-500 text-white text-xs rounded-full mt-2"
-                            onClick={() => {
-                                socket?.emit("channel_join", {channelId: channel.id, userId: user?.id, password: password});
-                                socket?.emit('channel_member', {userId : user?.id, channelId : channel.id });
-                                setshowModal(false);
-                                navigate(`/chat`);      
-                            }}
-                            >
-                            <span className="text-xs">Join</span>
-                        </Button>
-                    </div>
-                </Card>
-                )
-            }
-        </>
-        
     );
 };
 

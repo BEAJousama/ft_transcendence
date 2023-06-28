@@ -179,7 +179,6 @@ model Channel {
 }
 
 enum Role {
-  OWNER
   MEMEBER
   ADMIN
 }
@@ -188,7 +187,6 @@ enum MemberStatus {
   MUTED
   BANNED
   ACTIVE
-  LEFT
 }
 
 model ChannelMember {

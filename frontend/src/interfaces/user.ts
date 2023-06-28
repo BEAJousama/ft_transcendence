@@ -28,5 +28,4 @@ interface IUser {
   receivedRequests: any[];
 }
 
-
 export default IUser;

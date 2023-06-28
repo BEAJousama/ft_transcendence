@@ -12,7 +12,7 @@ const UserBanner = ({
     showRank?: boolean;
     showRating?: boolean;
     rank?: number;
-    user?: any;
+    user?: IUser;
 }) => {
     const isMatch = useMedia("(max-width: 530px)");
     return (
@@ -43,7 +43,7 @@ const UserBanner = ({
                         true && "!xl:max-w-full !w-full"
                     )}
                 >
-                    {user?.fullname || user.name || ""}
+                    {user?.fullname || ""}
                 </span>
                 <span
                     className={clsx(
