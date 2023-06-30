@@ -4,7 +4,7 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { User } from '@prisma/client';
+import { User, UserStatus } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 import { PrismaService } from 'src/prisma/prisma.service';
 import {
@@ -200,6 +200,33 @@ export class UsersService {
       if (error instanceof PrismaClientKnownRequestError) {
         if (error.code === 'P2016') {
           throw new NotFoundException(`User with ID ${body.user.id} not found`);
+        } else if (error.code === 'P2025') {
+          throw new BadRequestException('Invalid update data');
+        }
+      }
+      throw error;
+    }
+  }
+
+  async updateStatus(status: string, id : number)
+  {
+    try {
+      const user = await this.prisma.user.update({
+        where: {
+          id,
+        },
+        data: 
+        {
+          status: UserStatus[status],
+        }
+      });
+      return {
+        message: 'User updated successfully',
+      };
+    } catch (error) {
+      if (error instanceof PrismaClientKnownRequestError) {
+        if (error.code === 'P2016') {
+          throw new NotFoundException(`User with ID ${id} not found`);
         } else if (error.code === 'P2025') {
           throw new BadRequestException('Invalid update data');
         }

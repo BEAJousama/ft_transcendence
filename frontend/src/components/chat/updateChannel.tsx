@@ -53,7 +53,7 @@ const UpdateChannel = ({
         ) :
         (
             <Button
-            className="!bg-inherit !text-white hover:bg-inherit justify-between w-full !font-medium ml-1 mt-4"
+            className="!bg-inherit !text-white hover:bg-inherit justify-between w-[30%] !font-medium ml-1 mt-4"
             onClick={() => {
                 setX(false);
                 setShowEdit(true);

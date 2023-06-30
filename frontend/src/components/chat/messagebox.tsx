@@ -8,6 +8,7 @@ import { SocketContext } from "../../context/socket.context";
 import { AppContext } from "../../context/app.context";
 import { Chat } from "../../pages";
 import { ChatContext } from "../../context/chat.context";
+import Spinner from "../spinner";
 
 const MessageBox = ({ message, right, autoScroll }: { message?: any; right?: boolean, autoScroll : any}) => {
   const [showMenu, setShowMenu] = useState(false);
@@ -22,7 +23,7 @@ const MessageBox = ({ message, right, autoScroll }: { message?: any; right?: boo
   }, []);
 
   useEffect(() => {
-    fetch(`http://10.11.8.12:3000/api/users/${message.senderId}`, {
+    fetch(`http://192.168.1.58:3000/api/users/${message.senderId}`, {
       method: 'GET',
       headers: {
           'Authorization': `Bearer ${token}`, // notice the Bearer before your token
@@ -72,6 +73,7 @@ const MessageBox = ({ message, right, autoScroll }: { message?: any; right?: boo
       >
       <div className="flex w-max">
         {user?.id !== message.senderId && (
+          sender ? 
           <div>
             <span className="relative group">
               <img
@@ -81,6 +83,8 @@ const MessageBox = ({ message, right, autoScroll }: { message?: any; right?: boo
                 />
             </span>
           </div>
+          :
+           <Spinner/>
         )}
       <div
         className={clsx(

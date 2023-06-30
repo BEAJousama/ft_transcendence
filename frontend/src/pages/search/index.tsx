@@ -112,7 +112,7 @@ export default function Search() {
               filtred.map((item: any) => {
                 return (
                   selected === "api/users" ?
-                  <Link to={`/profile/${item.id}`} className="w-full">
+                  <Link key={item.id} to={`/profile/${item.id}`} className="w-full">
                     <UserBanner
                       key={item.id}
                       user={item}
@@ -124,8 +124,6 @@ export default function Search() {
                     <ChatBanner
                       key={item.id}
                       channel={item}
-                      showRating
-                      rank={item.rating}
                     />
                 );
               })

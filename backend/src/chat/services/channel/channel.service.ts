@@ -64,9 +64,11 @@ export class ChannelService {
           },
       });
 
+      // console.log(userId);
       channels.forEach((channel) => {
-        if (channel.type === ChannelType.CONVERSATION && channel.userId !== userId
-            && channel.updatedAt === channel.createAt) {
+        // console.log(channel);
+        if (channel.userId != userId && channel.type === ChannelType.CONVERSATION && 
+            channel.updatedAt.toString() === channel.createAt.toString()) {
             channels.splice(channels.indexOf(channel), 1);
           }
       });
@@ -188,16 +190,33 @@ export class ChannelService {
         where: { 
           id: channelId
         },
-          include: {
-            channelMembers: 
-            {
-              include: {
-                user: true,
-              },
+        select:
+        {
+          id: true,
+          name: true,
+          type: true,
+          avatar: true,
+          userId: true,
+          lastestMessageDate: true,
+          visiblity: true,
+          createAt: true,
+          updatedAt: true,
+          archivedFor: true,
+          mutedFor: true,
+          unreadFor: true,
+          pinnedFor: true,
+          deletedFor: true,
+          bannedUsers: true,
+          kickedUsers: true,
+          channelMembers:
+          {
+            include: {
+              user: true,
             },
-            messages: true,
-            mutedFor: true,
           },
+          messages: true,
+          isacessPassword: true,
+        }
     });
     return channel;
   }
@@ -404,40 +423,61 @@ export class ChannelService {
         // check if member already exists and its status is LEFT and make it active
         if (channelData.members)
         {
-            channelMembers = channelData.members.map((member) => {
-            return { user: { connect: { id: member }  } }
-            }
-            );
-        }
-        await this.prisma.channel.update({
-        where: {
-          id: channelData.id,
-        },
-        data:
-        {
-          channelMembers:
-          {
-            create : channelMembers,
-          },
-        },
-        });
-        channelData.members.forEach(async (memberId) => {
-          const channelMember = await this.getChannelMemberByUserIdAndChannelId(memberId, channelData.id);
-          if (channelMember && channelMember.status === MemberStatus.LEFT)
-          {
-            await this.prisma.channelMember.update({
-              where: {
-                userId_channelId: {
-                  userId: memberId,
-                  channelId: channelData.id,
+          channelData.members.forEach(async (memberId) => {
+            const channelMember = await this.getChannelMemberByUserIdAndChannelId(memberId, channelData.id);
+            if (channelMember && channelMember.status === MemberStatus.LEFT)
+            {
+              await this.prisma.channelMember.update({
+                where: {
+                  userId_channelId: {
+                    userId: memberId,
+                    channelId: channelData.id,
+                  },
                 },
-              },
-              data: {
-                status: MemberStatus.ACTIVE,
-              },
+                data: {
+                  status: MemberStatus.ACTIVE,
+                },
+              });
+
+              await this.prisma.channel.update(
+                {
+                  where :
+                  {
+                    id: channelData.id,
+                  },
+                  data:
+                  {
+                    kickedUsers:
+                    {
+                      disconnect:
+                      {
+                        id: memberId,
+                      }
+                    }
+                  }
+                }
+              )
+              channelData.members = channelData.members.filter(member => member !== memberId);
+            }});
+
+            channelMembers = channelData.members.map((member) => {
+              return { user: { connect: { id: member }  } }
             });
-          }
-        });
+
+            await this.prisma.channel.update({
+            where: {
+              id: channelData.id,
+            },
+            data:
+            {
+              channelMembers:
+              {
+                create : channelMembers,
+              },
+          },
+          });
+
+        }
         return channel;
       }
       if (channelData.type === "access_pass")

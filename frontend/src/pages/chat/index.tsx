@@ -8,6 +8,7 @@ import { useMedia } from "react-use";
 import { ChatContext } from "../../context/chat.context";
 import { AppContext } from "../../context/app.context";
 import Modal from "../../components/modal"
+import Layout from "../layout";
 
 export default function Chat() {
   const [open, setOpen] = useState<boolean>(false);
@@ -19,8 +20,6 @@ export default function Chat() {
   const socket = useContext(ChatContext);
   const [error, setError] = useState<any>("");
   const [isMuted, setIsMuted] = useState<boolean>(false);
-  const [modal, setModal] = useState(false);
-  const [password, setPassword] = useState<string>("")
 
 
 
@@ -60,64 +59,33 @@ export default function Chat() {
   }, []);
 
   return (
-    <div className="grid grid-cols-10 h-screen w-screen bg-secondary-500 overflow-hidden">
-      {!open && <Sidepanel className="col-span-2 2xl:col-span-1" />}
-      {
-        error &&
-        (
-          <div className="fixed inset-0 z-20 flex justify-end items-start mt-4 mr-4">
-          <div className="bg-red-500 text-white px-4 py-2 rounded-md">
-            <p className="font-bold mb-2">Error:</p>
-            <p>{error}</p>
-          </div>
-          </div>
-        )
-      }
-      {!open && (
-        <ChannelList
-          className="col-span-8 animate-fade-right"
-          setModal={setModal}
-          setCurrentChannel={setCurrentChannel}
-          setChannelMember={setChannelMember}
-          setShowModal={setShowModal}
-          />
-        )}
-      {(currentChannel && Object.keys(currentChannel!).length ) ? <MessageBubble className="mt-4 mb-4 pb-3" currentChannel={currentChannel} setOpen={setOpen} channelMember={channelMember}/>
-    : 
-      < Welcome className="mt-4 mb-4 pb-3" />
-    }
-      {showModal && <CreateGroupModal setShowModal={setShowModal} />}
-
-      {
-        //possibility to move this to channelList, 'cause we have not access to channel
-        modal && (
-          <Modal
-          setShowModal={setModal}
-          className="z-30 bg-secondary-800 border-none flex flex-col items-center justify-start shadow-lg shadow-secondary-500 gap-4 text-white min-w-[90%] lg:min-w-[40%] xl:min-w-[50%] animate-jump-in animate-ease-out animate-duration-400 max-w-[100%] w-full"
-          >
-              <span className="text-md">This channel require access pass </span>
-              <div className="flex flex-col justify-center items-center w-full">
-                  <Input
-                      label="Password"
-                      className="h-[40px] w-[80%] rounded-md border-2 border-primary-500 text-white text-xs bg-transparent md:mr-2"
-                      type="password"
-                      placeholder="*****************"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      />
-                  <Button
-                      className="h-8 w-auto md:w-20 bg-primary-500 text-white text-xs rounded-full mt-2"
-                      onClick={() => {
-                          // accessChannel()
-                          setModal(false);
-                        }}
-                      >
-                      <span className="text-xs">Access</span>
-                  </Button>
-              </div>
-          </Modal>
+    <Layout className="!py-0 !overflow-y-hidden">
+      <div className="grid grid-cols-9 h-full w-full">
+        {
+          error &&
+          (
+            <div className="fixed inset-0 z-20 flex justify-end items-start mt-4 mr-4">
+            <div className="bg-red-500 text-white px-4 py-2 rounded-md">
+              <p className="font-bold mb-2">Error:</p>
+              <p>{error}</p>
+            </div>
+            </div>
           )
+        }
+        {!open && (
+          <ChannelList
+            className="col-span-8 animate-fade-right"
+            setCurrentChannel={setCurrentChannel}
+            setChannelMember={setChannelMember}
+            setShowModal={setShowModal}
+            />
+          )}
+        {(currentChannel && Object.keys(currentChannel!).length ) ? <MessageBubble className="mt-4 mb-4 pb-5" currentChannel={currentChannel} setOpen={setOpen} channelMember={channelMember}/>
+      : 
+        < Welcome className="mt-4 mb-4 pb-3" />
       }
-    </div>
+        {showModal && <CreateGroupModal setShowModal={setShowModal} />}
+      </div>
+    </Layout>
   );
 }

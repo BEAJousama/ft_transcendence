@@ -28,13 +28,13 @@ import { useNavigate } from "react-router-dom";
 import UpdateChannel from "./updateChannel";
 import { channel } from "diagnostics_channel";
 
-const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {className?: string, setOpen: any, currentChannel: any, channelMember: any}) => {
+const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {className?: string, setOpen: any, currentChannel?: any, channelMember?: any}) => {
   const [value, setValue] = useState("");
   const [showPicker, setShowPicker] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
   const [messages, setMessages] = useState<any[]>([]);
-  let   [visibility, setVisibility] = useState<string>(currentChannel.visiblity);
+  let   [visibility, setVisibility] = useState<string>(currentChannel?.visiblity);
   const  isMatch = useMedia("(max-width:1024px)", false);
   const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
   let   [previewImage, setPreviewImage] = useState<string>(currentChannel?.avatar || "");
@@ -60,7 +60,7 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
   //   showModal: false,
   //   showEdit: false,
   //   messages: [],
-  //   visibility: currentChannel.visiblity,
+  //   visibility: currentChannel?.visiblity,
   //   selectedUsers: [],
   //   pinnedMessages: [],
   //   previewImage: currentChannel?.avatar || "",
@@ -81,14 +81,14 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
   };
 
   useEffect(() => {
-    setVisibility(currentChannel.visibility);
-    setPreviewImage(currentChannel.avatar || "");
-    setGroupName(currentChannel.name || "");
+    setVisibility(currentChannel?.visibility);
+    setPreviewImage(currentChannel?.avatar || "");
+    setGroupName(currentChannel?.name || "");
   }, [currentChannel]);
 
   
   useEffect(() => {
-    socket?.emit("getChannelMessages", {channelId : currentChannel.id, user: {id: user?.id}});
+    socket?.emit("getChannelMessages", {channelId : currentChannel?.id, user: {id: user?.id}});
     socket?.on("getChannelMessages", (message: any) => {
       setMessages(message);
       setSpinner(false);
@@ -124,48 +124,48 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
 
   const handleSendMessage = (value : string) => {
     if (value) {
-      socket?.emit('message', {senderId: user?.id, receiverId: currentChannel.id, content: value}); // senderId and receiverId are hardcoded for now
+      socket?.emit('message', {senderId: user?.id, receiverId: currentChannel?.id, content: value}); // senderId and receiverId are hardcoded for now
       setValue("");
     }
   };
 
   const leaveGroup = () => {
-    socket?.emit("channel_leave", { channelId: currentChannel.id, userId: user?.id }); // hardcoded for now
+    socket?.emit("channel_leave", { channelId: currentChannel?.id, userId: user?.id }); // hardcoded for now
   };
 
   const handleEditChannel = () => {
-    socket?.emit("channel_update", { id: currentChannel.id, name: groupName || currentChannel.name , visibility: visibility || 
-      currentChannel.visiblity, password: password , avatar: previewImage || currentChannel.avatar, members: selectedUsers });
+    socket?.emit("channel_update", { id: currentChannel?.id, name: groupName || currentChannel?.name , visibility: visibility || 
+      currentChannel?.visiblity, password: password , avatar: previewImage || currentChannel?.avatar, members: selectedUsers });
   };
 
   const handleDeleteChannel = () => {
-    socket?.emit("channel_delete", { id: currentChannel.id });
+    socket?.emit("channel_delete", { id: currentChannel?.id });
   };
 
   const handleEditChannelName = () => {
-    socket?.emit("channel_update", { id: currentChannel.id, name: groupName, type: "name" });
+    socket?.emit("channel_update", { id: currentChannel?.id, name: groupName, type: "name" });
   };
 
   const handleEditChannelPassword = () => {
-    socket?.emit("channel_update", { id: currentChannel.id, access_pass: accessPassword, type: "access_pass" });
+    socket?.emit("channel_update", { id: currentChannel?.id, access_pass: accessPassword, type: "access_pass" });
   };
 
   const handleEditChannelVisibility = () => {
-    socket?.emit("channel_update", { id: currentChannel.id, visibility: visibility, type: "visibility"});
+    socket?.emit("channel_update", { id: currentChannel?.id, visibility: visibility, type: "visibility"});
   };
 
   const handleEditChannelAvatar = () => {
-    socket?.emit("channel_update", { id: currentChannel.id, avatar: previewImage, type: "avatar"   });
+    socket?.emit("channel_update", { id: currentChannel?.id, avatar: previewImage, type: "avatar"   });
     
   };
   
   const handleRemovePassword = () =>
   {
-    socket?.emit("channel_update", { id: currentChannel.id, type: "rm_access_pass"});
+    socket?.emit("channel_update", { id: currentChannel?.id, type: "rm_access_pass"});
   }
 
   const handleAddMembers = () => {
-    socket?.emit("channel_update", { id: currentChannel.id, members: selectedUsers, type: "members" });
+    socket?.emit("channel_update", { id: currentChannel?.id, members: selectedUsers, type: "members" });
   };
   return (
     <div className={clsx("relative overflow-y-auto scrollbar-hide overflow-x-hidden col-span-10 flex h-screen w-full flex-col justify-start gap-4 rounded-t-3xl bg-secondary-600 lg:col-span-5 xl:col-span-5 2xl:col-span-6", className && className)} ref={refMessage}>
@@ -173,20 +173,23 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
         type="simple"
         className="flex tems-center gap-2 rounded-t-3xl top-0 mb-16 sticky bg-secondary-400 !p-2 text-white hover:bg-secondary-400 z-10"
         onClick={() => {
-          if (currentChannel.type !== "CONVERSATION" && channelMember.status !== "LEFT" && channelMember.status !== "BANNED" && channelMember.status !== "MUTED")
+          if (currentChannel?.type !== "CONVERSATION" && channelMember?.status !== "LEFT" && channelMember?.status !== "BANNED" && channelMember?.status !== "MUTED")
           {
             setShowModal(true);
             setShowEdit(true);
           } 
-          else if (currentChannel.type === "CONVERSATION")
-            navigate(`/profile/${currentChannel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.id}`);
+          else if (currentChannel?.type === "CONVERSATION")
+            navigate(`/profile/${currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.id}`);
 
         }}
         >
-        <Avatar src={currentChannel.type !== "CONVERSATION" ? currentChannel.avatar : 
-                     currentChannel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.avatar } alt="" />
-        <div>{currentChannel.type !== "CONVERSATION" ? currentChannel.name : currentChannel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.username}</div>
-        <Button
+        <Avatar src={currentChannel?.type !== "CONVERSATION" ? currentChannel?.avatar : 
+                     currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.avatar } alt="" 
+                     status={currentChannel?.type !== "CONVERSATION" ? false : 
+                     currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.status === "ONLINE"}
+                     />
+        <div>{currentChannel?.type !== "CONVERSATION" ? currentChannel?.name : currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.username}</div>
+        {/* <Button
           variant="text"
           className=" !hover:bg-inherit absolute right-0 mx-2 !items-end !bg-inherit text-white lg:hidden"
           onClick={() => {
@@ -194,7 +197,7 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
           }}
           >
           <BiLeftArrow />
-        </Button>
+        </Button> */}
       </Button>
       
       {
@@ -233,13 +236,13 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
           onClick={() => {
             setShowPicker(true);
           }}
-          disabled={channelMember.status === "MUTED" || channelMember.status === "BANNED" || channelMember.status === "LEFT"}
+          disabled={channelMember?.status === "MUTED" || channelMember?.status === "BANNED" || channelMember?.status === "LEFT"}
           >
           <BsEmojiSmileFill />
         </Button>
         <Input
-          disabled={channelMember.status === "MUTED" || channelMember.status === "BANNED" || channelMember.status === "LEFT"}
-          placeholder={(channelMember.status === "MUTED" ? "You are muted, you can't send messages!" : channelMember.status === "BANNED" ? "You are banned, you can't send messages!" : channelMember.status === "LEFT" ? "You have left this channel or have been kicked !" : "type something")}
+          disabled={channelMember?.status === "MUTED" || channelMember?.status === "BANNED" || channelMember?.status === "LEFT"}
+          placeholder={(channelMember?.status === "MUTED" ? "You are muted, you can't send messages!" : channelMember?.status === "BANNED" ? "You are banned, you can't send messages!" : channelMember?.status === "LEFT" ? "You have left this channel or have been kicked !" : "type something")}
           value={value}
           onKeyDown={(event) => {
             if (event.key === "Enter")
@@ -254,7 +257,7 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
         <Button
           variant="text"
           className="!hover:bg-inherit !bg-inherit text-primary-500"
-          disabled={channelMember.status === "MUTED" || channelMember.status === "BANNED" || channelMember.status === "LEFT"}
+          disabled={channelMember?.status === "MUTED" || channelMember?.status === "BANNED" || channelMember?.status === "LEFT"}
           onClick={() => {
             handleSendMessage(value);
           }}
@@ -277,7 +280,7 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
           <div className="flex flex-col w-full">
             <div className="flex w-full items-center justify-between">
               {
-                (channelMember.role === "ADMIN" || channelMember.role === "OWNER" ) ? (
+                (channelMember?.role === "ADMIN" || channelMember?.role === "OWNER" ) ? (
                   <div
                   className="!bg-inherit !text-white hover:bg-inherit ml-2">
                       Edit Channel
@@ -303,7 +306,7 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
             <Divider center className="w-full"/>
           </div>
           {
-            (showEdit && (channelMember.role === "OWNER" || channelMember.role === "ADMIN")) ? (
+            (showEdit && (channelMember?.role === "OWNER" || channelMember?.role === "ADMIN")) ? (
             <div className="flex w-full flex-col items-start justify-start gap-4 bg-inherit pt-4">
                 <Button
                     className="!bg-inherit !text-white hover:bg-inherit justify-between w-full !font-medium"
@@ -382,7 +385,7 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
               </Button>
 
               <Button
-                className="w-full justify-center mt-4"
+                className="w-[30%] justify-center mt-4"
                 onClick={() => {
                   leaveGroup();
                   setShowModal(false);
@@ -394,7 +397,7 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
               </div>
             ) 
             :
-            channelMember.role === "MEMEBER" ? 
+            channelMember?.role === "MEMEBER" ? 
             (
               <div className="flex h-max w-full flex-col items-center gap-2 overflow-y-scroll pt-2 scrollbar-hide">
                 {currentChannel?.channelMembers?.filter((member : any) => member.status !== "BANNED" && member.status !== "LEFT"  ).map((member : any) => {
@@ -407,7 +410,7 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
                     key={member.userId}
                     status={member.status}
                     role={member.role}
-                    channelId={currentChannel.id}
+                    channelId={currentChannel?.id}
                     userId={member.userId}
                     name={member.user.username}
                     avatar={member.user.avatar}
@@ -415,6 +418,16 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
                     />
                     );
                   })}
+                  <Button
+                    className="w-[30%] justify-center mt-4"
+                    onClick={() => {
+                      leaveGroup();
+                      setShowModal(false);
+                    }}
+                    >
+                    <RiLogoutBoxRLine />
+                    Leave Group
+                  </Button>
               </div>
             ) :
              null
@@ -428,7 +441,7 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
               >
                   <Input
                     label="Name"
-                    placeholder={currentChannel.name}
+                    placeholder={currentChannel?.name}
                     value={groupName}
                     onChange={(event) => {
                       const { value } = event.target;
@@ -458,7 +471,7 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
               >
               <Select 
                 className="mb-4"
-                label= "Visibility" setVisibility={setVisibility} options={["PUBLIC", "PRIVATE", "PROTECTED"]} value={currentChannel.visiblity} 
+                label= "Visibility" setVisibility={setVisibility} options={["PUBLIC", "PRIVATE", "PROTECTED"]} value={currentChannel?.visiblity} 
               />
               { 
                 visibility === "PROTECTED" && (
@@ -486,8 +499,8 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
               >
                 <div className="w-full h[100px] flex items-center justify-center flex-col align-middle gap-2 pt-2 overflow-y-scroll scrollbar-hide">
                   {users?.filter((u : any) => {
-                    return u.id !== user?.id && ((currentChannel.channelMembers.find((cm : any) => cm.userId === u.id) === undefined
-                    || currentChannel.channelMembers.find((cm : any) => cm.userId === u.id)?.status === "LEFT"));
+                    return u.id !== user?.id && ((currentChannel?.channelMembers.find((cm : any) => cm.userId === u.id) === undefined
+                    || currentChannel?.channelMembers.find((cm : any) => cm.userId === u.id)?.status === "LEFT"));
                   }).map((u : any) => {
                     return (
                       <div key={u.id} className="flex flex-row items-center justify-between w-full">
@@ -572,7 +585,7 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
                       key={member.userId}
                       status={member.status}
                       role={member.role}
-                      channelId={currentChannel.id}
+                      channelId={currentChannel?.id}
                       userId={member.userId}
                       name={member.user.username}
                       avatar={member.user.avatar}
@@ -588,7 +601,7 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
                 <Button
                   onClick={() => {
                     setShowEdit(false);
-                    setVisibility(currentChannel.visiblity);
+                    setVisibility(currentChannel?.visiblity);
                     handleEditChannel();
                   }}
                   className="w-full justify-center"
@@ -598,7 +611,7 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
                 <Button
                   onClick={() => {
                     setShowEdit(false);
-                    setVisibility(currentChannel.visiblity);
+                    setVisibility(currentChannel?.visiblity);
                   }}
                   className="w-full justify-center"
                   type="danger"
@@ -627,7 +640,7 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
                     key={member.userId}
                     status={member.status}
                     role={member.role}
-                    channelId={currentChannel.id}
+                    channelId={currentChannel?.id}
                     userId={member.userId}
                     name={member.user.username}
                     avatar={member.user.avatar}
@@ -663,7 +676,7 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
                       key={member.userId}
                       status={member.status}
                       role={member.role}
-                      channelId={currentChannel.id}
+                      channelId={currentChannel?.id}
                       userId={member.userId}
                       name={member.user.username}
                       avatar={member.user.avatar}

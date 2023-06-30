@@ -31,7 +31,6 @@ const CreateGroupModal = ({
 
 
   function handleCreateGroup() {
-    console.log(selectedUsers);
     socket?.emit("channel_create", { name: groupName ,avatar: previewImage, visibility: visibility, members: selectedUsers, password: password, access_pass : accesspass});
     setShowModal(false);
   }
@@ -52,7 +51,7 @@ const CreateGroupModal = ({
         className="z-10 bg-secondary-800 
       border-none flex flex-col items-center justify-start shadow-lg shadow-secondary-500 gap-4 text-white min-w-[90%]
        lg:min-w-[40%] xl:min-w-[800px] animate-jump-in animate-ease-out animate-duration-400"
-        setShowModal={setShowModal}
+        setShowModal={setShowModal!}
       >
         <div className="flex items-center justify-between w-full">
           { !show && !showDm && <span className="text-lg">New Chat</span>}

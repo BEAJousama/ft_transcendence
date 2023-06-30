@@ -19,6 +19,7 @@ interface ChannelProps {
   messages?: string[];
   createdAt?: string;
   updatedAt: string;
+  userStatus?: boolean;
   muted?: boolean;
   selected?: boolean;
   onClick?: () => void;
@@ -34,18 +35,13 @@ const Channel = ({
   avatar = "",
   name,
   description,
-  members,
-  messages,
-  createdAt,
   updatedAt,
-  deleted,
-  muted,
   archived,
   unread,
-  selected,
-  newMessages,
+  muted,
   onClick,
   pinned,
+  userStatus,
 }: ChannelProps) => {
 
   const socket = useContext(ChatContext);
@@ -64,8 +60,38 @@ const Channel = ({
     document.addEventListener("click", handleClick);
   };
 
+  const MessageDate = () =>
+  {
+    const hours = 
+                  new Date(updatedAt!).getHours() > 12 ?
+                  new Date(updatedAt!).getHours() - 12 :
+                  new Date(updatedAt!).getHours() ;
+    
+    const mins =  new Date(updatedAt!).getMinutes() < 10 ?
+                  `0${new Date(updatedAt!).getMinutes()}` :
+                  new Date(updatedAt!).getMinutes()
+    
+    const pm =    new Date(updatedAt!).getHours() > 12 ? "pm" : "am"
+
+    const timeDifference = Math.floor( (Date.now() - new Date(updatedAt).getTime()) / 1000);
+    if (timeDifference >= 86400) {
+        const days = Math.floor(timeDifference / 86400);
+        if (days === 1)
+          return "yesterday";
+        else if (days > 365)
+          return `${Math.floor(days / 365)}y ago`
+        else if (days > 30)
+          return `${Math.floor(days / 30)}m ago`
+        else if (days > 7)
+          return `${Math.floor(days / 7)}w ago`
+        else
+          return `${days}d ago`;
+    }
+    return hours + ":" + mins + pm ;
+  }
+
     const data = {
-      channelId : id
+      channelId : id!
     }
 
     const pinChannel = () => {
@@ -114,29 +140,18 @@ const Channel = ({
       }}
       ref={ref}
     >
-      <Avatar src={avatar} alt="" />
+      <Avatar src={avatar!} alt="" status={userStatus}/>
       <div className="flex flex-col w-full text-sm truncate">
-        <span className="text-white">{name}</span>
-        <span className="text-secondary-300">{description}</span>
+        <span className="text-white">{name!}</span>
+        <span className="text-secondary-300">{description!}</span>
       </div>
       <div className="flex items-right flex-col text-black text-sm justify-end">
         <span className={clsx("p-0 w-14", unread ? "text-primary-500" : "text-secondary-300" )}>
-        {
-                new Date(updatedAt).getHours() > 12 ?
-                new Date(updatedAt).getHours() - 12 :
-                new Date(updatedAt).getHours()
-              }:
-              {
-                new Date(updatedAt).getMinutes() < 10 ?
-                `0${new Date(updatedAt).getMinutes()}` :
-                new Date(updatedAt).getMinutes()
-              }
-              {new Date(updatedAt).getHours() > 12 ? "pm" : "am"
-        }
+        {MessageDate()}
         </span>
         <div className="flex items-center gap-2 justify-end">
           {unread && (
-            <span className="flex items-center justify-center bg-primary-500  text-xs rounded-full w-5 h-5">
+          <span className="flex items-center justify-center bg-primary-500  text-xs rounded-full w-5 h-5">
             {}
           </span>
           )}

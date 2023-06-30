@@ -47,6 +47,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect  {
       this.connectedClient.put(client.data.sub, client);
       await this.joinChannels(client);
       await this.sendChannelsToClient(client)
+      await this.userService.updateStatus("ONLINE", client.data.sub);
     } catch (error) {
       this.disconnect(client, error)
       new WsException({
@@ -58,7 +59,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect  {
 
   async handleDisconnect(client: Socket) {
     if (client.data.sub)
+    {
+      await this.userService.updateStatus("OFFLINE", client.data.sub);
       this.connectedClient.delete(client.data.sub);
+    }
   }
 
   async disconnect(client: Socket, error?) {
@@ -81,7 +85,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect  {
       await this.sendMessageToChannelMembers(dto.senderId, dto.receiverId, message);
       } catch (err) {
         throw new WsException({
-          error: EVENT.MESSAGE,
+          error: EVENT.ERROR,
           message: err.message,
         });
       }
@@ -95,7 +99,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect  {
       if (!dm)
       {
         throw new WsException({
-          error: EVENT.DM_CREATE,
+          error: EVENT.ERROR,
           message: 'Cannot create dm',
         });
       }
@@ -108,7 +112,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect  {
       });
     } catch (err) {
       throw new WsException({
-        error: EVENT.DM_CREATE,
+        error: EVENT.ERROR,
         message: err.message,
       });
     }
@@ -175,9 +179,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect  {
       sockets.forEach((s) => {
         s.join(payload.channelId.toString());
         this.server.to(s.id).emit(EVENT.CHANNEL_JOIN, channel);
+      })
+      await this.updateCurrentChannel(payload.channelId, client);
       }
-    
-    )}
     catch (err)
     {
       throw new WsException({
@@ -229,7 +233,15 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect  {
     try {
       const channel = await this.channelService.updateChannel(client.data.sub, payload);
       await this.updateCurrentChannel(payload.id, client);
-      await this.sendNotifications(client.data.sub, channel.id , " has updated the channel ");
+      await this.sendNotifications(client.data.sub, channel.id , " has updated the channel " + payload.type);
+      console.log(payload)
+      if (payload.type === "members")
+      {
+        payload.members.forEach((member) =>
+        {
+          this.sendNotificationToUser(client.data.sub, channel.id, "has added you to the channel", member)
+        })
+      }
     } 
     catch (error) {
       client.emit(EVENT.ERROR, error.message);
@@ -724,7 +736,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect  {
     {
       const data = await this.jwtService.verifyAsync(token, {secret: process.env.JWT_SECRET});
       client.data = data;
-      client.emit("connecte_user", true);
       return data;
     }
     catch (err)
@@ -740,7 +751,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect  {
   {
     const channels = await this.channelService.getChannelsByUserId(client.data.sub);
     channels.forEach((channel) => {
-      client.join(channel.id);
+      client.join(channel.id.toString());
     });
   }
   private async sendChannelsToClient(client: Socket) {

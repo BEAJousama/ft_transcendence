@@ -1,20 +1,7 @@
-import { useState, useRef, useContext, useEffect } from "react";
-import { useClickAway } from "react-use";
-import { SocketContext } from "../../context/socket.context";
-import { AppContext } from "../../context/app.context";
-import { ChatContext } from "../../context/chat.context";
 import  clsx from "clsx";
 
 
 const Welcome = ({className} : {className: string}) => {
-  const [showPicker, setShowPicker] = useState(false);
-  const socket = useContext(ChatContext);
-  const {user} = useContext(AppContext)
-
-  const ref = useRef(null);
-  useClickAway(ref, () => {
-    setShowPicker(false);
-  });
 
   return (
     <div className={clsx("relative overflow-hidden col-span-10 flex h-screen w-full items-center justify-center flex-col justify-start gap-4 rounded-t-3xl rounded-b-3xl bg-secondary-600 lg:col-span-5 xl:col-span-5 2xl:col-span-6 max-wd-md animate-fade-right", className && className )}>

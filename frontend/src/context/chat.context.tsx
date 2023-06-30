@@ -31,7 +31,6 @@ export  default function ChatProvider ({
             console.log("Connected");
         });
         newSocket.on("notification", (data: INotification) => {
-            console.log(data);
             if (data.sender.id === user?.id) return;
             toast(
                 <Link to={data.url}>

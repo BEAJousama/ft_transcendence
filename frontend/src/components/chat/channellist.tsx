@@ -1,7 +1,5 @@
 import {useContext, useEffect, useState } from "react";
-import ProfileBanner from "../profilebanner";
 import Channel from "./channel";
-import { SocketContext } from "../../context/socket.context";
 import { AppContext } from "../../context/app.context";
 import {BsFillChatLeftTextFill} from "react-icons/bs";
 import {BiFilter} from "react-icons/bi";
@@ -10,29 +8,40 @@ import clsx from "clsx";
 import Modal from "../modal";
 import Input from "../input";
 import Button from "../button";
-import Card from "../card";
 
-const ChannelList = ({className, setModal, setShowModal, setCurrentChannel, setChannelMember} : 
-  {className?: string, setModal?:any, setShowModal: any,  setCurrentChannel: any, setChannelMember: any}) => {
+
+const ChannelList = ({className, setShowModal, setCurrentChannel, setChannelMember} : 
+  {className?: string, setShowModal: any,  setCurrentChannel: any, setChannelMember: any}) => {
   
   const[channels, setChannels] = useState<any>([]);
   const [archiveChannels, setArchiveChannels] = useState<any>([]);
   const [showArchive, setShowArchive] = useState<boolean>(false);
+  const [password, setPassword] = useState<string>("")
+
+  const [modal, setModal] = useState(false);
   const [search, setSearch] = useState<string>("");
+  const [tempChannel, setTempChannel] = useState<any>();
   const socket = useContext(ChatContext);
-  let {user, setUser} = useContext(AppContext)
+  let {user} = useContext(AppContext)
   const [isFocused, setIsFocused] = useState(false);
   
   const onClick = (channel : any) : void | undefined => {
     if (channel.isacessPassword) {
-      console.log("AAAAAAACCCEEEEESS")
       setModal(true);
+      setTempChannel(channel);
     }
     else
     {
       setCurrentChannel(channel);
       getChannelMember(channel.id);
     }
+  }
+
+  const accessChannel = () => {
+    //simple find a way to use useswr here
+    setCurrentChannel(tempChannel);
+    getChannelMember(tempChannel.id);
+
   }
 
   useEffect(() => {
@@ -48,10 +57,7 @@ const ChannelList = ({className, setModal, setShowModal, setCurrentChannel, setC
     socket?.on('channel_delete', (channels: any) => {
       setCurrentChannel();
     });
-    socket?.on("connect_user", (data: any) => {
-      setUser(data);
-    }
-    );
+
     //eslint-disable-next-line
   }, [channels, socket]);
 
@@ -133,6 +139,7 @@ const onChange = (e: any) => {
 }
 
 return (
+  <>
     <div className={clsx("lg:col-span-3 col-span-8 flex flex-col justify-start gap-4 py-2 w-full h-screen overflow-y-scroll scrollbar-hide", className && className)}>
       <div className=" relative flex items-center gap-2 w-full pr-2 rounded-xl py-2">
         <form className="pl-4 pr-1 w-full">
@@ -191,7 +198,6 @@ return (
           channels?.filter(
             (channel: any) => channel.pinnedFor?.map((user: any) => user.id).includes(user?.id)
           )?.map((channel: any) => {
-            //list the pinned channels first
             return (
               <Channel
               key={channel.id}
@@ -206,6 +212,7 @@ return (
               description={(channel.messages  && !(channel.bannedUsers?.map((user:any) => user.id).includes(user?.id)) && !(channel.kickedUsers?.map((user:any) => user.id).includes(user?.id)) )  ? channel.messages[channel.messages.length - 1]?.content : ""}
               updatedAt={channel.lastestMessageDate}
               newMessages={channel.newMessagesCount}
+              userStatus={channel.type !== "CONVERSATION" ? false : channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.status === "ONLINE"}
               onClick={() => onClick(channel)}
                 />
                 )
@@ -228,6 +235,7 @@ return (
                             description={(channel.messages  && !(channel.bannedUsers?.map((user:any) => user.id).includes(user?.id)) && !(channel.kickedUsers?.map((user:any) => user.id).includes(user?.id)) )  ? channel.messages[channel.messages.length - 1]?.content : ""}
                             updatedAt={channel.lastestMessageDate}
                             newMessages={channel.newMessagesCount}
+                            userStatus={channel.type !== "CONVERSATION" ? false : channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.status === "ONLINE"}
                             onClick={() => onClick(channel)}
                               />
                               )
@@ -236,23 +244,24 @@ return (
               (
                 archiveChannels?.filter(
                   (channel: any) => channel.pinnedFor?.map((user: any) => user.id).includes(user?.id)
-                )?.map((channel: any) => {
-                  //list the pinned channels first
-                  return (
-                    <Channel
-                    key={channel.id}
-                    id={channel.id}
-                    name={channel.type !== "CONVERSATION" ? channel.name : channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.username}
-                    pinned={channel.pinnedFor?.map((user: any) => user.id).includes(user?.id)}
-                    muted={channel.mutedFor?.map((user: any) => user.id).includes(user?.id)}
+                  )?.map((channel: any) => {
+                    //list the pinned channels first
+                    return (
+                      <Channel
+                      key={channel.id}
+                      id={channel.id}
+                      name={channel.type !== "CONVERSATION" ? channel.name : channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.username}
+                      pinned={channel.pinnedFor?.map((user: any) => user.id).includes(user?.id)}
+                      muted={channel.mutedFor?.map((user: any) => user.id).includes(user?.id)}
                     archived={channel.archivedFor?.map((user: any) => user.id).includes(user?.id)}
                     unread={channel.unreadFor?.map((user: any) => user.id).includes(user?.id)}
                     avatar={channel.type !== "CONVERSATION" ? channel.avatar :
                     channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.avatar
-                    }                    
+                  }                    
                     description={(channel.messages  && !(channel.bannedUsers?.map((user:any) => user.id).includes(user?.id)) && !(channel.kickedUsers?.map((user:any) => user.id).includes(user?.id)))  ? channel.messages[channel.messages.length - 1]?.content : ""}
                     updatedAt={channel.lastestMessageDate}
                     newMessages={channel.newMessagesCount}
+                    userStatus={channel.type !== "CONVERSATION" ? false : channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.status === "ONLINE"}
                     onClick={() => onClick(channel)}
                       />
                       )
@@ -271,18 +280,49 @@ return (
                                   unread={channel.unreadFor?.map((user: any) => user.id).includes(user?.id)}
                                   avatar={channel.type !== "CONVERSATION" ? channel.avatar :
                                   channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.avatar
-                                  }                                  
-                                  description={(channel.messages  && !(channel.bannedUsers?.map((user:any) => user.id).includes(user?.id)) && !(channel.kickedUsers?.map((user:any) => user.id).includes(user?.id)))  ? channel.messages[channel.messages.length - 1]?.content : ""}
-                                  updatedAt={channel.lastestMessageDate}
-                                  newMessages={channel.newMessagesCount}
-                                  onClick={() => onClick(channel)}
+                                }                                  
+                                description={(channel.messages  && !(channel.bannedUsers?.map((user:any) => user.id).includes(user?.id)) && !(channel.kickedUsers?.map((user:any) => user.id).includes(user?.id)))  ? channel.messages[channel.messages.length - 1]?.content : ""}
+                                updatedAt={channel.lastestMessageDate}
+                                newMessages={channel.newMessagesCount}
+                                userStatus={channel.type !== "CONVERSATION" ? false : channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.status === "ONLINE"}
+                                onClick={() => onClick(channel)}
 
                                     />
                                     )
                                   })
                                   ))
-      } 
+                                } 
     </div>
+    {
+              modal && (
+                <Modal
+                setShowModal={setModal}
+                className="z-30 bg-secondary-800 border-none flex flex-col items-center justify-start shadow-lg shadow-secondary-500 gap-4 text-white min-w-[90%] lg:min-w-[40%] xl:min-w-[50%] animate-jump-in animate-ease-out animate-duration-400 max-w-[100%] w-full"
+                >
+                    <span className="text-md">This channel require access pass </span>
+                    <div className="flex flex-col justify-center items-center w-full">
+                        <Input
+                            label="Password"
+                            className="h-[40px] w-[80%] rounded-md border-2 border-primary-500 text-white text-xs bg-transparent md:mr-2"
+                            type="password"
+                            placeholder="*****************"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            />
+                        <Button
+                            className="h-8 w-auto md:w-20 bg-primary-500 text-white text-xs rounded-full mt-2"
+                            onClick={() => {
+                                accessChannel()
+                                setModal(false);
+                              }}
+                            >
+                            <span className="text-xs">Access</span>
+                        </Button>
+                    </div>
+                </Modal>
+                )
+    }
+    </>
   );
 };
 
