@@ -211,6 +211,8 @@ export class UsersService {
   async updateStatus(status: string, id : number)
   {
     try {
+      if (!id || !status)
+        return;
       const user = await this.prisma.user.update({
         where: {
           id,

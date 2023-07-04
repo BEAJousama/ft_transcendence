@@ -21,6 +21,9 @@ import { SocketContext } from "../../context/socket.context";
 import { stat } from "fs";
 import { ChatContext } from "../../context/chat.context";
 import { useNavigate } from "react-router-dom";
+import Modal from "../modal"
+import Input from "../input";
+import Select from "../select";
 
 const ProfileBanner = ({
   channelMember,
@@ -61,7 +64,9 @@ const ProfileBanner = ({
   const ref = useRef(null);
   const socket = useContext(ChatContext);
   const navigate = useNavigate();
-  const [isMuted, setIsMuted] = useState(status === "MUTED");
+  const [muteModal, setmuteModal] = useState(false);
+  const [duration, setDuration] = useState<number>(0);
+  const [unit, setUnit] = useState("");
 
 /* TODO: I wanna see immediate changes in the UI when I click on the button to setAsAdmin
      its not working, I have to refresh the page to see the changes
@@ -99,7 +104,9 @@ const ProfileBanner = ({
   };
 
   const muteUser = () => {
-    socket?.emit("mute_user", {userId, channelId, banDuration : 10});
+    const banDuration = unit === 's' ? duration : (unit === 'm') ? (duration * 60) : (duration * 3600);
+
+    socket?.emit("mute_user", {userId, channelId, banDuration});
   };
 
   const unmuteUser = () => {
@@ -120,7 +127,7 @@ const ProfileBanner = ({
         className && className
       )}
     >
-      <Avatar src={avatar} alt="" />
+      <Avatar src={avatar} alt="" status={description === "ONLINE"} />
       <div
         className={clsx(
           "flex w-full  flex-col truncate text-sm md:max-w-full ",
@@ -211,7 +218,7 @@ const ProfileBanner = ({
                     </RightClickMenuItem>
                     <RightClickMenuItem
                       onClick={() => {
-                        status === "MUTED" ? unmuteUser() : muteUser();
+                        status === "MUTED" ? unmuteUser() : setmuteModal(true);
                         setShowMenu(false);
                       }}
                       >
@@ -266,6 +273,43 @@ const ProfileBanner = ({
             
         </div>
       )}
+      {
+        muteModal &&
+        (
+          <Modal className="flex">
+            <Input
+              type="text"
+              placeholder="mute duration"
+              value={duration.toString()}
+              onChange={(e) => {
+                setDuration(Number(e.target.value));
+              }}
+            />
+          <Select
+            options={["s", "m", "h"]}
+            setX={setUnit}
+          />
+                <Button
+                className="bg-primary-500  justify-between w-full !font-medium mr-1"
+                onClick={() => {
+                  muteUser();
+                  setmuteModal(false);
+                }}
+                >
+                Mute
+                </Button>
+                <Button
+                className="!bg-inherit !text-white hover:bg-inherit justify-between w-full !font-medium ml-1"
+                onClick={() => {
+                  setmuteModal(false);
+                }}
+                >
+                Cancel
+                </Button>
+          </Modal>
+        )
+      }
+
     </div>
   );
 };

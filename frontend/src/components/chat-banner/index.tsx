@@ -8,6 +8,7 @@ import { BsKeyFill, BsFillPeopleFill } from "react-icons/bs";
 import Input from "../input";
 import { useNavigate } from 'react-router-dom';
 import Modal from "../modal";
+import Card from "../card";
 
 const ChatBanner = ({
     channel,
@@ -19,6 +20,10 @@ const ChatBanner = ({
     const socket = useContext(ChatContext);
     const [password, setPassword] = useState("");
     const [showModal, setshowModal] = useState(false);
+    const channelMembers = channel?.channelMembers?.filter((member : any) =>
+    {
+        return member.status === "ACTIVE";
+    });
     const handleJoin = () => {
         if (channel?.visiblity === "PROTECTED") {
             setshowModal(true);
@@ -42,7 +47,7 @@ const ChatBanner = ({
                 <div className="w-full">
                     <div className="text-white text-lg ">{channel?.name}</div>
                     <div className="flex items-center text-sm text-tertiary-200 justify-between w-full sm:justify-start sm:gap-4">
-                        <div>{channel?.channelMembers?.length} Members</div>
+                        <div>{channelMembers?.length} Members</div>
                         <div className="flex items-center gap-2">
                             {channel?.visiblity === "PROTECTED" && <BsKeyFill />}
                             <BsFillPeopleFill /> {channel?.visiblity}
@@ -50,7 +55,7 @@ const ChatBanner = ({
                     </div>
                 </div>
                 {
-                    !channel?.channelMembers?.map((item: any) => item.userId).includes(user?.id) || channel?.kickedUsers.map((u : any) => u.id).includes(user?.id) ?
+                    !channelMembers?.map((item: any) => item.userId).includes(user?.id) || channel?.kickedUsers.map((u : any) => u.id).includes(user?.id) ?
                     <Button onClick={handleJoin} className="w-full sm:w-auto ">Join</Button>
                     :
                     <Button onClick={handleLeave} className="w-full sm:w-auto ">Leave</Button>
@@ -59,8 +64,8 @@ const ChatBanner = ({
             </div>
             <AvatarGroup max={3}>
                 {
-                    channel?.channelMembers &&
-                    channel?.channelMembers?.map((item: any) => {
+                    channelMembers &&
+                    channelMembers?.map((item: any) => {
                         return (<Avatar key={item.userId} src={item.user.avatar} alt={item.user.username} />)
                     }
                     ) 
@@ -68,7 +73,7 @@ const ChatBanner = ({
             </AvatarGroup>
         </div>
             { showModal && (
-                <Modal
+                <Card
                 setShowModal={setshowModal}
                 className="z-10 bg-secondary-800 border-none flex flex-col items-center justify-start shadow-lg shadow-secondary-500 gap-4 text-white min-w-[90%] lg:min-w-[40%] xl:min-w-[50%] animate-jump-in animate-ease-out animate-duration-400 max-w-[100%] w-full"
                 >
@@ -94,7 +99,7 @@ const ChatBanner = ({
                             <span className="text-xs">Join</span>
                         </Button>
                     </div>
-                </Modal>
+                </Card>
                 )
             }
         </>

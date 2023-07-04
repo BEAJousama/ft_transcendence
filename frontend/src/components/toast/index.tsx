@@ -1,7 +1,7 @@
 import { CgClose } from "react-icons/cg"
 import Button from "../button"
 import Avatar from "../avatar"
-import React from "react";
+import React, { useEffect } from "react";
 import { toast } from 'react-toastify';
 import IUser from "../../interfaces/user";
 
@@ -11,6 +11,25 @@ const Toast = ({
     sender,
 }: { title: string, content: string, sender: IUser }) => {
     const toastId = React.useRef<HTMLDivElement>(null);
+
+    // function toastShow() {
+    //     const audio = new Audio('https://drive.google.com/uc?export=download&id=1M95VOpto1cQ4FQHzNBaLf0WFQglrtWi7');
+    //     var playedPromise = audio.play();
+    //             if (playedPromise) {
+    //                 playedPromise.catch((e) => {
+    //                     console.log(e)
+    //                     if (e.name === 'NotAllowedError' || e.name === 'NotSupportedError') {
+    //                         console.log(e.name);
+    //                     }
+    //                 }).then(() => {
+
+    //                 });
+    //             }
+    // }
+
+    // useEffect(() => {
+    //     toastShow();
+    // },[]);  
 
     return (
         <div className="flex items-center justify-between gap-4 bg-white" role="alert" ref={toastId}>

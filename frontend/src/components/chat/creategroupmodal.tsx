@@ -108,7 +108,7 @@ const CreateGroupModal = ({
               if (value !== "") setShowSubmit(true);
             }}
           />
-          <Select label= "Visibility" setVisibility={setVisibility} options={["PUBLIC", "PRIVATE", "PROTECTED"]} />
+          <Select label= "Visibility" setX={setVisibility} options={["PUBLIC", "PRIVATE", "PROTECTED"]} />
           {
             (visibility === "PROTECTED") && (
               <>

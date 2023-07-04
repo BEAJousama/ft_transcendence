@@ -64,9 +64,7 @@ export class ChannelService {
           },
       });
 
-      // console.log(userId);
       channels.forEach((channel) => {
-        // console.log(channel);
         if (channel.userId != userId && channel.type === ChannelType.CONVERSATION && 
             channel.updatedAt.toString() === channel.createAt.toString()) {
             channels.splice(channels.indexOf(channel), 1);
@@ -221,6 +219,22 @@ export class ChannelService {
     return channel;
   }
 
+  async getChannelByIdWithPass(channelId: number): Promise<any | null> 
+  {
+    const channel = await this.prisma.channel.findUnique({
+        where: { 
+          id: channelId
+        },
+        select:
+        {
+          id: true,
+          password: true,
+          visiblity: true,
+        }
+    });
+    return channel;
+  }
+
   async getChannelMemberByUserIdAndChannelId( userId: number, channelId: number) 
   : Promise<ChannelMember | null> 
   {
@@ -301,7 +315,6 @@ export class ChannelService {
       return channel;
     } 
     catch (error) {
-      console.log(error);
       throw new Error(error.message);
     }
   }
@@ -633,7 +646,6 @@ export class ChannelService {
       })
       return passwordHash;
     } catch (error) {
-      console.log(error);
       throw new Error(error.message);
     }
   }
@@ -649,7 +661,7 @@ export class ChannelService {
   async JoinChannel(
     userId: number,
     channelId: number,
-    password ?: string,
+    password?: string,
   ): Promise<ChannelMember> 
   {
     try
@@ -673,18 +685,20 @@ export class ChannelService {
       channelId: number,
       password?: string,) : Promise<ChannelMember>
   {
-      const channel = await this.getChannelById(channelId);
+      const channel = await this.getChannelByIdWithPass(channelId);
       if (!channel) 
-      throw new Error('Channel does not exist');
-      if (channel.visiblity === Visiblity.PROTECTED &&
-        !(await this.verifyPassword(password, channel.password))
-        )
+        throw new Error('Channel does not exist');
+      const isCorrect = await this.verifyPassword(password, channel.password);
+      console.log(isCorrect);
+      if (channel.visiblity === Visiblity.PROTECTED && !isCorrect)
+      {
         throw new Error('Incorrect Channel password');
+      }
       const exists: ChannelMember = await this.getchannelMemberByUserIdAndChannelId(
-      userId,
-      channelId,
-      );
-
+        userId,
+        channelId,
+        );
+      console.log(password);
       if (exists && exists.status === MemberStatus.LEFT) {
           const channelMember = await this.prisma.channelMember.update({
               where: { 
@@ -1292,7 +1306,6 @@ export class ChannelService {
         return updated.count;
       }
       catch (error) {
-        console.log(error);
         throw new Error(error.message);
       }
   }

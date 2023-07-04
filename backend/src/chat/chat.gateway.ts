@@ -47,7 +47,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect  {
       this.connectedClient.put(client.data.sub, client);
       await this.joinChannels(client);
       await this.sendChannelsToClient(client)
-      await this.userService.updateStatus("ONLINE", client.data.sub);
+      if (client.data.sub)
+        await this.userService.updateStatus("ONLINE", client.data.sub);
     } catch (error) {
       this.disconnect(client, error)
       new WsException({
@@ -159,18 +160,18 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect  {
       if (!channel || channel.type === ChannelType.CONVERSATION)
       {
         throw new WsException({
-          error: EVENT.CHANNEL_JOIN,
+          error: EVENT.ERROR,
           message: 'Channel does not exist',
         });
       }
-      if (channel.visiblity === Visiblity.PRIVATE || channel.visiblity === Visiblity.PROTECTED )
-      ch = await this.channelService.JoinChannel(client.data.sub, payload.channelId, payload.password);
+      if (channel.visiblity === Visiblity.PROTECTED )
+        ch = await this.channelService.JoinChannel(client.data.sub, payload.channelId, payload.password);
       else
-      ch = await this.channelService.JoinChannel(client.data.sub, payload.channelId);
+        ch = await this.channelService.JoinChannel(client.data.sub, payload.channelId);
       if (!ch)
       {
         throw new WsException({
-          error: EVENT.CHANNEL_JOIN,
+          error: EVENT.ERROR,
           message: 'Cannot join channel',
         });
       }
@@ -184,8 +185,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect  {
       }
     catch (err)
     {
+      console.log(err.message);
+      client.emit(EVENT.ERROR, err.message)
       throw new WsException({
-        error: EVENT.CHANNEL_JOIN,
+        error: EVENT.ERROR,
         message: err.message,
       });
     }
@@ -206,7 +209,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect  {
       }
       const channelTosend = await this.channelService.getChannelById(channel.id);
       await this.sendNotifications(client.data.sub, channel.id , " has added you to the channel ");
-      console.log(channel.id);
       let sockets = this.getConnectedUsers(client.data.sub);
       payload.members.forEach((m) => {
           sockets = sockets.concat(this.getConnectedUsers(m));
@@ -234,7 +236,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect  {
       const channel = await this.channelService.updateChannel(client.data.sub, payload);
       await this.updateCurrentChannel(payload.id, client);
       await this.sendNotifications(client.data.sub, channel.id , " has updated the channel " + payload.type);
-      console.log(payload)
       if (payload.type === "members")
       {
         payload.members.forEach((member) =>
@@ -882,7 +883,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect  {
     }
     catch (err)
     {
-      console.log(err);
       throw new Error(err);
     }
   }
@@ -891,7 +891,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect  {
   {
     const user = await this.userService.findUserById(userId);
     const channel = await this.channelService.getChannelById(channelId);
-    console.log(channel.mutedFor);
     if (channel.mutedFor.map((u) => u.id).includes(user2Id))
       return;
     const data = {

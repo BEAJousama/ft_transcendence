@@ -47,31 +47,9 @@ export default function Chat() {
     }
   }, [channelMember, socket, currentChannel]);
 
-  useEffect(() => {
-    let timeoutId : any = null;
-    socket?.on("error", (data: any) => {
-      setError(data);
-       timeoutId = setTimeout(() => {
-         setError("");
-        }, 4000);
-    });
-    return () => clearTimeout(timeoutId);
-  }, []);
-
   return (
     <Layout className="!py-0 !overflow-y-hidden">
       <div className="grid grid-cols-9 h-full w-full">
-        {
-          error &&
-          (
-            <div className="fixed inset-0 z-20 flex justify-end items-start mt-4 mr-4">
-            <div className="bg-red-500 text-white px-4 py-2 rounded-md">
-              <p className="font-bold mb-2">Error:</p>
-              <p>{error}</p>
-            </div>
-            </div>
-          )
-        }
         {!open && (
           <ChannelList
             className="col-span-8 animate-fade-right"

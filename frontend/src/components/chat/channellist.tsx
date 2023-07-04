@@ -38,10 +38,17 @@ const ChannelList = ({className, setShowModal, setCurrentChannel, setChannelMemb
   }
 
   const accessChannel = () => {
-    //simple find a way to use useswr here
-    setCurrentChannel(tempChannel);
-    getChannelMember(tempChannel.id);
-
+    socket?.emit("check_access_pass", {password, channelId: tempChannel.id});
+    socket?.on("change_access_passwords", (data) =>
+    {
+      if (data)
+      {
+        setCurrentChannel(tempChannel);
+        getChannelMember(tempChannel.id);
+      }
+    })
+    // setCurrentChannel(tempChannel);
+    // getChannelMember(tempChannel.id);
   }
 
   useEffect(() => {

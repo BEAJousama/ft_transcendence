@@ -1,7 +1,7 @@
  
 import clsx from "clsx";
 
-export default function Select({className, label, options, setVisibility, value} : { className?: string, options?: string[], setVisibility?: any, label?: string, value?: string}) {
+export default function Select({className, label, options, setX, value} : { className?: string, options?: string[], setX?: any, label?: string, value?: string}) {
   return (
     <div className={clsx("relative w-full bg-inherit", className && className)}>
         <label
@@ -18,7 +18,7 @@ export default function Select({className, label, options, setVisibility, value}
         {
             options?.map((option,i) => {
                 return(
-                    <option key={i} value={option} onClick={()=>{setVisibility(option)}}>
+                    <option key={i} value={option} onClick={()=>{setX(option)}}>
                     {option}
                     </option>
                 )

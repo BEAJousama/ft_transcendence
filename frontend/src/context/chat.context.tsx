@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import io, { Socket } from "socket.io-client";
 import { AppContext } from "./app.context";
 import { toast } from "react-toastify";
-import { Toast } from "../components";
+import { Avatar, Toast } from "../components";
 import { Link } from "react-router-dom";
 import { INotification } from "./socket.context";
 
@@ -45,6 +45,21 @@ export  default function ChatProvider ({
                 }
             );
         });
+        // add a toast like for error messages
+
+        // newSocket.on("error", (data: any) => {
+        //     console.log(data);
+        //     toast(
+        //         <Toast
+        //             title="Error"
+        //             content={data}
+        //         />
+        //         ,
+        //         {
+        //             className: "md:w-[400px] md:right-[90px]",
+        //         }
+        //     );
+        // });
         setSocket(newSocket);
         return () => {
             newSocket.disconnect();

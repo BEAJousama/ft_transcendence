@@ -471,7 +471,7 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
               >
               <Select 
                 className="mb-4"
-                label= "Visibility" setVisibility={setVisibility} options={["PUBLIC", "PRIVATE", "PROTECTED"]} value={currentChannel?.visiblity} 
+                label= "Visibility" setX={setVisibility} options={["PUBLIC", "PRIVATE", "PROTECTED"]} value={currentChannel?.visiblity} 
               />
               { 
                 visibility === "PROTECTED" && (
