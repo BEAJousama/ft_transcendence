@@ -389,8 +389,9 @@ export class ChannelService {
       }
       if (channelData.type === "visibility")
       {
+        console.log(channelData);
         const ch = await this.getChannelById(channelData.id);
-        if (ch.visiblity !== Visiblity.PROTECTED && channelData.visibility === Visiblity.PROTECTED && !channelData.password)
+        if (ch.visiblity !== Visiblity.PROTECTED && channelData.visibility === Visiblity.PROTECTED && (!channelData.password || channelData.password === '' ))
           throw new Error('Password is required for protected channel');
         else if (ch.visiblity === Visiblity.PROTECTED && channelData.visibility === Visiblity.PROTECTED && channelData.password)
         {
@@ -407,7 +408,7 @@ export class ChannelService {
           });
           return channel;
         }
-        else if (ch.visiblity === Visiblity.PROTECTED && channelData.visibility === Visiblity.PROTECTED && !channelData.password)
+        else if (ch.visiblity === Visiblity.PROTECTED && channelData.visibility === Visiblity.PROTECTED && (!channelData.password || channelData.password === ''))
         {
           let channel = await this.prisma.channel.update({
             where: {
@@ -427,6 +428,7 @@ export class ChannelService {
           data:
           {
             visiblity: Visiblity[channelData.visibility],
+            password: null,
           },
         });
         return channel;
@@ -666,13 +668,18 @@ export class ChannelService {
   {
     try
     {
+      let channeluser;
       const channel = await this.getChannelById(channelId);
-      if (!channel) throw new Error('channel does not exist');
-      if (channel.type === ChannelType.CONVERSATION) throw new Error('Cannot join a conversation');
+      if (!channel) 
+        throw new Error('channel does not exist');
+      if (channel.type === ChannelType.CONVERSATION) 
+        throw new Error('Cannot join a conversation');
       if (channel.visiblity === Visiblity.PRIVATE)
-      throw new Error('Cannot join a private channel');
-      const chaneluser = await this.addUserTochannel(userId, channelId, password);
-      return chaneluser;
+        throw new Error('Cannot join a private channel');
+      channeluser = password ?
+        await this.addUserTochannel(userId, channelId, password) :
+        await this.addUserTochannel(userId, channelId) ;
+      return channeluser;
     }
     catch(error)
     {
@@ -685,11 +692,12 @@ export class ChannelService {
       channelId: number,
       password?: string,) : Promise<ChannelMember>
   {
+      let isCorrect : boolean = false; 
       const channel = await this.getChannelByIdWithPass(channelId);
       if (!channel) 
         throw new Error('Channel does not exist');
-      const isCorrect = await this.verifyPassword(password, channel.password);
-      console.log(isCorrect);
+      if (password)
+        isCorrect = await this.verifyPassword(password, channel.password);
       if (channel.visiblity === Visiblity.PROTECTED && !isCorrect)
       {
         throw new Error('Incorrect Channel password');
@@ -698,7 +706,6 @@ export class ChannelService {
         userId,
         channelId,
         );
-      console.log(password);
       if (exists && exists.status === MemberStatus.LEFT) {
           const channelMember = await this.prisma.channelMember.update({
               where: { 

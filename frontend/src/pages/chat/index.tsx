@@ -13,7 +13,7 @@ import Layout from "../layout";
 export default function Chat() {
   const [open, setOpen] = useState<boolean>(false);
   const [showModal, setShowModal] = useState<boolean>(false);
-  const  isMatch = useMedia("(max-width:1024px)", false);
+  const  isMatch = useMedia("(min-width:1024px)", false);
   const [currentChannel, setCurrentChannel] = useState<any>({});
   const [channelMember, setChannelMember] = useState<any>([]);
   const { user } = useContext(AppContext);
@@ -49,21 +49,40 @@ export default function Chat() {
 
   return (
     <Layout className="!py-0 !overflow-y-hidden">
-      <div className="grid grid-cols-9 h-full w-full">
-        {!open && (
-          <ChannelList
-            className="col-span-8 animate-fade-right"
-            setCurrentChannel={setCurrentChannel}
-            setChannelMember={setChannelMember}
-            setShowModal={setShowModal}
-            />
-          )}
-        {(currentChannel && Object.keys(currentChannel!).length ) ? <MessageBubble className="mt-4 mb-4 pb-5" currentChannel={currentChannel} setOpen={setOpen} channelMember={channelMember}/>
-      : 
-        < Welcome className="mt-4 mb-4 pb-3" />
+      {
+        !isMatch ?
+        (
+          <div className="grid grid-cols-10 h-full w-full">
+            {(!open) && (
+              <ChannelList
+                className="animate-fade-right"
+                setCurrentChannel={setCurrentChannel}
+                setChannelMember={setChannelMember}
+                setShowModal={setShowModal}
+                setOpen={setOpen} 
+                />
+            )}
+            <MessageBubble className="mt-4 mb-4 ml-1 pb-5" currentChannel={currentChannel} setOpen={setOpen} channelMember={channelMember}/>
+            {showModal && <CreateGroupModal setShowModal={setShowModal} />}
+          </div>
+        ) :
+        (
+          <div className="grid grid-cols-10 h-full w-full">
+            <ChannelList
+              className="animate-fade-right"
+              setCurrentChannel={setCurrentChannel}
+              setChannelMember={setChannelMember}
+              setShowModal={setShowModal}
+              setOpen={setOpen}
+              />
+          {(currentChannel && Object.keys(currentChannel!).length ) ? <MessageBubble className="mt-4 mb-4 pb-5 ml-1" currentChannel={currentChannel} setOpen={setOpen} channelMember={channelMember}/>
+          : 
+            < Welcome className="mt-4 mb-4 pb-3 ml-1" />
+          }
+            {showModal && <CreateGroupModal setShowModal={setShowModal} />}
+          </div>
+        )
       }
-        {showModal && <CreateGroupModal setShowModal={setShowModal} />}
-      </div>
     </Layout>
   );
 }

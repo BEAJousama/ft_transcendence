@@ -4,11 +4,12 @@ import MessageBox from "./messagebox";
 
 import { BsEmojiSmileFill, BsSendFill } from "react-icons/bs";
 import { BiRename, BiLeftArrow } from "react-icons/bi";
-import { RiCloseFill, RiEdit2Fill, RiLogoutBoxRLine } from "react-icons/ri";
+import { RiCloseFill, RiEdit2Fill, RiLogoutBoxRLine, RiDeleteBin6Line } from "react-icons/ri";
 import {RxAvatar} from "react-icons/rx";
 import {MdOutlineVisibilityOff, MdOutlinePassword, MdOutlineManageAccounts} from "react-icons/md";
 import {AiOutlineUsergroupAdd} from "react-icons/ai";
 import {TbUserOff} from "react-icons/tb"
+import {FcMenu} from "react-icons/fc"
 
 import Avatar from "../avatar";
 import { useState, useRef, useContext, useEffect } from "react";
@@ -151,11 +152,11 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
   };
 
   const handleEditChannelVisibility = () => {
-    socket?.emit("channel_update", { id: currentChannel?.id, visibility: visibility, type: "visibility"});
+    socket?.emit("channel_update", { id: currentChannel?.id, visibility: visibility, type: "visibility", password});
   };
 
   const handleEditChannelAvatar = () => {
-    socket?.emit("channel_update", { id: currentChannel?.id, avatar: previewImage, type: "avatar"   });
+    socket?.emit("channel_update", { id: currentChannel?.id, avatar: previewImage, type: "avatar"});
     
   };
   
@@ -168,37 +169,43 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
     socket?.emit("channel_update", { id: currentChannel?.id, members: selectedUsers, type: "members" });
   };
   return (
-    <div className={clsx("relative overflow-y-auto scrollbar-hide overflow-x-hidden col-span-10 flex h-screen w-full flex-col justify-start gap-4 rounded-t-3xl bg-secondary-600 lg:col-span-5 xl:col-span-5 2xl:col-span-6", className && className)} ref={refMessage}>
+    <div className={clsx("relative overflow-y-auto scrollbar-hide overflow-x-hidden col-span-10 flex h-screen w-full flex-col justify-start gap-4 rounded-t-3xl bg-secondary-600 lg:col-span-7", className && className)} ref={refMessage}>
+      <div className="grid grid-cols-6 lg:grid-cols-12 bg-secondary-400 rounded-t-3xl align-middle items-center top-0 mb-16 sticky absolute top-0 z-20">
       <Button
-        type="simple"
-        className="flex tems-center gap-2 rounded-t-3xl top-0 mb-16 sticky bg-secondary-400 !p-2 text-white hover:bg-secondary-400 z-10"
-        onClick={() => {
-          if (currentChannel?.type !== "CONVERSATION" && channelMember?.status !== "LEFT" && channelMember?.status !== "BANNED" && channelMember?.status !== "MUTED")
-          {
-            setShowModal(true);
-            setShowEdit(true);
-          } 
-          else if (currentChannel?.type === "CONVERSATION")
-            navigate(`/profile/${currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.id}`);
-
-        }}
-        >
-        <Avatar src={currentChannel?.type !== "CONVERSATION" ? currentChannel?.avatar : 
-                     currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.avatar } alt="" 
-                     status={currentChannel?.type !== "CONVERSATION" ? false : 
-                     currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.status === "ONLINE"}
-                     />
-        <div>{currentChannel?.type !== "CONVERSATION" ? currentChannel?.name : currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.username}</div>
-        {/* <Button
-          variant="text"
-          className=" !hover:bg-inherit absolute right-0 mx-2 !items-end !bg-inherit text-white lg:hidden"
+          type="simple"
+          className="!items-end bg-secondary-400 text-white col-span-1 lg:hidden self-center"
           onClick={() => {
             setOpen(false);
           }}
           >
           <BiLeftArrow />
-        </Button> */}
-      </Button>
+        </Button>
+        <div
+          className="flex items-center gap-2 col-span-4 lg:col-span-11 text-white lg:order-first px-2 py-3 font-semi-bold self-center"
+          >
+          <Avatar src={currentChannel?.type !== "CONVERSATION" ? currentChannel?.avatar : 
+                      currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.avatar } alt="" 
+                      status={currentChannel?.type !== "CONVERSATION" ? false : 
+                      currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.status === "ONLINE"}
+                      />
+          <div>{currentChannel?.type !== "CONVERSATION" ? currentChannel?.name : currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.username}</div>
+        </div>
+        <Button className="col-span-1 flex items-center justify-content bg-secondary-400 !p-1 mr-1 text-white font-semi-bold self-center"
+          type="simple"
+          onClick={() => {
+            if (currentChannel?.type !== "CONVERSATION" && channelMember?.status !== "LEFT" && channelMember?.status !== "BANNED" && channelMember?.status !== "MUTED")
+            {
+              setShowModal(true);
+              setShowEdit(true);
+            } 
+            else if (currentChannel?.type === "CONVERSATION")
+              navigate(`/profile/${currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.id}`);
+
+          }}
+        >
+          <FcMenu/>
+        </Button>
+      </div>
       
       {
       !spinner ?
@@ -382,6 +389,17 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
                   >
                     Banned users
                     <TbUserOff />
+              </Button>
+
+              <Button
+                    className="!bg-inherit !text-white hover:bg-inherit justify-between w-full !font-medium"
+                    onClick={() => {
+                      setManageBans(true);
+                      setShowEdit(false);
+                    }}
+                  >
+                    Delete channel
+                    <RiDeleteBin6Line />
               </Button>
 
               <Button
@@ -597,29 +615,6 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
               </UpdateChannel>
             )
           }
-          {/* <div className="flex w-full items-center justify-center gap-4">
-                <Button
-                  onClick={() => {
-                    setShowEdit(false);
-                    setVisibility(currentChannel?.visiblity);
-                    handleEditChannel();
-                  }}
-                  className="w-full justify-center"
-                >
-                  Save
-                </Button>
-                <Button
-                  onClick={() => {
-                    setShowEdit(false);
-                    setVisibility(currentChannel?.visiblity);
-                  }}
-                  className="w-full justify-center"
-                  type="danger"
-                >
-                  Reset
-                </Button>
-              </div>
-      */}
           {
             manageMembers && (
             <UpdateChannel
@@ -651,51 +646,6 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
               </div>
             </UpdateChannel>
           )}
-
-        {/* Button to show banned users */}
-          {/* <Button
-          onClick={() => {
-            setBanned(true);
-            }
-          }
-          >
-            Show Banned Users
-          </Button>
-
-          {
-            banned && (
-              <div className="flex h-max w-full flex-col items-center gap-2 overflow-y-scroll pt-2 scrollbar-hide">
-              {currentChannel?.channelMembers?.filter((member : any) => member.status === "BANNED" ).map((member : any) => {
-                return (
-                  <>
-                  <ProfileBanner
-                      channelMember={channelMember}
-                      user={user?.id}
-                      showOptions
-                      showStatus
-                      key={member.userId}
-                      status={member.status}
-                      role={member.role}
-                      channelId={currentChannel?.id}
-                      userId={member.userId}
-                      name={member.user.username}
-                      avatar={member.user.avatar}
-                      description={member.user.status}
-                      />
-                    <Button
-                      onClick={() => {
-                        // unbanUser(member.userId);
-                      }}
-                      className="w-full justify-center"
-                    >
-                      Unban
-                    </Button>
-                    </>
-                  );
-              })}
-            </div>
-            )
-          } */}
         </Modal>
       )}
     </div>

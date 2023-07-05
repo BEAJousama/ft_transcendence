@@ -23,7 +23,7 @@ const MessageBox = ({ message, right, autoScroll }: { message?: any; right?: boo
   }, []);
 
   useEffect(() => {
-    fetch(`http://192.168.10.195:3000/api/users/${message.senderId}`, {
+    fetch(`http://10.11.9.11:3000/api/users/${message.senderId}`, {
       method: 'GET',
       headers: {
           'Authorization': `Bearer ${token}`, // notice the Bearer before your token

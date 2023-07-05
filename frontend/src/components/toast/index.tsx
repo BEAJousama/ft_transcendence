@@ -12,24 +12,22 @@ const Toast = ({
 }: { title: string, content: string, sender: IUser }) => {
     const toastId = React.useRef<HTMLDivElement>(null);
 
-    // function toastShow() {
-    //     const audio = new Audio('https://drive.google.com/uc?export=download&id=1M95VOpto1cQ4FQHzNBaLf0WFQglrtWi7');
-    //     var playedPromise = audio.play();
-    //             if (playedPromise) {
-    //                 playedPromise.catch((e) => {
-    //                     console.log(e)
-    //                     if (e.name === 'NotAllowedError' || e.name === 'NotSupportedError') {
-    //                         console.log(e.name);
-    //                     }
-    //                 }).then(() => {
+    const toastShow = () => {
+        const audio = new Audio('https://drive.google.com/uc?export=download&id=1M95VOpto1cQ4FQHzNBaLf0WFQglrtWi7');
+        audio.muted = false;
+        var playedPromise = audio.play();
+                if (playedPromise) {
+                    playedPromise.catch((e) => {
+                        console.log(e)
+                        if (e.name === 'NotAllowedError' || e.name === 'NotSupportedError') {
+                            console.log(e.name);
+                        }
+                    }).then(() => {
 
-    //                 });
-    //             }
-    // }
-
-    // useEffect(() => {
-    //     toastShow();
-    // },[]);  
+                    });
+                }
+    }
+    toastShow();
 
     return (
         <div className="flex items-center justify-between gap-4 bg-white" role="alert" ref={toastId}>

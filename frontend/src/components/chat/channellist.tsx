@@ -10,8 +10,8 @@ import Input from "../input";
 import Button from "../button";
 
 
-const ChannelList = ({className, setShowModal, setCurrentChannel, setChannelMember} : 
-  {className?: string, setShowModal: any,  setCurrentChannel: any, setChannelMember: any}) => {
+const ChannelList = ({className, setShowModal, setCurrentChannel, setChannelMember, setOpen} : 
+  {className?: string, setShowModal: any,  setCurrentChannel: any, setChannelMember: any, setOpen?: any}) => {
   
   const[channels, setChannels] = useState<any>([]);
   const [archiveChannels, setArchiveChannels] = useState<any>([]);
@@ -32,6 +32,7 @@ const ChannelList = ({className, setShowModal, setCurrentChannel, setChannelMemb
     }
     else
     {
+      setOpen(true);
       setCurrentChannel(channel);
       getChannelMember(channel.id);
     }
@@ -39,16 +40,18 @@ const ChannelList = ({className, setShowModal, setCurrentChannel, setChannelMemb
 
   const accessChannel = () => {
     socket?.emit("check_access_pass", {password, channelId: tempChannel.id});
-    socket?.on("change_access_passwords", (data) =>
+    socket?.on("check_access_pass", (data) =>
     {
       if (data)
       {
+        setOpen(true);
         setCurrentChannel(tempChannel);
         getChannelMember(tempChannel.id);
       }
     })
-    // setCurrentChannel(tempChannel);
-    // getChannelMember(tempChannel.id);
+    setOpen(true);
+    setCurrentChannel(tempChannel);
+    getChannelMember(tempChannel.id);
   }
 
   useEffect(() => {
@@ -147,7 +150,7 @@ const onChange = (e: any) => {
 
 return (
   <>
-    <div className={clsx("lg:col-span-3 col-span-8 flex flex-col justify-start gap-4 py-2 w-full h-screen overflow-y-scroll scrollbar-hide", className && className)}>
+    <div className={clsx("lg:col-span-3 col-span-10 flex flex-col justify-start gap-4 py-2 w-full h-screen overflow-y-scroll scrollbar-hide", className && className)}>
       <div className=" relative flex items-center gap-2 w-full pr-2 rounded-xl py-2">
         <form className="pl-4 pr-1 w-full">
                 <div className="relative">

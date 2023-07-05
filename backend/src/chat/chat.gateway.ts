@@ -155,6 +155,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect  {
   async joinChannel(client: Socket, payload: any) {
     try
     {
+      console.log(payload)
       let ch ;
       const channel = await this.channelService.getChannelById(payload.channelId);
       if (!channel || channel.type === ChannelType.CONVERSATION)
@@ -784,7 +785,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect  {
     let sockets;
     members.forEach(member =>
       {
-        if (member.status === MemberStatus.BANNED && this.chatService.isBlocked(senderId, member.userId)
+        if (member.status !== MemberStatus.ACTIVE
            || channel.mutedFor.map((u)=>u.id).includes(member.userId)
         )
             return;
