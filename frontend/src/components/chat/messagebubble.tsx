@@ -4,7 +4,7 @@ import MessageBox from "./messagebox";
 
 import { BsEmojiSmileFill, BsSendFill } from "react-icons/bs";
 import { BiRename, BiLeftArrow } from "react-icons/bi";
-import { RiCloseFill, RiEdit2Fill, RiLogoutBoxRLine, RiDeleteBin6Line } from "react-icons/ri";
+import { RiCloseFill, RiLogoutBoxRLine, RiDeleteBin6Line } from "react-icons/ri";
 import {RxAvatar} from "react-icons/rx";
 import {MdOutlineVisibilityOff, MdOutlinePassword, MdOutlineManageAccounts} from "react-icons/md";
 import {AiOutlineUsergroupAdd} from "react-icons/ai";
@@ -13,7 +13,7 @@ import {FcMenu} from "react-icons/fc"
 
 import Avatar from "../avatar";
 import { useState, useRef, useContext, useEffect } from "react";
-import { useClickAway, useMedia } from "react-use";
+import { useClickAway } from "react-use";
 import Modal from "../modal";
 import data from "@emoji-mart/data";
 import Picker from "@emoji-mart/react";
@@ -27,7 +27,8 @@ import  Spinner  from "../spinner";
 import clsx from "clsx";
 import { useNavigate } from "react-router-dom";
 import UpdateChannel from "./updateChannel";
-import { channel } from "diagnostics_channel";
+import RightClickMenu, { RightClickMenuItem } from "../rightclickmenu";
+import axios from "axios";
 
 const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {className?: string, setOpen: any, currentChannel?: any, channelMember?: any}) => {
   const [value, setValue] = useState("");
@@ -36,13 +37,11 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
   const [showEdit, setShowEdit] = useState(false);
   const [messages, setMessages] = useState<any[]>([]);
   let   [visibility, setVisibility] = useState<string>(currentChannel?.visiblity);
-  const  isMatch = useMedia("(max-width:1024px)", false);
   const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
   let   [previewImage, setPreviewImage] = useState<string>(currentChannel?.avatar || "");
   let   [groupName, setGroupName] = useState(currentChannel?.name || "");
 
   const [password, setPassword] = useState<string>("");
-  const [confirmPassword, setConfirmPassword] = useState<string>("");
   const [accessPassword, setAccessPassword] = useState<string>("");
   const [spinner, setSpinner] = useState(true);
   const [chName , setChName] = useState(false);
@@ -52,7 +51,9 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
   const [chAvatar , setChAvatar] = useState(false);
   const [manageMembers , setManageMembers] = useState(false);
   const [manageBans , setManageBans] = useState(false);
-
+  const [deleteChannel, setDeleteChannel] = useState(false);
+  const [DmMemu, setDmMenu] = useState(false);
+  
   const navigate = useNavigate();
   // const []
   // const [state, setState] = useState({
@@ -66,11 +67,18 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
   //   pinnedMessages: [],
   //   previewImage: currentChannel?.avatar || "",
   // });
-  const socket = useContext(ChatContext);
-  const {user, users} = useContext(AppContext);
+  const {socket, users} = useContext(ChatContext);
+  const {user} = useContext(AppContext);
   const refMessage = useRef(null);
 
+  const isBlocker = (currentChannel?.type === "CONVERSATION" && user?.blockers[0]?.blockingId === currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.id);
+  const isBlocked = (currentChannel?.type === "CONVERSATION" && user?.blocking[0]?.blockerId === currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.id);
+  
 
+  const checkBlock = (userId : number) =>
+  {
+    return (user?.blockers[0]?.blockingId === userId || user?.blocking[0]?.blockerId === userId)
+  }
   const autoScroll = () => {
     const scroll = refMessage.current;
     if (scroll) {
@@ -95,12 +103,9 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
       setSpinner(false);
     });
     socket?.on("messsage", (message: any) => {
-      // const sortedMessages = [...messages, message].sort((a, b) => {
-      //   return new Date(a.date).getTime() - new Date(b.date).getTime();
-      // });
-      // setMessages(sortedMessages);
       autoScroll();
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [socket, messages, currentChannel]);
 
   const ref = useRef(null);
@@ -125,22 +130,17 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
 
   const handleSendMessage = (value : string) => {
     if (value) {
-      socket?.emit('message', {senderId: user?.id, receiverId: currentChannel?.id, content: value}); // senderId and receiverId are hardcoded for now
+      socket?.emit('message', {senderId: user?.id, receiverId: currentChannel?.id, content: value});
       setValue("");
     }
   };
 
   const leaveGroup = () => {
-    socket?.emit("channel_leave", { channelId: currentChannel?.id, userId: user?.id }); // hardcoded for now
-  };
-
-  const handleEditChannel = () => {
-    socket?.emit("channel_update", { id: currentChannel?.id, name: groupName || currentChannel?.name , visibility: visibility || 
-      currentChannel?.visiblity, password: password , avatar: previewImage || currentChannel?.avatar, members: selectedUsers });
+    socket?.emit("channel_leave", { channelId: currentChannel?.id, userId: user?.id });
   };
 
   const handleDeleteChannel = () => {
-    socket?.emit("channel_delete", { id: currentChannel?.id });
+    socket?.emit("channel_remove", { channelId: currentChannel?.id});
   };
 
   const handleEditChannelName = () => {
@@ -159,6 +159,38 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
     socket?.emit("channel_update", { id: currentChannel?.id, avatar: previewImage, type: "avatar"});
     
   };
+
+  const  handleBlockUser = async (userId: number) =>
+  {
+    const accessToken = window.localStorage.getItem("access_token");
+    const response = await axios.post(`${process.env.REACT_APP_BACK_END_URL}api/users/block-user`, 
+      {blockerId: user?.id, blockingId: userId},
+      {
+        headers: {
+            Authorization: `Bearer ${accessToken}`,
+        },
+    })
+    if (response)
+    {
+      setDmMenu(false);
+    }
+  }
+
+  const  handleUnblockUser = async (userId: number) =>
+  {
+    const accessToken = window.localStorage.getItem("access_token");
+    const response = await axios.post(`${process.env.REACT_APP_BACK_END_URL}api/users/unblock-user`, 
+      {blockerId: user?.id, blockingId: userId},
+      {
+        headers: {
+            Authorization: `Bearer ${accessToken}`,
+        },
+    })
+    if (response)
+    {
+      setDmMenu(false);
+    }
+  }
   
   const handleRemovePassword = () =>
   {
@@ -170,18 +202,19 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
   };
   return (
     <div className={clsx("relative overflow-y-auto scrollbar-hide overflow-x-hidden col-span-10 flex h-screen w-full flex-col justify-start gap-4 rounded-t-3xl bg-secondary-600 lg:col-span-7", className && className)} ref={refMessage}>
-      <div className="grid grid-cols-6 lg:grid-cols-12 bg-secondary-400 rounded-t-3xl align-middle items-center top-0 mb-16 sticky absolute top-0 z-20">
+      <div className="grid grid-cols-10 lg:grid-cols-12 bg-secondary-400 rounded-t-3xl align-middle items-center top-0 mb-16 sticky absolute top-0 z-20">
       <Button
           type="simple"
-          className="!items-end bg-secondary-400 text-white col-span-1 lg:hidden self-center"
+          className="!items-end bg-secondary-400 !text-white col-span-1 lg:hidden self-center !w-fit m-auto\"
           onClick={() => {
             setOpen(false);
+            setDmMenu(false)
           }}
           >
           <BiLeftArrow />
         </Button>
         <div
-          className="flex items-center gap-2 col-span-4 lg:col-span-11 text-white lg:order-first px-2 py-3 font-semi-bold self-center"
+          className="flex items-center gap-2 col-span-8 lg:col-span-11 text-white lg:order-first px-2 py-3 font-semi-bold self-center"
           >
           <Avatar src={currentChannel?.type !== "CONVERSATION" ? currentChannel?.avatar : 
                       currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.avatar } alt="" 
@@ -190,21 +223,45 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
                       />
           <div>{currentChannel?.type !== "CONVERSATION" ? currentChannel?.name : currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.username}</div>
         </div>
-        <Button className="col-span-1 flex items-center justify-content bg-secondary-400 !p-1 mr-1 text-white font-semi-bold self-center"
+        <Button className="col-span-1 flex items-center justify-content bg-secondary-400 !p-1 !text-white font-semi-bold self-center !w-fit !m-auto"
           type="simple"
           onClick={() => {
-            if (currentChannel?.type !== "CONVERSATION" && channelMember?.status !== "LEFT" && channelMember?.status !== "BANNED" && channelMember?.status !== "MUTED")
+            if (currentChannel?.type !== "CONVERSATION" && channelMember?.status === "ACTIVE")
             {
               setShowModal(true);
               setShowEdit(true);
             } 
             else if (currentChannel?.type === "CONVERSATION")
-              navigate(`/profile/${currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.id}`);
+            {
+              setDmMenu(!DmMemu);
+            }
 
           }}
         >
           <FcMenu/>
         </Button>
+        { DmMemu && (
+          <RightClickMenu className="!right-[10%] lg:!right-[5%]">
+          <RightClickMenuItem
+          onClick={() => {
+            navigate(`/profile/${currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.id}`);
+          }}
+          >
+            Go to profile
+
+          </RightClickMenuItem>
+          <RightClickMenuItem
+              onClick={() => {
+                !isBlocker ? handleBlockUser(currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.id) :
+                handleUnblockUser(currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.id)
+              }
+            }
+            >
+            {!isBlocker ? 'Block user' : 'Unblock user'}
+            </RightClickMenuItem>
+          </RightClickMenu>
+        )
+        }
       </div>
       
       {
@@ -217,8 +274,10 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
             {new Date(message.date).getDay() !== new Date(messages[messages.indexOf(message) - 1]?.date).getDay() && (
               <Divider center title={ 
                 //check if date is less than 10, if so add a 0 in front of it
-                `${  new Date(message.date).getDate() < 10 ? '0' + new Date(message.date).getDate() : new Date(message.date).getDate()}-${ new Date(message.date).getMonth() < 12 ? '0' + (new Date(message.date).getMonth() + 1) : new Date(message.date).getMonth() + 1}-${new Date(message.date).getFullYear()}`}/>
-                )}
+                `${  new Date(message.date).getDate() < 10 ? '0' + new Date(message.date).getDate() : 
+                  new Date(message.date).getDate()}-${ new Date(message.date).getMonth() < 12 ? '0' + (new Date(message.date).getMonth() + 1) : 
+                  new Date(message.date).getMonth() + 1}-${new Date(message.date).getFullYear()}`}
+              />)}
               <MessageBox
               autoScroll={autoScroll}
               key={message.id}
@@ -243,13 +302,14 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
           onClick={() => {
             setShowPicker(true);
           }}
-          disabled={channelMember?.status === "MUTED" || channelMember?.status === "BANNED" || channelMember?.status === "LEFT"}
-          >
+          disabled={channelMember?.status !== "ACTIVE" || isBlocker || isBlocked }
+        >
           <BsEmojiSmileFill />
         </Button>
         <Input
-          disabled={channelMember?.status === "MUTED" || channelMember?.status === "BANNED" || channelMember?.status === "LEFT"}
-          placeholder={(channelMember?.status === "MUTED" ? "You are muted, you can't send messages!" : channelMember?.status === "BANNED" ? "You are banned, you can't send messages!" : channelMember?.status === "LEFT" ? "You have left this channel or have been kicked !" : "type something")}
+          disabled={channelMember?.status !== "ACTIVE" || isBlocker || isBlocked }
+          placeholder={(channelMember?.status === "MUTED" ? "You are muted, you can't send messages!" : channelMember?.status === "BANNED" ? "You are banned, you can't send messages!" : channelMember?.status === "LEFT" ? "You have left this channel or have been kicked !"
+          : isBlocker ? "You blocked this user!" : isBlocked ? "You are blocked by this user!": "type something")}
           value={value}
           onKeyDown={(event) => {
             if (event.key === "Enter")
@@ -264,7 +324,7 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
         <Button
           variant="text"
           className="!hover:bg-inherit !bg-inherit text-primary-500"
-          disabled={channelMember?.status === "MUTED" || channelMember?.status === "BANNED" || channelMember?.status === "LEFT"}
+          disabled={channelMember?.status !== "ACTIVE" || isBlocker || isBlocked }        
           onClick={() => {
             handleSendMessage(value);
           }}
@@ -394,7 +454,7 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
               <Button
                     className="!bg-inherit !text-white hover:bg-inherit justify-between w-full !font-medium"
                     onClick={() => {
-                      setManageBans(true);
+                      setDeleteChannel(true);
                       setShowEdit(false);
                     }}
                   >
@@ -418,7 +478,7 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
             channelMember?.role === "MEMEBER" ? 
             (
               <div className="flex h-max w-full flex-col items-center gap-2 overflow-y-scroll pt-2 scrollbar-hide">
-                {currentChannel?.channelMembers?.filter((member : any) => member.status !== "BANNED" && member.status !== "LEFT"  ).map((member : any) => {
+                {currentChannel?.channelMembers?.filter((member : any) => member.status !== "BANNED" && member.status !== "LEFT" && !checkBlock(member.userId)).map((member : any) => {
                   return (
                     <ProfileBanner
                     channelMember={channelMember}
@@ -449,13 +509,14 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
               </div>
             ) :
              null
-          }      
+          }  
           {
             chName && (
               <UpdateChannel
                 setX={setChName}
                 updateX={handleEditChannelName}
                 setShowEdit={setShowEdit}
+                setShowModal={setShowModal}
               >
                   <Input
                     label="Name"
@@ -469,11 +530,27 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
             </UpdateChannel>
             )
           }
+
+          {
+            deleteChannel && (
+              <UpdateChannel
+                setX={setDeleteChannel}
+                updateX={handleDeleteChannel}
+                setShowEdit={setShowEdit}
+                setShowModal={setShowModal}
+                verify
+              >
+                Would you like to delete this channel?
+            </UpdateChannel>
+            )
+          }
+
           {
             chAvatar && (
               <UpdateChannel
                 setX={setChAvatar}
                 updateX={handleEditChannelAvatar}
+                setShowModal={setShowModal}
                 setShowEdit={setShowEdit}
               >
                 <UpdateAvatar previewImage={previewImage} setPreviewImage={setPreviewImage} />
@@ -486,6 +563,7 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
                 setX={setChVisibility}
                 updateX={handleEditChannelVisibility}
                 setShowEdit={setShowEdit}
+                setShowModal={setShowModal}
               >
               <Select 
                 className="mb-4"
@@ -514,10 +592,11 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
                 setX={setChMembers}
                 updateX={handleAddMembers}
                 setShowEdit={setShowEdit}
+                setShowModal={setShowModal}
               >
                 <div className="w-full h[100px] flex items-center justify-center flex-col align-middle gap-2 pt-2 overflow-y-scroll scrollbar-hide">
                   {users?.filter((u : any) => {
-                    return u.id !== user?.id && ((currentChannel?.channelMembers.find((cm : any) => cm.userId === u.id) === undefined
+                    return u.id !== user?.id && !checkBlock(u.id) && ((currentChannel?.channelMembers.find((cm : any) => cm.userId === u.id) === undefined
                     || currentChannel?.channelMembers.find((cm : any) => cm.userId === u.id)?.status === "LEFT"));
                   }).map((u : any) => {
                     return (
@@ -553,6 +632,7 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
                 setX={setChPassword}
                 updateX={handleEditChannelPassword}
                 setShowEdit={setShowEdit}
+                setShowModal={setShowModal}
               >
                 <Input
                   label={currentChannel?.isacessPassword ? "Edit password" : "Set password"}
@@ -591,9 +671,10 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
                 setX={setManageBans}
                 updateX={()=>{}}
                 setShowEdit={setShowEdit}
+                setShowModal={setShowModal}
               >
                 <div className="flex h-max w-full flex-col items-center gap-2 overflow-y-scroll pt-2 scrollbar-hide">
-                  {currentChannel?.channelMembers?.filter((member : any) => member.status === "BANNED").map((member : any) => {
+                  {currentChannel?.channelMembers?.filter((member : any) => member.status === "BANNED" && !checkBlock(member.userId)).map((member : any) => {
                     return (
                       <ProfileBanner
                       channelMember={channelMember}
@@ -623,9 +704,10 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
               setX={setManageMembers}
               updateX={()=>{}}
               setShowEdit={setShowEdit}
+              setShowModal={setShowModal}
             >
               <div className="flex h-max w-full flex-col items-center gap-2 overflow-y-scroll pt-2 scrollbar-hide">
-                {currentChannel?.channelMembers?.filter((member : any) => member.status !== "BANNED" && member.status !== "LEFT"  ).map((member : any) => {
+                {currentChannel?.channelMembers?.filter((member : any) => member.status !== "BANNED" && member.status !== "LEFT" && !checkBlock(member.userId)).map((member : any) => {
                   return (
                     <ProfileBanner
                     channelMember={channelMember}

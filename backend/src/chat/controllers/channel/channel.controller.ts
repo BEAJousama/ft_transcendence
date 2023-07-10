@@ -1,9 +1,18 @@
-import { Controller, Get, HttpException, HttpStatus, Param, Req, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  HttpException,
+  HttpStatus,
+  Param,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { Channel } from '@prisma/client';
 import { Request } from 'express';
 import { ChannelService } from 'src/chat/services/channel/channel.service';
 
-    /* 
+/* 
         Here we have controllers to do the following through HTTP requests :
                 channel  = Group & Dm;
         1 - get channels based on the userId stored in req.user.id (including dm channels)
@@ -13,60 +22,76 @@ import { ChannelService } from 'src/chat/services/channel/channel.service';
         5 - get only searched channels
     */
 @Controller('channels')
-export class ChannelController 
-{
+export class ChannelController {
+  constructor(private channelService: ChannelService) {}
 
-    constructor(private channelService : ChannelService)
-    {
+  @Get('')
+  async getChats(@Req() req: Request): Promise<Channel[]> {
+    try {
+      return await this.channelService.getAllChannels((req.user as any).sub);
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
     }
+  }
 
-    @Get('')
-    async getChats(@Req() req: Request): Promise<Channel[]> {
-      try {
-        return await this.channelService.getAllChannels((req.user as any).sub);
-      } catch (error) {
-        throw new HttpException(error.message, HttpStatus.NOT_FOUND);
-      }
+  @Get(':userId')
+  async getChatnnels(
+    @Req() req: Request,
+    @Param('userId') userId: string,
+  ): Promise<Channel[]> {
+    try {
+      return await this.channelService.getAllChannels((req.user as any).sub);
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
     }
-  
-    @Get('channel/:channelId/members')
-    async getchannelMembers(
-      @Req() req: Request,
-      @Param('channelId') channelId: string,
-    ): Promise<any[]> {
-      try {
-        const members = await this.channelService.getChannelMembersByChannelId(
-          parseInt(channelId),
-        );
-        return members;
+  }
 
-      } catch (error) {
-        throw new HttpException(error.message, HttpStatus.NOT_FOUND);
-      }
+  @Post('checkpass')
+  async checkPass(@Req() req: Request): Promise<boolean> {
+    try {
+      return await this.channelService.checkAccessPass(
+        req.body.channelId,
+        req.body.password,
+      );
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
     }
-  
-    // @Get('channels')
-    // async getchannels(@Req() req: Request): Promise<Channel[]> {
-    //   try {
-    //     const channels = await this.channelService.getChannelsByUserId(parseInt(req?.user?.id));
-    //     if (!channels) {
-    //       return [];
-    //     }
-    //     return channels;
-    //   } catch (error) {
-    //     throw new HttpException('No channels found', HttpStatus.NOT_FOUND);
-    //   }
-    // }
+  }
 
-    //delete a channel
+  @Get(':userId')
+  async getchannelMembers(@Param('userId') userId: string): Promise<any[]> {
+    try {
+      const channels = await this.channelService.getChannelsByUserId(
+        parseInt(userId),
+      );
+      return channels;
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+    }
+  }
 
-    //delete a message
+  // @Get('channels')
+  // async getchannels(@Req() req: Request): Promise<Channel[]> {
+  //   try {
+  //     const channels = await this.channelService.getChannelsByUserId(parseInt(req?.user?.id));
+  //     if (!channels) {
+  //       return [];
+  //     }
+  //     return channels;
+  //   } catch (error) {
+  //     throw new HttpException('No channels found', HttpStatus.NOT_FOUND);
+  //   }
+  // }
 
-    //update a channel
+  //delete a channel
 
-    //add user to channel
+  //delete a message
 
-    //block user from channel
+  //update a channel
 
-    //set as admin
+  //add user to channel
+
+  //block user from channel
+
+  //set as admin
 }

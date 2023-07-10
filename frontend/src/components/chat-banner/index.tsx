@@ -17,7 +17,7 @@ const ChatBanner = ({
 }) => {
     const navigate = useNavigate();
     const { user } = useContext(AppContext);
-    const socket = useContext(ChatContext);
+    const {socket} = useContext(ChatContext);
     const [password, setPassword] = useState("");
     const [showModal, setshowModal] = useState(false);
     const channelMembers = channel?.channelMembers?.filter((member : any) =>

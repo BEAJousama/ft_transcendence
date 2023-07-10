@@ -1,8 +1,3 @@
-import { useState, useRef, useContext, useEffect } from "react";
-import { useClickAway } from "react-use";
-import { SocketContext } from "../../context/socket.context";
-import { AppContext } from "../../context/app.context";
-import { ChatContext } from "../../context/chat.context";
 import  clsx from "clsx";
 import Button from "../button";
 
@@ -13,7 +8,9 @@ const UpdateChannel = ({
         updateX,
         setX, 
         setShowEdit,
+        setShowModal,
         updatable,
+        verify,
     } 
     : 
     {
@@ -21,8 +18,11 @@ const UpdateChannel = ({
         className?:  string, 
         updateX: (() => void),
         setX:           React.Dispatch<React.SetStateAction<boolean>>,
-        setShowEdit:    React.Dispatch<React.SetStateAction<boolean>>
+        setShowEdit:    React.Dispatch<React.SetStateAction<boolean>>,
+        setShowModal:   React.Dispatch<React.SetStateAction<boolean>>,
         updatable ?:      boolean,
+        verify ?:      boolean,
+
     }) => {
 
   return (
@@ -36,9 +36,10 @@ const UpdateChannel = ({
                     setX(false);
                     updateX();
                     setShowEdit(true);
+                    verify && setShowModal(false);
                 }}
                 >
-                Update
+                {verify ? "Delete" : "Update"}
                 </Button>
                 <Button
                 className="!bg-inherit !text-white hover:bg-inherit justify-between w-full !font-medium ml-1"

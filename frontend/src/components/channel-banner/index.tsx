@@ -23,7 +23,7 @@ const ChannelBanner = ({
 }) => {
     const isMatch = useMedia("(max-width: 530px)");
     const {user} = useContext(AppContext);
-    const  socket= useContext(ChatContext);
+    const  {socket}= useContext(ChatContext);
     const [password, setPassword] = useState("");
     const [showModal, setshowModal] = useState(false);
 

@@ -37,7 +37,7 @@ export class UsersService {
           fullname: 'PongMastersAi',
           phone: '',
           email: 'PongMastersAi@PongMasters.pg',
-        })
+        });
         const keys = Object.keys(Achievements);
         keys.map(async (key, i) => {
           await this.prisma.achievement.create({
@@ -54,12 +54,12 @@ export class UsersService {
     }
   }
 
-  async findOrCreateUser(data : {
-    login:string,
-    avatar:string,
-    fullname:string,
-    phone:string,
-    email:string,
+  async findOrCreateUser(data: {
+    login: string;
+    avatar: string;
+    fullname: string;
+    phone: string;
+    email: string;
   }) {
     try {
       let user: User = await this.findUserByLogin(data.login);
@@ -165,6 +165,10 @@ export class UsersService {
         where: {
           login,
         },
+        include: {
+          blockers: true,
+          blocking: true,
+        },
       });
       return user;
     } catch (error) {
@@ -208,19 +212,16 @@ export class UsersService {
     }
   }
 
-  async updateStatus(status: string, id : number)
-  {
+  async updateStatus(status: string, id: number) {
     try {
-      if (!id || !status)
-        return;
+      if (!id || !status) return;
       const user = await this.prisma.user.update({
         where: {
           id,
         },
-        data: 
-        {
+        data: {
           status: UserStatus[status],
-        }
+        },
       });
       return {
         message: 'User updated successfully',

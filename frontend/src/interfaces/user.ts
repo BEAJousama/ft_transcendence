@@ -6,6 +6,10 @@ export interface IFriend {
   receiverId: number;
   status: string;
 }
+export interface IBlock {
+  blockingId: number;
+  blockerId: number;
+}
 interface IUser {
   id: number;
   login: string;
@@ -24,6 +28,8 @@ interface IUser {
   updatedAt: Date;
   wins: number;
   losses: number;
+  blocking: IBlock[];
+  blockers: IBlock[];
   achievements: IAchievement[];
   receivedRequests: any[];
 }

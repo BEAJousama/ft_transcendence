@@ -26,10 +26,10 @@ const Button = ({
           <button
             className={`
               ${variant === "contained"
-                ? `flex items-center gap-4 rounded bg-primary-500 px-4 py-2 font-bold text-secondary-500  transition ease-in-out duration-400 hover:bg-secondary-200`
+                ? `flex items-center rounded bg-primary-500  font-bold p-2 text-secondary-500  transition ease-in-out duration-400 hover:bg-secondary-200 m-auto`
                 : variant === "outlined"
-                  ? `flex items-center gap-4 rounded border border-gray-400 bg-white px-4 py-2 font-semibold text-gray-800 hover:bg-secondary-200`
-                  : `flex items-center gap-4 rounded bg-white px-4 py-2 font-semibold text-gray-800 hover:bg-secondary-200 `
+                  ? `flex items-center rounded border border-gray-400 bg-white  font-semibold text-gray-800 hover:bg-secondary-200`
+                  : `flex items-center rounded bg-white  font-semibold text-gray-800 hover:bg-secondary-200 `
               } ${className} ${array?.length === 1 && "!justify-center"}
             `}
             disabled={disabled}

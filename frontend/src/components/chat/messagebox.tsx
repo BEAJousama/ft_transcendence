@@ -1,39 +1,27 @@
 import clsx from "clsx";
 import { useContext, useEffect, useRef, useState } from "react";
 import RightClickMenu, { RightClickMenuItem } from "../rightclickmenu";
-import { BsPinAngleFill } from "react-icons/bs";
 import { MdDelete } from "react-icons/md";
-import { useClickAway, useMedia } from "react-use";
-import { SocketContext } from "../../context/socket.context";
+import { useClickAway } from "react-use";
+import { fetcher } from "../../context/app.context";
 import { AppContext } from "../../context/app.context";
-import { Chat } from "../../pages";
 import { ChatContext } from "../../context/chat.context";
 import Spinner from "../spinner";
 
 const MessageBox = ({ message, right, autoScroll }: { message?: any; right?: boolean, autoScroll : any}) => {
   const [showMenu, setShowMenu] = useState(false);
-  const socket = useContext(ChatContext);
+  const {socket} = useContext(ChatContext);
   const {user} = useContext(AppContext);
   const [sender, setSender] = useState<any>(null);
-  const token = localStorage.getItem("access_token");
   const ref = useRef(null);
 
   useEffect(() => {
     autoScroll();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    fetch(`http://10.11.9.11:3000/api/users/${message.senderId}`, {
-      method: 'GET',
-      headers: {
-          'Authorization': `Bearer ${token}`, // notice the Bearer before your token
-      }
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        setSender(data);
-      }
-    );
+    fetcher(`api/users/${message.senderId}`).then((res) => setSender(res));
   }, [message.senderId]);
 
   useClickAway(ref, () => setShowMenu(false));
@@ -48,14 +36,6 @@ const MessageBox = ({ message, right, autoScroll }: { message?: any; right?: boo
     setShowMenu(true);
     document.addEventListener("click", handleClick);
   };
-
-  const pinMessage = () => {
-    socket?.emit("pin_message", { messageId: message.id, channelId: message.receiverId});
-  }
-  
-  const unpinMessage = () => {
-    socket?.emit("unpin_message", { messageId: message.id, channelId: message.receiverId});
-  }
 
   const deleteMessage = () => {
     socket?.emit("message_delete", { messageId: message.id, channelId: message.receiverId});
@@ -100,7 +80,7 @@ const MessageBox = ({ message, right, autoScroll }: { message?: any; right?: boo
               {sender?.username}
               </h1>
             )}
-            <p className="break-words">{message.content}</p>
+            <p className="break-all md:break-words">{message.content}</p>
             <span className={clsx("w-full text-right", !right ? "text-secondary-300" : "text-secondary-200")}>
               {
                 new Date(message.date).getHours() > 12 ?
@@ -119,15 +99,7 @@ const MessageBox = ({ message, right, autoScroll }: { message?: any; right?: boo
       </div>
 
         {showMenu && (
-          <RightClickMenu className="-translate-x-1/2 -translate-y-1/2">
-            <RightClickMenuItem
-            onClick={() => {
-              {message.pinned ? unpinMessage() : pinMessage()}
-            }}
-            >
-              <BsPinAngleFill />
-              {message.pinned ? "Unpin Message" : "Pin Message"}
-            </RightClickMenuItem>
+          <RightClickMenu className={clsx("z-30",right ? "right-[20px]" : "left-[20px] !rounded-r-xl !rounded-bl-xl")}>
             {user?.id === message.senderId && (
               <RightClickMenuItem
                 onClick={() => {

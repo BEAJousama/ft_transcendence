@@ -1,13 +1,10 @@
 import axios from "axios";
 import React, { useCallback, useEffect, useState } from "react";
 import IUser from "../interfaces/user";
-import { ToastContainer, toast } from 'react-toastify';
 
 export interface IAppContext {
   // user: User | undefined;
-  users: IUser[];
   setUser: (user: IUser) => void;
-  setUsers: (users: IUser[]) => void;
   logout: () => void;
   login: () => void;
   setUsername: (username: string) => void;
@@ -23,9 +20,7 @@ export interface IAppContext {
 
 export const AppContext = React.createContext<IAppContext>({
   user: undefined,
-  users: [],
   setUser: (user: IUser) => { },
-  setUsers: (users: IUser[]) => { },
   logout: () => { },
   login: () => { },
   setUsername: () => { },
@@ -61,8 +56,6 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
   const [data, setData] = useState<IUser | undefined>(undefined);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [users, setUsers] = useState<IUser[]>([]);
-  const [twoFactorAuth, setTwoFactorAuth] = useState<boolean>(false);
 
   const logout = () => {
     setData(undefined);
@@ -89,20 +82,7 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
       }
     });
   };
-  const fetchUsers = async () => {
-    const accessToken = window.localStorage.getItem("access_token");
-    fetch("http://10.11.9.11:3000/api/users", {
-      method: 'GET',
-      headers: {
-          'Authorization': `Bearer ${accessToken}`, // notice the Bearer before your token
-      }
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        setUsers(data);
-      }
-    );
-  };
+
 
 
   const fetchUser = useCallback(async () => {
@@ -129,7 +109,6 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   useEffect(() => {
-    fetchUsers();
     fetchUser();
     const handleLocalStorageChange = async () => {
       await updateUser();
@@ -138,11 +117,10 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
     return () => {
       window.removeEventListener("storage", handleLocalStorageChange);
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchUser]);
 
   const appContextValue: IAppContext = {
-    users: users,
-    setUsers,
     logout,
     login,
     setUsername,

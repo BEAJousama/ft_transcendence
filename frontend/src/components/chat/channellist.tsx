@@ -8,7 +8,8 @@ import clsx from "clsx";
 import Modal from "../modal";
 import Input from "../input";
 import Button from "../button";
-
+import axios from "axios";
+import { toast } from "react-toastify";
 
 const ChannelList = ({className, setShowModal, setCurrentChannel, setChannelMember, setOpen} : 
   {className?: string, setShowModal: any,  setCurrentChannel: any, setChannelMember: any, setOpen?: any}) => {
@@ -21,7 +22,7 @@ const ChannelList = ({className, setShowModal, setCurrentChannel, setChannelMemb
   const [modal, setModal] = useState(false);
   const [search, setSearch] = useState<string>("");
   const [tempChannel, setTempChannel] = useState<any>();
-  const socket = useContext(ChatContext);
+  const {socket} = useContext(ChatContext);
   let {user} = useContext(AppContext)
   const [isFocused, setIsFocused] = useState(false);
   
@@ -38,20 +39,20 @@ const ChannelList = ({className, setShowModal, setCurrentChannel, setChannelMemb
     }
   }
 
-  const accessChannel = () => {
-    socket?.emit("check_access_pass", {password, channelId: tempChannel.id});
-    socket?.on("check_access_pass", (data) =>
+  const accessChannel = async () => {
+    const accesstoken = window.localStorage.getItem("access_token");
+    const res = await axios.post(`${process.env.REACT_APP_BACK_END_URL}api/channels/checkpass`, {password, channelId: tempChannel.id}, {headers: {Authorization: `Bearer ${accesstoken}`}});
+    console.log(res)
+    if(res.data === true)
     {
-      if (data)
-      {
-        setOpen(true);
-        setCurrentChannel(tempChannel);
-        getChannelMember(tempChannel.id);
-      }
-    })
-    setOpen(true);
-    setCurrentChannel(tempChannel);
-    getChannelMember(tempChannel.id);
+      setOpen(true);
+      setCurrentChannel(tempChannel);
+      getChannelMember(tempChannel.id);
+    }
+    else
+    {
+      toast.error("Wrong access password !");
+    }
   }
 
   useEffect(() => {
@@ -62,10 +63,17 @@ const ChannelList = ({className, setShowModal, setCurrentChannel, setChannelMemb
     }
     socket?.on('channel_leave', (channels: any) => {
       setCurrentChannel();
+      setOpen(false);
     });
   
     socket?.on('channel_delete', (channels: any) => {
       setCurrentChannel();
+      setOpen(false);
+    });
+
+    socket?.on('channel_remove', (channels: any) => {
+      setCurrentChannel();
+      setOpen(false);
     });
 
     //eslint-disable-next-line

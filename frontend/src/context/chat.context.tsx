@@ -2,11 +2,21 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import io, { Socket } from "socket.io-client";
 import { AppContext } from "./app.context";
 import { toast } from "react-toastify";
-import { Avatar, Toast } from "../components";
+import { Toast } from "../components";
 import { Link } from "react-router-dom";
 import { INotification } from "./socket.context";
+import IUser from "../interfaces/user";
+import axios from "axios";
 
-export const ChatContext = createContext<Socket | null>(null);
+export interface IchatContext {
+    users: IUser[] | undefined;
+    socket: Socket | null;
+  }
+
+export const ChatContext = createContext<IchatContext>({
+    socket: null,
+    users: undefined,
+});
 
 export  default function ChatProvider ({
     children,
@@ -15,8 +25,21 @@ export  default function ChatProvider ({
 }) {
     const [socket, setSocket] = useState<Socket | null>(null);
     const { user } = useContext(AppContext);
-
-    useEffect(() => {
+    const [users, setUsers] = useState<IUser[]>([]);
+    const fetchUsers = async () => {
+        axios.get(`${process.env.REACT_APP_BACK_END_URL}api/users`, {
+            headers: {  Authorization: `Bearer ${localStorage.getItem("access_token")}` },
+            })
+            .then((response) => {
+                setUsers(response.data);
+            })
+            .catch((error) => {
+                console.log(error);
+            });
+      };
+      
+      useEffect(() => {
+        fetchUsers();
         if (!user) return;
         const newSocket = io(`${process.env.REACT_APP_BACK_END_URL}chat`, {
             query: {
@@ -26,7 +49,6 @@ export  default function ChatProvider ({
                 token: localStorage.getItem("access_token"),
             },
         });
-        // console.log(newSocket)
         newSocket.on("connect", () => {
             console.log("Connected");
         });
@@ -47,26 +69,26 @@ export  default function ChatProvider ({
         });
         // add a toast like for error messages
 
-        // newSocket.on("error", (data: any) => {
-        //     console.log(data);
-        //     toast(
-        //         <Toast
-        //             title="Error"
-        //             content={data}
-        //         />
-        //         ,
-        //         {
-        //             className: "md:w-[400px] md:right-[90px]",
-        //         }
-        //     );
-        // });
+        newSocket.on("error", (data: any) => {
+            toast.error(
+                <div className="">
+                    <h1 className="text-white">Error</h1>
+                    <p className="text-sm text-white">{data}</p>
+                </div>
+            );
+        });
         setSocket(newSocket);
         return () => {
             newSocket.disconnect();
         };
     }, [user]);
-
+    const chatContextValue: IchatContext = {
+        socket,
+        users,
+      };
     return (
-        <ChatContext.Provider value={socket}> {children} </ChatContext.Provider>
+        <ChatContext.Provider value={ chatContextValue}>
+            {children} 
+        </ChatContext.Provider>
     );
 }

@@ -1,7 +1,7 @@
 import { CgClose } from "react-icons/cg"
 import Button from "../button"
 import Avatar from "../avatar"
-import React, { useEffect } from "react";
+import React from "react";
 import { toast } from 'react-toastify';
 import IUser from "../../interfaces/user";
 

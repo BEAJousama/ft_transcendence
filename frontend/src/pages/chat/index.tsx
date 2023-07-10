@@ -1,13 +1,9 @@
-import { BiX } from "react-icons/bi";
-import { Button, Card, ChannelList, CreateGroupModal, Input, MessageBubble } from "../../components";
+import { ChannelList, CreateGroupModal, MessageBubble } from "../../components";
 import Welcome from "../../components/chat/welcome";
-import Sidepanel from "../../components/side-panel";
-import { SocketContext } from "../../context/socket.context";
 import { useContext, useEffect, useState } from "react";
 import { useMedia } from "react-use";
 import { ChatContext } from "../../context/chat.context";
 import { AppContext } from "../../context/app.context";
-import Modal from "../../components/modal"
 import Layout from "../layout";
 
 export default function Chat() {
@@ -17,8 +13,7 @@ export default function Chat() {
   const [currentChannel, setCurrentChannel] = useState<any>({});
   const [channelMember, setChannelMember] = useState<any>([]);
   const { user } = useContext(AppContext);
-  const socket = useContext(ChatContext);
-  const [error, setError] = useState<any>("");
+  const {socket} = useContext(ChatContext);
   const [isMuted, setIsMuted] = useState<boolean>(false);
 
 
@@ -45,6 +40,8 @@ export default function Chat() {
         }
       });
     }
+    
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [channelMember, socket, currentChannel]);
 
   return (

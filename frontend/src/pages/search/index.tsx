@@ -81,6 +81,7 @@ export default function Search() {
     }
     else
       setFiltred(users)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value, users])
 
   return (

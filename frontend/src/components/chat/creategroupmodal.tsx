@@ -21,12 +21,12 @@ const CreateGroupModal = ({
   const [showDm, setShowDm] = useState(false);
   const [groupName, setGroupName] = useState("");
   const [showSubmit, setShowSubmit] = useState(false);
-  const  socket= useContext(ChatContext);
+  const  {socket, users} = useContext(ChatContext);
   const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
   const [visibility, setVisibility] = useState<string>("PUBLIC");
   const [password, setPassword] = useState<string>("");
   const [accesspass, setaccesspass] = useState<string>("");
-  const {user, users} = useContext(AppContext);
+  const {user} = useContext(AppContext);
   const [previewImage, setPreviewImage] = useState<string>("https://i.ibb.co/vHD1C8Z/users-group-1.png" || "");
 
 

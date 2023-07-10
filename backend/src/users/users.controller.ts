@@ -85,7 +85,7 @@ export class UsersController {
       };
     }
   }
-  
+
   @Get(':id/friends')
   @GetFriendsDoc()
   async findFriends(@Req() req: Request, @Param('id') id: string) {
@@ -125,7 +125,7 @@ export class UsersController {
         senderId,
         receiverId,
       });
-      
+
       if (!friend) throw 'No Matches Found !!!!!';
       return friend;
     } catch (error) {
@@ -153,6 +153,7 @@ export class UsersController {
   @UnblockUserDoc()
   async unblockUsers(@Body() body: UnblockUserDto) {
     try {
+      console.log(body);
       const blockedUser = await this.usersService.unblockUser(body);
       if (!blockedUser) throw 'No Matches Found !!!!!';
       return blockedUser;
@@ -167,7 +168,6 @@ export class UsersController {
   @AddFriendsDoc()
   async addFriend(@Body() body: AddFriendsDto) {
     try {
-      
       const friendRequest = await this.usersService.sendFriendRequest(body);
       if (!friendRequest) throw 'No Matches Found !!!!!';
       return friendRequest;

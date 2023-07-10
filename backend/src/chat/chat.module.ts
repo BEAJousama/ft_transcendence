@@ -15,15 +15,15 @@ import { NotificationGateway } from 'src/notification/notification.gateway';
   imports: [],
   controllers: [ChatController, ChannelController],
   providers: [
-              ChatService, 
-              ChatGateway, 
-              DmService, 
-              ChannelService, 
-              MessageService,
-              JwtService,
-              UsersService,
-              NotificationService,
-              NotificationGateway
-            ],
+    ChatService,
+    ChatGateway,
+    DmService,
+    ChannelService,
+    MessageService,
+    JwtService,
+    UsersService,
+    NotificationService,
+    NotificationGateway,
+  ],
 })
 export class ChatModule {}

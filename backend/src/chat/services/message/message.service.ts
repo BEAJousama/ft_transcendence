@@ -3,10 +3,12 @@ import { MemberStatus, Message } from '@prisma/client';
 import { constants } from 'buffer';
 import { MessageDto } from 'src/chat/dto';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { ChatService } from '../chat/chat.service';
+import { filter } from 'rxjs';
 
 @Injectable()
 export class MessageService {
-    constructor(private prisma: PrismaService) 
+    constructor(private prisma: PrismaService, private chatService : ChatService) 
     {}
 
     async makeMessage(
@@ -212,7 +214,7 @@ export class MessageService {
             return messages;
         }
 
-        const messages = await this.prisma.message.findMany({
+        let messages = await this.prisma.message.findMany({
         where: {
             receiverId: channelId,
         },
@@ -221,7 +223,13 @@ export class MessageService {
             receiver: true,
         },
         });
-
+        // messages.forEach(async (message) => 
+        // {
+        //     if (await this.chatService.isBlocked(userId, message.senderId))
+        //     {
+        //        messages.splice(messages.indexOf(message), 1);
+        //     }
+        // })
         return messages;
     }
 

@@ -16,10 +16,11 @@ import IAchievement from "../../interfaces/achievement";
 import useSWR from "swr";
 import Layout from "../layout";
 import clsx from "clsx";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import IUser, { IFriend } from "../../interfaces/user";
 import axios from "axios";
 import { addFriend, cancelFriend, acceptFriend } from "./tools";
+import { ChatContext } from "../../context/chat.context";
 
 const icons = [
   "beginner.svg",
@@ -157,6 +158,9 @@ const ProfileInfo = ({ user,
   });
   const [text, setText] = useState("")
   const [show, setShow] = useState(false);
+  const {socket} = useContext(ChatContext);
+  const navigate = useNavigate();
+
 
   useEffect(() => {
     if (friendRequest?.status === "PENDING" && friendRequest?.senderId === currentUser?.id)
@@ -215,24 +219,36 @@ const ProfileInfo = ({ user,
         </div>
       </div>
       <div className="relative flex items-center justify-between gap-2">
-        <Button disabled={user?.id === currentUser?.id} className="!text-xs">
-          Message
-        </Button>
-        <Button
-          disabled={user?.id === currentUser?.id}
-          className="!text-xs"
-          onClick={async () => {
-            if (text === "Add Friend")
-              setModalText(await addFriend(currentUser?.id || 0, user.id))
-            else if (text === "Accept")
-              setModalText(await acceptFriend(friendRequest.id))
-            else
-              setModalText(await cancelFriend(friendRequest.id))
-            await mutate()
-          }}
-        >
-          {text}
-        </Button>
+        {
+          user?.id !== currentUser?.id && (
+            <>
+              <Button disabled={user?.id === currentUser?.id} className="!text-xs"
+              onClick={
+                () => {
+                  socket?.emit("dm_create", { senderId: currentUser?.id , receiverId: user?.id});
+                  navigate("/chat");
+                }
+              }
+              >
+                Message
+              </Button>
+              <Button
+              disabled={user?.id === currentUser?.id}
+              className="!text-xs"
+              onClick={async () => {
+                if (text === "Add Friend")
+                setModalText(await addFriend(currentUser?.id || 0, user.id))
+                else if (text === "Accept")
+                setModalText(await acceptFriend(friendRequest.id))
+                else
+                setModalText(await cancelFriend(friendRequest.id))
+                await mutate()
+              }}
+              >
+                {text}
+              </Button>
+            </>
+        )}
         {/* <Button
           disabled={user?.id === currentUser?.id}
           variant="text"

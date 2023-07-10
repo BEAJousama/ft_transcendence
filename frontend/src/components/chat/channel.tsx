@@ -44,7 +44,7 @@ const Channel = ({
   userStatus,
 }: ChannelProps) => {
 
-  const socket = useContext(ChatContext);
+  const {socket} = useContext(ChatContext);
   const [showMenu, setShowMenu] = useState(false);
   const ref = useRef(null);
 
