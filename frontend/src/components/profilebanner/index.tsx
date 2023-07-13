@@ -205,7 +205,7 @@ const ProfileBanner = ({
                   <BsPersonAdd />
                   Go to profile
                 </RightClickMenuItem>
-                {((channelMember.role === "ADMIN" || channelMember.role === "OWNER") && role != "OWNER") &&
+                {((channelMember.role === "ADMIN" || channelMember.role === "OWNER") && role !== "OWNER") &&
                 <Fragment>
                       <RightClickMenuItem
                       onClick={() => {
@@ -253,7 +253,7 @@ const ProfileBanner = ({
               </RightClickMenu>
             ) :
             (
-              <RightClickMenu className="w-full !bg-secondary-400 max-h-50 absolute right-1/2 left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2">
+              <RightClickMenu className="w-full !bg-[#7C7CA6] max-h-50 absolute  left-[35px] -top-[50px] z-10">
                     <RightClickMenuItem
                       onClick={
                         () => {

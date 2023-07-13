@@ -12,7 +12,7 @@ import {TbUserOff} from "react-icons/tb"
 import {FcMenu} from "react-icons/fc"
 
 import Avatar from "../avatar";
-import { useState, useRef, useContext, useEffect } from "react";
+import { useState, useRef, useContext, useEffect, memo } from "react";
 import { useClickAway } from "react-use";
 import Modal from "../modal";
 import data from "@emoji-mart/data";
@@ -30,7 +30,7 @@ import UpdateChannel from "./updateChannel";
 import RightClickMenu, { RightClickMenuItem } from "../rightclickmenu";
 import axios from "axios";
 
-const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {className?: string, setOpen: any, currentChannel?: any, channelMember?: any}) => {
+const MessageBubble = ({ className, setOpen, setCurrentChannel, currentChannel, channelMember }: {className?: string, setOpen: any, setCurrentChannel: any, currentChannel?: any, channelMember?: any}) => {
   const [value, setValue] = useState("");
   const [showPicker, setShowPicker] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -109,8 +109,12 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
   }, [socket, messages, currentChannel]);
 
   const ref = useRef(null);
+  const ref1 = useRef(null);
   useClickAway(ref, () => {
     setShowPicker(false);
+  });
+  useClickAway(ref1, () => {
+    setDmMenu(false);
   });
   const handleEmojiSelect = (emoji: string) => {
     setValue((prevMessage) => prevMessage + emoji);
@@ -152,7 +156,7 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
   };
 
   const handleEditChannelVisibility = () => {
-    socket?.emit("channel_update", { id: currentChannel?.id, visibility: visibility, type: "visibility", password});
+    socket?.emit("channel_update", { id: currentChannel?.id, visibility: visibility || currentChannel?.visiblity, type: "visibility", password});
   };
 
   const handleEditChannelAvatar = () => {
@@ -172,23 +176,25 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
     })
     if (response)
     {
+      socket?.emit("refresh_channel", {channelId: currentChannel?.id})
       setDmMenu(false);
     }
   }
-
+  
   const  handleUnblockUser = async (userId: number) =>
   {
     const accessToken = window.localStorage.getItem("access_token");
     const response = await axios.post(`${process.env.REACT_APP_BACK_END_URL}api/users/unblock-user`, 
-      {blockerId: user?.id, blockingId: userId},
-      {
-        headers: {
-            Authorization: `Bearer ${accessToken}`,
-        },
-    })
-    if (response)
+    {blockerId: user?.id, blockingId: userId},
     {
-      setDmMenu(false);
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      })
+      if (response)
+      {
+        socket?.emit("refresh_channel", {channelId: currentChannel?.id})
+        setDmMenu(false);
     }
   }
   
@@ -199,15 +205,17 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
 
   const handleAddMembers = () => {
     socket?.emit("channel_update", { id: currentChannel?.id, members: selectedUsers, type: "members" });
+    setSelectedUsers([]);
   };
   return (
-    <div className={clsx("relative overflow-y-auto scrollbar-hide overflow-x-hidden col-span-10 flex h-screen w-full flex-col justify-start gap-4 rounded-t-3xl bg-secondary-600 lg:col-span-7", className && className)} ref={refMessage}>
-      <div className="grid grid-cols-10 lg:grid-cols-12 bg-secondary-400 rounded-t-3xl align-middle items-center top-0 mb-16 sticky absolute top-0 z-20">
+    <div className={clsx("col-span-10 flex h-screen w-full flex-col justify-start rounded-t-3xl bg-secondary-600 lg:col-span-7", className && className)} ref={refMessage}>
+      <div className="grid grid-cols-10 lg:grid-cols-12 bg-secondary-400 rounded-t-3xl align-middle items-center top-0 sticky absolute top-0 z-20">
       <Button
           type="simple"
           className="!items-end bg-secondary-400 !text-white col-span-1 lg:hidden self-center !w-fit m-auto\"
           onClick={() => {
             setOpen(false);
+            setCurrentChannel("");
             setDmMenu(false)
           }}
           >
@@ -219,7 +227,8 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
           <Avatar src={currentChannel?.type !== "CONVERSATION" ? currentChannel?.avatar : 
                       currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.avatar } alt="" 
                       status={currentChannel?.type !== "CONVERSATION" ? false : 
-                      currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.status === "ONLINE"}
+                      currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.status === "ONLINE" && 
+                      !checkBlock(currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.id)}
                       />
           <div>{currentChannel?.type !== "CONVERSATION" ? currentChannel?.name : currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.username}</div>
         </div>
@@ -235,38 +244,39 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
             {
               setDmMenu(!DmMemu);
             }
-
           }}
         >
           <FcMenu/>
         </Button>
         { DmMemu && (
-          <RightClickMenu className="!right-[10%] lg:!right-[5%]">
-          <RightClickMenuItem
-          onClick={() => {
-            navigate(`/profile/${currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.id}`);
-          }}
-          >
-            Go to profile
-
-          </RightClickMenuItem>
-          <RightClickMenuItem
-              onClick={() => {
-                !isBlocker ? handleBlockUser(currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.id) :
-                handleUnblockUser(currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.id)
-              }
-            }
+          <div ref={ref1}>
+            <RightClickMenu className="!right-[10%] lg:!right-[5%]">
+            <RightClickMenuItem
+            onClick={() => {
+              navigate(`/profile/${currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.id}`);
+            }}
             >
-            {!isBlocker ? 'Block user' : 'Unblock user'}
+              Go to profile
+
             </RightClickMenuItem>
-          </RightClickMenu>
+            <RightClickMenuItem
+                onClick={() => {
+                  !isBlocker ? handleBlockUser(currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.id) :
+                  handleUnblockUser(currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.id)
+                }
+              }
+              >
+              {!isBlocker ? 'Block user' : 'Unblock user'}
+              </RightClickMenuItem>
+            </RightClickMenu>
+          </div>
         )
         }
       </div>
       
       {
       !spinner ?
-      <div className="mb-2 flex h-full flex-col  justify-end gap-2 z-[0] px-[10px] ">
+      <div className="mb-2 flex overflow-y-scroll h-[calc(100%-128px)] flex-col justify-end gap-2 z-[0] px-[10px] ">
         {
           messages?.map((message, index) => {
             return (
@@ -295,7 +305,7 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
         </div>
       </div>
       }
-      <div className="absolute sticky bottom-0 flex w-full  items-center bg-secondary-700 p-1 ">
+      <div className="flex w-full  items-center bg-secondary-700 p-1 ">
         <Button
           variant="text"
           className="!hover:bg-inherit !bg-inherit text-primary-500"
@@ -461,23 +471,22 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
                     Delete channel
                     <RiDeleteBin6Line />
               </Button>
-
-              <Button
-                className="w-[30%] justify-center mt-4"
-                onClick={() => {
-                  leaveGroup();
-                  setShowModal(false);
-                }}
-                >
-                <RiLogoutBoxRLine />
-                Leave Group
-              </Button>
+                  <Button
+                    className="w-[50%] md:w-[30%] justify-center mt-4 self-center"
+                    onClick={() => {
+                      leaveGroup();
+                      setShowModal(false);
+                    }}
+                    >
+                    <RiLogoutBoxRLine />
+                    Leave Group
+                  </Button>
               </div>
             ) 
             :
             channelMember?.role === "MEMEBER" ? 
             (
-              <div className="flex h-max w-full flex-col items-center gap-2 overflow-y-scroll pt-2 scrollbar-hide">
+              <div className="flex h-max w-full flex-col items-center gap-2 pt-2">
                 {currentChannel?.channelMembers?.filter((member : any) => member.status !== "BANNED" && member.status !== "LEFT" && !checkBlock(member.userId)).map((member : any) => {
                   return (
                     <ProfileBanner
@@ -497,7 +506,7 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
                     );
                   })}
                   <Button
-                    className="w-[30%] justify-center mt-4"
+                    className="w-[50%] md:w-[30%] justify-center self-center mt-4"
                     onClick={() => {
                       leaveGroup();
                       setShowModal(false);
@@ -673,7 +682,7 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
                 setShowEdit={setShowEdit}
                 setShowModal={setShowModal}
               >
-                <div className="flex h-max w-full flex-col items-center gap-2 overflow-y-scroll pt-2 scrollbar-hide">
+                <div className=" h-max w-full pt-2">
                   {currentChannel?.channelMembers?.filter((member : any) => member.status === "BANNED" && !checkBlock(member.userId)).map((member : any) => {
                     return (
                       <ProfileBanner
@@ -706,7 +715,7 @@ const MessageBubble = ({ className, setOpen, currentChannel, channelMember }: {c
               setShowEdit={setShowEdit}
               setShowModal={setShowModal}
             >
-              <div className="flex h-max w-full flex-col items-center gap-2 overflow-y-scroll pt-2 scrollbar-hide">
+              <div className="flex h-max w-full flex-col items-center gap-2 pt-2 ">
                 {currentChannel?.channelMembers?.filter((member : any) => member.status !== "BANNED" && member.status !== "LEFT" && !checkBlock(member.userId)).map((member : any) => {
                   return (
                     <ProfileBanner

@@ -15,11 +15,11 @@ export const RightClickMenuItem = ({
     onClick && onClick(e);
   };
   return (
-    <li className="w-full">
+    <li className="w-full h-full hover:!bg-[#4B4B75]">
       <Button
         variant="text"
         className={clsx(
-          "m-2 !bg-inherit !text-sm text-white",
+          "mx-2 !bg-inherit !text-sm text-white ",
           className && className
         )}
         onClick={handleClick}
@@ -40,7 +40,7 @@ const RightClickMenu = ({
   return (
     <ul
       className={clsx(
-        "max-h-50 absolute left-1/2 top-1/2 z-10 -translate-x-1 -translate-y-1 transform overflow-scroll rounded-l-xl rounded-br-xl !bg-secondary-800 text-white scrollbar-hide",
+        "max-h-50 absolute left-1/2 top-1/2 z-10 -translate-x-1 -translate-y-1 transform divide-y divide-slate-700 rounded-l-xl flex flex-col justify-content rounded-br-xl !bg-[#7C7CA6] text-white scrollbar-hide",
         className && className
       )}
     >

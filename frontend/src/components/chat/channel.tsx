@@ -3,10 +3,9 @@ import { BiVolumeMute } from "react-icons/bi";
 import { BsArchiveFill, BsPinAngleFill } from "react-icons/bs";
 import { RiMailUnreadFill } from "react-icons/ri";
 import { MdDelete } from "react-icons/md";
-import { useContext, useRef, useState } from "react";
+import { memo, useContext, useRef, useState } from "react";
 import RightClickMenu, { RightClickMenuItem } from "../rightclickmenu";
 import { useClickAway } from "react-use";
-import { channel } from "diagnostics_channel";
 import clsx from "clsx";
 import { ChatContext } from "../../context/chat.context";
 
@@ -42,6 +41,7 @@ const Channel = ({
   onClick,
   pinned,
   userStatus,
+  selected,
 }: ChannelProps) => {
 
   const {socket} = useContext(ChatContext);
@@ -62,6 +62,8 @@ const Channel = ({
 
   const MessageDate = () =>
   {
+    if (updatedAt === "")
+      return "";
     const hours = 
                   new Date(updatedAt!).getHours() > 12 ?
                   new Date(updatedAt!).getHours() - 12 :
@@ -73,7 +75,7 @@ const Channel = ({
     
     const pm =    new Date(updatedAt!).getHours() > 12 ? "pm" : "am"
 
-    const timeDifference = Math.floor( (Date.now() - new Date(updatedAt).getTime()) / 1000);
+    const timeDifference = Math.floor( (new Date().getTime() - new Date(updatedAt).getTime()) / 1000);
     if (timeDifference >= 86400) {
         const days = Math.floor(timeDifference / 86400);
         if (days === 1)
@@ -133,7 +135,7 @@ const Channel = ({
 
   return (
     <div
-      className="relative flex items-center gap-2 w-full px-4 cursor-pointer hover:bg-tertiary-700 rounded-xl py-2 "
+      className={clsx("relative flex items-center gap-2 w-full px-4 cursor-pointer hover:bg-tertiary-700 rounded-xl py-2 ", selected && "bg-tertiary-600")}
       onContextMenu={handleContextMenu}
       onClick={() => {
         onClick && onClick();

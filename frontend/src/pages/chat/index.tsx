@@ -4,7 +4,7 @@ import { useContext, useEffect, useState } from "react";
 import { useMedia } from "react-use";
 import { ChatContext } from "../../context/chat.context";
 import { AppContext } from "../../context/app.context";
-import Layout from "../layout";
+import Layout from "../layout"; 
 
 export default function Chat() {
   const [open, setOpen] = useState<boolean>(false);
@@ -59,7 +59,7 @@ export default function Chat() {
                 setOpen={setOpen} 
                 />
             )}
-            <MessageBubble className="mt-4 mb-4 ml-1 pb-5" currentChannel={currentChannel} setOpen={setOpen} channelMember={channelMember}/>
+            <MessageBubble className="mt-4 mb-4 ml-1 pb-5" currentChannel={currentChannel} setOpen={setOpen} setCurrentChannel={setCurrentChannel} channelMember={channelMember}/>
             {showModal && <CreateGroupModal setShowModal={setShowModal} />}
           </div>
         ) :
@@ -72,7 +72,8 @@ export default function Chat() {
               setShowModal={setShowModal}
               setOpen={setOpen}
               />
-          {(currentChannel && Object.keys(currentChannel!).length ) ? <MessageBubble className="mt-4 mb-4 pb-5 ml-1" currentChannel={currentChannel} setOpen={setOpen} channelMember={channelMember}/>
+          {(currentChannel && Object.keys(currentChannel!).length ) ? <MessageBubble className="mt-4 mb-4 pb-5 ml-1" setCurrentChannel={setCurrentChannel} 
+            currentChannel={currentChannel} setOpen={setOpen} channelMember={channelMember}/>
           : 
             < Welcome className="mt-4 mb-4 pb-3 ml-1" />
           }

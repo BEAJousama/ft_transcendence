@@ -1,4 +1,4 @@
-import {useContext, useEffect, useState } from "react";
+import {memo, useCallback, useContext, useEffect, useState } from "react";
 import Channel from "./channel";
 import { AppContext } from "../../context/app.context";
 import {BsFillChatLeftTextFill} from "react-icons/bs";
@@ -18,6 +18,7 @@ const ChannelList = ({className, setShowModal, setCurrentChannel, setChannelMemb
   const [archiveChannels, setArchiveChannels] = useState<any>([]);
   const [showArchive, setShowArchive] = useState<boolean>(false);
   const [password, setPassword] = useState<string>("")
+  const [selectedChannel, setSelectedChannel] = useState<any>(null)
 
   const [modal, setModal] = useState(false);
   const [search, setSearch] = useState<string>("");
@@ -25,29 +26,44 @@ const ChannelList = ({className, setShowModal, setCurrentChannel, setChannelMemb
   const {socket} = useContext(ChatContext);
   let {user} = useContext(AppContext)
   const [isFocused, setIsFocused] = useState(false);
+
+  const checkBlock = (userId : number) =>
+  {
+    return (user?.blockers[0]?.blockingId === userId || user?.blocking[0]?.blockerId === userId)
+  }
   
-  const onClick = (channel : any) : void | undefined => {
+  const onClick = useCallback((channel : any) : void | undefined => {
     if (channel.isacessPassword) {
-      setModal(true);
-      setTempChannel(channel);
+      if (selectedChannel && selectedChannel.id === channel.id) {
+        setOpen(true);
+        setCurrentChannel(channel);
+        setSelectedChannel(channel);
+        getChannelMember(channel.id);
+      }
+      else {
+        setModal(true);
+        setTempChannel(channel);
+      }
     }
     else
     {
       setOpen(true);
       setCurrentChannel(channel);
+      setSelectedChannel(channel);
       getChannelMember(channel.id);
     }
-  }
+    //eslint-disable-next-line
+  },[setCurrentChannel, setOpen, selectedChannel]);
 
   const accessChannel = async () => {
     const accesstoken = window.localStorage.getItem("access_token");
     const res = await axios.post(`${process.env.REACT_APP_BACK_END_URL}api/channels/checkpass`, {password, channelId: tempChannel.id}, {headers: {Authorization: `Bearer ${accesstoken}`}});
-    console.log(res)
     if(res.data === true)
     {
       setOpen(true);
       setCurrentChannel(tempChannel);
       getChannelMember(tempChannel.id);
+      setSelectedChannel(tempChannel);
     }
     else
     {
@@ -122,12 +138,16 @@ const getArchiveChannels = async (id: any) => {
 const getNewChannel = async () => {
   try {
         socket?.on('channel_create', (channel: any) => {
-          setChannels([...channels, channel]);
+          // setChannels([...channels, channel]);
             setCurrentChannel(channel);
+            setSelectedChannel(channel);
+
           });
           socket?.on('dm_create', (channel: any) => {
-            setChannels([...channels, channel]);
+            // setChannels([...channels, channel]);
             setCurrentChannel(channel);
+            setSelectedChannel(channel);
+
         });
     } catch (error) {
         console.log(error);
@@ -216,6 +236,7 @@ return (
           channels?.filter(
             (channel: any) => channel.pinnedFor?.map((user: any) => user.id).includes(user?.id)
           )?.map((channel: any) => {
+            const isActive = channel.id === selectedChannel?.id;
             return (
               <Channel
               key={channel.id}
@@ -228,16 +249,24 @@ return (
               avatar={channel.type !== "CONVERSATION" ? channel.avatar :
               channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.avatar}
               description={(channel.messages  && !(channel.bannedUsers?.map((user:any) => user.id).includes(user?.id)) && !(channel.kickedUsers?.map((user:any) => user.id).includes(user?.id)) )  ? channel.messages[channel.messages.length - 1]?.content : ""}
-              updatedAt={channel.lastestMessageDate}
+              updatedAt={
+                channel.messages && 
+                !channel.bannedUsers?.map((user:any) => user.id).includes(user?.id) && 
+                !channel.kickedUsers?.map((user:any) => user.id).includes(user?.id) 
+                  ? channel.messages[channel.messages.length - 1]?.date || channel.createAt || ""
+                  : channel.createAt || ""
+              }
               newMessages={channel.newMessagesCount}
-              userStatus={channel.type !== "CONVERSATION" ? false : channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.status === "ONLINE"}
+              userStatus={channel.type !== "CONVERSATION" ? false : (channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.status === "ONLINE") && !checkBlock(channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.id)}
               onClick={() => onClick(channel)}
+              selected={isActive}
                 />
                 )
               }).concat(
                       channels?.filter(
                         (channel: any) => ((!channel.pinnedFor?.map((user: any) => user.id).includes(user?.id)))
                         ).map((channel: any) => {
+                          const isActive = channel.id === selectedChannel?.id;
                           return (
                             <Channel
                             key={channel.id}
@@ -251,10 +280,17 @@ return (
                                     channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.avatar
                                     }
                             description={(channel.messages  && !(channel.bannedUsers?.map((user:any) => user.id).includes(user?.id)) && !(channel.kickedUsers?.map((user:any) => user.id).includes(user?.id)) )  ? channel.messages[channel.messages.length - 1]?.content : ""}
-                            updatedAt={channel.lastestMessageDate}
+                            updatedAt={
+                              channel.messages && 
+                              !channel.bannedUsers?.map((user:any) => user.id).includes(user?.id) && 
+                              !channel.kickedUsers?.map((user:any) => user.id).includes(user?.id) 
+                                ? channel.messages[channel.messages.length - 1]?.date || channel.createAt || ""
+                                : channel.createAt || ""
+                            }
                             newMessages={channel.newMessagesCount}
-                            userStatus={channel.type !== "CONVERSATION" ? false : channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.status === "ONLINE"}
+                            userStatus={channel.type !== "CONVERSATION" ? false : (channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.status === "ONLINE") && !checkBlock(channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.id)}
                             onClick={() => onClick(channel)}
+                            selected={isActive}
                               />
                               )
                             })
@@ -264,6 +300,7 @@ return (
                   (channel: any) => channel.pinnedFor?.map((user: any) => user.id).includes(user?.id)
                   )?.map((channel: any) => {
                     //list the pinned channels first
+                    const isActive = channel.id === selectedChannel?.id;
                     return (
                       <Channel
                       key={channel.id}
@@ -277,16 +314,24 @@ return (
                     channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.avatar
                   }                    
                     description={(channel.messages  && !(channel.bannedUsers?.map((user:any) => user.id).includes(user?.id)) && !(channel.kickedUsers?.map((user:any) => user.id).includes(user?.id)))  ? channel.messages[channel.messages.length - 1]?.content : ""}
-                    updatedAt={channel.lastestMessageDate}
+                    updatedAt={
+                      channel.messages && 
+                      !channel.bannedUsers?.map((user:any) => user.id).includes(user?.id) && 
+                      !channel.kickedUsers?.map((user:any) => user.id).includes(user?.id) 
+                        ? channel.messages[channel.messages.length - 1]?.date || channel.createAt || ""
+                        : channel.createAt || ""
+                    }
                     newMessages={channel.newMessagesCount}
-                    userStatus={channel.type !== "CONVERSATION" ? false : channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.status === "ONLINE"}
+                    userStatus={channel.type !== "CONVERSATION" ? false : (channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.status === "ONLINE") && !checkBlock(channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.id)}
                     onClick={() => onClick(channel)}
+                    selected={isActive}
                       />
                       )
                     }).concat(
                             archiveChannels?.filter(
                               (channel: any) => ((!channel.pinnedFor?.map((user: any) => user.id).includes(user?.id)))
                               ).map((channel: any) => {
+                                const isActive = channel.id === selectedChannel?.id;
                                 return (
                                   <Channel
                                   key={channel.id}
@@ -300,11 +345,17 @@ return (
                                   channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.avatar
                                 }                                  
                                 description={(channel.messages  && !(channel.bannedUsers?.map((user:any) => user.id).includes(user?.id)) && !(channel.kickedUsers?.map((user:any) => user.id).includes(user?.id)))  ? channel.messages[channel.messages.length - 1]?.content : ""}
-                                updatedAt={channel.lastestMessageDate}
+                                updatedAt={
+                                    channel.messages && 
+                                    !channel.bannedUsers?.map((user:any) => user.id).includes(user?.id) && 
+                                    !channel.kickedUsers?.map((user:any) => user.id).includes(user?.id) 
+                                      ? channel.messages[channel.messages.length - 1]?.date || channel.createAt || ""
+                                      : channel.createAt || ""
+                                }
                                 newMessages={channel.newMessagesCount}
-                                userStatus={channel.type !== "CONVERSATION" ? false : channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.status === "ONLINE"}
+                                userStatus={channel.type !== "CONVERSATION" ? false : (channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.status === "ONLINE") && !checkBlock(channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.id)}
                                 onClick={() => onClick(channel)}
-
+                                selected={isActive}
                                     />
                                     )
                                   })
@@ -332,6 +383,7 @@ return (
                             onClick={() => {
                                 accessChannel()
                                 setModal(false);
+                                setPassword("");
                               }}
                             >
                             <span className="text-xs">Access</span>

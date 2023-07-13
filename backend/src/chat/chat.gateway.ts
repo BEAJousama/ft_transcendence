@@ -195,6 +195,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
           message: 'Cannot join channel',
         });
       }
+      await this.sendNotifications(
+        client.data.sub,
+        channel.id,
+        ' has joined the channel',
+      );
       const sockets = this.getConnectedUsers(client.data.sub);
       if (!sockets || sockets.length === 0) return;
       sockets.forEach((s) => {
@@ -466,7 +471,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     try {
       const messages = await this.messageService.getMessagesByChannelId(
         payload.channelId,
-        payload.user.id,
+        client.data.sub,
       );
       client.emit(EVENT.GET_CH_MSSGS, messages);
     } catch (err) {
@@ -541,7 +546,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         ' has deleted the channel',
       );
     } catch (err) {
-      console.log(err);
+      client.emit(EVENT.ERROR, err.message);
       throw new WsException({
         error: EVENT.ERROR,
         message: err.message,
@@ -821,6 +826,22 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
+  @SubscribeMessage(EVENT.REFRESH_CHANNEL)
+  async refrechChannel(client: Socket, payload: { channelId: string }) {
+    try {
+      const channel = await this.channelService.getChannelById(
+        parseInt(payload.channelId),
+      );
+      if (!channel) throw new Error('Channel not found !');
+      this.updateCurrentChannel(parseInt(payload.channelId), client);
+    } catch (err) {
+      throw new WsException({
+        error: EVENT.ERROR,
+        message: err.message,
+      });
+    }
+  }
+
   /* -------------------------------------- Helper functions -------------------------------------*/
 
   async joinRoom(client: Socket, payload: any) {
@@ -900,10 +921,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     );
     const channel = await this.channelService.getChannelById(channelId);
     let sockets;
-    members.forEach((member) => {
+    members.forEach(async (member) => {
       if (
         member.status !== MemberStatus.ACTIVE ||
-        channel.mutedFor.map((u) => u.id).includes(member.userId)
+        channel.mutedFor.map((u) => u.id).includes(member.userId) ||
+        (await this.chatService.isBlocked(senderId, member.userId))
       )
         return;
       sockets = this.getConnectedUsers(member.userId);
@@ -920,7 +942,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
           receiver: member.userId,
           url: '/chat',
         };
-        this.server.to(socket.id).emit('notification', data);
+        this.server.to(socket.id).emit(EVENT.NOTIFICATION, data);
       });
     });
   }
@@ -958,6 +980,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         await this.channelService.getChannelMembersByChannelId(channelId);
       const user = await this.userService.findUserById(userId);
       if (user2Id) {
+        if (await this.chatService.isBlocked(userId, user2Id)) return;
         const user2 = await this.userService.findUserById(user2Id);
         data = {
           id: randomInt(1, 9999999),
@@ -989,8 +1012,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
             member.status !== MemberStatus.BANNED &&
             member.status !== MemberStatus.LEFT,
         )
-        .forEach((member) => {
-          if (!channel.mutedFor.map((u) => u.id).includes(member.userId)) {
+        .forEach(async (member) => {
+          if (
+            !channel.mutedFor.map((u) => u.id).includes(member.userId) &&
+            !(await this.chatService.isBlocked(userId, member.userId))
+          ) {
             this.notificationService.createNotification(
               userId,
               member.userId,
@@ -1018,6 +1044,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const user = await this.userService.findUserById(userId);
     const channel = await this.channelService.getChannelById(channelId);
     if (channel.mutedFor.map((u) => u.id).includes(user2Id)) return;
+    if (await this.chatService.isBlocked(userId, user2Id)) return;
     const data = {
       id: randomInt(1, 9999999),
       title: channel.name,
@@ -1054,6 +1081,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
             member.status !== MemberStatus.LEFT,
         )
         .forEach((member) => {
+          console.log(member.userId);
           this.sendChannels(member.userId);
         });
       const sockets: Socket[] = this.getConnectedUsers(client.data.sub);

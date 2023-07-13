@@ -1,4 +1,12 @@
-import { Controller, Get, HttpException, HttpStatus, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  HttpException,
+  HttpStatus,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { Request } from 'express';
 import { JwtAuthGuard } from 'src/auth/guards';
 import { MessageService } from 'src/chat/services/message/message.service';
@@ -13,31 +21,28 @@ import { MessageService } from 'src/chat/services/message/message.service';
 // @UseGuards(new JwtAuthGuard())
 @Controller('message')
 export class MessageController {
-    // constructor(private messageService: MessageService) 
-    // {
-    // }
-
-    // @Get(':channelId')
-    // async getMessages(@Req() req: Request) {
-    //   try {
-    //     return await this.messageService.getMessagesByChannelId(
-    //       parseInt(req.params.channelId),
-    //       req.user.id);
-    //   } catch (error) {
-    //     throw new HttpException(error.message, HttpStatus.NOT_FOUND);
-    //   }
-    // }
-
-    // @Post('delete/:messageId')
-    // async deleteMessage(@Req() req: Request, payload : any) {
-    //   try {
-    //     return await this.messageService.deleteMessage(
-    //       parseInt(req.params.messageId),
-    //       req.user.id);
-    //   }
-    //   catch (error) {
-    //     throw new HttpException(error.message, HttpStatus.NOT_FOUND);
-    //   }
-    // }
-      
+  // constructor(private messageService: MessageService)
+  // {
+  // }
+  // @Get(':channelId')
+  // async getMessages(@Req() req: Request) {
+  //   try {
+  //     return await this.messageService.getMessagesByChannelId(
+  //       parseInt(req.params.channelId),
+  //       req.user.id);
+  //   } catch (error) {
+  //     throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+  //   }
+  // }
+  // @Post('delete/:messageId')
+  // async deleteMessage(@Req() req: Request, payload : any) {
+  //   try {
+  //     return await this.messageService.deleteMessage(
+  //       parseInt(req.params.messageId),
+  //       req.user.id);
+  //   }
+  //   catch (error) {
+  //     throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+  //   }
+  // }
 }

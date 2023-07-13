@@ -426,9 +426,6 @@ export class UsersService {
         where: {
           blockerId: id,
         },
-        include: {
-          blocking: true,
-        },
       });
       return blockedUsers;
     } catch (error) {
@@ -441,9 +438,6 @@ export class UsersService {
       const blockingUsers = await this.prisma.block.findMany({
         where: {
           blockingId: id,
-        },
-        include: {
-          blocker: true,
         },
       });
       return blockingUsers;

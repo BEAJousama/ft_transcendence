@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { useContext, useEffect, useRef, useState } from "react";
+import { memo, useContext, useEffect, useRef, useState } from "react";
 import RightClickMenu, { RightClickMenuItem } from "../rightclickmenu";
 import { MdDelete } from "react-icons/md";
 import { useClickAway } from "react-use";
@@ -51,13 +51,13 @@ const MessageBox = ({ message, right, autoScroll }: { message?: any; right?: boo
         ref={ref}
         onContextMenu={handleContextMenu}
       >
-      <div className="flex w-max">
+      <div className="flex max-w-[90%]">
         {user?.id !== message.senderId && (
           sender ? 
           <div>
             <span className="relative group">
               <img
-                className="w-10 h-10 rounded-full mr-2"
+                className="w-10 h-10 rounded-full mr-2 min-w-[25px]"
                 src={sender?.avatar}
                 alt={sender?.username}
                 />

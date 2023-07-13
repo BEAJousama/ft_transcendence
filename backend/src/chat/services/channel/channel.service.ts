@@ -11,6 +11,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { ChannelDto } from 'src/chat/dto';
 import { ChatService } from '../chat/chat.service';
+import { ChannelController } from 'src/chat/controllers/channel/channel.controller';
 
 @Injectable()
 export class ChannelService {
@@ -63,7 +64,15 @@ export class ChannelService {
               user: true,
             },
           },
-          messages: true,
+          messages: {
+            where: {
+              NOT: {
+                senderId: {
+                  in: await this.chatService.getBlockedUserIds(userId),
+                },
+              },
+            },
+          },
           isacessPassword: true,
         },
       });
@@ -351,6 +360,13 @@ export class ChannelService {
     let channelMembers;
 
     try {
+      console.log(channelData);
+      const channelMember = await this.getChannelMemberByUserIdAndChannelId(
+        userId,
+        channelData.id,
+      );
+      if (!channelMember || channelMember.role === Role.MEMEBER)
+        throw new Error('You are not allowed to update the channel !');
       const channel = await this.getChannelById(channelData.id);
       if (channelData.type === 'name') {
         const ch = await this.getChannelByName(channelData.name);
@@ -379,7 +395,6 @@ export class ChannelService {
         return channel;
       }
       if (channelData.type === 'visibility') {
-        console.log(channelData);
         const ch = await this.getChannelById(channelData.id);
         if (
           ch.visiblity !== Visiblity.PROTECTED &&
@@ -430,9 +445,11 @@ export class ChannelService {
         return channel;
       }
       if (channelData.type === 'members') {
-        // check if member already exists and its status is LEFT and make it active
+        const members = channelData.members;
         if (channelData.members) {
-          channelData.members.forEach(async (memberId) => {
+          const newMembers = [];
+          for (let i = 0; i < members.length; i++) {
+            const memberId = members[i];
             const channelMember =
               await this.getChannelMemberByUserIdAndChannelId(
                 memberId,
@@ -463,29 +480,29 @@ export class ChannelService {
                   },
                 },
               });
-              channelData.members = channelData.members.filter(
-                (member) => member !== memberId,
-              );
+            } else {
+              newMembers.push(memberId);
             }
-          });
-
-          channelMembers = channelData.members.map((member) => {
-            return { user: { connect: { id: member } } };
-          });
-
-          await this.prisma.channel.update({
-            where: {
-              id: channelData.id,
-            },
-            data: {
-              channelMembers: {
-                create: channelMembers,
+          }
+          if (newMembers.length) {
+            const channelMembers = newMembers.map((member) => {
+              return { user: { connect: { id: member } } };
+            });
+            await this.prisma.channel.update({
+              where: {
+                id: channelData.id,
               },
-            },
-          });
+              data: {
+                channelMembers: {
+                  create: channelMembers,
+                },
+              },
+            });
+          }
         }
         return channel;
       }
+
       if (channelData.type === 'access_pass') {
         hashPassword = await this.hashPassword(channelData.access_pass);
         const channel = await this.prisma.channel.update({
@@ -675,8 +692,12 @@ export class ChannelService {
     let isCorrect = false;
     const channel = await this.getChannelByIdWithPass(channelId);
     if (!channel) throw new Error('Channel does not exist');
-    if (password)
+    if (password) {
+      console.log(
+        `${userId}---------${channelId}----------${password}---------${channel.password}`,
+      );
       isCorrect = await this.verifyPassword(password, channel.password);
+    }
     if (channel.visiblity === Visiblity.PROTECTED && !isCorrect) {
       throw new Error('Incorrect Channel password');
     }
@@ -724,10 +745,7 @@ export class ChannelService {
   async checkAccessPass(channelId: number, password: string): Promise<boolean> {
     try {
       const channel = await this.getChannelByIdWithPass(channelId);
-      const pa = await bcrypt.hash(password.trim(), 5);
-      const p = await this.hashPassword(password.trim());
-      console.log(channel.accessPassword);
-      console.log(pa);
+
       if (!channel) throw new Error('Channel does not exist');
       const isCorrect = await this.verifyPassword(
         password,
@@ -1291,6 +1309,11 @@ export class ChannelService {
       data: {
         bannedUsers: {
           disconnect: {
+            id: userId,
+          },
+        },
+        kickedUsers: {
+          connect: {
             id: userId,
           },
         },
