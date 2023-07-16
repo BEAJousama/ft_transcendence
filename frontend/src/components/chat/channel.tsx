@@ -162,7 +162,9 @@ const Channel = ({
         </div>
       </div>
       {showMenu && (
-        <RightClickMenu>
+        <RightClickMenu
+          className="right-20 top-10"
+        >
           <RightClickMenuItem
           onClick={
             () => {

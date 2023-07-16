@@ -18,31 +18,33 @@ export default function Chat() {
 
 
 
-
   useEffect(() => {
     socket?.emit('channel_member', {userId : user?.id, channelId : currentChannel?.id });
     socket?.on('channel_member', (data: any) => {
+      console.log(data);
       setChannelMember(data);
       setIsMuted(data?.status === "MUTED");
-    }
-    );
+    });
+  
     socket?.on('current_ch_update', (data: any) => {
-      setCurrentChannel(data);
-    }
-    );
-    if (isMuted) {
-      socket?.emit("check_mute", {userId : user?.id, channelId : currentChannel?.id});
-      socket?.on("check_mute", (data: any) => {
-        if (data === false) {
-          setIsMuted(!isMuted);
-          socket?.off("check_mute");
-          socket?.emit("unmute_user", {userId : user?.id, channelId : currentChannel?.id});
-        }
-      });
-    }
-    
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [channelMember, socket, currentChannel]);
+      if (data?.id === currentChannel?.id)
+        setCurrentChannel(data);
+    });
+    socket?.emit('check_mute', {userId : user?.id, channelId : currentChannel?.id});
+    socket?.on('check_mute', (data: any) => {
+      if (data === false) {
+        setIsMuted(!isMuted);
+        socket?.off('check_mute');
+        // socket?.off('channel_member');
+      }
+    });
+  
+    return () => {
+      // Clean up any other event listeners here if necessary
+    };
+
+    // eslint-disable-next-line
+  }, [socket]);
 
   return (
     <Layout className="!py-0 !overflow-y-hidden">

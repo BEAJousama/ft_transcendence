@@ -11,7 +11,6 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { ChannelDto } from 'src/chat/dto';
 import { ChatService } from '../chat/chat.service';
-import { ChannelController } from 'src/chat/controllers/channel/channel.controller';
 
 @Injectable()
 export class ChannelService {
@@ -357,8 +356,6 @@ export class ChannelService {
     channelData: ChannelDto,
   ): Promise<Channel> {
     let hashPassword;
-    let channelMembers;
-
     try {
       console.log(channelData);
       const channelMember = await this.getChannelMemberByUserIdAndChannelId(
@@ -610,7 +607,7 @@ export class ChannelService {
         });
       }
       // add userId to bannedFor
-      const channel = await this.prisma.channel.update({
+      await this.prisma.channel.update({
         where: {
           id: channelId,
         },
@@ -787,24 +784,6 @@ export class ChannelService {
     }
   }
 
-  async muteUserFromChannel(
-    userId: number,
-    channelId: number,
-    muteDuration: number,
-  ): Promise<void> {
-    await this.prisma.channelMember.update({
-      where: {
-        userId_channelId: {
-          userId,
-          channelId,
-        },
-      },
-      data: {
-        status: MemberStatus.MUTED,
-      },
-    });
-  }
-
   async checkMute(userId: number, channelId: number): Promise<boolean> {
     const chMem = await this.prisma.channelMember.findUnique({
       where: {
@@ -863,7 +842,7 @@ export class ChannelService {
         'Cannot set user as admin : You are not Owner of the channel',
       );
     }
-    const update = await this.prisma.channelMember.update({
+    await this.prisma.channelMember.update({
       where: {
         userId_channelId: {
           userId,
@@ -916,7 +895,7 @@ export class ChannelService {
   }
 
   async pinChannel(userId: number, channelId: number): Promise<ChannelMember> {
-    const channel = await this.prisma.channel.update({
+    await this.prisma.channel.update({
       where: {
         id: channelId,
       },
@@ -948,7 +927,7 @@ export class ChannelService {
     userId: number,
     channelId: number,
   ): Promise<ChannelMember> {
-    const channel = await this.prisma.channel.update({
+    await this.prisma.channel.update({
       where: {
         id: channelId,
       },
@@ -981,7 +960,7 @@ export class ChannelService {
     userId: number,
     channelId: number,
   ): Promise<ChannelMember> {
-    const channel = await this.prisma.channel.update({
+    await this.prisma.channel.update({
       where: {
         id: channelId,
       },
@@ -1014,7 +993,7 @@ export class ChannelService {
     channelId: number,
   ): Promise<ChannelMember> {
     try {
-      const channel = await this.prisma.channel.update({
+      await this.prisma.channel.update({
         where: {
           id: channelId,
         },
@@ -1042,7 +1021,7 @@ export class ChannelService {
 
   async markUnread(userId: number, channelId: number): Promise<ChannelMember> {
     try {
-      const channel = await this.prisma.channel.update({
+      await this.prisma.channel.update({
         where: {
           id: channelId,
         },
@@ -1070,7 +1049,7 @@ export class ChannelService {
 
   async markRead(userId: number, channelId: number): Promise<ChannelMember> {
     try {
-      const channel = await this.prisma.channel.update({
+      await this.prisma.channel.update({
         where: {
           id: channelId,
         },
@@ -1098,7 +1077,7 @@ export class ChannelService {
 
   async muteChannel(userId: number, channelId: number): Promise<ChannelMember> {
     try {
-      const channel = await this.prisma.channel.update({
+      await this.prisma.channel.update({
         where: {
           id: channelId,
         },
@@ -1128,7 +1107,7 @@ export class ChannelService {
     userId: number,
     channelId: number,
   ): Promise<ChannelMember> {
-    const channel = await this.prisma.channel.update({
+    await this.prisma.channel.update({
       where: {
         id: channelId,
       },
@@ -1218,6 +1197,8 @@ export class ChannelService {
         },
         data: {
           status: MemberStatus.ACTIVE,
+          banDuration: 0,
+          banStartTime: null,
         },
       });
     }
@@ -1255,7 +1236,7 @@ export class ChannelService {
         });
       }
       // add userId to bannedFor
-      const channel = await this.prisma.channel.update({
+      await this.prisma.channel.update({
         where: {
           id: channelId,
         },
@@ -1302,7 +1283,7 @@ export class ChannelService {
         },
       });
     }
-    const channel = await this.prisma.channel.update({
+    await this.prisma.channel.update({
       where: {
         id: channelId,
       },

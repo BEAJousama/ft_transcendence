@@ -7,7 +7,6 @@ import Button from "../button";
 import { BsKeyFill, BsFillPeopleFill } from "react-icons/bs";
 import Input from "../input";
 import { useNavigate } from 'react-router-dom';
-import Modal from "../modal";
 import Card from "../card";
 
 const ChatBanner = ({

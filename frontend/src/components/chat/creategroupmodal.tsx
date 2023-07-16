@@ -1,4 +1,4 @@
-import React, {Fragment, useContext, useEffect, useState } from "react";
+import React, {useContext, useState } from "react";
 import {  Button, Card, Divider, UpdateAvatar } from "../../components";
 import { MdGroupAdd } from "react-icons/md";
 import { BiArrowBack, BiRightArrowAlt } from "react-icons/bi";
@@ -9,6 +9,7 @@ import ProfileBanner from "../../components/profilebanner";
 import Select from "../select";
 import { AppContext } from "../../context/app.context";
 import { ChatContext } from "../../context/chat.context";
+import Modal from "../modal";
 // import addUsers from "./selectusers";
 
 const CreateGroupModal = ({
@@ -48,13 +49,14 @@ const CreateGroupModal = ({
 
   return (
     <div className="animation-fade animate-duration-500 absolute top-0 left-0 w-screen h-screen flex items-center justify-center">
-      <div className="fixed inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm"></div>
-      <Card
+      <div className="fixed inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm">
+      </div>
+      <Modal
         className="z-10 bg-secondary-800 
-      border-none flex flex-col items-center justify-start shadow-lg shadow-secondary-500 gap-4 text-white min-w-[90%]
-       lg:min-w-[40%] xl:min-w-[800px] animate-jump-in animate-ease-out animate-duration-400"
+        border-none flex flex-col items-center justify-start shadow-lg shadow-secondary-500 gap-4 text-white min-w-[90%]
+        lg:min-w-[40%] xl:min-w-[800px] animate-jump-in animate-ease-out animate-duration-400"
         setShowModal={setShowModal!}
-      >
+        >
         <div className="flex items-center justify-between w-full">
           { !show && !showDm && <span className="text-lg">New Chat</span>}
           {show && (
@@ -91,7 +93,7 @@ const CreateGroupModal = ({
             onClick={() => {
               setShowModal(false);
             }}
-          >
+            >
             <RiCloseFill />
           </Button>
         </div>
@@ -109,7 +111,7 @@ const CreateGroupModal = ({
               setGroupName(value);
               if (value !== "") setShowSubmit(true);
             }}
-          />
+            />
           <Select label= "Visibility" setX={setVisibility} options={["PUBLIC", "PRIVATE", "PROTECTED"]} />
           {
             (visibility === "PROTECTED") && (
@@ -123,7 +125,7 @@ const CreateGroupModal = ({
                   const { value } = e.target;
                   setPassword(value);
                 }}
-              />
+                />
               </>
             )
           }
@@ -143,14 +145,14 @@ const CreateGroupModal = ({
           </>
         ) : (
           !showDm && (
-          <>
+            <>
           <Button
             variant="text"
             className="w-full justify-around"
             onClick={() => {
               setShow(true);
             }}
-          >
+            >
             <MdGroupAdd />
             New Group Chat
             <BiRightArrowAlt />
@@ -168,10 +170,10 @@ const CreateGroupModal = ({
           </Button>
             </>
           )
-        )}
+          )}
         {
           show && (
-          <div className="w-full h[100px] flex items-center justify-center flex-col align-middle gap-2 pt-2 overflow-y-scroll scrollbar-hide">
+            <div className="w-full h[100px] flex items-center justify-center flex-col align-middle gap-2 pt-2 overflow-y-scroll scrollbar-hide">
             <span className="w-full mb-2 text-sm font-medium text-gray-900 dark:text-white">Select users: </span>
             {users?.filter((u : any) => {
               return u.id !== user?.id && !checkBlock(u.id);
@@ -183,7 +185,7 @@ const CreateGroupModal = ({
                       avatar={u.avatar}
                       name={u.username}
                       description={u.status}
-                    />
+                      />
                     <div className="w-8">
                       <input
                         type="checkbox"
@@ -192,10 +194,10 @@ const CreateGroupModal = ({
                         }}
                         onChange={() => {
                           !selectedUsers.includes(u.id) ?
-                            setSelectedUsers([...selectedUsers, u.id]) :
-                            setSelectedUsers(selectedUsers?.filter((id) => id !== u.id));
-                          }}
-                      />
+                          setSelectedUsers([...selectedUsers, u.id]) :
+                          setSelectedUsers(selectedUsers?.filter((id) => id !== u.id));
+                        }}
+                        />
                     </div>
                   </div>
               );
@@ -206,7 +208,7 @@ const CreateGroupModal = ({
         {
           showDm && (
             
-          <div className="w-full h[100px] flex items-center justify-center flex-col align-middle gap-2 pt-2 overflow-y-scroll scrollbar-hide">
+            <div className="w-full h[100px] flex items-center justify-center flex-col align-middle gap-2 pt-2 overflow-y-scroll scrollbar-hide">
             {users?.filter((u : any) => {
               return u.id !== user?.id  && !checkBlock(u.id);
             }).map((u : any) => {
@@ -217,13 +219,13 @@ const CreateGroupModal = ({
                       avatar={u.avatar}
                       name={u.username}
                       description={u.status}
-                    />
+                      />
                     <div className="w-8">
                     <Button
                     variant="text"
                     className=" !bg-inherit hover:bg-inherit !text-white p-2 text-xl"
                     onClick={() => {
-                     handleCreateDm(u.id);
+                      handleCreateDm(u.id);
                     }}
                     >
                       <FiSend/>
@@ -249,13 +251,13 @@ const CreateGroupModal = ({
                     handleCreateGroup();
                   }
                 }
-              >
+                >
                 Create Group Chat
               </Button>
             </div>
           </>
         )}
-      </Card>
+      </Modal>
     </div>
   );
 };

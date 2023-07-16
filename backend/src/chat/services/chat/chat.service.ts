@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UsersService } from 'src/users/users.service';
-import { PipelinePromise } from 'stream';
 
 @Injectable()
 export class ChatService {

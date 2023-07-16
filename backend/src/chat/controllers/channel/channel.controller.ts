@@ -6,7 +6,6 @@ import {
   Param,
   Post,
   Req,
-  UseGuards,
 } from '@nestjs/common';
 import { Channel } from '@prisma/client';
 import { Request } from 'express';
@@ -35,12 +34,26 @@ export class ChannelController {
   }
 
   @Get(':userId')
-  async getChatnnels(
+  async getChannels(
     @Req() req: Request,
     @Param('userId') userId: string,
   ): Promise<Channel[]> {
     try {
-      return await this.channelService.getAllChannels((req.user as any).sub);
+      return await this.channelService.getChannelsByUserId(parseInt(userId));
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+    }
+  }
+
+  @Get('archived/:userId')
+  async getArchivedChannels(
+    @Req() req: Request,
+    @Param('userId') userId: string,
+  ): Promise<Channel[]> {
+    try {
+      return await this.channelService.getArchivedChannelsByUserId(
+        parseInt(userId),
+      );
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.NOT_FOUND);
     }
@@ -65,6 +78,23 @@ export class ChannelController {
         parseInt(userId),
       );
       return channels;
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+    }
+  }
+
+  @Get('member/:userId/:channelId')
+  async getchannelMember(
+    @Param('userId') userId: string,
+    @Param('channelId') channelId: string,
+  ): Promise<any> {
+    try {
+      const member =
+        await this.channelService.getChannelMemberByUserIdAndChannelId(
+          parseInt(userId),
+          parseInt(channelId),
+        );
+      return member;
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.NOT_FOUND);
     }

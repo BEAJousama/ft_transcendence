@@ -226,6 +226,22 @@ export class UsersController {
     }
   }
 
+  @Get(':id/blocking-users')
+  @GetBlockedUsersDoc()
+  async findBlockingUsers(@Param('id') id: string) {
+    try {
+      const blockingUsers = await this.usersService.getBlockingUsers(
+        parseInt(id),
+      );
+      if (!blockingUsers) throw 'No Matches Found !!!!!';
+      return blockingUsers;
+    } catch {
+      return {
+        message: 'No Matches Found !!!!!',
+      };
+    }
+  }
+
   @Post(':id')
   @UpdateDoc()
   async updateOne(@Body() body: UpdateUserDto, @Param('id') id: string) {

@@ -7,6 +7,7 @@ import { fetcher } from "../../context/app.context";
 import { AppContext } from "../../context/app.context";
 import { ChatContext } from "../../context/chat.context";
 import Spinner from "../spinner";
+import { ClassificationType } from "typescript";
 
 const MessageBox = ({ message, right, autoScroll }: { message?: any; right?: boolean, autoScroll : any}) => {
   const [showMenu, setShowMenu] = useState(false);
@@ -99,7 +100,7 @@ const MessageBox = ({ message, right, autoScroll }: { message?: any; right?: boo
       </div>
 
         {showMenu && (
-          <RightClickMenu className={clsx("z-30",right ? "right-[20px]" : "left-[20px] !rounded-r-xl !rounded-bl-xl")}>
+          <RightClickMenu className={clsx("z-30 w-[150px]",right ? "right-0" : "left-[20px] !rounded-r-xl !rounded-bl-xl")}>
             {user?.id === message.senderId && (
               <RightClickMenuItem
                 onClick={() => {

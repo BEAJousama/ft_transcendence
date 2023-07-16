@@ -17,10 +17,10 @@ export class MessageService {
       where: {
         userId: data.senderId,
         channelId: data.receiverId,
-        status: MemberStatus.BANNED || MemberStatus.LEFT,
       },
     });
-    if (channelMember) throw new Error('Cannot send message to this channel !');
+    if (channelMember && channelMember.status !== MemberStatus.ACTIVE)
+      throw new Error('Cannot send message to this channel !');
     const ch = await this.prisma.channel.findUnique({
       where: {
         id: data.receiverId,

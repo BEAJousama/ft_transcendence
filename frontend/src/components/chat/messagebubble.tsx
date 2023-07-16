@@ -19,7 +19,7 @@ import data from "@emoji-mart/data";
 import Picker from "@emoji-mart/react";
 import Divider from "../divider";
 import ProfileBanner from "../profilebanner";
-import { AppContext } from "../../context/app.context";
+import { AppContext, fetcher } from "../../context/app.context";
 import Select from "../select";
 import UpdateAvatar from "../update-avatar";
 import { ChatContext } from "../../context/chat.context";
@@ -29,6 +29,7 @@ import { useNavigate } from "react-router-dom";
 import UpdateChannel from "./updateChannel";
 import RightClickMenu, { RightClickMenuItem } from "../rightclickmenu";
 import axios from "axios";
+import { get } from "http";
 
 const MessageBubble = ({ className, setOpen, setCurrentChannel, currentChannel, channelMember }: {className?: string, setOpen: any, setCurrentChannel: any, currentChannel?: any, channelMember?: any}) => {
   const [value, setValue] = useState("");
@@ -55,30 +56,54 @@ const MessageBubble = ({ className, setOpen, setCurrentChannel, currentChannel, 
   const [DmMemu, setDmMenu] = useState(false);
   
   const navigate = useNavigate();
-  // const []
-  // const [state, setState] = useState({
-  //   value: "",
-  //   showPicker: false,
-  //   showModal: false,
-  //   showEdit: false,
-  //   messages: [],
-  //   visibility: currentChannel?.visiblity,
-  //   selectedUsers: [],
-  //   pinnedMessages: [],
-  //   previewImage: currentChannel?.avatar || "",
-  // });
   const {socket, users} = useContext(ChatContext);
   const {user} = useContext(AppContext);
   const refMessage = useRef(null);
-
-  const isBlocker = (currentChannel?.type === "CONVERSATION" && user?.blockers[0]?.blockingId === currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.id);
-  const isBlocked = (currentChannel?.type === "CONVERSATION" && user?.blocking[0]?.blockerId === currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.id);
+  const [blocking, setBlocking] = useState<any[]>(user?.blocking?.map((blocking)=> {return blocking.blockerId}) as any[]);
+  const [blocked, setBlocked] = useState<any[]>(user?.blockers?.map((blocker)=> {return blocker.blockingId}) as any[]);
   
+  // const inputRef = useRef<HTMLInputElement>(null);
+  const isBlocked = (currentChannel?.type === "CONVERSATION" && blocked.includes(currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.id));
+  const isBlocking = (currentChannel?.type === "CONVERSATION" && blocking.includes(currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.id));
+  
+//   useEffect(() => {
+//   if (inputRef.current)
+//   {
+//     inputRef.current?.focus();
+//     setValue("");
+//     // inputRef.current?.setSelectionRange(0,0);
+//   }
+// }, [currentChannel]);
+
+const getBlocking = async () => {
+  const res = await fetcher(`api/users/${user?.id}/blocking-users`);
+  //map with blockerId
+  if (res === undefined)
+    return;
+  setBlocking(res.map((blocking : any)=> {return blocking.blockerId}));
+  console.log(blocking);
+}
+const getBlocked = async () => {
+  const res = await fetcher(`api/users/${user?.id}/blocked-users`);
+  if (res === undefined)
+    return;
+
+  //map with blockingId
+  setBlocked(res.map((blocker : any)=> {return blocker.blockingId}));
+  console.log(blocked);
+}
+
+useEffect(() => {
+  getBlocking();
+  getBlocked();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+},[]);
 
   const checkBlock = (userId : number) =>
   {
-    return (user?.blockers[0]?.blockingId === userId || user?.blocking[0]?.blockerId === userId)
+    return (blocking.includes(userId) || blocked.includes(userId));
   }
+
   const autoScroll = () => {
     const scroll = refMessage.current;
     if (scroll) {
@@ -106,7 +131,7 @@ const MessageBubble = ({ className, setOpen, setCurrentChannel, currentChannel, 
       autoScroll();
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [socket, messages, currentChannel]);
+  }, [socket, currentChannel]);
 
   const ref = useRef(null);
   const ref1 = useRef(null);
@@ -176,8 +201,11 @@ const MessageBubble = ({ className, setOpen, setCurrentChannel, currentChannel, 
     })
     if (response)
     {
-      socket?.emit("refresh_channel", {channelId: currentChannel?.id})
+      getBlocking();
+      getBlocked();
       setDmMenu(false);
+      socket?.emit("refresh_channel", {channelId: currentChannel?.id})
+      socket?.emit("getChannelMessages", {channelId : currentChannel?.id, user: {id: user?.id}});
     }
   }
   
@@ -193,8 +221,11 @@ const MessageBubble = ({ className, setOpen, setCurrentChannel, currentChannel, 
       })
       if (response)
       {
-        socket?.emit("refresh_channel", {channelId: currentChannel?.id})
+        getBlocking();
+        getBlocked();
         setDmMenu(false);
+        socket?.emit("refresh_channel", {channelId: currentChannel?.id})
+        socket?.emit("getChannelMessages", {channelId : currentChannel?.id, user: {id: user?.id}});
     }
   }
   
@@ -209,94 +240,96 @@ const MessageBubble = ({ className, setOpen, setCurrentChannel, currentChannel, 
   };
   return (
     <div className={clsx("col-span-10 flex h-screen w-full flex-col justify-start rounded-t-3xl bg-secondary-600 lg:col-span-7", className && className)} ref={refMessage}>
-      <div className="grid grid-cols-10 lg:grid-cols-12 bg-secondary-400 rounded-t-3xl align-middle items-center top-0 sticky absolute top-0 z-20">
-      <Button
-          type="simple"
-          className="!items-end bg-secondary-400 !text-white col-span-1 lg:hidden self-center !w-fit m-auto\"
-          onClick={() => {
-            setOpen(false);
-            setCurrentChannel("");
-            setDmMenu(false)
-          }}
-          >
-          <BiLeftArrow />
-        </Button>
-        <div
-          className="flex items-center gap-2 col-span-8 lg:col-span-11 text-white lg:order-first px-2 py-3 font-semi-bold self-center"
-          >
-          <Avatar src={currentChannel?.type !== "CONVERSATION" ? currentChannel?.avatar : 
-                      currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.avatar } alt="" 
-                      status={currentChannel?.type !== "CONVERSATION" ? false : 
-                      currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.status === "ONLINE" && 
-                      !checkBlock(currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.id)}
-                      />
-          <div>{currentChannel?.type !== "CONVERSATION" ? currentChannel?.name : currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.username}</div>
-        </div>
-        <Button className="col-span-1 flex items-center justify-content bg-secondary-400 !p-1 !text-white font-semi-bold self-center !w-fit !m-auto"
-          type="simple"
-          onClick={() => {
-            if (currentChannel?.type !== "CONVERSATION" && channelMember?.status === "ACTIVE")
-            {
-              setShowModal(true);
-              setShowEdit(true);
-            } 
-            else if (currentChannel?.type === "CONVERSATION")
-            {
-              setDmMenu(!DmMemu);
-            }
-          }}
-        >
-          <FcMenu/>
-        </Button>
-        { DmMemu && (
-          <div ref={ref1}>
-            <RightClickMenu className="!right-[10%] lg:!right-[5%]">
-            <RightClickMenuItem
-            onClick={() => {
-              navigate(`/profile/${currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.id}`);
-            }}
-            >
-              Go to profile
-
-            </RightClickMenuItem>
-            <RightClickMenuItem
-                onClick={() => {
-                  !isBlocker ? handleBlockUser(currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.id) :
-                  handleUnblockUser(currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.id)
-                }
-              }
+      <div className=" bg-secondary-400 rounded-t-3xl align-middle items-center  sticky top-0 z-20">
+        <div className="relative grid grid-cols-10 lg:grid-cols-12">
+          <Button
+              type="simple"
+              className="!items-end bg-secondary-400 !text-white col-span-1 lg:hidden self-center !w-fit m-auto\"
+              onClick={() => {
+                setOpen(false);
+                setCurrentChannel("");
+                setDmMenu(false)
+              }}
               >
-              {!isBlocker ? 'Block user' : 'Unblock user'}
-              </RightClickMenuItem>
-            </RightClickMenu>
-          </div>
-        )
-        }
+              <BiLeftArrow />
+            </Button>
+            <div
+              className="flex items-center gap-2 col-span-8 lg:col-span-11 text-white lg:order-first px-2 py-3 font-semi-bold self-center"
+              >
+              <Avatar src={currentChannel?.type !== "CONVERSATION" ? currentChannel?.avatar : 
+                          currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.avatar } alt="" 
+                          status={currentChannel?.type !== "CONVERSATION" ? false : 
+                          currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.status === "ONLINE" && 
+                          !checkBlock(currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.id)}
+                          />
+              <div>{currentChannel?.type !== "CONVERSATION" ? currentChannel?.name : currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.username}</div>
+            </div>
+            <Button className="col-span-1 flex items-center justify-content bg-secondary-400 !p-1 !text-white font-semi-bold self-center !w-fit !m-auto"
+              type="simple"
+              onClick={() => {
+                if (currentChannel?.type !== "CONVERSATION" && channelMember?.status === "ACTIVE")
+                {
+                  setShowModal(true);
+                  setShowEdit(true);
+                } 
+                else if (currentChannel?.type === "CONVERSATION")
+                {
+                  setDmMenu(!DmMemu);
+                }
+              }}
+            >
+              <FcMenu/>
+            </Button>
+            { DmMemu && (
+              <div ref={ref1} className="absolute right-4 top-10 md:right-8 lg:right:4 xl:right-10 2xl:right-17  w-[150px]">
+                <RightClickMenu >
+                <RightClickMenuItem
+                onClick={() => {
+                  navigate(`/profile/${currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.id}`);
+                }}
+                >
+                  Go to profile
+
+                </RightClickMenuItem>
+                <RightClickMenuItem
+                    onClick={() => {
+                      !isBlocked ? handleBlockUser(currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.id) :
+                      handleUnblockUser(currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.id)
+                    }
+                  }
+                  >
+                  {!isBlocked ? 'Block user' : 'Unblock user'}
+                  </RightClickMenuItem>
+                </RightClickMenu>
+              </div>
+            )
+          }
+        </div>
       </div>
       
       {
-      !spinner ?
-      <div className="mb-2 flex overflow-y-scroll h-[calc(100%-128px)] flex-col justify-end gap-2 z-[0] px-[10px] ">
+        !spinner ?
+      <div className="mb-2 flex flex-col overflow-y-scroll scrollbar-hide h-[calc(100%-128px)] space-y-4 gap-2 z-[0] px-[10px] ">
         {
           messages?.map((message, index) => {
             return (
-              <div key={message.id} className={`transition-all duration-500 transform ${index > 0 ? 'translate-y-2' : ''}`}>
-            {new Date(message.date).getDay() !== new Date(messages[messages.indexOf(message) - 1]?.date).getDay() && (
-              <Divider center title={ 
-                //check if date is less than 10, if so add a 0 in front of it
-                `${  new Date(message.date).getDate() < 10 ? '0' + new Date(message.date).getDate() : 
-                  new Date(message.date).getDate()}-${ new Date(message.date).getMonth() < 12 ? '0' + (new Date(message.date).getMonth() + 1) : 
-                  new Date(message.date).getMonth() + 1}-${new Date(message.date).getFullYear()}`}
-              />)}
-              <MessageBox
-              autoScroll={autoScroll}
-              key={message.id}
-              message={message}
-              right={(message.senderId === user?.id)} 
-              />          
+              <div key={message.id} className={`transition-all duration-500 transform  ${index > 0 ? 'translate-y-2' : ''}`}>
+                {new Date(message.date).getDay() !== new Date(messages[messages.indexOf(message) - 1]?.date).getDay() && (
+                <Divider center title={ 
+                  //check if date is less than 10, if so add a 0 in front of it
+                  `${  new Date(message.date).getDate() < 10 ? '0' + new Date(message.date).getDate() : 
+                    new Date(message.date).getDate()}-${ new Date(message.date).getMonth() < 12 ? '0' + (new Date(message.date).getMonth() + 1) : 
+                    new Date(message.date).getMonth() + 1}-${new Date(message.date).getFullYear()}`}
+                />)}
+                <MessageBox
+                autoScroll={autoScroll}
+                key={message.id}
+                message={message}
+                right={(message.senderId === user?.id)} 
+                />          
             </div>
-          )
-        })}
+            ) 
+      })}
       </div>
       : 
       <div className="mb-2 flex h-full flex-col  justify-end gap-2 z-[0] px-[10px] ">
@@ -312,15 +345,16 @@ const MessageBubble = ({ className, setOpen, setCurrentChannel, currentChannel, 
           onClick={() => {
             setShowPicker(true);
           }}
-          disabled={channelMember?.status !== "ACTIVE" || isBlocker || isBlocked }
+          disabled={channelMember?.status !== "ACTIVE" || isBlocked || isBlocking }
         >
           <BsEmojiSmileFill />
         </Button>
         <Input
-          disabled={channelMember?.status !== "ACTIVE" || isBlocker || isBlocked }
+          disabled={channelMember?.status !== "ACTIVE" || isBlocked || isBlocking }
           placeholder={(channelMember?.status === "MUTED" ? "You are muted, you can't send messages!" : channelMember?.status === "BANNED" ? "You are banned, you can't send messages!" : channelMember?.status === "LEFT" ? "You have left this channel or have been kicked !"
-          : isBlocker ? "You blocked this user!" : isBlocked ? "You are blocked by this user!": "type something")}
+          : isBlocked ? "You blocked this user!" : isBlocking ? "You are blocked by this user!": "type something")}
           value={value}
+          // inputRef={inputRef}
           onKeyDown={(event) => {
             if (event.key === "Enter")
               handleSendMessage(value);
@@ -334,7 +368,7 @@ const MessageBubble = ({ className, setOpen, setCurrentChannel, currentChannel, 
         <Button
           variant="text"
           className="!hover:bg-inherit !bg-inherit text-primary-500"
-          disabled={channelMember?.status !== "ACTIVE" || isBlocker || isBlocked }        
+          disabled={channelMember?.status !== "ACTIVE" || isBlocked || isBlocking }        
           onClick={() => {
             handleSendMessage(value);
           }}

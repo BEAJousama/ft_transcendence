@@ -66,7 +66,7 @@ const ProfileBanner = ({
   const navigate = useNavigate();
   const [muteModal, setmuteModal] = useState(false);
   const [duration, setDuration] = useState<number>(0);
-  const [unit, setUnit] = useState("");
+  const [unit, setUnit] = useState("s");
 
 /* TODO: I wanna see immediate changes in the UI when I click on the button to setAsAdmin
      its not working, I have to refresh the page to see the changes
@@ -105,7 +105,6 @@ const ProfileBanner = ({
 
   const muteUser = () => {
     const banDuration = unit === 's' ? duration : (unit === 'm') ? (duration * 60) : (duration * 3600);
-
     socket?.emit("mute_user", {userId, channelId, banDuration});
   };
 
@@ -183,12 +182,12 @@ const ProfileBanner = ({
       {showMenu && (
         <div
           ref={ref}
-          className="absolute -bottom-14 right-14 w-56 bg-yellow-500"
+          className="absolute top-10 right-10 w-56"
         >
           {
             status !== "BANNED" ?
             (
-              <RightClickMenu className="w-full !bg-secondary-400 max-h-50 absolute right-1/2 left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2">
+              <RightClickMenu className="w-full !bg-secondary-400 max-h-50">
                 <RightClickMenuItem
                   onClick={() => {
                   }}
@@ -253,7 +252,7 @@ const ProfileBanner = ({
               </RightClickMenu>
             ) :
             (
-              <RightClickMenu className="w-full !bg-[#7C7CA6] max-h-50 absolute  left-[35px] -top-[50px] z-10">
+              <RightClickMenu className="w-full !bg-[#7C7CA6] max-h-50 z-10">
                     <RightClickMenuItem
                       onClick={
                         () => {
@@ -276,21 +275,28 @@ const ProfileBanner = ({
       {
         muteModal &&
         (
-          <Modal className="flex">
-            <Input
-              type="text"
-              placeholder="mute duration"
-              value={duration.toString()}
-              onChange={(e) => {
-                setDuration(Number(e.target.value));
-              }}
-            />
-          <Select
-            options={["s", "m", "h"]}
-            setX={setUnit}
-          />
+          <Modal>
+            <div className="grid grid-rows w-full">
+              <div className="grid grid-cols-10 justify-center items-center m-5">
+                <div className="col-span-8 gap-4 mr-3">
+                  <Input
+                    type="text"
+                    placeholder="mute duration"
+                    value={duration.toString()}
+                    onChange={(e) => {
+                      setDuration(Number(e.target.value));
+                    }}
+                  />
+                </div>
+                <Select
+                  className="col-span-2 "
+                  options={["s", "m", "h"]}
+                  setX={setUnit}
+                />
+              </div>
+              <div className="flex justify-around flex-auto">
                 <Button
-                className="bg-primary-500  justify-between w-full !font-medium mr-1"
+                className="bg-primary !font-medium mr-1 basis-4/12 "
                 onClick={() => {
                   muteUser();
                   setmuteModal(false);
@@ -299,13 +305,15 @@ const ProfileBanner = ({
                 Mute
                 </Button>
                 <Button
-                className="!bg-inherit !text-white hover:bg-inherit justify-between w-full !font-medium ml-1"
+                className="!bg-inherit !text-white hover:bg-inheri !font-medium ml-1 basis-4/12"
                 onClick={() => {
                   setmuteModal(false);
                 }}
                 >
                 Cancel
                 </Button>
+              </div>
+            </div>
           </Modal>
         )
       }

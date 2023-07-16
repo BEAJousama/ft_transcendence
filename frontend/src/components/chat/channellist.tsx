@@ -1,5 +1,6 @@
 import {memo, useCallback, useContext, useEffect, useState } from "react";
 import Channel from "./channel";
+import {fetcher} from "../../context/app.context"
 import { AppContext } from "../../context/app.context";
 import {BsFillChatLeftTextFill} from "react-icons/bs";
 import {BiFilter} from "react-icons/bi";
@@ -57,7 +58,9 @@ const ChannelList = ({className, setShowModal, setCurrentChannel, setChannelMemb
 
   const accessChannel = async () => {
     const accesstoken = window.localStorage.getItem("access_token");
-    const res = await axios.post(`${process.env.REACT_APP_BACK_END_URL}api/channels/checkpass`, {password, channelId: tempChannel.id}, {headers: {Authorization: `Bearer ${accesstoken}`}});
+    const res = await axios.post(`${process.env.REACT_APP_BACK_END_URL}api/channels/checkpass`,
+                                  {password, channelId: tempChannel.id},
+                                  {headers: {Authorization: `Bearer ${accesstoken}`}});
     if(res.data === true)
     {
       setOpen(true);
@@ -72,71 +75,107 @@ const ChannelList = ({className, setShowModal, setCurrentChannel, setChannelMemb
   }
 
   useEffect(() => {
-    if (search === "") {
-      getuserChannels(user?.id);
-      getNewChannel();
-      getArchiveChannels(user?.id);
-    }
-    socket?.on('channel_leave', (channels: any) => {
-      setCurrentChannel();
-      setOpen(false);
-    });
-  
-    socket?.on('channel_delete', (channels: any) => {
-      setCurrentChannel();
-      setOpen(false);
-    });
-
-    socket?.on('channel_remove', (channels: any) => {
-      setCurrentChannel();
-      setOpen(false);
+    fetcher(`api/channels/${user?.id}`)
+    .then((channels) => {
+      channels.forEach((channel: any) => {
+        if (channel.type === "CONVERSATION") {
+            channel.name = channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.username;
+            channel.avatar = channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.avatar;
+        }
+      });
+      channels.sort((a: any, b: any) => {
+        if (a.updatedAt < b.updatedAt) return 1;
+        else return -1;
+      });
+      setChannels(channels);
     });
 
-    //eslint-disable-next-line
-  }, [channels, socket]);
-
-  
-  const getuserChannels = async (id: any) => {
-      try {
-        socket?.emit('getChannels', {user: {id}});
-        socket?.on('getChannels', (channels: any) => {   
-        channels.forEach((channel: any) => {
-          if (channel.type === "CONVERSATION") {
-              channel.name = channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.username;
-              channel.avatar = channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.avatar;
-          }
-        });
-        channels.sort((a: any, b: any) => {
-          if (a.updatedAt < b.updatedAt) return 1;
-          else return -1;
-        });
-        setChannels(channels);
-      }
-      );
-    } catch (error) { 
-      console.log(error);
-    }
-  }
-  
-const getArchiveChannels = async (id: any) => {
-  try {
-    socket?.emit('getArchiveChannels', {user: {id}});
-    socket?.on('getArchiveChannels', (channels: any) => {
+    fetcher(`api/channels/archived/${user?.id}`)
+    .then((channels) => {
       channels.sort((a: any, b: any) => {
         if (a.updatedAt < b.updatedAt) return 1;
         else return -1;
       });
       setArchiveChannels(channels); 
+    });
+  }, [socket, user?.id]);
+
+  useEffect(() => {
+    if (selectedChannel) {
+      fetcher(`api/channels/member/${user?.id}/${selectedChannel?.id}`).then
+      ((member) => {
+        setChannelMember(member);
+      }
+      );
     }
-    );
-  } catch (error) {
-    console.log(error);
-  }
+  }, [selectedChannel, setChannelMember, user?.id]);
+
+  useEffect(() => {
+    if (search === "") {
+      getuserChannels(user?.id);
+      getNewChannel();
+      getArchiveChannels(user?.id);
+    }
+    socket?.on('channel_leave', () => {
+      setCurrentChannel();
+      setOpen(false);
+    });
+  
+    socket?.on('channel_delete', () => {
+      setCurrentChannel();
+      setOpen(false);
+    });
+
+    socket?.on('channel_remove', () => {
+      setCurrentChannel();
+      setOpen(false);
+    });
+    return () => {
+      socket?.off('channel_leave');
+      socket?.off('channel_delete');
+      socket?.off('channel_remove');
+      socket?.off('getChannels');
+      socket?.off('getArchiveChannels');
+      socket?.off('channel_create');
+      socket?.off('dm_create');
+      socket?.off('channel_member');
+    }
+    //eslint-disable-next-line
+  }, [channels, socket]);
+
+  
+  const getuserChannels = async (id: any) => {
+        // socket?.emit('getChannels', {user: {id}});
+        socket?.on('getChannels', (channels: any) => {
+          if (!channels) return;   
+          channels?.forEach((channel: any) => {
+            if (channel.type === "CONVERSATION") {
+              channel.name = channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.username;
+              channel.avatar = channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.avatar;
+            }
+          });
+          channels?.sort((a: any, b: any) => {
+            if (a.updatedAt < b.updatedAt) return 1;
+            else return -1;
+          });
+          setChannels(channels);
+        });
+      }
+      
+      const getArchiveChannels = async (id: any) => {
+        // socket?.emit('getArchiveChannels', {user: {id}});
+        socket?.on('getArchiveChannels', (channels: any) => {
+          if (!channels) return;   
+          channels?.sort((a: any, b: any) => {
+        if (a.updatedAt < b.updatedAt) return 1;
+        else return -1;
+      });
+      setArchiveChannels(channels); 
+    });
 }
 
 
 const getNewChannel = async () => {
-  try {
         socket?.on('channel_create', (channel: any) => {
           // setChannels([...channels, channel]);
             setCurrentChannel(channel);
@@ -149,21 +188,14 @@ const getNewChannel = async () => {
             setSelectedChannel(channel);
 
         });
-    } catch (error) {
-        console.log(error);
-    }
 }
 
 const getChannelMember = (channelId: any) => {
-  try {
-    socket?.emit('channel_member', {userId : user?.id, channelId : channelId });
+    // socket?.emit('channel_member', {userId : user?.id, channelId : channelId });
     socket?.on('channel_member', (data: any) => {
       setChannelMember(data);
     }
     );
-  } catch (error) {
-    console.log(error);
-  }
 }
 
 const onChange = (e: any) => {
@@ -363,34 +395,34 @@ return (
                                 } 
     </div>
     {
-              modal && (
-                <Modal
-                setShowModal={setModal}
-                className="z-30 bg-secondary-800 border-none flex flex-col items-center justify-start shadow-lg shadow-secondary-500 gap-4 text-white min-w-[90%] lg:min-w-[40%] xl:min-w-[50%] animate-jump-in animate-ease-out animate-duration-400 max-w-[100%] w-full"
-                >
-                    <span className="text-md">This channel require access pass </span>
-                    <div className="flex flex-col justify-center items-center w-full">
-                        <Input
-                            label="Password"
-                            className="h-[40px] w-[80%] rounded-md border-2 border-primary-500 text-white text-xs bg-transparent md:mr-2"
-                            type="password"
-                            placeholder="*****************"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            />
-                        <Button
-                            className="h-8 w-auto md:w-20 bg-primary-500 text-white text-xs rounded-full mt-2"
-                            onClick={() => {
-                                accessChannel()
-                                setModal(false);
-                                setPassword("");
-                              }}
-                            >
-                            <span className="text-xs">Access</span>
-                        </Button>
-                    </div>
-                </Modal>
-                )
+      modal && (
+        <Modal
+        setShowModal={setModal}
+        className="z-30 bg-secondary-800 border-none flex flex-col items-center justify-start shadow-lg shadow-secondary-500 gap-4 text-white min-w-[90%] lg:min-w-[40%] xl:min-w-[50%] animate-jump-in animate-ease-out animate-duration-400 max-w-[100%] w-full"
+        >
+            <span className="text-md">This channel require access pass </span>
+            <div className="flex flex-col justify-center items-center w-full">
+                <Input
+                    label="Password"
+                    className="h-[40px] w-[80%] rounded-md border-2 border-primary-500 text-white text-xs bg-transparent md:mr-2"
+                    type="password"
+                    placeholder="*****************"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    />
+                <Button
+                    className="h-8 w-auto md:w-20 bg-primary-500 text-white text-xs rounded-full mt-2"
+                    onClick={() => {
+                        accessChannel()
+                        setModal(false);
+                        setPassword("");
+                      }}
+                    >
+                    <span className="text-xs">Access</span>
+                </Button>
+            </div>
+        </Modal>
+        )
     }
     </>
   );

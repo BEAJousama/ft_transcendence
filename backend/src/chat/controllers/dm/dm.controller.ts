@@ -1,5 +1,4 @@
-import { Controller, UseGuards } from '@nestjs/common';
-import { JwtAuthGuard } from 'src/auth/guards';
+import { Controller } from '@nestjs/common';
 
 /* Here we have controllers to do the following through HTTP requests :
 
@@ -9,6 +8,4 @@ import { JwtAuthGuard } from 'src/auth/guards';
 */
 // @UseGuards(new JwtAuthGuard())
 @Controller('dm')
-export class DmController {
-
-}
+export class DmController {}
