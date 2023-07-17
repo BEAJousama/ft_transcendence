@@ -7,9 +7,10 @@ import { RiCloseFill } from "react-icons/ri";
 import { FiSend } from "react-icons/fi";
 import ProfileBanner from "../../components/profilebanner";
 import Select from "../select";
-import { AppContext } from "../../context/app.context";
+import { AppContext, fetcher } from "../../context/app.context";
 import { ChatContext } from "../../context/chat.context";
 import Modal from "../modal";
+import useSWR from "swr";
 // import addUsers from "./selectusers";
 
 const CreateGroupModal = ({
@@ -21,13 +22,19 @@ const CreateGroupModal = ({
   const [showDm, setShowDm] = useState(false);
   const [groupName, setGroupName] = useState("");
   const [showSubmit, setShowSubmit] = useState(false);
-  const  {socket, users} = useContext(ChatContext);
+  const  {socket} = useContext(ChatContext);
   const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
   const [visibility, setVisibility] = useState<string>("PUBLIC");
   const [password, setPassword] = useState<string>("");
   const [accesspass, setaccesspass] = useState<string>("");
   const {user} = useContext(AppContext);
   const [previewImage, setPreviewImage] = useState<string>("https://i.ibb.co/vHD1C8Z/users-group-1.png" || "");
+  
+  let { data: users } = useSWR('api/users', fetcher, {
+    errorRetryCount: 0,
+    timeout : 1000
+  });
+
   const checkBlock = (userId : number) =>
   {
     return (user?.blockers[0]?.blockingId === userId || user?.blocking[0]?.blockerId === userId)
@@ -42,11 +49,6 @@ const CreateGroupModal = ({
     socket?.emit("dm_create", { senderId: user?.id , receiverId: id});
     setShowModal(false);
   }
-
-
-
-  
-
   return (
     <div className="animation-fade animate-duration-500 absolute top-0 left-0 w-screen h-screen flex items-center justify-center">
       <div className="fixed inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm">

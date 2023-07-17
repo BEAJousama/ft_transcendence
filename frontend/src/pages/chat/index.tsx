@@ -3,7 +3,7 @@ import Welcome from "../../components/chat/welcome";
 import { useContext, useEffect, useState } from "react";
 import { useMedia } from "react-use";
 import { ChatContext } from "../../context/chat.context";
-import { AppContext } from "../../context/app.context";
+import { AppContext, fetcher } from "../../context/app.context";
 import Layout from "../layout"; 
 
 export default function Chat() {
@@ -17,34 +17,47 @@ export default function Chat() {
   const [isMuted, setIsMuted] = useState<boolean>(false);
 
 
-
   useEffect(() => {
-    socket?.emit('channel_member', {userId : user?.id, channelId : currentChannel?.id });
+    if (currentChannel?.id === undefined) return;
+    fetcher(`api/channels/member/${user?.id}/${currentChannel?.id}`)
+      .then((data) => {
+        setChannelMember(data);
+        setIsMuted(data?.status === "MUTED");
+      }
+    );
+  }, [currentChannel, user?.id]);
+
+useEffect(() => {
     socket?.on('channel_member', (data: any) => {
-      console.log(data);
       setChannelMember(data);
       setIsMuted(data?.status === "MUTED");
     });
+
+    socket?.on('channel_join', (data: any) => {
+      setCurrentChannel(data);
+    });
   
     socket?.on('current_ch_update', (data: any) => {
-      if (data?.id === currentChannel?.id)
+      if (data?.id === currentChannel?.id )
+      {
         setCurrentChannel(data);
+      }
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+
     socket?.emit('check_mute', {userId : user?.id, channelId : currentChannel?.id});
     socket?.on('check_mute', (data: any) => {
       if (data === false) {
         setIsMuted(!isMuted);
         socket?.off('check_mute');
-        // socket?.off('channel_member');
       }
     });
-  
-    return () => {
-      // Clean up any other event listeners here if necessary
-    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-    // eslint-disable-next-line
-  }, [socket]);
 
   return (
     <Layout className="!py-0 !overflow-y-hidden">

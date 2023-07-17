@@ -201,6 +201,7 @@ model ChannelMember {
   status             MemberStatus         @default(ACTIVE)
   banStartTime       DateTime?
   banDuration        Int? 
+  newMessagesCount   Int?                 @default(0)
   @@id([userId, channelId])
 }
 

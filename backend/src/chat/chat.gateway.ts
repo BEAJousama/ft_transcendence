@@ -79,23 +79,21 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         receiverId: payload.receiverId,
         content: payload.content,
       };
-      const message = await this.messageService
-        .makeMessage(dto)
-        .then((message) => {
-          return message;
+      const message = await this.messageService.makeMessage(dto);
+      if (!message) {
+        throw new WsException({
+          error: EVENT.ERROR,
+          message: 'Cannot send message',
         });
+      }
       await this.sendChannelsToChannelMembers(dto.receiverId);
       await this.sendMessageToChannelMembers(
         dto.senderId,
         dto.receiverId,
         message,
       );
-    } catch (err) {
-      client.emit(EVENT.ERROR, err.message);
-      throw new WsException({
-        error: EVENT.ERROR,
-        message: err.message,
-      });
+    } catch (error) {
+      client.emit(EVENT.ERROR, error.message);
     }
   }
 
@@ -524,6 +522,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const channel = await this.channelService.getChannelById(
         payload.channelId,
       );
+      const channelMembers =
+        await this.channelService.getChannelMembersByChannelId(
+          payload.channelId,
+        );
       if (!channel) throw new Error('Channel not found !');
       await this.sendNotifications(
         client.data.sub,
@@ -534,7 +536,15 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         client.data.sub,
         parseInt(payload.channelId),
       );
-      await this.updateCurrentChannel(payload.channelId, client);
+      channelMembers
+        .filter(
+          (member) =>
+            member.status !== MemberStatus.BANNED &&
+            member.status !== MemberStatus.LEFT,
+        )
+        .forEach((member) => {
+          this.sendChannels(member.userId);
+        });
     } catch (err) {
       client.emit(EVENT.ERROR, err.message);
       throw new WsException({
@@ -944,7 +954,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       );
       if (
         member.status !== MemberStatus.ACTIVE ||
-        channel.mutedFor.map((u) => u.id).includes(member.userId) ||
         (await this.chatService.isBlocked(senderId, member.userId))
       )
         return;
@@ -962,7 +971,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
           receiver: member.userId,
           url: '/chat',
         };
-        this.server.to(socket.id).emit(EVENT.NOTIFICATION, data);
+        if (!channel.mutedFor.map((u) => u.id).includes(member.userId))
+          this.server.to(socket.id).emit(EVENT.NOTIFICATION, data);
         this.server.to(socket.id).emit(EVENT.GET_CH_MSSGS, messages);
       });
     });

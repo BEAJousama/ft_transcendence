@@ -100,7 +100,7 @@ const MessageBox = ({ message, right, autoScroll }: { message?: any; right?: boo
       </div>
 
         {showMenu && (
-          <RightClickMenu className={clsx("z-30 w-[150px]",right ? "right-0" : "left-[20px] !rounded-r-xl !rounded-bl-xl")}>
+          <RightClickMenu className={clsx("z-30 w-[150px]",right ? "right-10 top-10" : "left-[20px] !rounded-r-xl !rounded-bl-xl")}>
             {user?.id === message.senderId && (
               <RightClickMenuItem
                 onClick={() => {

@@ -1,9 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { MemberStatus, Message } from '@prisma/client';
+import { ChannelType, MemberStatus, Message } from '@prisma/client';
 import { MessageDto } from 'src/chat/dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ChatService } from '../chat/chat.service';
-import { Console } from 'console';
 
 @Injectable()
 export class MessageService {
@@ -13,69 +12,84 @@ export class MessageService {
   ) {}
 
   async makeMessage(data: MessageDto): Promise<Message | null> {
-    const channelMember = await this.prisma.channelMember.findFirst({
-      where: {
-        userId: data.senderId,
-        channelId: data.receiverId,
-      },
-    });
-    if (channelMember && channelMember.status !== MemberStatus.ACTIVE)
-      throw new Error('Cannot send message to this channel !');
-    const ch = await this.prisma.channel.findUnique({
-      where: {
-        id: data.receiverId,
-      },
-      include: {
-        channelMembers: true,
-      },
-    });
+    try {
+      const channelMember = await this.prisma.channelMember.findFirst({
+        where: {
+          userId: data.senderId,
+          channelId: data.receiverId,
+        },
+      });
+      if (channelMember && channelMember.status !== MemberStatus.ACTIVE)
+        throw new Error('Cannot send message to this channel !');
+      const ch = await this.prisma.channel.findUnique({
+        where: {
+          id: data.receiverId,
+        },
+        include: {
+          channelMembers: true,
+        },
+      });
 
-    let message = await this.prisma.message.create({
-      data: {
-        content: data.content,
-        senderId: data.senderId,
-        receiverId: data.receiverId,
-      },
-    });
-    if (!message) {
-      console.log('Cannot create message !');
-      return null;
-    }
-    message = await this.prisma.message.findUnique({
-      where: {
-        id: message.id,
-      },
-      include: {
-        sender: true,
-        receiver: true,
-      },
-    });
-
-    ch.channelMembers.forEach(async (member) => {
       if (
-        member.status !== MemberStatus.BANNED &&
-        member.status !== MemberStatus.LEFT
+        ch.type === ChannelType.CONVERSATION &&
+        (await this.chatService.isBlocked(
+          ch.channelMembers.filter(
+            (member) => member.userId != data.senderId,
+          )[0].userId,
+          data.senderId,
+        ))
       ) {
-        await this.prisma.channel.update({
-          where: {
-            id: data.receiverId,
-          },
-          data: {
-            newMessagesCount: {
-              increment: 1,
-            },
-            deletedFor: {
-              disconnect: {
-                id: member.userId,
-              },
-            },
-            lastestMessageDate: message.date,
-            updatedAt: message.date,
-          },
-        });
+        throw new Error('Cannot send message to this user !');
       }
-    });
-    return message;
+
+      let message = await this.prisma.message.create({
+        data: {
+          content: data.content,
+          senderId: data.senderId,
+          receiverId: data.receiverId,
+        },
+      });
+      if (!message) {
+        return null;
+      }
+      message = await this.prisma.message.findUnique({
+        where: {
+          id: message.id,
+        },
+        include: {
+          sender: true,
+          receiver: true,
+        },
+      });
+
+      ch.channelMembers.forEach(async (member) => {
+        if (
+          member.status !== MemberStatus.BANNED &&
+          member.status !== MemberStatus.LEFT
+        ) {
+          await this.prisma.channel.update({
+            where: {
+              id: data.receiverId,
+            },
+            data: {
+              newMessagesCount: {
+                increment: 1,
+              },
+              deletedFor: {
+                disconnect: {
+                  id: member.userId,
+                },
+              },
+              lastestMessageDate: message.date,
+              updatedAt: message.date,
+            },
+          });
+        }
+      });
+      return message;
+    } catch (err) {
+      throw new Error(err.message);
+    }
   }
 
   async deleteMessage(userId, messageId) {

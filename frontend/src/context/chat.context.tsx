@@ -77,6 +77,14 @@ export  default function ChatProvider ({
                 </div>
             );
         });
+        // newSocket.on("exception", (data: any) => {
+        //     toast.error(
+        //         <div className="">
+        //             <h1 className="text-white">Error</h1>
+        //             <p className="text-sm text-white">{data.message}</p>
+        //         </div>
+        //     );
+        // });
         setSocket(newSocket);
         return () => {
             newSocket.disconnect();

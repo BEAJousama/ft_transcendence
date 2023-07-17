@@ -29,7 +29,7 @@ import { useNavigate } from "react-router-dom";
 import UpdateChannel from "./updateChannel";
 import RightClickMenu, { RightClickMenuItem } from "../rightclickmenu";
 import axios from "axios";
-import { get } from "http";
+import useSWR from "swr";
 
 const MessageBubble = ({ className, setOpen, setCurrentChannel, currentChannel, channelMember }: {className?: string, setOpen: any, setCurrentChannel: any, currentChannel?: any, channelMember?: any}) => {
   const [value, setValue] = useState("");
@@ -56,7 +56,7 @@ const MessageBubble = ({ className, setOpen, setCurrentChannel, currentChannel, 
   const [DmMemu, setDmMenu] = useState(false);
   
   const navigate = useNavigate();
-  const {socket, users} = useContext(ChatContext);
+  const {socket} = useContext(ChatContext);
   const {user} = useContext(AppContext);
   const refMessage = useRef(null);
   const [blocking, setBlocking] = useState<any[]>(user?.blocking?.map((blocking)=> {return blocking.blockerId}) as any[]);
@@ -74,7 +74,10 @@ const MessageBubble = ({ className, setOpen, setCurrentChannel, currentChannel, 
 //     // inputRef.current?.setSelectionRange(0,0);
 //   }
 // }, [currentChannel]);
-
+let { data: users, isLoading } = useSWR('api/users', fetcher, {
+  errorRetryCount: 0,
+  timeout : 1000
+});
 const getBlocking = async () => {
   const res = await fetcher(`api/users/${user?.id}/blocking-users`);
   //map with blockerId
@@ -170,6 +173,8 @@ useEffect(() => {
 
   const handleDeleteChannel = () => {
     socket?.emit("channel_remove", { channelId: currentChannel?.id});
+    setCurrentChannel(null);
+    setOpen(false);
   };
 
   const handleEditChannelName = () => {
@@ -309,7 +314,7 @@ useEffect(() => {
       
       {
         !spinner ?
-      <div className="mb-2 flex flex-col overflow-y-scroll scrollbar-hide h-[calc(100%-128px)] space-y-4 gap-2 z-[0] px-[10px] ">
+      <div className="mb-2 flex flex-col overflow-y-scroll scrollbar-hide h-[calc(100%-128px)] justify-end first:space-y-4 gap-2 z-[0] px-[10px] ">
         {
           messages?.map((message, index) => {
             return (

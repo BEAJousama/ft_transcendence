@@ -718,6 +718,11 @@ export class ChannelService {
           id: channelId,
         },
         data: {
+          deletedFor: {
+            disconnect: {
+              id: userId,
+            },
+          },
           kickedUsers: {
             disconnect: {
               id: userId,
