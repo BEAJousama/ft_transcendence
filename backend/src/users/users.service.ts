@@ -189,6 +189,31 @@ export class UsersService {
     }
   }
 
+  async findAllNonBlockUsers(userId: number) {
+    try {
+      const users = await this.prisma.user.findMany({
+        where: {
+          id: {
+            not: userId,
+          },
+          blockers: {
+            none: {
+              blockerId: userId,
+            },
+          },
+          blocking: {
+            none: {
+              blockingId: userId,
+            },
+          },
+        },
+      });
+      return users;
+    } catch (error) {
+      throw new NotFoundException(`no users found ? `);
+    }
+  }
+
   async updateUser(body: UpdateUserDto, id: number) {
     try {
       const user = await this.prisma.user.update({

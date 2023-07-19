@@ -1,4 +1,4 @@
-import {memo, useCallback, useContext, useEffect, useState } from "react";
+import {useCallback, useContext, useEffect, useState } from "react";
 import Channel from "./channel";
 import {fetcher} from "../../context/app.context"
 import { AppContext } from "../../context/app.context";
@@ -11,16 +11,16 @@ import Input from "../input";
 import Button from "../button";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { throttle } from "lodash";
 
-const ChannelList = ({className, setShowModal, setCurrentChannel, setChannelMember, setOpen} : 
-  {className?: string, setShowModal: any,  setCurrentChannel: any, setChannelMember: any, setOpen?: any}) => {
+const ChannelList = ({className, setShowModal, setCurrentChannel, setChannelMember, setOpen, setMessages} : 
+  {className?: string, setShowModal: any,  setCurrentChannel: any, setChannelMember: any, setOpen?: any, setMessages: any}) => {
   
   const[channels, setChannels] = useState<any>([]);
   const [archiveChannels, setArchiveChannels] = useState<any>([]);
   const [showArchive, setShowArchive] = useState<boolean>(false);
   const [password, setPassword] = useState<string>("")
   const [selectedChannel, setSelectedChannel] = useState<any>(null)
-
   const [modal, setModal] = useState(false);
   const [search, setSearch] = useState<string>("");
   const [tempChannel, setTempChannel] = useState<any>();
@@ -32,29 +32,40 @@ const ChannelList = ({className, setShowModal, setCurrentChannel, setChannelMemb
   {
     return (user?.blockers[0]?.blockingId === userId || user?.blocking[0]?.blockerId === userId)
   }
+
+  const loadMessages = (channelId: any) => {
+    fetcher(`api/messages/${channelId}/${user?.id}`)
+    .then((messages) => {
+      setMessages(messages);
+    });
+  }
   
-  const onClick = useCallback((channel : any) : void | undefined => {
-    if (channel.isacessPassword) {
+  const onClick = throttle(async (channel: any): Promise<void | undefined> => {
+    const [member, messages] = await Promise.all([
+      fetcher(`api/channels/member/${user?.id}/${channel.id}`),
+      loadMessages(channel.id)
+    ]);
+  
+    if (channel.isacessPassword && member.role !== "OWNER") {
       if (selectedChannel && selectedChannel.id === channel.id) {
         setOpen(true);
         setCurrentChannel(channel);
         setSelectedChannel(channel);
         getChannelMember(channel.id);
-      }
-      else {
+        setMessages(messages);
+      } else {
         setModal(true);
         setTempChannel(channel);
       }
-    }
-    else
-    {
+    } else {
       setOpen(true);
       setCurrentChannel(channel);
       setSelectedChannel(channel);
       getChannelMember(channel.id);
+      setMessages(messages);
     }
     //eslint-disable-next-line
-  },[setCurrentChannel, setOpen, selectedChannel]);
+  }, 1000);
 
   const accessChannel = async () => {
     const accesstoken = window.localStorage.getItem("access_token");
@@ -67,6 +78,7 @@ const ChannelList = ({className, setShowModal, setCurrentChannel, setChannelMemb
       setCurrentChannel(tempChannel);
       getChannelMember(tempChannel.id);
       setSelectedChannel(tempChannel);
+      loadMessages(tempChannel.id);
     }
     else
     {
@@ -126,10 +138,10 @@ const ChannelList = ({className, setShowModal, setCurrentChannel, setChannelMemb
       setOpen(false);
     });
 
-    socket?.on('channel_remove', () => {
-      setCurrentChannel();
-      setOpen(false);
-    });
+    socket?.on("getChannelMessages", (message: any) => {
+      setMessages(message);
+    }
+    );
     return () => {
       socket?.off('channel_leave');
       socket?.off('channel_delete');
@@ -141,11 +153,10 @@ const ChannelList = ({className, setShowModal, setCurrentChannel, setChannelMemb
       socket?.off('channel_member');
     }
     //eslint-disable-next-line
-  }, [channels, socket]);
+  });
 
   
   const getuserChannels = async (id: any) => {
-        // socket?.emit('getChannels', {user: {id}});
         socket?.on('getChannels', (channels: any) => {
           if (!channels) return;   
           channels?.forEach((channel: any) => {

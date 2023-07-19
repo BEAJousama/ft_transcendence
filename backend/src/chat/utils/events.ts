@@ -52,6 +52,5 @@ export const ERROR = 'error';
 export const NOTIFICATION = 'notification';
 export const CHECK_MUTE = 'check_mute';
 export const CHECK_ACCESS_PASS = 'check_access_pass';
-export const BLOCK_USER = 'block_user';
+export const BLOCK_USER = 'blockUser';
 export const REFRESH_CHANNEL = 'refresh_channel';
-export const UNBLOCK_USER = 'unblock_user';

@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { memo, useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import RightClickMenu, { RightClickMenuItem } from "../rightclickmenu";
 import { MdDelete } from "react-icons/md";
 import { useClickAway } from "react-use";
@@ -7,7 +7,6 @@ import { fetcher } from "../../context/app.context";
 import { AppContext } from "../../context/app.context";
 import { ChatContext } from "../../context/chat.context";
 import Spinner from "../spinner";
-import { ClassificationType } from "typescript";
 
 const MessageBox = ({ message, right, autoScroll }: { message?: any; right?: boolean, autoScroll : any}) => {
   const [showMenu, setShowMenu] = useState(false);
@@ -16,10 +15,10 @@ const MessageBox = ({ message, right, autoScroll }: { message?: any; right?: boo
   const [sender, setSender] = useState<any>(null);
   const ref = useRef(null);
 
-  useEffect(() => {
-    autoScroll();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // useEffect(() => {
+  //   autoScroll();
+  // // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, []);
 
   useEffect(() => {
     fetcher(`api/users/${message.senderId}`).then((res) => setSender(res));

@@ -10,10 +10,11 @@ import { UsersService } from 'src/users/users.service';
 import { ChannelController } from './controllers/channel/channel.controller';
 import NotificationService from 'src/notification/notification.service';
 import { NotificationGateway } from 'src/notification/notification.gateway';
+import { MessageController } from './controllers/message/message.controller';
 
 @Module({
   imports: [],
-  controllers: [ChatController, ChannelController],
+  controllers: [ChatController, ChannelController, MessageController],
   providers: [
     ChatService,
     ChatGateway,

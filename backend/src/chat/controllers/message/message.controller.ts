@@ -19,29 +19,29 @@ import { MessageService } from 'src/chat/services/message/message.service';
     4 - some other stuff ...
 */
 // @UseGuards(new JwtAuthGuard())
-@Controller('message')
+@Controller('messages')
 export class MessageController {
-  // constructor(private messageService: MessageService)
-  // {
-  // }
-  // @Get(':channelId')
-  // async getMessages(@Req() req: Request) {
-  //   try {
-  //     return await this.messageService.getMessagesByChannelId(
-  //       parseInt(req.params.channelId),
-  //       req.user.id);
-  //   } catch (error) {
-  //     throw new HttpException(error.message, HttpStatus.NOT_FOUND);
-  //   }
-  // }
+  constructor(private messageService: MessageService) {}
+  @Get(':channelId/:userId')
+  async getMessages(@Req() req: Request) {
+    try {
+      const messages = await this.messageService.getMessagesByChannelId(
+        parseInt(req.params.channelId),
+        parseInt(req.params.userId),
+      );
+      return messages;
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+    }
+  }
   // @Post('delete/:messageId')
-  // async deleteMessage(@Req() req: Request, payload : any) {
+  // async deleteMessage(@Req() req: Request, payload: any) {
   //   try {
   //     return await this.messageService.deleteMessage(
   //       parseInt(req.params.messageId),
-  //       req.user.id);
-  //   }
-  //   catch (error) {
+  //       req.user.id,
+  //     );
+  //   } catch (error) {
   //     throw new HttpException(error.message, HttpStatus.NOT_FOUND);
   //   }
   // }

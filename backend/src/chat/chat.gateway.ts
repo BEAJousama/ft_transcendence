@@ -208,7 +208,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       });
       await this.updateCurrentChannel(payload.channelId, client);
     } catch (err) {
-      console.log(err.message);
       client.emit(EVENT.ERROR, err.message);
       throw new WsException({
         error: EVENT.ERROR,
@@ -372,6 +371,56 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     } catch (err) {
       throw new WsException({
         error: EVENT.ERROR,
+        message: err.message,
+      });
+    }
+  }
+
+  @SubscribeMessage(EVENT.BLOCK_USER)
+  async blockUser(
+    client: Socket,
+    payload: { blockerId: string; blockedId: string; isBlock: boolean },
+  ) {
+    try {
+      const blocker = await this.userService.findUserById(
+        parseInt(payload.blockerId),
+      );
+      const blocked = await this.userService.findUserById(
+        parseInt(payload.blockedId),
+      );
+
+      const data = {
+        id: randomInt(1, 9999999),
+        title: blocker.username,
+        content:
+          blocker.username +
+          (payload.isBlock === true
+            ? ' has blocked you !'
+            : ' has unblocked you !'),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        seen: false,
+        sender: blocker,
+        receiver: blocked,
+        url: `/profile/${payload.blockedId}`,
+      };
+      this.notificationService.createNotification(
+        parseInt(payload.blockerId),
+        parseInt(payload.blockedId),
+        data.title,
+        data.content,
+        data.url,
+      );
+      const sockets: Socket[] = this.getConnectedUsers(
+        parseInt(payload.blockedId),
+      );
+      for (const socket of sockets) {
+        this.server.to(socket.id).emit(EVENT.NOTIFICATION, data);
+        this.server.to(socket.id).emit(EVENT.BLOCK_USER);
+      }
+    } catch (err) {
+      throw new WsException({
+        error: EVENT.BLOCK_USER,
         message: err.message,
       });
     }
@@ -544,6 +593,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         )
         .forEach((member) => {
           this.sendChannels(member.userId);
+          const sockets = this.getConnectedUsers(member.userId);
+          sockets.forEach((socket) =>
+            this.server
+              .to(socket.id)
+              .emit(EVENT.CHANNEL_REMOVE, { id: payload.channelId }),
+          );
         });
     } catch (err) {
       client.emit(EVENT.ERROR, err.message);
@@ -766,8 +821,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         parseInt(payload.userId),
         parseInt(payload.channelId),
       );
+      if (!isMuted) await this.updateCurrentChannel(payload.channelId, client);
+
       const sockets = this.getConnectedUsers(client.data.sub);
       sockets.forEach((socket) => {
+        // this.server.to(socket.id).emit('refresh_member');
         this.server.to(socket.id).emit(EVENT.CHECK_MUTE, isMuted);
       });
     } catch (err) {
@@ -847,7 +905,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage(EVENT.REFRESH_CHANNEL)
-  async refrechChannel(client: Socket, payload: { channelId: string }) {
+  async refrechChannel(
+    client: Socket,
+    payload: { channelId: string; userId: string },
+  ) {
     try {
       const channel = await this.channelService.getChannelById(
         parseInt(payload.channelId),

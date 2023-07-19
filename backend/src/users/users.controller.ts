@@ -31,7 +31,6 @@ import {
   UpdateDoc,
 } from './users.decorator';
 import { UsersService } from './users.service';
-import { Public } from 'src/public.decorator';
 import { assignAchievementsDto } from './dto/achievements.dto';
 import { Request } from 'express';
 
@@ -44,6 +43,16 @@ export class UsersController {
   async findAll(@Query('fullname') fullname: string) {
     try {
       return this.usersService.findAllUsers(fullname);
+    } catch (error) {
+      return null;
+    }
+  }
+
+  @Get('non-blocked-users/:userId')
+  @FindAllDoc()
+  async findAllNonBlockUsers(@Param('userId') userId: number) {
+    try {
+      return this.usersService.findAllNonBlockUsers(userId);
     } catch (error) {
       return null;
     }

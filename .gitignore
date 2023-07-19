@@ -19,7 +19,7 @@
 /.vscode
 # misc
 backend/.env
-frontendend/.env
+frontend/.env
 .DS_Store
 .env.local
 .env.development.local

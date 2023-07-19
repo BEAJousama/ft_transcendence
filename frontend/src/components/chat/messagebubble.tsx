@@ -12,7 +12,7 @@ import {TbUserOff} from "react-icons/tb"
 import {FcMenu} from "react-icons/fc"
 
 import Avatar from "../avatar";
-import { useState, useRef, useContext, useEffect, memo } from "react";
+import { useState, useRef, useContext, useEffect } from "react";
 import { useClickAway } from "react-use";
 import Modal from "../modal";
 import data from "@emoji-mart/data";
@@ -23,7 +23,6 @@ import { AppContext, fetcher } from "../../context/app.context";
 import Select from "../select";
 import UpdateAvatar from "../update-avatar";
 import { ChatContext } from "../../context/chat.context";
-import  Spinner  from "../spinner";
 import clsx from "clsx";
 import { useNavigate } from "react-router-dom";
 import UpdateChannel from "./updateChannel";
@@ -31,12 +30,11 @@ import RightClickMenu, { RightClickMenuItem } from "../rightclickmenu";
 import axios from "axios";
 import useSWR from "swr";
 
-const MessageBubble = ({ className, setOpen, setCurrentChannel, currentChannel, channelMember }: {className?: string, setOpen: any, setCurrentChannel: any, currentChannel?: any, channelMember?: any}) => {
+const MessageBubble = ({ className, setOpen, setCurrentChannel, currentChannel, channelMember, messages }: {className?: string, setOpen: any, setCurrentChannel: any, currentChannel?: any, channelMember?: any, messages: any[]}) => {
   const [value, setValue] = useState("");
   const [showPicker, setShowPicker] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
-  const [messages, setMessages] = useState<any[]>([]);
   let   [visibility, setVisibility] = useState<string>(currentChannel?.visiblity);
   const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
   let   [previewImage, setPreviewImage] = useState<string>(currentChannel?.avatar || "");
@@ -44,7 +42,6 @@ const MessageBubble = ({ className, setOpen, setCurrentChannel, currentChannel, 
 
   const [password, setPassword] = useState<string>("");
   const [accessPassword, setAccessPassword] = useState<string>("");
-  const [spinner, setSpinner] = useState(true);
   const [chName , setChName] = useState(false);
   const [chPassword , setChPassword] = useState(false);
   const [chVisibility , setChVisibility] = useState(false);
@@ -59,25 +56,28 @@ const MessageBubble = ({ className, setOpen, setCurrentChannel, currentChannel, 
   const {socket} = useContext(ChatContext);
   const {user} = useContext(AppContext);
   const refMessage = useRef(null);
+  
   const [blocking, setBlocking] = useState<any[]>(user?.blocking?.map((blocking)=> {return blocking.blockerId}) as any[]);
   const [blocked, setBlocked] = useState<any[]>(user?.blockers?.map((blocker)=> {return blocker.blockingId}) as any[]);
   
-  // const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const isBlocked = (currentChannel?.type === "CONVERSATION" && blocked.includes(currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.id));
   const isBlocking = (currentChannel?.type === "CONVERSATION" && blocking.includes(currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.id));
   
-//   useEffect(() => {
-//   if (inputRef.current)
-//   {
-//     inputRef.current?.focus();
-//     setValue("");
-//     // inputRef.current?.setSelectionRange(0,0);
-//   }
-// }, [currentChannel]);
-let { data: users, isLoading } = useSWR('api/users', fetcher, {
+  useEffect(() => {
+  if (inputRef.current)
+  {
+    inputRef.current?.focus();
+    setValue("");
+    // inputRef.current?.setSelectionRange(0,0);
+  }
+}, [currentChannel]);
+
+let { data: users } = useSWR('api/users', fetcher, {
   errorRetryCount: 0,
   timeout : 1000
 });
+
 const getBlocking = async () => {
   const res = await fetcher(`api/users/${user?.id}/blocking-users`);
   //map with blockerId
@@ -110,9 +110,9 @@ useEffect(() => {
   const autoScroll = () => {
     const scroll = refMessage.current;
     if (scroll) {
-      (scroll as HTMLElement).scrollTo({
-        top: (scroll as HTMLElement).scrollHeight,
-        behavior: 'smooth'
+      (scroll as HTMLElement).scrollIntoView({
+        behavior: 'smooth',
+        block: 'end',
       });
     }
   };
@@ -122,19 +122,31 @@ useEffect(() => {
     setPreviewImage(currentChannel?.avatar || "");
     setGroupName(currentChannel?.name || "");
   }, [currentChannel]);
-
+  
+  // useEffect(() => {
+  //   socket?.emit("getChannelMessages", {channelId : currentChannel?.id, user: {id: user?.id}});
+  //   socket?.on("getChannelMessages", (message: any) => {
+  //     setMessages(message);
+  //     setSpinner(false);
+  //   });
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [socket, currentChannel]);
   
   useEffect(() => {
-    socket?.emit("getChannelMessages", {channelId : currentChannel?.id, user: {id: user?.id}});
-    socket?.on("getChannelMessages", (message: any) => {
-      setMessages(message);
-      setSpinner(false);
-    });
-    socket?.on("messsage", (message: any) => {
+    autoScroll();
+  }, []);
+
+  useEffect(() => {
+    socket?.on("message", () => {
       autoScroll();
     });
+    socket?.on("blockUser", () => {
+      socket?.emit("getChannelMessages", {channelId : currentChannel?.id, user: {id: user?.id}});
+      getBlocking();
+      getBlocked();
+    });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [socket, currentChannel]);
+  });
 
   const ref = useRef(null);
   const ref1 = useRef(null);
@@ -161,6 +173,8 @@ useEffect(() => {
   };
 
   const handleSendMessage = (value : string) => {
+    if (value.trim() === "")
+      return;
     if (value) {
       socket?.emit('message', {senderId: user?.id, receiverId: currentChannel?.id, content: value});
       setValue("");
@@ -174,6 +188,7 @@ useEffect(() => {
   const handleDeleteChannel = () => {
     socket?.emit("channel_remove", { channelId: currentChannel?.id});
     setCurrentChannel(null);
+    inputRef.current?.blur();
     setOpen(false);
   };
 
@@ -209,8 +224,9 @@ useEffect(() => {
       getBlocking();
       getBlocked();
       setDmMenu(false);
-      socket?.emit("refresh_channel", {channelId: currentChannel?.id})
+      socket?.emit("refresh_channel", {channelId: currentChannel?.id, userId: userId})
       socket?.emit("getChannelMessages", {channelId : currentChannel?.id, user: {id: user?.id}});
+      socket?.emit("blockUser", {blockerId: user?.id, blockedId: userId, isBlock: true});
     }
   }
   
@@ -229,9 +245,11 @@ useEffect(() => {
         getBlocking();
         getBlocked();
         setDmMenu(false);
-        socket?.emit("refresh_channel", {channelId: currentChannel?.id})
+        socket?.emit("refresh_channel", {channelId: currentChannel?.id, userId: userId})
         socket?.emit("getChannelMessages", {channelId : currentChannel?.id, user: {id: user?.id}});
+        socket?.emit("blockUser", {blockerId: user?.id, blockedId: userId});
     }
+    socket?.emit("getChannels")
   }
   
   const handleRemovePassword = () =>
@@ -244,7 +262,7 @@ useEffect(() => {
     setSelectedUsers([]);
   };
   return (
-    <div className={clsx("col-span-10 flex h-screen w-full flex-col justify-start rounded-t-3xl bg-secondary-600 lg:col-span-7", className && className)} ref={refMessage}>
+    <div className={clsx("col-span-10 flex h-screen w-full flex-col justify-start rounded-t-3xl bg-secondary-600 lg:col-span-7", className && className)}>
       <div className=" bg-secondary-400 rounded-t-3xl align-middle items-center  sticky top-0 z-20">
         <div className="relative grid grid-cols-10 lg:grid-cols-12">
           <Button
@@ -252,6 +270,7 @@ useEffect(() => {
               className="!items-end bg-secondary-400 !text-white col-span-1 lg:hidden self-center !w-fit m-auto\"
               onClick={() => {
                 setOpen(false);
+                inputRef.current?.blur();
                 setCurrentChannel("");
                 setDmMenu(false)
               }}
@@ -313,12 +332,12 @@ useEffect(() => {
       </div>
       
       {
-        !spinner ?
-      <div className="mb-2 flex flex-col overflow-y-scroll scrollbar-hide h-[calc(100%-128px)] justify-end first:space-y-4 gap-2 z-[0] px-[10px] ">
+        // !spinner ?
+      <div className="mb-2 flex flex-col overflow-y-scroll scroll-smooth scrollbar-hide h-full first:space-y-4 gap-2 z-[0] px-[10px] ">
         {
           messages?.map((message, index) => {
             return (
-              <div key={message.id} className={`transition-all duration-500 transform  ${index > 0 ? 'translate-y-2' : ''}`}>
+              <div key={message.id} className={`first-of-type:mt-auto transition-all duration-500 transform  ${index > 0 ? 'translate-y-2' : ''}`}>
                 {new Date(message.date).getDay() !== new Date(messages[messages.indexOf(message) - 1]?.date).getDay() && (
                 <Divider center title={ 
                   //check if date is less than 10, if so add a 0 in front of it
@@ -334,16 +353,17 @@ useEffect(() => {
                 />          
             </div>
             ) 
-      })}
+        })}
+        <div ref={refMessage} className="h-[100px] mt-20"></div>
       </div>
-      : 
-      <div className="mb-2 flex h-full flex-col  justify-end gap-2 z-[0] px-[10px] ">
-        <div className="flex justify-center items-center h-full">
-          <Spinner/>
-        </div>
-      </div>
+      // : 
+      // <div className="mb-2 flex h-full flex-col  justify-end gap-2 z-[0] px-[10px] ">
+      //   <div className="flex justify-center items-center h-full">
+      //     <Spinner/>
+      //   </div>
+      // </div>
       }
-      <div className="flex w-full  items-center bg-secondary-700 p-1 ">
+      <div className="flex w-full  items-center bg-secondary-700 sticky bottom-0 ">
         <Button
           variant="text"
           className="!hover:bg-inherit !bg-inherit text-primary-500"
@@ -359,7 +379,7 @@ useEffect(() => {
           placeholder={(channelMember?.status === "MUTED" ? "You are muted, you can't send messages!" : channelMember?.status === "BANNED" ? "You are banned, you can't send messages!" : channelMember?.status === "LEFT" ? "You have left this channel or have been kicked !"
           : isBlocked ? "You blocked this user!" : isBlocking ? "You are blocked by this user!": "type something")}
           value={value}
-          // inputRef={inputRef}
+          inputRef={inputRef}
           onKeyDown={(event) => {
             if (event.key === "Enter")
               handleSendMessage(value);

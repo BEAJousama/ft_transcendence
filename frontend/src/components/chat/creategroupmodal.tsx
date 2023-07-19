@@ -133,7 +133,7 @@ const CreateGroupModal = ({
           }
 
           <Input
-          label="Access password"
+          label="Access password [Optional]"
           type="password"
           placeholder="********************"
           value={accesspass}
@@ -142,8 +142,6 @@ const CreateGroupModal = ({
             setaccesspass(value);
           }}
           />
-
-          {/* add access password */}
           </>
         ) : (
           !showDm && (
