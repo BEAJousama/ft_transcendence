@@ -31,6 +31,15 @@ const UpdateChannel = ({
         {!updatable ? (
             <div className="flex flex-row items-center justify-center pt-3">
                 <Button
+                className="!bg-inherit !text-white hover:bg-inherit justify-between w-full !font-medium mr-3"
+                onClick={() => {
+                    setX(false);
+                    setShowEdit(true);
+                }}
+                >
+                Cancel
+                </Button>
+                <Button
                 className="bg-primary-500  justify-between w-full !font-medium mr-1"
                 onClick={() => {
                     setX(false);
@@ -40,15 +49,6 @@ const UpdateChannel = ({
                 }}
                 >
                 {verify ? "Delete" : "Update"}
-                </Button>
-                <Button
-                className="!bg-inherit !text-white hover:bg-inherit justify-between w-full !font-medium ml-1"
-                onClick={() => {
-                    setX(false);
-                    setShowEdit(true);
-                }}
-                >
-                Cancel
                 </Button>
             </div>
         ) :

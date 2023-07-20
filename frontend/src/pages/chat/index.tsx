@@ -1,11 +1,10 @@
 import { ChannelList, CreateGroupModal, MessageBubble } from "../../components";
 import Welcome from "../../components/chat/welcome";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { useMedia } from "react-use";
 import { ChatContext } from "../../context/chat.context";
 import { AppContext, fetcher } from "../../context/app.context";
 import Layout from "../layout"; 
-import useSWR from "swr";
 
 export default function Chat() {
   const [open, setOpen] = useState<boolean>(false);
@@ -17,15 +16,17 @@ export default function Chat() {
   const {socket} = useContext(ChatContext);
   const [isMuted, setIsMuted] = useState<boolean>(channelMember?.status === "MUTED");
   const [messages, setMessages] = useState<any[]>([]);
+  const [channelId, setChannelId] = useState<number>(0);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // useEffect(() => {
-  //   socket?.emit("getChannelMessages", {channelId : currentChannel?.id, user: {id: user?.id}});
+  //   // socket?.emit("getChannelMessages", {channelId : currentChannel?.id, user: {id: user?.id}});
   //   socket?.on("getChannelMessages", (message: any) => {
   //     setMessages(message);
-  //     setSpinner(false);
   //   });
   //   // eslint-disable-next-line react-hooks/exhaustive-deps
   // }, [socket, currentChannel]);
+
   useEffect(() => {
     if (currentChannel?.id === undefined) return;
     socket?.on("getChannelMessages", (message: any) => {
@@ -44,26 +45,48 @@ export default function Chat() {
 
 
   useEffect(() => {
+
+    socket?.on("getChannelMessages", (messages: any) => {
+      setMessages(messages);
+    });
     socket?.on('channel_member', (data: any) => {
+      console.log("channel_member : ", data?.id)
       setChannelMember(data);
       setIsMuted(data?.status === "MUTED");
     });
 
     socket?.on('channel_join', (data: any) => {
+      console.log("channel_join : ", data?.id)
       setCurrentChannel(data);
     });
 
     socket?.on("channel_remove", (data: any) => {
+      console.log("channel_remove : ", data?.id)
       if (parseInt(data?.id) === parseInt(currentChannel?.id))
       {
         setCurrentChannel("");
         setOpen(false);
       }
     });
-  // fix this shit
+
+    socket?.on("channel_create", () => {
+      if (!isMatch)
+        setOpen(true);
+    });
+
+    socket?.on("dm_create", (data: any) => {
+      if (!isMatch)
+        setOpen(true);
+    });
+
     socket?.on('current_ch_update', (data: any) => {
-      if (data?.id === currentChannel?.id) {
+      setChannelId(parseInt(data?.id));
+      if (channelId === parseInt(currentChannel?.id)) {
         setCurrentChannel(data);
+      }
+      else
+      {
+        setCurrentChannel(currentChannel);
       }
     });
   });
@@ -95,9 +118,13 @@ export default function Chat() {
                 setShowModal={setShowModal}
                 setOpen={setOpen} 
                 setMessages={setMessages}
+                inputRef={inputRef}
                 />
             )}
-            <MessageBubble className="mt-4 mb-4 ml-1 pb-5" currentChannel={currentChannel} setOpen={setOpen} setCurrentChannel={setCurrentChannel} channelMember={channelMember} messages={messages}/>
+            {
+            currentChannel && Object.keys(currentChannel!).length &&  
+            <MessageBubble className="mt-4 mb-4 ml-1 pb-5" currentChannel={currentChannel} setOpen={setOpen} setCurrentChannel={setCurrentChannel} channelMember={channelMember} messages={messages} inputRef={inputRef}/>
+            }
             {showModal && <CreateGroupModal setShowModal={setShowModal} />}
           </div>
         ) :
@@ -110,9 +137,10 @@ export default function Chat() {
               setShowModal={setShowModal}
               setOpen={setOpen}
               setMessages={setMessages}
+              inputRef={inputRef}
               />
-          {(currentChannel && Object.keys(currentChannel!).length ) ? <MessageBubble className="mt-4 ml-1" setCurrentChannel={setCurrentChannel} 
-            currentChannel={currentChannel} setOpen={setOpen} channelMember={channelMember} messages={messages}/>
+          {(currentChannel && Object.keys(currentChannel!).length) ? <MessageBubble className="mt-4 ml-1" setCurrentChannel={setCurrentChannel} 
+            currentChannel={currentChannel} setOpen={setOpen} channelMember={channelMember} messages={messages} inputRef={inputRef}/>
           : 
             < Welcome className="mt-4 mb-4 pb-3 ml-1" />
           }

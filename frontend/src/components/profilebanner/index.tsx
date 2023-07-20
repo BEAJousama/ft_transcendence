@@ -286,6 +286,14 @@ const ProfileBanner = ({
                     onChange={(e) => {
                       setDuration(Number(e.target.value));
                     }}
+                    onKeyDown={
+                      (e) => {
+                        if (e.key === "Enter") {
+                          muteUser();
+                          setmuteModal(false);
+                        }
+                      }
+                    }
                   />
                 </div>
                 <Select
@@ -296,6 +304,14 @@ const ProfileBanner = ({
               </div>
               <div className="flex justify-around flex-auto">
                 <Button
+                className="!bg-inherit !text-white hover:bg-inheri !font-medium mr-1 basis-4/12"
+                onClick={() => {
+                  setmuteModal(false);
+                }}
+                >
+                Cancel
+                </Button>
+                <Button
                 className="bg-primary !font-medium mr-1 basis-4/12 "
                 onClick={() => {
                   muteUser();
@@ -303,14 +319,6 @@ const ProfileBanner = ({
                 }}
                 >
                 Mute
-                </Button>
-                <Button
-                className="!bg-inherit !text-white hover:bg-inheri !font-medium ml-1 basis-4/12"
-                onClick={() => {
-                  setmuteModal(false);
-                }}
-                >
-                Cancel
                 </Button>
               </div>
             </div>

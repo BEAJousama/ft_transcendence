@@ -400,7 +400,6 @@ export class ChannelService {
         )
           throw new Error('Password is required for protected channel');
         else if (
-          ch.visiblity === Visiblity.PROTECTED &&
           channelData.visibility === Visiblity.PROTECTED &&
           channelData.password
         ) {

@@ -43,6 +43,12 @@ const CreateGroupModal = ({
   function handleCreateGroup() {
     socket?.emit("channel_create", { name: groupName ,avatar: previewImage, visibility: visibility, members: selectedUsers, password: password, access_pass : accesspass});
     setShowModal(false);
+    setPassword("");
+    setaccesspass("");
+    setGroupName("");
+    setSelectedUsers([]);
+    setVisibility("PUBLIC");
+    setPreviewImage("https://i.ibb.co/vHD1C8Z/users-group-1.png");
   }
 
   const handleCreateDm = (id : number) => {

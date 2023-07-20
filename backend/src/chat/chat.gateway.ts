@@ -111,6 +111,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const channelTosend = await this.channelService.getChannelById(dm.id);
       const sockets = this.getConnectedUsers(client.data.sub);
       await this.sendChannelsToChannelMembers(dm.id);
+      await this.sendMessagesToMembers(dm.id);
       if (!sockets || sockets.length === 0) return;
       sockets.forEach((s) => {
         s.join(dm.id.toString());
@@ -243,6 +244,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         this.server.to(s.id).emit(EVENT.CHANNEL_CREATE, channelTosend);
       });
       await this.sendChannelsToChannelMembers(channel.id);
+      await this.sendMessagesToMembers(channel.id);
     } catch (error) {
       client.emit(EVENT.ERROR, error.message);
       throw new WsException({
@@ -844,6 +846,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         parseInt(payload.messageId),
       );
       await this.updateCurrentChannel(payload.channelId, client);
+      await this.sendMessagesToMembers(payload.channelId);
     } catch (err) {
       throw new WsException({
         error: EVENT.ERROR,
@@ -1158,6 +1161,26 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const sockets: Socket[] = this.getConnectedUsers(user2Id);
     for (const socket of sockets) {
       this.server.to(socket.id).emit(EVENT.NOTIFICATION, data);
+    }
+  }
+
+  private async sendMessagesToMembers(channelId: number) {
+    try {
+      const members = await this.channelService.getChannelMembersByChannelId(
+        channelId,
+      );
+      members.forEach(async (member) => {
+        const messages = await this.messageService.getMessagesByChannelId(
+          channelId,
+          member.userId,
+        );
+        const sockets: Socket[] = this.getConnectedUsers(member.userId);
+        for (const socket of sockets) {
+          this.server.to(socket.id).emit(EVENT.GET_CH_MSSGS, messages);
+        }
+      });
+    } catch (err) {
+      throw new Error(err);
     }
   }
 

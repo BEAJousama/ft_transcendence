@@ -12,9 +12,10 @@ import Button from "../button";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { throttle } from "lodash";
+import React from "react";
 
-const ChannelList = ({className, setShowModal, setCurrentChannel, setChannelMember, setOpen, setMessages} : 
-  {className?: string, setShowModal: any,  setCurrentChannel: any, setChannelMember: any, setOpen?: any, setMessages: any}) => {
+const ChannelList = ({className, setShowModal, setCurrentChannel, setChannelMember, setOpen, setMessages, inputRef} : 
+  {className?: string, setShowModal: any,  setCurrentChannel: any, setChannelMember: any, setOpen?: any, setMessages: any, inputRef?: any}) => {
   
   const[channels, setChannels] = useState<any>([]);
   const [archiveChannels, setArchiveChannels] = useState<any>([]);
@@ -27,13 +28,14 @@ const ChannelList = ({className, setShowModal, setCurrentChannel, setChannelMemb
   const {socket} = useContext(ChatContext);
   let {user} = useContext(AppContext)
   const [isFocused, setIsFocused] = useState(false);
+  const iRef = React.useRef<HTMLInputElement>(null);
 
   const checkBlock = (userId : number) =>
   {
     return (user?.blockers[0]?.blockingId === userId || user?.blocking[0]?.blockerId === userId)
   }
 
-  const loadMessages = (channelId: any) => {
+  const loadMessages = async (channelId: any) => {
     fetcher(`api/messages/${channelId}/${user?.id}`)
     .then((messages) => {
       setMessages(messages);
@@ -53,9 +55,11 @@ const ChannelList = ({className, setShowModal, setCurrentChannel, setChannelMemb
         setSelectedChannel(channel);
         getChannelMember(channel.id);
         setMessages(messages);
+        inputRef?.current?.focus();
       } else {
         setModal(true);
         setTempChannel(channel);
+        iRef?.current?.focus();
       }
     } else {
       setOpen(true);
@@ -63,6 +67,7 @@ const ChannelList = ({className, setShowModal, setCurrentChannel, setChannelMemb
       setSelectedChannel(channel);
       getChannelMember(channel.id);
       setMessages(messages);
+      inputRef?.current?.focus();
     }
     //eslint-disable-next-line
   }, 1000);
@@ -79,6 +84,7 @@ const ChannelList = ({className, setShowModal, setCurrentChannel, setChannelMemb
       getChannelMember(tempChannel.id);
       setSelectedChannel(tempChannel);
       loadMessages(tempChannel.id);
+      inputRef?.current?.focus();
     }
     else
     {
@@ -130,11 +136,13 @@ const ChannelList = ({className, setShowModal, setCurrentChannel, setChannelMemb
     }
     socket?.on('channel_leave', () => {
       setCurrentChannel();
+      inputRef?.current?.blur();
       setOpen(false);
     });
-  
+    
     socket?.on('channel_delete', () => {
       setCurrentChannel();
+      inputRef?.current?.blur();
       setOpen(false);
     });
 
@@ -191,12 +199,14 @@ const getNewChannel = async () => {
           // setChannels([...channels, channel]);
             setCurrentChannel(channel);
             setSelectedChannel(channel);
+            inputRef?.current?.focus();
 
           });
           socket?.on('dm_create', (channel: any) => {
             // setChannels([...channels, channel]);
             setCurrentChannel(channel);
             setSelectedChannel(channel);
+            inputRef?.current?.focus();
 
         });
 }
@@ -409,9 +419,10 @@ return (
       modal && (
         <Modal
         setShowModal={setModal}
-        className="z-30 bg-secondary-800 border-none flex flex-col items-center justify-start shadow-lg shadow-secondary-500 gap-4 text-white min-w-[90%] lg:min-w-[40%] xl:min-w-[50%] animate-jump-in animate-ease-out animate-duration-400 max-w-[100%] w-full"
-        >
-            <span className="text-md">This channel require access pass </span>
+        className="z-10 bg-secondary-800 
+        border-none flex flex-col items-center justify-start shadow-lg shadow-secondary-500 gap-4 text-white min-w-[90%]
+        lg:min-w-[40%] xl:min-w-[800px] animate-jump-in animate-ease-out animate-duration-400">
+            <span className="text-md">This channel requires an access password ! </span>
             <div className="flex flex-col justify-center items-center w-full">
                 <Input
                     label="Password"
@@ -419,18 +430,41 @@ return (
                     type="password"
                     placeholder="*****************"
                     value={password}
+                    inputRef={iRef}
                     onChange={(e) => setPassword(e.target.value)}
+                    onKeyDown={
+                      (e) => {
+                        if (e.key === "Enter") {
+                          accessChannel();
+                          setModal(false);
+                          iRef?.current?.blur();
+                          setPassword("");
+                        }
+                      }
+                    }
                     />
-                <Button
-                    className="h-8 w-auto md:w-20 bg-primary-500 text-white text-xs rounded-full mt-2"
+                <div className="flex flex-row">
+                  <Button
+                    className="h-8 w-auto md:w-20 !bg-inherit text-white text-xs rounded-full mt-2 mr-2"
                     onClick={() => {
-                        accessChannel()
                         setModal(false);
-                        setPassword("");
+                        iRef?.current?.blur();
                       }}
                     >
-                    <span className="text-xs">Access</span>
-                </Button>
+                    <span className="text-xs">Cancel</span>
+                  </Button>
+                  <Button
+                      className="h-8 w-auto md:w-20 bg-primary-500 text-white text-xs rounded-full mt-2"
+                      onClick={() => {
+                          accessChannel()
+                          setModal(false);
+                          setPassword("");
+                          iRef?.current?.blur();
+                        }}
+                      >
+                      <span className="text-xs">Access</span>
+                  </Button>
+                </div>
             </div>
         </Modal>
         )

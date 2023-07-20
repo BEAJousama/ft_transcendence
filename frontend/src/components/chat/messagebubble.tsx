@@ -30,7 +30,7 @@ import RightClickMenu, { RightClickMenuItem } from "../rightclickmenu";
 import axios from "axios";
 import useSWR from "swr";
 
-const MessageBubble = ({ className, setOpen, setCurrentChannel, currentChannel, channelMember, messages }: {className?: string, setOpen: any, setCurrentChannel: any, currentChannel?: any, channelMember?: any, messages: any[]}) => {
+const MessageBubble = ({ className, setOpen, setCurrentChannel, currentChannel, channelMember, messages, inputRef }: {className?: string, setOpen: any, setCurrentChannel: any, currentChannel?: any, channelMember?: any, messages: any[], inputRef:any}) => {
   const [value, setValue] = useState("");
   const [showPicker, setShowPicker] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -60,17 +60,11 @@ const MessageBubble = ({ className, setOpen, setCurrentChannel, currentChannel, 
   const [blocking, setBlocking] = useState<any[]>(user?.blocking?.map((blocking)=> {return blocking.blockerId}) as any[]);
   const [blocked, setBlocked] = useState<any[]>(user?.blockers?.map((blocker)=> {return blocker.blockingId}) as any[]);
   
-  const inputRef = useRef<HTMLInputElement>(null);
   const isBlocked = (currentChannel?.type === "CONVERSATION" && blocked.includes(currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.id));
   const isBlocking = (currentChannel?.type === "CONVERSATION" && blocking.includes(currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.id));
   
   useEffect(() => {
-  if (inputRef.current)
-  {
-    inputRef.current?.focus();
     setValue("");
-    // inputRef.current?.setSelectionRange(0,0);
-  }
 }, [currentChannel]);
 
 let { data: users } = useSWR('api/users', fetcher, {
@@ -84,7 +78,6 @@ const getBlocking = async () => {
   if (res === undefined)
     return;
   setBlocking(res.map((blocking : any)=> {return blocking.blockerId}));
-  console.log(blocking);
 }
 const getBlocked = async () => {
   const res = await fetcher(`api/users/${user?.id}/blocked-users`);
@@ -93,7 +86,6 @@ const getBlocked = async () => {
 
   //map with blockingId
   setBlocked(res.map((blocker : any)=> {return blocker.blockingId}));
-  console.log(blocked);
 }
 
 useEffect(() => {
@@ -198,15 +190,16 @@ useEffect(() => {
 
   const handleEditChannelPassword = () => {
     socket?.emit("channel_update", { id: currentChannel?.id, access_pass: accessPassword, type: "access_pass" });
+    setAccessPassword("");
   };
 
   const handleEditChannelVisibility = () => {
     socket?.emit("channel_update", { id: currentChannel?.id, visibility: visibility || currentChannel?.visiblity, type: "visibility", password});
+    setPassword("");
   };
 
   const handleEditChannelAvatar = () => {
     socket?.emit("channel_update", { id: currentChannel?.id, avatar: previewImage, type: "avatar"});
-    
   };
 
   const  handleBlockUser = async (userId: number) =>
@@ -249,7 +242,6 @@ useEffect(() => {
         socket?.emit("getChannelMessages", {channelId : currentChannel?.id, user: {id: user?.id}});
         socket?.emit("blockUser", {blockerId: user?.id, blockedId: userId});
     }
-    socket?.emit("getChannels")
   }
   
   const handleRemovePassword = () =>

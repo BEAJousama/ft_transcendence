@@ -8,6 +8,7 @@ import { BsKeyFill, BsFillPeopleFill } from "react-icons/bs";
 import Input from "../input";
 import { useNavigate } from 'react-router-dom';
 import Card from "../card";
+import React from "react";
 
 const ChatBanner = ({
     channel,
@@ -19,6 +20,8 @@ const ChatBanner = ({
     const {socket} = useContext(ChatContext);
     const [password, setPassword] = useState("");
     const [showModal, setshowModal] = useState(false);
+    const inputRef = React.useRef<HTMLInputElement>(null);
+    
     const channelMembers = channel?.channelMembers?.filter((member : any) =>
     {
         return member.status === "ACTIVE";
@@ -26,6 +29,7 @@ const ChatBanner = ({
     const handleJoin = () => {
         if (channel?.visiblity === "PROTECTED") {
             setshowModal(true);
+            inputRef?.current?.focus();
         } else 
         {
             socket?.emit("channel_join", { channelId: channel?.id, userId: user?.id });
@@ -85,18 +89,39 @@ const ChatBanner = ({
                             placeholder="*****************"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
+                            inputRef={inputRef}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                    socket?.emit("channel_join", {channelId: channel?.id, userId: user?.id, password: password});
+                                    socket?.emit('channel_member', {userId : user?.id, channelId : channel?.id });
+                                    setshowModal(false);
+                                    navigate(`/chat`);      
+                                }
+                            }
+                            }
                             />
-                        <Button
-                            className="h-8 w-auto md:w-20 bg-primary-500 text-white text-xs rounded-full mt-2"
-                            onClick={() => {
-                                socket?.emit("channel_join", {channelId: channel?.id, userId: user?.id, password: password});
-                                socket?.emit('channel_member', {userId : user?.id, channelId : channel?.id });
-                                setshowModal(false);
-                                navigate(`/chat`);      
-                            }}
-                            >
-                            <span className="text-xs">Join</span>
-                        </Button>
+                        <div className="flex flex-row">
+                            <Button
+                                className="h-8 w-auto md:w-20 !bg-inherit text-white text-xs rounded-full mt-2"
+                                onClick={() => {
+                                    setshowModal(false);
+                                    inputRef?.current?.blur();
+                                }}
+                                >
+                                <span className="text-xs">Cancel</span>
+                            </Button>
+                            <Button
+                                className="h-8 w-auto md:w-20 bg-primary-500 text-white text-xs rounded-full mt-2 ml-3"
+                                onClick={() => {
+                                    socket?.emit("channel_join", {channelId: channel?.id, userId: user?.id, password: password});
+                                    socket?.emit('channel_member', {userId : user?.id, channelId : channel?.id });
+                                    setshowModal(false);
+                                    navigate(`/chat`);      
+                                }}
+                                >
+                                <span className="text-xs">Join</span>
+                            </Button>
+                        </div>
                     </div>
                 </Card>
                 )
