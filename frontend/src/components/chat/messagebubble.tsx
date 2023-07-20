@@ -29,6 +29,8 @@ import UpdateChannel from "./updateChannel";
 import RightClickMenu, { RightClickMenuItem } from "../rightclickmenu";
 import axios from "axios";
 import useSWR from "swr";
+import { toast } from "react-toastify";
+import { set } from "lodash";
 
 const MessageBubble = ({ className, setOpen, setCurrentChannel, currentChannel, channelMember, messages, inputRef }: {className?: string, setOpen: any, setCurrentChannel: any, currentChannel?: any, channelMember?: any, messages: any[], inputRef:any}) => {
   const [value, setValue] = useState("");
@@ -51,6 +53,8 @@ const MessageBubble = ({ className, setOpen, setCurrentChannel, currentChannel, 
   const [manageBans , setManageBans] = useState(false);
   const [deleteChannel, setDeleteChannel] = useState(false);
   const [DmMemu, setDmMenu] = useState(false);
+  const [Setowner, setSetowner] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   
   const navigate = useNavigate();
   const {socket} = useContext(ChatContext);
@@ -173,8 +177,39 @@ useEffect(() => {
     }
   };
 
+  const handleLeave = () => {
+    if (currentChannel?.channelMembers?.filter((member: any) => member.role === "OWNER").length === 1)
+    {
+      if (currentChannel?.channelMembers?.filter((member: any) => member.status === "ACTIVE").length === 1 && channelMember?.role === "OWNER")
+      {
+        socket?.emit("channel_remove", { channelId: currentChannel?.id, userId: user?.id });
+        setShowModal(false);
+        setSetowner(false);
+        setCurrentChannel(null);
+        inputRef.current?.blur();
+        setOpen(false);
+        return;
+      }
+      toast.error("You can't leave this channel until you set a new owner!");
+    }
+    else
+    {
+      socket?.emit("channel_leave", { channelId: currentChannel?.id, userId: user?.id });
+      setShowModal(false);
+      setSetowner(false);
+    }
+  };
+
   const leaveGroup = () => {
-    socket?.emit("channel_leave", { channelId: currentChannel?.id, userId: user?.id });
+    // check if user is the only owner if so he can't leave until he set a new owner
+    if (currentChannel?.channelMembers?.filter((member: any) => member.role === "OWNER").length === 1 && currentChannel?.channelMembers?.filter((member: any) => member.role === "OWNER")[0].userId === user?.id)
+    {
+      setShowModal(false);
+      setSetowner(true);
+      return;
+    }
+    setShowModal(false);
+    setShowConfirm(true);
   };
 
   const handleDeleteChannel = () => {
@@ -403,8 +438,127 @@ useEffect(() => {
           />
         </div>
       )}
+      {
+        Setowner && (
+          <Modal
+          className="z-10 bg-secondary-800
+          border-none flex flex-col items-center justify-start shadow-lg shadow-secondary-500 gap-4 text-white min-w-[90%]
+          lg:min-w-[40%] xl:min-w-[800px] animate-jump-in animate-ease-out animate-duration-400"
+          >
+            <div className="flex flex-col w-full">
+              <div className="flex w-full items-center justify-between">
+                <div
+                  className="!bg-inherit !text-white hover:bg-inherit ml-2">
+                    Set new owner
+                  </div>
+                <Button
+                  variant="text"
+                  className=" !bg-inherit text-2xl !text-white hover:bg-inherit"
+                  onClick={() => {
+                    setSetowner(false);
+                  }}
+                  >
+                  <RiCloseFill /> 
+                </Button>
+              </div>
+              <Divider center className="w-full"/>
+            </div>
+            <div className="flex w-full flex-col items-start justify-start gap-4 bg-inherit pt-4">
+                {currentChannel?.channelMembers?.filter((member : any) => member.status !== "BANNED" && member.status !== "LEFT" && !checkBlock(member.userId)).map((member : any) => {
+                  return (
+                    <ProfileBanner
+                    channelMember={channelMember}
+                    user={user?.id}
+                    showOptions
+                    showStatus
+                    key={member.userId}
+                    status={member.status}
+                    role={member.role}
+                    channelId={currentChannel?.id}
+                    userId={member.userId}
+                    name={member.user.username}
+                    avatar={member.user.avatar}
+                    description={member.user.status}
+                    />
+                    );
+                  })}
+                <div className="flex flex-row items-center justify-center self-center pt-3">
+                  <Button
+                    className="!bg-inherit !text-white hover:bg-inherit justify-between w-full !font-medium mr-3"
+                    onClick={() => {
+                      setSetowner(false);
+                    }}
+                    >
+                    Cancel
+                  </Button>
+                  <Button
+                    className="bg-primary-500  justify-between w-full !font-medium mr-1"
+                    onClick={() => {
+                      handleLeave();
+                    }}
+                    >
+                    <RiLogoutBoxRLine />
+                    Leave
+                  </Button>
+                </div>
+            </div>
+          </Modal>
+        )
+      }
+      {
+        showConfirm && (
+          <Modal
+          className="z-10 bg-secondary-800
+          border-none flex flex-col items-center justify-start shadow-lg shadow-secondary-500 gap-4 text-white min-w-[90%]
+          lg:min-w-[40%] xl:min-w-[800px] animate-jump-in animate-ease-out animate-duration-400"
+          >
+            <div className="flex flex-col w-full">
+              <div className="flex w-full items-center justify-between">
+                <div
+                  className="!bg-inherit !text-white hover:bg-inherit ml-2">
+                    Do you really want to leave ?
+                  </div>
+                <Button
+                  variant="text"
+                  className=" !bg-inherit text-2xl !text-white hover:bg-inherit"
+                  onClick={() => {
+                    setShowConfirm(false);
+                  }}
+                  >
+                  <RiCloseFill /> 
+                </Button>
+              </div>
+              <Divider center className="w-full"/>
+            </div>
+            <div className="flex flex-row items-center justify-center self-center pt-3">
+              <Button
+                className="!bg-inherit !text-white hover:bg-inherit justify-between w-full !font-medium mr-3"
+                onClick={() => {
+                  setShowConfirm(false);
+                }}
+                >
+                Cancel
+              </Button>
+              <Button
+                className="bg-primary-500  justify-between w-full !font-medium mr-1"
+                onClick={() => {
+                  socket?.emit("channel_leave", { channelId: currentChannel?.id, userId: user?.id });
+                  setShowConfirm(false);
+                }}
+                >
+                <RiLogoutBoxRLine />
+                Leave
+              </Button>
+            </div>
+          </Modal>
+          )
+        }
       {showModal &&  (
-        <Modal>
+        <Modal
+        className="z-10 bg-secondary-800 
+        border-none flex flex-col items-center justify-start shadow-lg shadow-secondary-500 gap-4 text-white min-w-[90%]
+        lg:min-w-[40%] xl:min-w-[800px] animate-jump-in animate-ease-out animate-duration-400"
+        >
           <div className="flex flex-col w-full">
             <div className="flex w-full items-center justify-between">
               {
@@ -523,10 +677,9 @@ useEffect(() => {
                     <RiDeleteBin6Line />
               </Button>
                   <Button
-                    className="w-[50%] md:w-[30%] justify-center mt-4 self-center"
+                    className="w-[50%] md:w-[30%] lg:w[50%] 2xl:w-[50%] justify-center self-center mt-4"
                     onClick={() => {
                       leaveGroup();
-                      setShowModal(false);
                     }}
                     >
                     <RiLogoutBoxRLine />
@@ -557,10 +710,9 @@ useEffect(() => {
                     );
                   })}
                   <Button
-                    className="w-[50%] md:w-[30%] justify-center self-center mt-4"
+                    className="w-[50%] md:w-[30%] lg:w[50%] 2xl:w-[50%] justify-center self-center mt-4"
                     onClick={() => {
                       leaveGroup();
-                      setShowModal(false);
                     }}
                     >
                     <RiLogoutBoxRLine />

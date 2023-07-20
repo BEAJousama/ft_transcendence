@@ -371,6 +371,32 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         payload.userId,
       );
     } catch (err) {
+      client.emit(EVENT.ERROR, err.message);
+      throw new WsException({
+        error: EVENT.ERROR,
+        message: err.message,
+      });
+    }
+  }
+
+  @SubscribeMessage(EVENT.SET_OWNER)
+  async setOwner(client: Socket, payload: any) {
+    try {
+      await this.channelService.setAsOwner(
+        parseInt(client.data.sub),
+        parseInt(payload.userId),
+        parseInt(payload.channelId),
+      );
+
+      await this.updateCurrentChannel(payload.channelId, client);
+      await this.sendNotificationToUser(
+        client.data.sub,
+        payload.channelId,
+        ' has changed your role in the channel ',
+        payload.userId,
+      );
+    } catch (err) {
+      client.emit(EVENT.ERROR, err.message);
       throw new WsException({
         error: EVENT.ERROR,
         message: err.message,

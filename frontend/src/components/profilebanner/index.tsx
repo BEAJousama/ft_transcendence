@@ -95,6 +95,10 @@ const ProfileBanner = ({
     socket?.emit("set_admin", {userId, channelId});
   };
 
+  const setAsOwner = () => {
+    socket?.emit("set_owner", {userId, channelId});
+  };
+
   const banUser = () => {
     socket?.emit("ban_user", {userId, channelId});
   };
@@ -130,7 +134,7 @@ const ProfileBanner = ({
       <div
         className={clsx(
           "flex w-full  flex-col truncate text-sm md:max-w-full ",
-          showStatus && "max-w-[100px]"
+          showStatus && "max-w-[100%]"
         )}
       >
         <span className="text-white">{name}</span>
@@ -206,7 +210,7 @@ const ProfileBanner = ({
                 </RightClickMenuItem>
                 {((channelMember.role === "ADMIN" || channelMember.role === "OWNER") && role !== "OWNER") &&
                 <Fragment>
-                      <RightClickMenuItem
+                    <RightClickMenuItem
                       onClick={() => {
                         setAsAdmin();
                         setShowMenu(false);
@@ -214,6 +218,15 @@ const ProfileBanner = ({
                       >
                       <MdOutlineAdminPanelSettings />
                       {role === "ADMIN" ? "Remove Admin" : "Set As Admin"}
+                    </RightClickMenuItem>
+                    <RightClickMenuItem
+                      onClick={() => {
+                        setAsOwner();
+                        setShowMenu(false);
+                      }}
+                      >
+                      <MdOutlineAdminPanelSettings />
+                      {role === "OWNER" ? "Remove Owner" : "Set As Owner"}
                     </RightClickMenuItem>
                     <RightClickMenuItem
                       onClick={() => {
@@ -275,7 +288,11 @@ const ProfileBanner = ({
       {
         muteModal &&
         (
-          <Modal>
+          <Modal
+          className="z-10 bg-secondary-800 
+          border-none flex flex-col items-center justify-start shadow-lg shadow-secondary-500 gap-4 text-white min-w-[90%]
+          lg:min-w-[40%] xl:min-w-[800px] animate-jump-in animate-ease-out animate-duration-400"
+          >
             <div className="grid grid-rows w-full">
               <div className="grid grid-cols-10 justify-center items-center m-5">
                 <div className="col-span-8 gap-4 mr-3">

@@ -602,6 +602,7 @@ export class ChannelService {
           },
           data: {
             status: MemberStatus.LEFT,
+            role: Role.MEMEBER,
           },
         });
       }
@@ -767,6 +768,7 @@ export class ChannelService {
         },
         data: {
           status: MemberStatus.LEFT,
+          role: Role.MEMEBER,
         },
       });
       await this.prisma.channel.update({
@@ -862,39 +864,42 @@ export class ChannelService {
 
   async setAsOwner(
     ownerId: number,
-    channelId: number,
     userId: number,
+    channelId: number,
   ): Promise<ChannelMember> {
-    const chMem = await this.prisma.channelMember.findFirst({
+    const owner = await this.prisma.channelMember.findUnique({
       where: {
-        userId,
-        channelId,
+        userId_channelId: {
+          userId: ownerId,
+          channelId,
+        },
+      },
+    });
+    const chMem = await this.prisma.channelMember.findUnique({
+      where: {
+        userId_channelId: {
+          userId,
+          channelId,
+        },
       },
     });
     const newRole: Role = chMem.role === Role.OWNER ? Role.MEMEBER : Role.OWNER;
-    const channelMember = await this.prisma.channelMember.updateMany({
+    if (owner.role !== Role.OWNER) {
+      throw new Error(
+        'Cannot set user as owner : You are not Owner of the channel',
+      );
+    }
+    await this.prisma.channelMember.update({
       where: {
-        userId,
-        channelId,
-        channel: {
-          channelMembers: {
-            some: {
-              userId: ownerId,
-              role: Role.OWNER,
-            },
-          },
+        userId_channelId: {
+          userId,
+          channelId,
         },
       },
       data: {
         role: newRole,
       },
     });
-
-    if (channelMember.count == 0) {
-      throw new Error(
-        'Cannot set user as admin : You are not Admin or Owner of the channel',
-      );
-    }
     return chMem;
   }
 
@@ -1284,6 +1289,7 @@ export class ChannelService {
         },
         data: {
           status: MemberStatus.LEFT,
+          role: Role.MEMEBER,
         },
       });
     }
