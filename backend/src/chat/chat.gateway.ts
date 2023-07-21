@@ -333,6 +333,29 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
+  @SubscribeMessage(EVENT.CHANNEL_ACCESS)
+  async ChannelAccess(client: Socket, payload: any) {
+    try {
+      const channelMember =
+        await this.channelService.getChannelMemberByUserIdAndChannelId(
+          client.data.sub,
+          payload.channelId,
+        );
+      if (!channelMember) {
+        client.emit(EVENT.ERROR, 'You are not a member of this channel !');
+      }
+      const channel = await this.channelService.getChannelById(
+        payload.channelId,
+      );
+      client.emit(EVENT.CHANNEL_ACCESS, channel);
+    } catch (err) {
+      throw new WsException({
+        error: EVENT.ERROR,
+        message: err.message,
+      });
+    }
+  }
+
   @SubscribeMessage(EVENT.CHANNEL_LEAVE)
   async leaveChannel(client: Socket, payload: any) {
     try {
@@ -545,7 +568,15 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         payload.channelId,
         client.data.sub,
       );
-      client.emit(EVENT.GET_CH_MSSGS, messages);
+      const members = await this.channelService.getChannelMembersByChannelId(
+        payload.channelId,
+      );
+      members.forEach((member) => {
+        const sockets = this.getConnectedUsers(member.userId);
+        sockets.forEach((s) => {
+          this.server.to(s.id).emit(EVENT.GET_CH_MSSGS, messages);
+        });
+      });
     } catch (err) {
       throw new WsException({
         error: EVENT.GET_CH_MSSGS,

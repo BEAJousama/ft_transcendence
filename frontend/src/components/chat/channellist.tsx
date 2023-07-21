@@ -1,4 +1,4 @@
-import {useCallback, useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import Channel from "./channel";
 import {fetcher} from "../../context/app.context"
 import { AppContext } from "../../context/app.context";
@@ -36,10 +36,8 @@ const ChannelList = ({className, setShowModal, setCurrentChannel, setChannelMemb
   }
 
   const loadMessages = async (channelId: any) => {
-    fetcher(`api/messages/${channelId}/${user?.id}`)
-    .then((messages) => {
-      setMessages(messages);
-    });
+    const messages = fetcher(`api/messages/${channelId}/${user?.id}`)
+    return messages;
   }
   
   const onClick = throttle(async (channel: any): Promise<void | undefined> => {
@@ -53,19 +51,16 @@ const ChannelList = ({className, setShowModal, setCurrentChannel, setChannelMemb
         setOpen(true);
         setCurrentChannel(channel);
         setSelectedChannel(channel);
-        getChannelMember(channel.id);
         setMessages(messages);
         inputRef?.current?.focus();
       } else {
         setModal(true);
         setTempChannel(channel);
-        iRef?.current?.focus();
       }
     } else {
       setOpen(true);
       setCurrentChannel(channel);
       setSelectedChannel(channel);
-      getChannelMember(channel.id);
       setMessages(messages);
       inputRef?.current?.focus();
     }
@@ -81,7 +76,6 @@ const ChannelList = ({className, setShowModal, setCurrentChannel, setChannelMemb
     {
       setOpen(true);
       setCurrentChannel(tempChannel);
-      getChannelMember(tempChannel.id);
       setSelectedChannel(tempChannel);
       loadMessages(tempChannel.id);
       inputRef?.current?.focus();
@@ -119,16 +113,6 @@ const ChannelList = ({className, setShowModal, setCurrentChannel, setChannelMemb
   }, [socket, user?.id]);
 
   useEffect(() => {
-    if (selectedChannel) {
-      fetcher(`api/channels/member/${user?.id}/${selectedChannel?.id}`).then
-      ((member) => {
-        setChannelMember(member);
-      }
-      );
-    }
-  }, [selectedChannel, setChannelMember, user?.id]);
-
-  useEffect(() => {
     if (search === "") {
       getuserChannels(user?.id);
       getNewChannel();
@@ -139,17 +123,20 @@ const ChannelList = ({className, setShowModal, setCurrentChannel, setChannelMemb
       inputRef?.current?.blur();
       setOpen(false);
     });
+
+    socket?.on('channel_access', (data: any) => {
+        setOpen(true);
+        setCurrentChannel(data);
+        setSelectedChannel(data);
+        loadMessages(data.id);
+        inputRef?.current?.focus();
+    });
     
     socket?.on('channel_delete', () => {
       setCurrentChannel();
       inputRef?.current?.blur();
       setOpen(false);
     });
-
-    socket?.on("getChannelMessages", (message: any) => {
-      setMessages(message);
-    }
-    );
     return () => {
       socket?.off('channel_leave');
       socket?.off('channel_delete');
@@ -163,7 +150,6 @@ const ChannelList = ({className, setShowModal, setCurrentChannel, setChannelMemb
     //eslint-disable-next-line
   });
 
-  
   const getuserChannels = async (id: any) => {
         socket?.on('getChannels', (channels: any) => {
           if (!channels) return;   
@@ -179,57 +165,46 @@ const ChannelList = ({className, setShowModal, setCurrentChannel, setChannelMemb
           });
           setChannels(channels);
         });
-      }
+  }
       
-      const getArchiveChannels = async (id: any) => {
-        // socket?.emit('getArchiveChannels', {user: {id}});
-        socket?.on('getArchiveChannels', (channels: any) => {
-          if (!channels) return;   
-          channels?.sort((a: any, b: any) => {
+  const getArchiveChannels = async (id: any) => {
+    socket?.on('getArchiveChannels', (channels: any) => {
+      if (!channels) return;   
+      channels?.sort((a: any, b: any) => {
         if (a.updatedAt < b.updatedAt) return 1;
         else return -1;
       });
       setArchiveChannels(channels); 
+  });
+}
+
+
+  const getNewChannel = async () => {
+    socket?.on('channel_create', (channel: any) => {
+        setCurrentChannel(channel);
+        setSelectedChannel(channel);
+        inputRef?.current?.focus();
+
+      });
+      socket?.on('dm_create', (channel: any) => {
+        setCurrentChannel(channel);
+        setSelectedChannel(channel);
+        inputRef?.current?.focus();
+
     });
-}
-
-
-const getNewChannel = async () => {
-        socket?.on('channel_create', (channel: any) => {
-          // setChannels([...channels, channel]);
-            setCurrentChannel(channel);
-            setSelectedChannel(channel);
-            inputRef?.current?.focus();
-
-          });
-          socket?.on('dm_create', (channel: any) => {
-            // setChannels([...channels, channel]);
-            setCurrentChannel(channel);
-            setSelectedChannel(channel);
-            inputRef?.current?.focus();
-
-        });
-}
-
-const getChannelMember = (channelId: any) => {
-    // socket?.emit('channel_member', {userId : user?.id, channelId : channelId });
-    socket?.on('channel_member', (data: any) => {
-      setChannelMember(data);
-    }
-    );
-}
-
-const onChange = (e: any) => {
-  e.preventDefault();
-  setSearch(e.target.value)
-  if (search !== "") {
-    setChannels(channels.filter((item: any) => item.name.toLowerCase().includes(search.toLowerCase())));
-  } else {
-    getuserChannels(user?.id);
   }
-}
 
-return (
+  const onChange = (e: any) => {
+    e.preventDefault();
+    setSearch(e.target.value)
+    if (search !== "") {
+      setChannels(channels.filter((item: any) => item.name.toLowerCase().includes(search.toLowerCase())));
+    } else {
+      getuserChannels(user?.id);
+    }
+  }
+
+  return (
   <>
     <div className={clsx("lg:col-span-3 col-span-10 flex flex-col justify-start gap-4 py-2 w-full h-screen overflow-y-scroll scrollbar-hide", className && className)}>
       <div className=" relative flex items-center gap-2 w-full pr-2 rounded-xl py-2">

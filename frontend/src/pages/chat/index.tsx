@@ -19,19 +19,8 @@ export default function Chat() {
   const [channelId, setChannelId] = useState<number>(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // useEffect(() => {
-  //   // socket?.emit("getChannelMessages", {channelId : currentChannel?.id, user: {id: user?.id}});
-  //   socket?.on("getChannelMessages", (message: any) => {
-  //     setMessages(message);
-  //   });
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [socket, currentChannel]);
-
   useEffect(() => {
     if (currentChannel?.id === undefined) return;
-    socket?.on("getChannelMessages", (message: any) => {
-      setMessages(message);
-    });
     const intervalId = setInterval(() => {
       fetcher(`api/channels/member/${user?.id}/${currentChannel?.id}`)
         .then((data) => {
@@ -39,16 +28,15 @@ export default function Chat() {
           setIsMuted(data?.status === "MUTED");
         });
     }, 3000);
-    
     return () => clearInterval(intervalId);
   });
 
-
   useEffect(() => {
-
     socket?.on("getChannelMessages", (messages: any) => {
-      setMessages(messages);
+      if (messages[0]?.receiverId === currentChannel?.id)
+        setMessages(messages);
     });
+
     socket?.on('channel_member', (data: any) => {
       console.log("channel_member : ", data?.id)
       setChannelMember(data);

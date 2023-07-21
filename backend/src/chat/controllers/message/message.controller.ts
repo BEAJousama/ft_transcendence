@@ -3,12 +3,9 @@ import {
   Get,
   HttpException,
   HttpStatus,
-  Post,
   Req,
-  UseGuards,
 } from '@nestjs/common';
 import { Request } from 'express';
-import { JwtAuthGuard } from 'src/auth/guards';
 import { MessageService } from 'src/chat/services/message/message.service';
 
 /* Here we have controllers to do the following through HTTP requests :

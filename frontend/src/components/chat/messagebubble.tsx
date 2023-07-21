@@ -30,7 +30,6 @@ import RightClickMenu, { RightClickMenuItem } from "../rightclickmenu";
 import axios from "axios";
 import useSWR from "swr";
 import { toast } from "react-toastify";
-import { set } from "lodash";
 
 const MessageBubble = ({ className, setOpen, setCurrentChannel, currentChannel, channelMember, messages, inputRef }: {className?: string, setOpen: any, setCurrentChannel: any, currentChannel?: any, channelMember?: any, messages: any[], inputRef:any}) => {
   const [value, setValue] = useState("");
@@ -119,22 +118,13 @@ useEffect(() => {
     setGroupName(currentChannel?.name || "");
   }, [currentChannel]);
   
-  // useEffect(() => {
-  //   socket?.emit("getChannelMessages", {channelId : currentChannel?.id, user: {id: user?.id}});
-  //   socket?.on("getChannelMessages", (message: any) => {
-  //     setMessages(message);
-  //     setSpinner(false);
-  //   });
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [socket, currentChannel]);
-  
   useEffect(() => {
     autoScroll();
   }, []);
 
   useEffect(() => {
-    socket?.on("message", () => {
-      autoScroll();
+    socket?.on("message", (data) => {
+        autoScroll();
     });
     socket?.on("blockUser", () => {
       socket?.emit("getChannelMessages", {channelId : currentChannel?.id, user: {id: user?.id}});
@@ -334,15 +324,25 @@ useEffect(() => {
             { DmMemu && (
               <div ref={ref1} className="absolute right-4 top-10 md:right-8 lg:right:4 xl:right-10 2xl:right-17  w-[150px]">
                 <RightClickMenu >
-                <RightClickMenuItem
-                onClick={() => {
-                  navigate(`/profile/${currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.id}`);
-                }}
-                >
-                  Go to profile
-
-                </RightClickMenuItem>
-                <RightClickMenuItem
+                  {!checkBlock(currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.id) && (
+                    <>
+                    <RightClickMenuItem
+                    onClick={() => {
+                      
+                    }}
+                    >
+                      Invite to play
+                    </RightClickMenuItem>
+                    <RightClickMenuItem
+                    onClick={() => {
+                      navigate(`/profile/${currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.id}`);
+                    }}
+                    >
+                      Go to profile
+                    </RightClickMenuItem>
+                    </>
+                  )}
+                  <RightClickMenuItem
                     onClick={() => {
                       !isBlocked ? handleBlockUser(currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.id) :
                       handleUnblockUser(currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.id)

@@ -116,6 +116,7 @@ export class ChannelService {
           visiblity: true,
           createAt: true,
           updatedAt: true,
+          isacessPassword: true,
           archivedFor: true,
           mutedFor: true,
           unreadFor: true,
@@ -138,7 +139,7 @@ export class ChannelService {
     }
   }
 
-  async getArchivedChannelsByUserId(userId: number): Promise<Channel[]> {
+  async getArchivedChannelsByUserId(userId: number): Promise<any[]> {
     try {
       const channels = await this.prisma.channel.findMany({
         where: {
@@ -152,18 +153,44 @@ export class ChannelService {
               id: userId,
             },
           },
+          deletedFor: {
+            none: {
+              id: userId,
+            },
+          },
         },
-        include: {
+        select: {
+          id: true,
+          name: true,
+          type: true,
+          avatar: true,
+          userId: true,
+          lastestMessageDate: true,
+          visiblity: true,
+          createAt: true,
+          updatedAt: true,
           archivedFor: true,
-          unreadFor: true,
           mutedFor: true,
+          unreadFor: true,
           pinnedFor: true,
+          deletedFor: true,
+          bannedUsers: true,
+          kickedUsers: true,
           channelMembers: {
             include: {
               user: true,
             },
           },
-          messages: true,
+          messages: {
+            where: {
+              NOT: {
+                senderId: {
+                  in: await this.chatService.getBlockedUserIds(userId),
+                },
+              },
+            },
+          },
+          isacessPassword: true,
         },
       });
       return channels;
