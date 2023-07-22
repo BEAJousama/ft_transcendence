@@ -17,6 +17,7 @@ export default function Chat() {
   const [isMuted, setIsMuted] = useState<boolean>(channelMember?.status === "MUTED");
   const [messages, setMessages] = useState<any[]>([]);
   const [channelId, setChannelId] = useState<number>(0);
+  const [messageId, setMessageId] = useState<number>(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -27,29 +28,28 @@ export default function Chat() {
           setChannelMember(data);
           setIsMuted(data?.status === "MUTED");
         });
-    }, 3000);
+    }, 300);
     return () => clearInterval(intervalId);
   });
 
   useEffect(() => {
-    socket?.on("getChannelMessages", (messages: any) => {
-      if (messages[0]?.receiverId === currentChannel?.id)
+    socket?.on("getChannelMessages", (mssg: any) => {
+      if (mssg[0]?.receiverId === currentChannel?.id)
+        setMessages(mssg);
+      else
         setMessages(messages);
     });
 
     socket?.on('channel_member', (data: any) => {
-      console.log("channel_member : ", data?.id)
       setChannelMember(data);
       setIsMuted(data?.status === "MUTED");
     });
 
     socket?.on('channel_join', (data: any) => {
-      console.log("channel_join : ", data?.id)
       setCurrentChannel(data);
     });
 
     socket?.on("channel_remove", (data: any) => {
-      console.log("channel_remove : ", data?.id)
       if (parseInt(data?.id) === parseInt(currentChannel?.id))
       {
         setCurrentChannel("");

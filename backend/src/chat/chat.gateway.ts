@@ -217,6 +217,23 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
+  @SubscribeMessage(EVENT.RESET_MSSG_COUNT)
+  async resetMssgCount(client: Socket, payload: any) {
+    try {
+      await this.messageService.resetMessageCount(
+        client.data.sub,
+        payload.channelId,
+      );
+      await this.sendChannelsToChannelMembers(payload.channelId);
+      // await this.updateCurrentChannel(payload.channelId, client);
+    } catch (err) {
+      throw new WsException({
+        error: EVENT.ERROR,
+        message: err.message,
+      });
+    }
+  }
+
   @SubscribeMessage(EVENT.CHANNEL_CREATE)
   async createChannel(client: Socket, payload: ChannelDto) {
     try {
@@ -1043,18 +1060,19 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       channelId,
     );
     members.forEach(async (member) => {
-      if (member.status === MemberStatus.BANNED) return;
-      const sockets = await this.getConnectedUsers(member.userId);
-      const channels = await this.channelService.getChannelsByUserId(
-        member.userId,
-      );
-      const archived = await this.channelService.getArchivedChannelsByUserId(
-        member.userId,
-      );
-      sockets.forEach((socket) => {
-        this.server.to(socket.id).emit(EVENT.GET_CHANNELS, channels);
-        this.server.to(socket.id).emit(EVENT.GET_ARCHIVED_CHANNELS, archived);
-      });
+      if (member.status === MemberStatus.ACTIVE) {
+        const sockets = await this.getConnectedUsers(member.userId);
+        const channels = await this.channelService.getChannelsByUserId(
+          member.userId,
+        );
+        const archived = await this.channelService.getArchivedChannelsByUserId(
+          member.userId,
+        );
+        sockets.forEach((socket) => {
+          this.server.to(socket.id).emit(EVENT.GET_CHANNELS, channels);
+          this.server.to(socket.id).emit(EVENT.GET_ARCHIVED_CHANNELS, archived);
+        });
+      }
     });
   }
 

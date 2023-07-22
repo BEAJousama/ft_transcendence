@@ -59,8 +59,15 @@ export class ChannelService {
           bannedUsers: true,
           kickedUsers: true,
           channelMembers: {
-            include: {
+            select: {
               user: true,
+              newMessagesCount: true,
+              status: true,
+              role: true,
+              banDuration: true,
+              banStartTime: true,
+              userId: true,
+              channelId: true,
             },
           },
           messages: {

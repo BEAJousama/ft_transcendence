@@ -41,6 +41,9 @@ const ChannelList = ({className, setShowModal, setCurrentChannel, setChannelMemb
   }
   
   const onClick = throttle(async (channel: any): Promise<void | undefined> => {
+    // console.log(channel?.channelMembers);
+    // console.log(channel.channelMembers?.filter((member: any) => member.userId === user?.id)[0].newMessagesCount)
+    socket?.emit('reset_mssg_count', {channelId: channel.id});
     const [member, messages] = await Promise.all([
       fetcher(`api/channels/member/${user?.id}/${channel.id}`),
       loadMessages(channel.id)
@@ -284,7 +287,7 @@ const ChannelList = ({className, setShowModal, setCurrentChannel, setChannelMemb
                   ? channel.messages[channel.messages.length - 1]?.date || channel.createAt || ""
                   : channel.createAt || ""
               }
-              newMessages={channel.newMessagesCount}
+              newMessages={channel.channelMembers?.filter((member: any) => member.userId === user?.id)[0].newMessagesCount}
               userStatus={channel.type !== "CONVERSATION" ? false : (channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.status === "ONLINE") && !checkBlock(channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.id)}
               onClick={() => onClick(channel)}
               selected={isActive}
@@ -315,7 +318,7 @@ const ChannelList = ({className, setShowModal, setCurrentChannel, setChannelMemb
                                 ? channel.messages[channel.messages.length - 1]?.date || channel.createAt || ""
                                 : channel.createAt || ""
                             }
-                            newMessages={channel.newMessagesCount}
+                            newMessages={channel.channelMembers?.filter((member: any) => member.userId === user?.id)[0].newMessagesCount}
                             userStatus={channel.type !== "CONVERSATION" ? false : (channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.status === "ONLINE") && !checkBlock(channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.id)}
                             onClick={() => onClick(channel)}
                             selected={isActive}
@@ -349,7 +352,7 @@ const ChannelList = ({className, setShowModal, setCurrentChannel, setChannelMemb
                         ? channel.messages[channel.messages.length - 1]?.date || channel.createAt || ""
                         : channel.createAt || ""
                     }
-                    newMessages={channel.newMessagesCount}
+                    newMessages={channel.channelMembers?.filter((member: any) => member.userId === user?.id)[0].newMessagesCount}
                     userStatus={channel.type !== "CONVERSATION" ? false : (channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.status === "ONLINE") && !checkBlock(channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.id)}
                     onClick={() => onClick(channel)}
                     selected={isActive}
@@ -380,7 +383,7 @@ const ChannelList = ({className, setShowModal, setCurrentChannel, setChannelMemb
                                       ? channel.messages[channel.messages.length - 1]?.date || channel.createAt || ""
                                       : channel.createAt || ""
                                 }
-                                newMessages={channel.newMessagesCount}
+                                newMessages={channel.channelMembers?.filter((member: any) => member.userId === user?.id)[0].newMessagesCount}
                                 userStatus={channel.type !== "CONVERSATION" ? false : (channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.status === "ONLINE") && !checkBlock(channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.id)}
                                 onClick={() => onClick(channel)}
                                 selected={isActive}

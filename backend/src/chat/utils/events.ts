@@ -55,3 +55,4 @@ export const CHECK_ACCESS_PASS = 'check_access_pass';
 export const BLOCK_USER = 'blockUser';
 export const REFRESH_CHANNEL = 'refresh_channel';
 export const CHANNEL_ACCESS = 'channel_access';
+export const RESET_MSSG_COUNT = 'reset_mssg_count';

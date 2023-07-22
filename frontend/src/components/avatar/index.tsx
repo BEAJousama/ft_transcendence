@@ -14,7 +14,7 @@ const Avatar = ({
   return (
     <div className="relative inline-block">
       <img
-        className={clsx("w-12 h-12 rounded-full border-1 border-white object-cover", className && className)}
+        className={clsx("min-w-12 min-h-12 w-12 h-12 rounded-full border-1 border-white object-cover", className && className)}
         src={src}
         alt={alt}
         />

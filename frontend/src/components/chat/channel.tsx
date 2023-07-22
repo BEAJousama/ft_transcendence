@@ -41,6 +41,7 @@ const Channel = ({
   pinned,
   userStatus,
   selected,
+  newMessages,
 }: ChannelProps) => {
 
   const {socket} = useContext(ChatContext);
@@ -132,19 +133,22 @@ const Channel = ({
       socket?.emit("mark_read", data);
     };
 
+
   return (
     <div
-      className={clsx("relative flex items-center gap-2 w-full px-4 cursor-pointer hover:bg-tertiary-700 rounded-xl py-2 ", selected && "bg-tertiary-600")}
+      className={clsx("relative flex items-center justify-between gap-[10px] w-full px-4 cursor-pointer hover:bg-tertiary-700 rounded-xl py-2 ", selected && "bg-tertiary-600")}
       onContextMenu={handleContextMenu}
       onClick={() => {
         onClick && onClick();
       }}
       ref={ref}
     >
-      <Avatar src={avatar!} alt="" status={userStatus}/>
-      <div className="flex flex-col w-full text-sm truncate">
-        <span className="text-white">{name!}</span>
-        <span className="text-secondary-300">{description!}</span>
+      <div className="flex items-center gap-2">
+        <Avatar src={avatar!} alt="" status={userStatus}/>
+        <div className="flex flex-col text-sm truncate">
+          <span className="text-white">{name!}</span>
+          <span className="text-secondary-300">{description!}</span>
+        </div>
       </div>
       <div className="flex items-right flex-col text-black text-sm justify-end">
         <span className={clsx("p-0 w-14", unread ? "text-primary-500" : "text-secondary-300" )}>
@@ -153,7 +157,7 @@ const Channel = ({
         <div className="flex items-center gap-2 justify-end">
           {unread && (
           <span className="flex items-center justify-center bg-primary-500  text-xs rounded-full w-5 h-5">
-            {}
+            {newMessages !== 0 ? newMessages : ""}
           </span>
           )}
           {muted && <BiVolumeMute />}

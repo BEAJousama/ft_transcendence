@@ -67,29 +67,81 @@ export class MessageService {
           member.status !== MemberStatus.BANNED &&
           member.status !== MemberStatus.LEFT
         ) {
-          await this.prisma.channel.update({
-            where: {
-              id: data.receiverId,
-            },
-            data: {
-              newMessagesCount: {
-                increment: 1,
+          if (member.userId != data.senderId) {
+            await this.prisma.channel.update({
+              where: {
+                id: data.receiverId,
               },
-              deletedFor: {
-                disconnect: {
-                  id: member.userId,
+              data: {
+                deletedFor: {
+                  disconnect: {
+                    id: member.userId,
+                  },
+                },
+                unreadFor: {
+                  connect: {
+                    id: member.userId,
+                  },
+                },
+                lastestMessageDate: message.date,
+                updatedAt: message.date,
+              },
+            });
+            await this.prisma.channelMember.update({
+              where: {
+                userId_channelId: {
+                  userId: member.userId,
+                  channelId: data.receiverId,
                 },
               },
-              lastestMessageDate: message.date,
-              updatedAt: message.date,
-            },
-          });
+              data: {
+                newMessagesCount: {
+                  increment: 1,
+                },
+              },
+            });
+          }
         }
       });
       return message;
     } catch (err) {
       throw new Error(err.message);
     }
+  }
+
+  async resetMessageCount(userId, channelId) {
+    const channelMember = await this.prisma.channelMember.findFirst({
+      where: {
+        userId,
+        channelId,
+      },
+    });
+    if (!channelMember) throw new Error('Cannot reset message count !');
+    await this.prisma.channelMember.update({
+      where: {
+        userId_channelId: {
+          userId,
+          channelId,
+        },
+      },
+      data: {
+        newMessagesCount: 0,
+      },
+    });
+    await this.prisma.channel.update({
+      where: {
+        id: channelId,
+      },
+      data: {
+        unreadFor: {
+          disconnect: {
+            id: userId,
+          },
+        },
+      },
+    });
+
+    return { message: 'message count reset !' };
   }
 
   async deleteMessage(userId, messageId) {

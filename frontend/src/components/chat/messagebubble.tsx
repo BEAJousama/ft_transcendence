@@ -12,7 +12,7 @@ import {TbUserOff} from "react-icons/tb"
 import {FcMenu} from "react-icons/fc"
 
 import Avatar from "../avatar";
-import { useState, useRef, useContext, useEffect } from "react";
+import { useState, useRef, useContext, useEffect, useCallback } from "react";
 import { useClickAway } from "react-use";
 import Modal from "../modal";
 import data from "@emoji-mart/data";
@@ -30,6 +30,7 @@ import RightClickMenu, { RightClickMenuItem } from "../rightclickmenu";
 import axios from "axios";
 import useSWR from "swr";
 import { toast } from "react-toastify";
+import { set } from "lodash";
 
 const MessageBubble = ({ className, setOpen, setCurrentChannel, currentChannel, channelMember, messages, inputRef }: {className?: string, setOpen: any, setCurrentChannel: any, currentChannel?: any, channelMember?: any, messages: any[], inputRef:any}) => {
   const [value, setValue] = useState("");
@@ -54,6 +55,8 @@ const MessageBubble = ({ className, setOpen, setCurrentChannel, currentChannel, 
   const [DmMemu, setDmMenu] = useState(false);
   const [Setowner, setSetowner] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [messageId, setMessageId] = useState<number>(0);
+  const [chId, setChId] = useState<number>(0);
   
   const navigate = useNavigate();
   const {socket} = useContext(ChatContext);
@@ -75,21 +78,21 @@ let { data: users } = useSWR('api/users', fetcher, {
   timeout : 1000
 });
 
-const getBlocking = async () => {
+const getBlocking = useCallback(async () => {
   const res = await fetcher(`api/users/${user?.id}/blocking-users`);
   //map with blockerId
   if (res === undefined)
     return;
   setBlocking(res.map((blocking : any)=> {return blocking.blockerId}));
-}
-const getBlocked = async () => {
+}, [user?.id])
+
+const getBlocked = useCallback(async () => {
   const res = await fetcher(`api/users/${user?.id}/blocked-users`);
   if (res === undefined)
     return;
-
   //map with blockingId
   setBlocked(res.map((blocker : any)=> {return blocker.blockingId}));
-}
+}, [user?.id])
 
 useEffect(() => {
   getBlocking();
@@ -102,37 +105,44 @@ useEffect(() => {
     return (blocking.includes(userId) || blocked.includes(userId));
   }
 
-  const autoScroll = () => {
+  const autoScroll = useCallback(() => {
     const scroll = refMessage.current;
     if (scroll) {
       (scroll as HTMLElement).scrollIntoView({
-        behavior: 'smooth',
-        block: 'end',
+        behavior: 'smooth'
       });
     }
-  };
-
-  useEffect(() => {
-    setVisibility(currentChannel?.visibility);
-    setPreviewImage(currentChannel?.avatar || "");
-    setGroupName(currentChannel?.name || "");
-  }, [currentChannel]);
-  
-  useEffect(() => {
-    autoScroll();
   }, []);
 
+  const handleMessage = useCallback((data :  any) => {
+    setMessageId(data?.receiverId);
+    if (messageId === chId) {
+      console.log(messageId, currentChannel?.id);
+      autoScroll();
+    }
+  }, [autoScroll, chId, currentChannel, messageId]);
+  
   useEffect(() => {
-    socket?.on("message", (data) => {
-        autoScroll();
-    });
+    socket?.on("message", handleMessage);
     socket?.on("blockUser", () => {
       socket?.emit("getChannelMessages", {channelId : currentChannel?.id, user: {id: user?.id}});
       getBlocking();
       getBlocked();
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  });
+  
+    return () => {
+      socket?.off("message", handleMessage);
+    }
+  }, [handleMessage, socket, currentChannel, user, getBlocking, getBlocked]);
+
+  useEffect(() => {
+    setVisibility(currentChannel?.visibility);
+    setPreviewImage(currentChannel?.avatar || "");
+    setGroupName(currentChannel?.name || "");
+    autoScroll();
+    setChId(currentChannel?.id);
+  }, [currentChannel, autoScroll]);
+
 
   const ref = useRef(null);
   const ref1 = useRef(null);
@@ -279,7 +289,7 @@ useEffect(() => {
     setSelectedUsers([]);
   };
   return (
-    <div className={clsx("col-span-10 flex h-screen w-full flex-col justify-start rounded-t-3xl bg-secondary-600 lg:col-span-7", className && className)}>
+    <div id="chat-window" className={clsx("col-span-10 flex h-screen w-full flex-col justify-start rounded-t-3xl bg-secondary-600 lg:col-span-7", className && className)}>
       <div className=" bg-secondary-400 rounded-t-3xl align-middle items-center  sticky top-0 z-20">
         <div className="relative grid grid-cols-10 lg:grid-cols-12">
           <Button
