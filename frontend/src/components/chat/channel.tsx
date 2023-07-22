@@ -20,7 +20,7 @@ interface ChannelProps {
   userStatus?: boolean;
   muted?: boolean;
   selected?: boolean;
-  onClick?: () => void;
+  onClick?: (e: any) => void;
   newMessages?: number;
   pinned?: boolean;
   archived?: boolean;
@@ -96,50 +96,68 @@ const Channel = ({
       channelId : id!
     }
 
-    const pinChannel = () => {
+    const pinChannel = (e: any) => {
       socket?.emit("pin_channel", data);
+      e.stopPropagation();
+      setShowMenu(false);
     };
 
-    const unpinChannel = () => {
+    const unpinChannel = (e: any) => {
       socket?.emit("unpin_channel", data);
+      e.stopPropagation();
+      setShowMenu(false);
     };
 
-    const muteChannel = () => {
+    const muteChannel = (e: any) => {
       socket?.emit("mute_channel", data);
+      e.stopPropagation();
+      setShowMenu(false);
     };
 
-    const unmuteChannel = () => {
+    const unmuteChannel = (e: any) => {
       socket?.emit("unmute_channel", data);
+      e.stopPropagation();
+      setShowMenu(false);
     };
 
-    const archiveChannel = () => {
+    const archiveChannel = (e: any) => {
       socket?.emit("archive_channel", data);
+      e.stopPropagation();
+      setShowMenu(false);
     };
 
 
-    const unarchiveChannel = () => {
+    const unarchiveChannel = (e: any) => {
       socket?.emit("unarchive_channel", data);
+      e.stopPropagation();
+      setShowMenu(false);
     };
 
-    const deleteChannel = () => {
+    const deleteChannel = (e: any) => {
       socket?.emit("channel_delete", data);
+      e.stopPropagation();
+      setShowMenu(false);
     };
 
-    const markAsUnread = () => {
+    const markAsUnread = (e: any) => {
       socket?.emit("mark_unread", data);
+      e.stopPropagation();
+      setShowMenu(false);
     };
 
-    const markAsRead = () => {
+    const markAsRead = (e: any) => {
       socket?.emit("mark_read", data);
+      e.stopPropagation();
+      setShowMenu(false);
     };
 
 
   return (
     <div
-      className={clsx("relative flex items-center justify-between gap-[10px] w-full px-4 cursor-pointer hover:bg-tertiary-700 rounded-xl py-2 ", selected && "bg-tertiary-600")}
+      className={clsx("relative flex items-center justify-between gap-[10px] w-full px-4 cursor-pointer hover:bg-tertiary-700 rounded-xl py-2", selected && "bg-tertiary-600")}
       onContextMenu={handleContextMenu}
-      onClick={() => {
-        onClick && onClick();
+      onClick={(e) => {
+        onClick && onClick(e);
       }}
       ref={ref}
     >
@@ -170,9 +188,9 @@ const Channel = ({
         >
           <RightClickMenuItem
           onClick={
-            () => {
-              pinned ? unpinChannel() :
-              pinChannel()
+            (e: any) => {
+              pinned ? unpinChannel(e) :
+              pinChannel(e)
           }}
           >
             <BsPinAngleFill />
@@ -180,16 +198,16 @@ const Channel = ({
           </RightClickMenuItem>
           <RightClickMenuItem
           onClick={
-            () => {
-              archived ? unarchiveChannel() : archiveChannel();
+            (e) => {
+              archived ? unarchiveChannel(e) : archiveChannel(e);
           }}>
             <BsArchiveFill />
             {archived ? "Unarchive chat" : "Archive chat"}
           </RightClickMenuItem>
           <RightClickMenuItem
             onClick={
-              () => {
-                unread ? markAsRead() : markAsUnread();
+              (e) => {
+                unread ? markAsRead(e) : markAsUnread(e);
             }}
           >
             <RiMailUnreadFill />
@@ -197,9 +215,9 @@ const Channel = ({
           </RightClickMenuItem>
           <RightClickMenuItem
             onClick={
-              () => {
-                muted ? unmuteChannel() :
-                muteChannel();
+              (e) => {
+                muted ? unmuteChannel(e) :
+                muteChannel(e);
             }}
           >
             <BiVolumeMute />
@@ -207,8 +225,8 @@ const Channel = ({
           </RightClickMenuItem>
           <RightClickMenuItem
             onClick={
-              () => {
-                deleteChannel();
+              (e) => {
+                deleteChannel(e);
             }}
             >
             <MdDelete />

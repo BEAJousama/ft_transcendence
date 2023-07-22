@@ -42,8 +42,8 @@ const RightClickMenu = ({
       className={clsx(
         "max-h-50 divide-y absolute z-30 divide-slate-700 rounded-l-xl flex flex-col justify-content rounded-br-xl !bg-[#7C7CA6] text-white scrollbar-hide",
         className && className
-      )}
-    >
+        )}
+        >
       {children}
     </ul>
   );
