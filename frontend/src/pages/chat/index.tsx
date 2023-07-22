@@ -33,6 +33,7 @@ export default function Chat() {
   });
 
   useEffect(() => {
+    socket?.emit('reset_mssg_count', {channelId: currentChannel.id});
     socket?.on("getChannelMessages", (mssg: any) => {
       if (mssg[0]?.receiverId === currentChannel?.id)
         setMessages(mssg);
