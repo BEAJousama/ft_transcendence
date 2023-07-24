@@ -201,7 +201,7 @@ const ChannelList = ({className, setShowModal, setCurrentChannel, setChannelMemb
   const onChange = (e: any) => {
     e.preventDefault();
     setSearch(e.target.value)
-    if (search !== "") {
+    if (search.trim() !== "") {
       setChannels(channels.filter((item: any) => item.name.toLowerCase().includes(search.toLowerCase())));
     } else {
       getuserChannels(user?.id);
@@ -234,6 +234,14 @@ const ChannelList = ({className, setShowModal, setCurrentChannel, setChannelMemb
                         className="w-full py-2 pl-12 pr-4 text-secondary-400 border border-tertiary-700 rounded-md outline-none bg-secondary-300 focus:text-primary-400 focus:border-primary-200 placeholder-secondary-400 placeholder-text-sm"
                         value={search}
                         onChange={onChange}
+                        onKeyDown={
+                          (e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              inputRef?.current?.blur();
+                        }
+                      }
+                    }
                     />
                 </div>
             </form>
