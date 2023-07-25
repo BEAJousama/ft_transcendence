@@ -161,62 +161,6 @@ export class MessageService {
     return { message: 'message deleted !' };
   }
 
-  async pinMessage(messageId, pinnerId) {
-    const message = await this.prisma.message.findUnique({
-      where: {
-        id: messageId,
-      },
-    });
-    if (!message) throw new Error('Cannot pin message !');
-    await this.prisma.message.update({
-      where: {
-        id: messageId,
-      },
-      data: {
-        pinned: true,
-        pinnerId,
-      },
-    });
-    return { message: 'message pinned !' };
-  }
-
-  async UnpinMessage(messageId, pinnerId) {
-    const message = await this.prisma.message.findUnique({
-      where: {
-        id: messageId,
-      },
-    });
-    if (!message || message.pinnerId != pinnerId)
-      throw new Error('Cannot pin message !');
-    await this.prisma.message.update({
-      where: {
-        id: messageId,
-      },
-      data: {
-        pinned: false,
-        pinnerId,
-      },
-    });
-    return { message: 'message pinned !' };
-  }
-
-  async updateMessage(messageId, data: MessageDto) {
-    const message = await this.prisma.message.findUnique({
-      where: {
-        id: messageId,
-      },
-    });
-
-    if (message.senderId != data.senderId)
-      throw new Error('Cannot update message !');
-    await this.prisma.message.update({
-      where: {
-        id: messageId,
-      },
-      data: data,
-    });
-  }
-
   async getMessagesByChannelIdOnly(channelId: number) {
     const messages = await this.prisma.message.findMany({
       where: {
@@ -235,7 +179,7 @@ export class MessageService {
     channelId: number,
     userId: number,
   ): Promise<Message[]> {
-    const channel = await this.prisma.channel.findUnique({
+    await this.prisma.channel.findUnique({
       where: {
         id: channelId,
       },
@@ -271,33 +215,5 @@ export class MessageService {
       }
     }
     return filteredMessages;
-  }
-
-  async getPinnedMessages(
-    channelId: number,
-    userId: number,
-  ): Promise<Message[]> {
-    const channelmember = await this.prisma.channelMember.findFirst({
-      where: {
-        channelId,
-        userId,
-      },
-    });
-    if (!channelmember || channelmember.status === MemberStatus.BANNED) {
-      const messages: Message[] = [];
-      return messages;
-    }
-
-    const messages = await this.prisma.message.findMany({
-      where: {
-        receiverId: channelId,
-        pinned: true,
-      },
-      include: {
-        sender: true,
-        receiver: true,
-      },
-    });
-    return messages;
   }
 }

@@ -381,11 +381,17 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         payload.channelId,
       );
       await this.updateCurrentChannel(payload.channelId, client);
+      await this.sendChannelsToClient(client);
       await this.sendNotifications(
         client.data.sub,
         payload.channelId,
         ' has left the channel ',
       );
+      const sockets = this.getConnectedUsers(client.data.sub);
+      sockets.forEach((s) => {
+        s.leave(payload.channelId);
+        this.server.to(s.id).emit(EVENT.CHANNEL_LEAVE, payload.channelId);
+      });
     } catch (err) {
       throw new WsException({
         error: EVENT.ERROR,
@@ -1052,7 +1058,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const channels = await this.channelService.getChannelsByUserId(
       client.data.sub,
     );
-    client.emit('getChannels', channels);
+    client.emit(EVENT.GET_CHANNELS, channels);
   }
 
   private async sendChannelsToChannelMembers(channelId: number) {
@@ -1111,8 +1117,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
           url: '/chat',
         };
         if (!channel.mutedFor.map((u) => u.id).includes(member.userId))
-          this.server.to(socket.id).emit(EVENT.NOTIFICATION, data);
-        this.server.to(socket.id).emit(EVENT.GET_CH_MSSGS, messages);
+          // this.server.to(socket.id).emit(EVENT.NOTIFICATION, data);
+          this.server.to(socket.id).emit(EVENT.GET_CH_MSSGS, messages);
       });
     });
   }

@@ -1,11 +1,10 @@
-import React, { useContext, useState, useRef, useEffect, Fragment } from "react";
+import React, { useContext, useState, useRef, Fragment } from "react";
 
 import {
   MdAddBox,
-  MdGroupAdd,
   MdOutlineAdminPanelSettings,
 } from "react-icons/md";
-import { BiArrowBack, BiRightArrowAlt, BiArchiveIn, BiArchiveOut} from "react-icons/bi";
+import { BiArchiveIn, BiArchiveOut} from "react-icons/bi";
 import { useClickAway } from "react-use";
 import { BsPersonAdd } from "react-icons/bs";
 
@@ -17,13 +16,30 @@ import { TbBan } from "react-icons/tb";
 import {IoPersonRemoveOutline} from "react-icons/io5";
 import RightClickMenu, { RightClickMenuItem } from "../rightclickmenu";
 import { BiVolumeMute } from "react-icons/bi";
-import { SocketContext } from "../../context/socket.context";
-import { stat } from "fs";
-import { ChatContext } from "../../context/chat.context";
+import { ChatContext, IchannelMember } from "../../context/chat.context";
 import { useNavigate } from "react-router-dom";
 import Modal from "../modal"
 import Input from "../input";
 import Select from "../select";
+
+interface ProfileBannerProps {
+  channelMember?: IchannelMember;
+  user?: number | undefined;
+  avatar?: string;
+  name: string | undefined;
+  description: string | undefined;
+  showAddGroup?: boolean;
+  className?: string;
+  setShowModal?: React.Dispatch<React.SetStateAction<boolean>>;
+  setShowArchive?: React.Dispatch<React.SetStateAction<boolean>>;
+  showArchive?: boolean;
+  showOptions?: boolean;
+  showStatus?: boolean;
+  role?: string;
+  status?: string;
+  channelId?: number | undefined;
+  userId?: number | undefined;
+}
 
 const ProfileBanner = ({
   channelMember,
@@ -42,24 +58,7 @@ const ProfileBanner = ({
   status,
   channelId,
   userId,
-}: {
-  channelMember?: any;
-  user?: number | undefined;
-  avatar?: string;
-  name: string | undefined;
-  description: string | undefined;
-  showAddGroup?: boolean;
-  className?: string;
-  setShowModal?: React.Dispatch<React.SetStateAction<boolean>>;
-  setShowArchive?: React.Dispatch<React.SetStateAction<boolean>>;
-  showArchive?: boolean;
-  showOptions?: boolean;
-  showStatus?: boolean;
-  role?: string;
-  status?: string;
-  channelId?: string;
-  userId?: string;
-}) => {
+}: ProfileBannerProps) => {
   const [showMenu, setShowMenu] = useState(false);
   const ref = useRef(null);
   const {socket} = useContext(ChatContext);
@@ -67,28 +66,6 @@ const ProfileBanner = ({
   const [muteModal, setmuteModal] = useState(false);
   const [duration, setDuration] = useState<number>(0);
   const [unit, setUnit] = useState("s");
-
-/* TODO: I wanna see immediate changes in the UI when I click on the button to setAsAdmin
-     its not working, I have to refresh the page to see the changes
-     I think I have to use useEffect to see the changes in the UI
-     But i can't change props in useEffect
-*/
-
-  // check for mute duratin in real time
-  // useEffect(() => {
-  //   if (isMuted) {
-  //     console.log("isMuted", isMuted)
-  //     socket?.emit("check_mute", {userId, channelId});
-  //     socket?.on("check_mute", (data: any) => {
-  //       console.log("data", data)
-  //       if (data === false) {
-  //         setIsMuted(!isMuted);
-  //         // socket?.off("check_mute");
-  //         socket?.emit("unmute_user", {userId, channelId});
-  //       }
-  //     });
-  // }
-  // }, []);
   
 
   const setAsAdmin = () => {
@@ -208,26 +185,31 @@ const ProfileBanner = ({
                   <BsPersonAdd />
                   Go to profile
                 </RightClickMenuItem>
-                {((channelMember.role === "ADMIN" || channelMember.role === "OWNER") && role !== "OWNER") &&
+                {((channelMember?.role === "ADMIN" || channelMember?.role === "OWNER") && role !== "OWNER") &&
                 <Fragment>
-                    <RightClickMenuItem
-                      onClick={() => {
-                        setAsAdmin();
-                        setShowMenu(false);
-                      }}
-                      >
-                      <MdOutlineAdminPanelSettings />
-                      {role === "ADMIN" ? "Remove Admin" : "Set As Admin"}
-                    </RightClickMenuItem>
-                    <RightClickMenuItem
-                      onClick={() => {
-                        setAsOwner();
-                        setShowMenu(false);
-                      }}
-                      >
-                      <MdOutlineAdminPanelSettings />
-                      {role === "OWNER" ? "Remove Owner" : "Set As Owner"}
-                    </RightClickMenuItem>
+                  {
+                    channelMember.role === "OWNER" &&
+                    <>
+                      <RightClickMenuItem
+                        onClick={() => {
+                          setAsAdmin();
+                          setShowMenu(false);
+                        }}
+                        >
+                        <MdOutlineAdminPanelSettings />
+                        {role === "ADMIN" ? "Remove Admin" : "Set As Admin"}
+                      </RightClickMenuItem>
+                      <RightClickMenuItem
+                        onClick={() => {
+                          setAsOwner();
+                          setShowMenu(false);
+                        }}
+                        >
+                        <MdOutlineAdminPanelSettings />
+                        {role === "OWNER" ? "Remove Owner" : "Set As Owner"}
+                      </RightClickMenuItem>           
+                    </>
+                  }
                     <RightClickMenuItem
                       onClick={() => {
                         status === "MUTED" ? unmuteUser() : setmuteModal(true);

@@ -13,7 +13,7 @@ const Toast = ({
     const toastId = React.useRef<HTMLDivElement>(null);
 
     const toastShow = () => {
-        const audio = new Audio('https://drive.google.com/uc?export=download&id=1M95VOpto1cQ4FQHzNBaLf0WFQglrtWi7');
+        const audio = new Audio('/sound/toast_sound.mp3');
         audio.muted = false;
         var playedPromise = audio.play();
                 if (playedPromise) {

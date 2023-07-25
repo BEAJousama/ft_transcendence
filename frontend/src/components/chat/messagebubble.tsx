@@ -22,7 +22,7 @@ import ProfileBanner from "../profilebanner";
 import { AppContext, fetcher } from "../../context/app.context";
 import Select from "../select";
 import UpdateAvatar from "../update-avatar";
-import { ChatContext } from "../../context/chat.context";
+import { ChatContext, Ichannel, IchannelMember, Imessage } from "../../context/chat.context";
 import clsx from "clsx";
 import { useNavigate } from "react-router-dom";
 import UpdateChannel from "./updateChannel";
@@ -30,33 +30,41 @@ import RightClickMenu, { RightClickMenuItem } from "../rightclickmenu";
 import axios from "axios";
 import useSWR from "swr";
 import { toast } from "react-toastify";
-import { set } from "lodash";
 
-const MessageBubble = ({ className, setOpen, setCurrentChannel, currentChannel, channelMember, messages, inputRef }: {className?: string, setOpen: any, setCurrentChannel: any, currentChannel?: any, channelMember?: any, messages: any[], inputRef:any}) => {
-  const [value, setValue] = useState("");
-  const [showPicker, setShowPicker] = useState(false);
-  const [showModal, setShowModal] = useState(false);
-  const [showEdit, setShowEdit] = useState(false);
-  let   [visibility, setVisibility] = useState<string>(currentChannel?.visiblity);
+interface ChannelProps {
+  className?: string;
+  setOpen: any;
+  setCurrentChannel: any;
+  currentChannel?: Ichannel;
+  channelMember?: IchannelMember;
+  messages: Imessage[];
+  inputRef:any;
+};
+
+const MessageBubble : React.FC<ChannelProps> = ({ className, setOpen, setCurrentChannel, currentChannel, channelMember, messages, inputRef } : ChannelProps) => {
+  const [value, setValue] = useState<string>("");
+  const [showPicker, setShowPicker] = useState<boolean>(false);
+  const [showModal, setShowModal] = useState<boolean>(false);
+  const [showEdit, setShowEdit] = useState<boolean>(false);
+  const [visibility, setVisibility] = useState<string | undefined>(currentChannel?.visiblity);
   const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
-  let   [previewImage, setPreviewImage] = useState<string>(currentChannel?.avatar || "");
-  let   [groupName, setGroupName] = useState(currentChannel?.name || "");
-
+  const [previewImage, setPreviewImage] = useState<string>(currentChannel?.avatar || "");
+  const [groupName, setGroupName] = useState<string>(currentChannel?.name || "");
   const [password, setPassword] = useState<string>("");
   const [accessPassword, setAccessPassword] = useState<string>("");
-  const [chName , setChName] = useState(false);
-  const [chPassword , setChPassword] = useState(false);
-  const [chVisibility , setChVisibility] = useState(false);
-  const [chMembers , setChMembers] = useState(false);
-  const [chAvatar , setChAvatar] = useState(false);
-  const [manageMembers , setManageMembers] = useState(false);
-  const [manageBans , setManageBans] = useState(false);
-  const [deleteChannel, setDeleteChannel] = useState(false);
-  const [DmMemu, setDmMenu] = useState(false);
-  const [Setowner, setSetowner] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [messageId, setMessageId] = useState<number>(0);
-  const [chId, setChId] = useState<number>(0);
+  const [chName , setChName] = useState<boolean>(false);
+  const [chPassword , setChPassword] = useState<boolean>(false);
+  const [chVisibility , setChVisibility] = useState<boolean>(false);
+  const [chMembers , setChMembers] = useState<boolean>(false);
+  const [chAvatar , setChAvatar] = useState<boolean>(false);
+  const [manageMembers , setManageMembers] = useState<boolean>(false);
+  const [manageBans , setManageBans] = useState<boolean>(false);
+  const [deleteChannel, setDeleteChannel] = useState<boolean>(false);
+  const [DmMemu, setDmMenu] = useState<boolean>(false);
+  const [Setowner, setSetowner] = useState<boolean>(false);
+  const [showConfirm, setShowConfirm] = useState<boolean>(false);
+  const [messageId, setMessageId] = useState<number | undefined>(0);
+  const [chId, setChId] = useState<number | undefined>(0);
   
   const navigate = useNavigate();
   const {socket} = useContext(ChatContext);
@@ -66,8 +74,8 @@ const MessageBubble = ({ className, setOpen, setCurrentChannel, currentChannel, 
   const [blocking, setBlocking] = useState<any[]>(user?.blocking?.map((blocking)=> {return blocking.blockerId}) as any[]);
   const [blocked, setBlocked] = useState<any[]>(user?.blockers?.map((blocker)=> {return blocker.blockingId}) as any[]);
   
-  const isBlocked = (currentChannel?.type === "CONVERSATION" && blocked.includes(currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.id));
-  const isBlocking = (currentChannel?.type === "CONVERSATION" && blocking.includes(currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.id));
+  const isBlocked = (currentChannel?.type === "CONVERSATION" && blocked.includes(currentChannel?.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.id));
+  const isBlocking = (currentChannel?.type === "CONVERSATION" && blocking.includes(currentChannel?.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.id));
   
   useEffect(() => {
     setValue("");
@@ -100,7 +108,7 @@ useEffect(() => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
 },[]);
 
-  const checkBlock = (userId : number) =>
+  const checkBlock = (userId : number | undefined) =>
   {
     return (blocking.includes(userId) || blocked.includes(userId));
   }
@@ -114,7 +122,7 @@ useEffect(() => {
     }
   }, []);
 
-  const handleMessage = useCallback((data :  any) => {
+  const handleMessage = useCallback((data :  Imessage) => {
     setMessageId(data?.receiverId);
     if (messageId === chId) {
       console.log(messageId, currentChannel?.id);
@@ -136,7 +144,7 @@ useEffect(() => {
   }, [handleMessage, socket, currentChannel, user, getBlocking, getBlocked]);
 
   useEffect(() => {
-    setVisibility(currentChannel?.visibility);
+    setVisibility(currentChannel?.visiblity);
     setPreviewImage(currentChannel?.avatar || "");
     setGroupName(currentChannel?.name || "");
     autoScroll();
@@ -178,9 +186,9 @@ useEffect(() => {
   };
 
   const handleLeave = () => {
-    if (currentChannel?.channelMembers?.filter((member: any) => member.role === "OWNER").length === 1)
+    if (currentChannel?.channelMembers?.filter((member: IchannelMember) => member.role === "OWNER").length === 1)
     {
-      if (currentChannel?.channelMembers?.filter((member: any) => member.status === "ACTIVE").length === 1 && channelMember?.role === "OWNER")
+      if (currentChannel?.channelMembers?.filter((member: IchannelMember) => member.status === "ACTIVE").length === 1 && channelMember?.role === "OWNER")
       {
         socket?.emit("channel_remove", { channelId: currentChannel?.id, userId: user?.id });
         setShowModal(false);
@@ -202,7 +210,7 @@ useEffect(() => {
 
   const leaveGroup = () => {
     // check if user is the only owner if so he can't leave until he set a new owner
-    if (currentChannel?.channelMembers?.filter((member: any) => member.role === "OWNER").length === 1 && currentChannel?.channelMembers?.filter((member: any) => member.role === "OWNER")[0].userId === user?.id)
+    if (currentChannel?.channelMembers?.filter((member: IchannelMember) => member.role === "OWNER").length === 1 && currentChannel?.channelMembers?.filter((member: IchannelMember) => member.role === "OWNER")[0].userId === user?.id)
     {
       setShowModal(false);
       setSetowner(true);
@@ -237,11 +245,13 @@ useEffect(() => {
     socket?.emit("channel_update", { id: currentChannel?.id, avatar: previewImage, type: "avatar"});
   };
 
-  const  handleBlockUser = async (userId: number) =>
+  const  handleBlockUser = async (userId: number | undefined) =>
   {
     const accessToken = window.localStorage.getItem("access_token");
     const response = await axios.post(`${process.env.REACT_APP_BACK_END_URL}api/users/block-user`, 
-      {blockerId: user?.id, blockingId: userId},
+      {
+        blockerId: user?.id, blockingId: userId
+      },
       {
         headers: {
             Authorization: `Bearer ${accessToken}`,
@@ -258,7 +268,7 @@ useEffect(() => {
     }
   }
   
-  const  handleUnblockUser = async (userId: number) =>
+  const  handleUnblockUser = async (userId: number | undefined) =>
   {
     const accessToken = window.localStorage.getItem("access_token");
     const response = await axios.post(`${process.env.REACT_APP_BACK_END_URL}api/users/unblock-user`, 
@@ -308,12 +318,12 @@ useEffect(() => {
               className="flex items-center gap-2 col-span-8 lg:col-span-11 text-white lg:order-first px-2 py-3 font-semi-bold self-center"
               >
               <Avatar src={currentChannel?.type !== "CONVERSATION" ? currentChannel?.avatar : 
-                          currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.avatar } alt="" 
+                          currentChannel?.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.avatar } alt="" 
                           status={currentChannel?.type !== "CONVERSATION" ? false : 
-                          currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.status === "ONLINE" && 
-                          !checkBlock(currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.id)}
+                          currentChannel?.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.status === "ONLINE" && 
+                          !checkBlock(currentChannel?.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.id)}
                           />
-              <div>{currentChannel?.type !== "CONVERSATION" ? currentChannel?.name : currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.username}</div>
+              <div>{currentChannel?.type !== "CONVERSATION" ? currentChannel?.name : currentChannel?.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.username}</div>
             </div>
             <Button className="col-span-1 flex items-center justify-content bg-secondary-400 !p-1 !text-white font-semi-bold self-center !w-fit !m-auto"
               type="simple"
@@ -334,7 +344,7 @@ useEffect(() => {
             { DmMemu && (
               <div ref={ref1} className="absolute right-4 top-10 md:right-8 lg:right:4 xl:right-10 2xl:right-17  w-[150px]">
                 <RightClickMenu >
-                  {!checkBlock(currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.id) && (
+                  {!checkBlock(currentChannel?.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.id) && (
                     <>
                     <RightClickMenuItem
                     onClick={() => {
@@ -345,7 +355,7 @@ useEffect(() => {
                     </RightClickMenuItem>
                     <RightClickMenuItem
                     onClick={() => {
-                      navigate(`/profile/${currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.id}`);
+                      navigate(`/profile/${currentChannel?.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.id}`);
                     }}
                     >
                       Go to profile
@@ -354,8 +364,8 @@ useEffect(() => {
                   )}
                   <RightClickMenuItem
                     onClick={() => {
-                      !isBlocked ? handleBlockUser(currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.id) :
-                      handleUnblockUser(currentChannel?.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.id)
+                      !isBlocked ? handleBlockUser(currentChannel?.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.id) :
+                      handleUnblockUser(currentChannel?.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.id)
                     }
                   }
                   >
@@ -474,7 +484,7 @@ useEffect(() => {
               <Divider center className="w-full"/>
             </div>
             <div className="flex w-full flex-col items-start justify-start gap-4 bg-inherit pt-4">
-                {currentChannel?.channelMembers?.filter((member : any) => member.status !== "BANNED" && member.status !== "LEFT" && !checkBlock(member.userId)).map((member : any) => {
+                {currentChannel?.channelMembers?.filter((member : IchannelMember) => member.status !== "BANNED" && member.status !== "LEFT" && !checkBlock(member.userId)).map((member : IchannelMember) => {
                   return (
                     <ProfileBanner
                     channelMember={channelMember}
@@ -701,7 +711,7 @@ useEffect(() => {
             channelMember?.role === "MEMEBER" ? 
             (
               <div className="flex h-max w-full flex-col items-center gap-2 pt-2">
-                {currentChannel?.channelMembers?.filter((member : any) => member.status !== "BANNED" && member.status !== "LEFT" && !checkBlock(member.userId)).map((member : any) => {
+                {currentChannel?.channelMembers?.filter((member : IchannelMember) => member.status !== "BANNED" && member.status !== "LEFT" && !checkBlock(member.userId)).map((member : IchannelMember) => {
                   return (
                     <ProfileBanner
                     channelMember={channelMember}
@@ -818,8 +828,8 @@ useEffect(() => {
               >
                 <div className="w-full h[100px] flex items-center justify-center flex-col align-middle gap-2 pt-2 overflow-y-scroll scrollbar-hide">
                   {users?.filter((u : any) => {
-                    return u.id !== user?.id && !checkBlock(u.id) && ((currentChannel?.channelMembers.find((cm : any) => cm.userId === u.id) === undefined
-                    || currentChannel?.channelMembers.find((cm : any) => cm.userId === u.id)?.status === "LEFT"));
+                    return u.id !== user?.id && !checkBlock(u.id) && ((currentChannel?.channelMembers.find((cm : IchannelMember) => cm.userId === u.id) === undefined
+                    || currentChannel?.channelMembers.find((cm : IchannelMember) => cm.userId === u.id)?.status === "LEFT"));
                   }).map((u : any) => {
                     return (
                       <div key={u.id} className="flex flex-row items-center justify-between w-full">
@@ -896,7 +906,7 @@ useEffect(() => {
                 setShowModal={setShowModal}
               >
                 <div className=" h-max w-full pt-2">
-                  {currentChannel?.channelMembers?.filter((member : any) => member.status === "BANNED" && !checkBlock(member.userId)).map((member : any) => {
+                  {currentChannel?.channelMembers?.filter((member : IchannelMember) => member.status === "BANNED" && !checkBlock(member.userId)).map((member : IchannelMember) => {
                     return (
                       <ProfileBanner
                       channelMember={channelMember}
@@ -929,7 +939,7 @@ useEffect(() => {
               setShowModal={setShowModal}
             >
               <div className="flex h-max w-full flex-col items-center gap-2 pt-2 ">
-                {currentChannel?.channelMembers?.filter((member : any) => member.status !== "BANNED" && member.status !== "LEFT" && !checkBlock(member.userId)).map((member : any) => {
+                {currentChannel?.channelMembers?.filter((member : IchannelMember) => member.status !== "BANNED" && member.status !== "LEFT" && !checkBlock(member.userId)).map((member : IchannelMember) => {
                   return (
                     <ProfileBanner
                     channelMember={channelMember}

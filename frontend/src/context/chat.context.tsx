@@ -13,6 +13,51 @@ export interface IchatContext {
     socket: Socket | null;
   }
 
+export interface Ichannel {
+    id: number | undefined;
+    avatar: string;
+    name: string;
+    description: string;
+    channelMembers: IchannelMember[];
+    pinnedFor: IUser[];
+    unreadFor: IUser[];
+    archivedFor: IUser[];
+    deletedFor: IUser[];
+    mutedFor: IUser[];
+    bannedUsers: IUser[];
+    kickedUsers: IUser[];
+    messages: Imessage[];
+    visiblity: string;
+    type: string;
+    createAt: string;
+    updatedAt: string;
+    isacessPassword: boolean;
+};
+
+export interface Imessage {
+    id: number;
+    content: string;
+    senderId: number;
+    receiverId: number;
+    date: string;
+    sender: IUser;
+    receiver: IUser;
+};
+
+export interface IchannelMember {
+    id: number;
+    userId: number;
+    channelId: number;
+    status: string;
+    createdAt: string;
+    updatedAt: string;
+    user: IUser;
+    role: string;
+    newMessagesCount: number;
+};
+
+
+
 export const ChatContext = createContext<IchatContext>({
     socket: null,
     users: undefined,

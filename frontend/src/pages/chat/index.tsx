@@ -2,22 +2,21 @@ import { ChannelList, CreateGroupModal, MessageBubble } from "../../components";
 import Welcome from "../../components/chat/welcome";
 import { useContext, useEffect, useRef, useState } from "react";
 import { useMedia } from "react-use";
-import { ChatContext } from "../../context/chat.context";
-import { AppContext, fetcher } from "../../context/app.context";
+import { ChatContext, Ichannel, IchannelMember, IchatContext, Imessage } from "../../context/chat.context";
+import { AppContext, IAppContext, fetcher } from "../../context/app.context";
 import Layout from "../layout"; 
 
 export default function Chat() {
   const [open, setOpen] = useState<boolean>(false);
   const [showModal, setShowModal] = useState<boolean>(false);
   const  isMatch = useMedia("(min-width:1024px)", false);
-  const [currentChannel, setCurrentChannel] = useState<any>({});
-  const [channelMember, setChannelMember] = useState<any>([]);
-  const { user } = useContext(AppContext);
-  const {socket} = useContext(ChatContext);
+  const [currentChannel, setCurrentChannel] = useState<Ichannel>({} as Ichannel);
+  const [channelMember, setChannelMember] = useState<IchannelMember>({} as IchannelMember);
+  const { user } = useContext<IAppContext>(AppContext);
+  const {socket} = useContext<IchatContext>(ChatContext);
   const [isMuted, setIsMuted] = useState<boolean>(channelMember?.status === "MUTED");
-  const [messages, setMessages] = useState<any[]>([]);
-  const [channelId, setChannelId] = useState<number>(0);
-  const [messageId, setMessageId] = useState<number>(0);
+  const [messages, setMessages] = useState<Imessage[]>([]);
+  const [channelId, setChannelId] = useState<number | undefined>(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -32,28 +31,45 @@ export default function Chat() {
     return () => clearInterval(intervalId);
   });
 
+  const sortMessages = (messages: Imessage[]) => {
+    return messages.sort((a, b) => {
+      return new Date(a.date).getTime() - new Date(b.date).getTime();
+    });
+  };
+
+
   useEffect(() => {
-    socket?.emit('reset_mssg_count', {channelId: currentChannel.id});
-    socket?.on("getChannelMessages", (mssg: any) => {
+    socket?.emit('reset_mssg_count', {channelId: currentChannel?.id});
+    socket?.on("getChannelMessages", (mssg: Imessage[]) => {
       if (mssg[0]?.receiverId === currentChannel?.id)
-        setMessages(mssg);
+      {
+        setMessages(sortMessages(mssg));
+      }
       else
-        setMessages(messages);
+        setMessages(sortMessages(messages));
     });
 
-    socket?.on('channel_member', (data: any) => {
+    socket?.on('channel_member', (data: IchannelMember) => {
       setChannelMember(data);
       setIsMuted(data?.status === "MUTED");
     });
 
-    socket?.on('channel_join', (data: any) => {
+    socket?.on('channel_leave', (data: Ichannel) => {
+      if (data?.id === currentChannel?.id)
+      {
+        setCurrentChannel({} as Ichannel);
+        setOpen(false);
+      }
+    });
+
+    socket?.on('channel_join', (data: Ichannel) => {
       setCurrentChannel(data);
     });
 
-    socket?.on("channel_remove", (data: any) => {
-      if (parseInt(data?.id) === parseInt(currentChannel?.id))
+    socket?.on("channel_remove", (data: Ichannel) => {
+      if (data?.id === currentChannel?.id)
       {
-        setCurrentChannel("");
+        setCurrentChannel({} as Ichannel);
         setOpen(false);
       }
     });
@@ -63,14 +79,14 @@ export default function Chat() {
         setOpen(true);
     });
 
-    socket?.on("dm_create", (data: any) => {
+    socket?.on("dm_create", () => {
       if (!isMatch)
         setOpen(true);
     });
 
-    socket?.on('current_ch_update', (data: any) => {
-      setChannelId(parseInt(data?.id));
-      if (channelId === parseInt(currentChannel?.id)) {
+    socket?.on('current_ch_update', (data: Ichannel) => {
+      setChannelId(data?.id);
+      if (channelId === currentChannel?.id) {
         setCurrentChannel(data);
       }
       else
@@ -84,7 +100,7 @@ export default function Chat() {
     if (isMuted === true)
     {
       socket?.emit('check_mute', {userId : user?.id, channelId : currentChannel?.id});
-      socket?.on('check_mute', (data: any) => {
+      socket?.on('check_mute', (data: boolean) => {
         if (data !== isMuted) {
           setIsMuted(data);
           socket?.off('check_mute');

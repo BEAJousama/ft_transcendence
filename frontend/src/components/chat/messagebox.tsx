@@ -3,16 +3,17 @@ import { useContext, useEffect, useRef, useState } from "react";
 import RightClickMenu, { RightClickMenuItem } from "../rightclickmenu";
 import { MdDelete } from "react-icons/md";
 import { useClickAway } from "react-use";
-import { fetcher } from "../../context/app.context";
+import { IAppContext, fetcher } from "../../context/app.context";
 import { AppContext } from "../../context/app.context";
-import { ChatContext } from "../../context/chat.context";
+import { ChatContext, IchatContext } from "../../context/chat.context";
 import Spinner from "../spinner";
+import IUser from "../../interfaces/user";
 
 const MessageBox = ({ message, right, autoScroll }: { message?: any; right?: boolean, autoScroll : any}) => {
   const [showMenu, setShowMenu] = useState(false);
-  const {socket} = useContext(ChatContext);
-  const {user} = useContext(AppContext);
-  const [sender, setSender] = useState<any>(null);
+  const {socket} = useContext<IchatContext>(ChatContext);
+  const {user} = useContext<IAppContext>(AppContext);
+  const [sender, setSender] = useState<IUser>(null as unknown as IUser);
   const ref = useRef(null);
 
   // useEffect(() => {

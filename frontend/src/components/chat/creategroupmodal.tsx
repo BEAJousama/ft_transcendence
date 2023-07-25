@@ -1,5 +1,5 @@
 import React, {useContext, useState } from "react";
-import {  Button, Card, Divider, UpdateAvatar } from "../../components";
+import {  Button, Divider, UpdateAvatar } from "../../components";
 import { MdGroupAdd } from "react-icons/md";
 import { BiArrowBack, BiRightArrowAlt } from "react-icons/bi";
 import Input from "../../components/input";
@@ -7,8 +7,8 @@ import { RiCloseFill } from "react-icons/ri";
 import { FiSend } from "react-icons/fi";
 import ProfileBanner from "../../components/profilebanner";
 import Select from "../select";
-import { AppContext, fetcher } from "../../context/app.context";
-import { ChatContext } from "../../context/chat.context";
+import { AppContext, IAppContext, fetcher } from "../../context/app.context";
+import { ChatContext, IchatContext } from "../../context/chat.context";
 import Modal from "../modal";
 import useSWR from "swr";
 // import addUsers from "./selectusers";
@@ -18,17 +18,17 @@ const CreateGroupModal = ({
 }: {
   setShowModal: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
-  const [show, setShow] = useState(false);
-  const [showDm, setShowDm] = useState(false);
-  const [groupName, setGroupName] = useState("");
-  const [showSubmit, setShowSubmit] = useState(false);
-  const  {socket} = useContext(ChatContext);
+  const [show, setShow] = useState<boolean>(false);
+  const [showDm, setShowDm] = useState<boolean>(false);
+  const [groupName, setGroupName] = useState<string>("");
+  const [showSubmit, setShowSubmit] = useState<boolean>(false);
+  const  {socket} = useContext<IchatContext>(ChatContext);
   const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
   const [visibility, setVisibility] = useState<string>("PUBLIC");
   const [password, setPassword] = useState<string>("");
   const [accesspass, setaccesspass] = useState<string>("");
-  const {user} = useContext(AppContext);
-  const [previewImage, setPreviewImage] = useState<string>("https://i.ibb.co/vHD1C8Z/users-group-1.png" || "");
+  const {user} = useContext<IAppContext>(AppContext);
+  const [previewImage, setPreviewImage] = useState<string>("/img/group.jpg" || "");
   
   let { data: users } = useSWR('api/users', fetcher, {
     errorRetryCount: 0,
@@ -48,7 +48,7 @@ const CreateGroupModal = ({
     setGroupName("");
     setSelectedUsers([]);
     setVisibility("PUBLIC");
-    setPreviewImage("https://i.ibb.co/vHD1C8Z/users-group-1.png");
+    setPreviewImage("/img/group.jpg");
   }
 
   const handleCreateDm = (id : number) => {

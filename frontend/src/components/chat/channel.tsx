@@ -3,14 +3,14 @@ import { BiVolumeMute } from "react-icons/bi";
 import { BsArchiveFill, BsPinAngleFill } from "react-icons/bs";
 import { RiMailUnreadFill } from "react-icons/ri";
 import { MdDelete } from "react-icons/md";
-import { memo, useContext, useRef, useState } from "react";
+import { useContext, useRef, useState } from "react";
 import RightClickMenu, { RightClickMenuItem } from "../rightclickmenu";
 import { useClickAway } from "react-use";
 import clsx from "clsx";
 import { ChatContext } from "../../context/chat.context";
 
 interface ChannelProps {
-  id: string;
+  id: number | undefined;
   avatar?: string;
   name?: string;
   description?: string;
@@ -28,7 +28,7 @@ interface ChannelProps {
   unread?: boolean;
 }
 
-const Channel = ({
+const Channel : React.FC<ChannelProps> = ({
   id,
   avatar = "",
   name,

@@ -1,10 +1,10 @@
 import { useContext, useEffect, useState } from "react";
 import Channel from "./channel";
-import {fetcher} from "../../context/app.context"
+import {IAppContext, fetcher} from "../../context/app.context"
 import { AppContext } from "../../context/app.context";
 import {BsFillChatLeftTextFill} from "react-icons/bs";
 import {BiFilter} from "react-icons/bi";
-import { ChatContext } from "../../context/chat.context";
+import { ChatContext, Ichannel, IchannelMember, IchatContext } from "../../context/chat.context";
 import clsx from "clsx";
 import Modal from "../modal";
 import Input from "../input";
@@ -14,35 +14,45 @@ import { toast } from "react-toastify";
 import { throttle } from "lodash";
 import React from "react";
 
-const ChannelList = ({className, setShowModal, setCurrentChannel, setChannelMember, setOpen, setMessages, inputRef} : 
-  {className?: string, setShowModal: any,  setCurrentChannel: any, setChannelMember: any, setOpen?: any, setMessages: any, inputRef?: any}) => {
+interface ChannelListProps {
+  className?: string;
+  setShowModal: React.Dispatch<React.SetStateAction<boolean>>;
+  setCurrentChannel: any;
+  setChannelMember: any;
+  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setMessages: any;
+  inputRef?: any;
+}
+
+
+const ChannelList : React.FC<ChannelListProps> = ({className, setShowModal, setCurrentChannel, setChannelMember, setOpen, setMessages, inputRef} : ChannelListProps) => {
   
-  const[channels, setChannels] = useState<any>([]);
-  const [archiveChannels, setArchiveChannels] = useState<any>([]);
+  const[channels, setChannels] = useState<Ichannel[]>([]);
+  const [archiveChannels, setArchiveChannels] = useState<Ichannel[]>([]);
   const [showArchive, setShowArchive] = useState<boolean>(false);
   const [password, setPassword] = useState<string>("")
-  const [selectedChannel, setSelectedChannel] = useState<any>(null)
-  const [modal, setModal] = useState(false);
+  const [selectedChannel, setSelectedChannel] = useState<Ichannel | undefined>({} as Ichannel)
+  const [modal, setModal] = useState<boolean>(false);
   const [search, setSearch] = useState<string>("");
-  const [tempChannel, setTempChannel] = useState<any>();
-  const {socket} = useContext(ChatContext);
-  let {user} = useContext(AppContext)
-  const [isFocused, setIsFocused] = useState(false);
+  const [tempChannel, setTempChannel] = useState<Ichannel>();
+  const {socket} = useContext<IchatContext>(ChatContext);
+  const {user} = useContext<IAppContext>(AppContext)
+  const [isFocused, setIsFocused] = useState<boolean>(false);
   const iRef = React.useRef<HTMLInputElement>(null);
 
-  const checkBlock = (userId : number) =>
+  const checkBlock = (userId : number | undefined) =>
   {
     return (user?.blockers[0]?.blockingId === userId || user?.blocking[0]?.blockerId === userId)
   }
 
-  const loadMessages = async (channelId: any) => {
+  const loadMessages = async (channelId: number | undefined) => {
     const messages = fetcher(`api/messages/${channelId}/${user?.id}`)
     return messages;
   }
   
-  const onClick = throttle(async (channel: any): Promise<void | undefined> => {
+  const onClick = throttle(async (channel: Ichannel): Promise<void | undefined> => {
 
-    // console.log(channel?.channelMembers);
+    console.log(channel?.channelMembers);
     // console.log(channel.channelMembers?.filter((member: any) => member.userId === user?.id)[0].newMessagesCount)
     socket?.emit('reset_mssg_count', {channelId: channel.id});
     const [member, messages] = await Promise.all([
@@ -74,14 +84,14 @@ const ChannelList = ({className, setShowModal, setCurrentChannel, setChannelMemb
   const accessChannel = async () => {
     const accesstoken = window.localStorage.getItem("access_token");
     const res = await axios.post(`${process.env.REACT_APP_BACK_END_URL}api/channels/checkpass`,
-                                  {password, channelId: tempChannel.id},
+                                  {password, channelId: tempChannel?.id},
                                   {headers: {Authorization: `Bearer ${accesstoken}`}});
     if(res.data === true)
     {
       setOpen(true);
       setCurrentChannel(tempChannel);
       setSelectedChannel(tempChannel);
-      loadMessages(tempChannel.id);
+      loadMessages(tempChannel?.id);
       inputRef?.current?.focus();
     }
     else
@@ -93,13 +103,13 @@ const ChannelList = ({className, setShowModal, setCurrentChannel, setChannelMemb
   useEffect(() => {
     fetcher(`api/channels/${user?.id}`)
     .then((channels) => {
-      channels.forEach((channel: any) => {
+      channels.forEach((channel: Ichannel) => {
         if (channel.type === "CONVERSATION") {
-            channel.name = channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.username;
-            channel.avatar = channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.avatar;
+            channel.name = channel.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.username;
+            channel.avatar = channel.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.avatar;
         }
       });
-      channels.sort((a: any, b: any) => {
+      channels.sort((a: Ichannel, b: Ichannel) => {
         if (a.updatedAt < b.updatedAt) return 1;
         else return -1;
       });
@@ -108,7 +118,7 @@ const ChannelList = ({className, setShowModal, setCurrentChannel, setChannelMemb
 
     fetcher(`api/channels/archived/${user?.id}`)
     .then((channels) => {
-      channels.sort((a: any, b: any) => {
+      channels.sort((a: Ichannel, b: Ichannel) => {
         if (a.updatedAt < b.updatedAt) return 1;
         else return -1;
       });
@@ -118,9 +128,9 @@ const ChannelList = ({className, setShowModal, setCurrentChannel, setChannelMemb
 
   useEffect(() => {
     if (search === "") {
-      getuserChannels(user?.id);
+      getuserChannels();
       getNewChannel();
-      getArchiveChannels(user?.id);
+      getArchiveChannels();
     }
     socket?.on('channel_leave', () => {
       setCurrentChannel();
@@ -128,7 +138,7 @@ const ChannelList = ({className, setShowModal, setCurrentChannel, setChannelMemb
       setOpen(false);
     });
 
-    socket?.on('channel_access', (data: any) => {
+    socket?.on('channel_access', (data: Ichannel) => {
         setOpen(true);
         setCurrentChannel(data);
         setSelectedChannel(data);
@@ -154,16 +164,16 @@ const ChannelList = ({className, setShowModal, setCurrentChannel, setChannelMemb
     //eslint-disable-next-line
   });
 
-  const getuserChannels = async (id: any) => {
-        socket?.on('getChannels', (channels: any) => {
+  const getuserChannels = async () => {
+        socket?.on('getChannels', (channels: Ichannel[]) => {
           if (!channels) return;   
-          channels?.forEach((channel: any) => {
+          channels?.forEach((channel: Ichannel) => {
             if (channel.type === "CONVERSATION") {
-              channel.name = channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.username;
-              channel.avatar = channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.avatar;
+              channel.name = channel.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.username;
+              channel.avatar = channel.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.avatar;
             }
           });
-          channels?.sort((a: any, b: any) => {
+          channels?.sort((a: Ichannel, b: Ichannel) => {
             if (a.updatedAt < b.updatedAt) return 1;
             else return -1;
           });
@@ -171,10 +181,10 @@ const ChannelList = ({className, setShowModal, setCurrentChannel, setChannelMemb
         });
   }
       
-  const getArchiveChannels = async (id: any) => {
-    socket?.on('getArchiveChannels', (channels: any) => {
+  const getArchiveChannels = async () => {
+    socket?.on('getArchiveChannels', (channels: Ichannel[]) => {
       if (!channels) return;   
-      channels?.sort((a: any, b: any) => {
+      channels?.sort((a: Ichannel, b: Ichannel) => {
         if (a.updatedAt < b.updatedAt) return 1;
         else return -1;
       });
@@ -184,13 +194,13 @@ const ChannelList = ({className, setShowModal, setCurrentChannel, setChannelMemb
 
 
   const getNewChannel = async () => {
-    socket?.on('channel_create', (channel: any) => {
+    socket?.on('channel_create', (channel: Ichannel) => {
         setCurrentChannel(channel);
         setSelectedChannel(channel);
         inputRef?.current?.focus();
 
       });
-      socket?.on('dm_create', (channel: any) => {
+      socket?.on('dm_create', (channel: Ichannel) => {
         setCurrentChannel(channel);
         setSelectedChannel(channel);
         inputRef?.current?.focus();
@@ -202,9 +212,9 @@ const ChannelList = ({className, setShowModal, setCurrentChannel, setChannelMemb
     e.preventDefault();
     setSearch(e.target.value)
     if (search.trim() !== "") {
-      setChannels(channels.filter((item: any) => item.name.toLowerCase().includes(search.toLowerCase())));
+      setChannels(channels.filter((item: Ichannel) => item.name.toLowerCase().includes(search.toLowerCase())));
     } else {
-      getuserChannels(user?.id);
+      getuserChannels();
     }
   }
 
@@ -274,8 +284,8 @@ const ChannelList = ({className, setShowModal, setCurrentChannel, setChannelMemb
         (
           
           channels?.filter(
-            (channel: any) => channel.pinnedFor?.map((user: any) => user.id).includes(user?.id)
-          )?.map((channel: any) => {
+            (channel: Ichannel) => channel.pinnedFor?.map((user: any) => user.id).includes(user?.id)
+          )?.map((channel: Ichannel) => {
             const isActive = channel.id === selectedChannel?.id;
             return (
               <Channel
@@ -287,17 +297,17 @@ const ChannelList = ({className, setShowModal, setCurrentChannel, setChannelMemb
               archived={channel.archivedFor?.map((user: any) => user.id).includes(user?.id)}
               unread={channel.unreadFor?.map((user: any) => user.id).includes(user?.id)}
               avatar={channel.type !== "CONVERSATION" ? channel.avatar :
-              channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.avatar}
+              channel.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.avatar}
               description={(channel.messages  && !(channel.bannedUsers?.map((user:any) => user.id).includes(user?.id)) && !(channel.kickedUsers?.map((user:any) => user.id).includes(user?.id)) )  ? channel.messages[channel.messages.length - 1]?.content : ""}
               updatedAt={
                 channel.messages && 
                 !channel.bannedUsers?.map((user:any) => user.id).includes(user?.id) && 
                 !channel.kickedUsers?.map((user:any) => user.id).includes(user?.id) 
-                  ? channel.messages[channel.messages.length - 1]?.date || channel.createAt || ""
+                  ? channel.messages[channel.messages.length - 1]?.date || channel.updatedAt || ""
                   : channel.createAt || ""
               }
-              newMessages={channel.channelMembers?.filter((member: any) => member.userId === user?.id)[0].newMessagesCount}
-              userStatus={channel.type !== "CONVERSATION" ? false : (channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.status === "ONLINE") && !checkBlock(channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.id)}
+              newMessages={channel.channelMembers?.filter((member: IchannelMember) => member.userId === user?.id)[0].newMessagesCount}
+              userStatus={channel.type !== "CONVERSATION" ? false : (channel.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.status === "ONLINE") && !checkBlock(channel.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.id)}
               onClick={(e:any) => {
                 e.preventDefault();
                 onClick(channel)
@@ -307,31 +317,31 @@ const ChannelList = ({className, setShowModal, setCurrentChannel, setChannelMemb
                 )
               }).concat(
                       channels?.filter(
-                        (channel: any) => ((!channel.pinnedFor?.map((user: any) => user.id).includes(user?.id)))
-                        ).map((channel: any) => {
+                        (channel: Ichannel) => ((!channel.pinnedFor?.map((user: any) => user.id).includes(user?.id)))
+                        ).map((channel: Ichannel) => {
                           const isActive = channel.id === selectedChannel?.id;
                           return (
                             <Channel
                             key={channel.id}
                             id={channel.id}
-                            name={channel.type !== "CONVERSATION" ? channel.name : channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.username}
+                            name={channel.type !== "CONVERSATION" ? channel.name : channel.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.username}
                             pinned={channel.pinnedFor?.map((user: any) => user.id).includes(user?.id)}
                             muted={channel.mutedFor?.map((user: any) => user.id).includes(user?.id)}
                             archived={channel.archivedFor?.map((user: any) => user.id).includes(user?.id)}
                             unread={channel.unreadFor?.map((user: any) => user.id).includes(user?.id)}
                             avatar={channel.type !== "CONVERSATION" ? channel.avatar :
-                                    channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.avatar
+                                    channel.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.avatar
                                     }
                             description={(channel.messages  && !(channel.bannedUsers?.map((user:any) => user.id).includes(user?.id)) && !(channel.kickedUsers?.map((user:any) => user.id).includes(user?.id)) )  ? channel.messages[channel.messages.length - 1]?.content : ""}
                             updatedAt={
                               channel.messages && 
                               !channel.bannedUsers?.map((user:any) => user.id).includes(user?.id) && 
                               !channel.kickedUsers?.map((user:any) => user.id).includes(user?.id) 
-                                ? channel.messages[channel.messages.length - 1]?.date || channel.createAt || ""
+                                ? channel.messages[channel.messages.length - 1]?.date || channel.updatedAt || ""
                                 : channel.createAt || ""
                             }
-                            newMessages={channel.channelMembers?.filter((member: any) => member.userId === user?.id)[0].newMessagesCount}
-                            userStatus={channel.type !== "CONVERSATION" ? false : (channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.status === "ONLINE") && !checkBlock(channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.id)}
+                            newMessages={channel.channelMembers?.filter((member: IchannelMember) => member.userId === user?.id)[0].newMessagesCount}
+                            userStatus={channel.type !== "CONVERSATION" ? false : (channel.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.status === "ONLINE") && !checkBlock(channel.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.id)}
                             onClick={() => onClick(channel)}
                             selected={isActive}
                               />
@@ -340,63 +350,63 @@ const ChannelList = ({className, setShowModal, setCurrentChannel, setChannelMemb
               )) :
               (
                 archiveChannels?.filter(
-                  (channel: any) => channel.pinnedFor?.map((user: any) => user.id).includes(user?.id)
-                  )?.map((channel: any) => {
+                  (channel: Ichannel) => channel.pinnedFor?.map((user: any) => user.id).includes(user?.id)
+                  )?.map((channel: Ichannel) => {
                     //list the pinned channels first
                     const isActive = channel.id === selectedChannel?.id;
                     return (
                       <Channel
                       key={channel.id}
                       id={channel.id}
-                      name={channel.type !== "CONVERSATION" ? channel.name : channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.username}
+                      name={channel.type !== "CONVERSATION" ? channel.name : channel.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.username}
                       pinned={channel.pinnedFor?.map((user: any) => user.id).includes(user?.id)}
                       muted={channel.mutedFor?.map((user: any) => user.id).includes(user?.id)}
                     archived={channel.archivedFor?.map((user: any) => user.id).includes(user?.id)}
                     unread={channel.unreadFor?.map((user: any) => user.id).includes(user?.id)}
                     avatar={channel.type !== "CONVERSATION" ? channel.avatar :
-                    channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.avatar
+                    channel.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.avatar
                   }                    
                     description={(channel.messages  && !(channel.bannedUsers?.map((user:any) => user.id).includes(user?.id)) && !(channel.kickedUsers?.map((user:any) => user.id).includes(user?.id)))  ? channel.messages[channel.messages.length - 1]?.content : ""}
                     updatedAt={
                       channel.messages && 
                       !channel.bannedUsers?.map((user:any) => user.id).includes(user?.id) && 
                       !channel.kickedUsers?.map((user:any) => user.id).includes(user?.id) 
-                        ? channel.messages[channel.messages.length - 1]?.date || channel.createAt || ""
+                        ? channel.messages[channel.messages.length - 1]?.date || channel.updatedAt || ""
                         : channel.createAt || ""
                     }
-                    newMessages={channel.channelMembers?.filter((member: any) => member.userId === user?.id)[0].newMessagesCount}
-                    userStatus={channel.type !== "CONVERSATION" ? false : (channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.status === "ONLINE") && !checkBlock(channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.id)}
+                    newMessages={channel.channelMembers?.filter((member: IchannelMember) => member.userId === user?.id)[0].newMessagesCount}
+                    userStatus={channel.type !== "CONVERSATION" ? false : (channel.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.status === "ONLINE") && !checkBlock(channel.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.id)}
                     onClick={() => onClick(channel)}
                     selected={isActive}
                       />
                       )
                     }).concat(
                             archiveChannels?.filter(
-                              (channel: any) => ((!channel.pinnedFor?.map((user: any) => user.id).includes(user?.id)))
-                              ).map((channel: any) => {
+                              (channel: Ichannel) => ((!channel.pinnedFor?.map((user: any) => user.id).includes(user?.id)))
+                              ).map((channel: Ichannel) => {
                                 const isActive = channel.id === selectedChannel?.id;
                                 return (
                                   <Channel
                                   key={channel.id}
                                   id={channel.id}
-                                  name={channel.type !== "CONVERSATION" ? channel.name : channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.username}
+                                  name={channel.type !== "CONVERSATION" ? channel.name : channel.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.username}
                                   pinned={channel.pinnedFor?.map((user: any) => user.id).includes(user?.id)}
                                   muted={channel.mutedFor?.map((user: any) => user.id).includes(user?.id)}
                                   archived={channel.archivedFor?.map((user: any) => user.id).includes(user?.id)}
                                   unread={channel.unreadFor?.map((user: any) => user.id).includes(user?.id)}
                                   avatar={channel.type !== "CONVERSATION" ? channel.avatar :
-                                  channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.avatar
+                                  channel.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.avatar
                                 }                                  
                                 description={(channel.messages  && !(channel.bannedUsers?.map((user:any) => user.id).includes(user?.id)) && !(channel.kickedUsers?.map((user:any) => user.id).includes(user?.id)))  ? channel.messages[channel.messages.length - 1]?.content : ""}
                                 updatedAt={
                                     channel.messages && 
                                     !channel.bannedUsers?.map((user:any) => user.id).includes(user?.id) && 
                                     !channel.kickedUsers?.map((user:any) => user.id).includes(user?.id) 
-                                      ? channel.messages[channel.messages.length - 1]?.date || channel.createAt || ""
+                                      ? channel.messages[channel.messages.length - 1]?.date || channel.updatedAt || ""
                                       : channel.createAt || ""
                                 }
-                                newMessages={channel.channelMembers?.filter((member: any) => member.userId === user?.id)[0].newMessagesCount}
-                                userStatus={channel.type !== "CONVERSATION" ? false : (channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.status === "ONLINE") && !checkBlock(channel.channelMembers?.filter((member: any) => member.userId !== user?.id)[0].user?.id)}
+                                newMessages={channel.channelMembers?.filter((member: IchannelMember) => member.userId === user?.id)[0].newMessagesCount}
+                                userStatus={channel.type !== "CONVERSATION" ? false : (channel.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.status === "ONLINE") && !checkBlock(channel.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.id)}
                                 onClick={() => onClick(channel)}
                                 selected={isActive}
                                     />

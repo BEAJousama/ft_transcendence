@@ -60,7 +60,15 @@ export class ChannelService {
           kickedUsers: true,
           channelMembers: {
             select: {
-              user: true,
+              user: {
+                select: {
+                  id: true,
+                  username: true,
+                  email: true,
+                  avatar: true,
+                  status: true,
+                },
+              },
               newMessagesCount: true,
               status: true,
               role: true,
@@ -133,7 +141,15 @@ export class ChannelService {
           kickedUsers: true,
           channelMembers: {
             include: {
-              user: true,
+              user: {
+                select: {
+                  id: true,
+                  username: true,
+                  email: true,
+                  avatar: true,
+                  status: true,
+                },
+              },
             },
           },
           messages: true,
@@ -185,7 +201,15 @@ export class ChannelService {
           kickedUsers: true,
           channelMembers: {
             include: {
-              user: true,
+              user: {
+                select: {
+                  id: true,
+                  username: true,
+                  email: true,
+                  avatar: true,
+                  status: true,
+                },
+              },
             },
           },
           messages: {
@@ -241,7 +265,15 @@ export class ChannelService {
         kickedUsers: true,
         channelMembers: {
           include: {
-            user: true,
+            user: {
+              select: {
+                id: true,
+                username: true,
+                email: true,
+                avatar: true,
+                status: true,
+              },
+            },
           },
         },
         messages: true,
@@ -508,6 +540,12 @@ export class ChannelService {
                       id: memberId,
                     },
                   },
+                  deletedFor: {
+                    disconnect: {
+                      id: memberId,
+                    },
+                  },
+                  updatedAt: new Date(),
                 },
               });
             } else {
@@ -724,9 +762,6 @@ export class ChannelService {
     const channel = await this.getChannelByIdWithPass(channelId);
     if (!channel) throw new Error('Channel does not exist');
     if (password) {
-      console.log(
-        `${userId}---------${channelId}----------${password}---------${channel.password}`,
-      );
       isCorrect = await this.verifyPassword(password, channel.password);
     }
     if (channel.visiblity === Visiblity.PROTECTED && !isCorrect) {
@@ -762,6 +797,7 @@ export class ChannelService {
               id: userId,
             },
           },
+          updatedAt: new Date(),
         },
       });
       return channelMember;
@@ -811,6 +847,11 @@ export class ChannelService {
         },
         data: {
           kickedUsers: {
+            connect: {
+              id: userId,
+            },
+          },
+          deletedFor: {
             connect: {
               id: userId,
             },
