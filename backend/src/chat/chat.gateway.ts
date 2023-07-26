@@ -1105,19 +1105,19 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       sockets = this.getConnectedUsers(member.userId);
       sockets.forEach((socket) => {
         this.server.to(socket.id).emit('message', message);
-        const data = {
-          id: randomInt(1000000, 9999999),
-          title: 'New message',
-          content: message.content,
-          createdAt: message.date,
-          updatedAt: message.date,
-          seen: false,
-          sender: message.sender,
-          receiver: member.userId,
-          url: '/chat',
-        };
+        // const data = {
+        //   id: randomInt(1000000, 9999999),
+        //   title: 'New message',
+        //   content: message.content,
+        //   createdAt: message.date,
+        //   updatedAt: message.date,
+        //   seen: false,
+        //   sender: message.sender,
+        //   receiver: member.userId,
+        //   url: '/chat',
+        // };
+
         if (!channel.mutedFor.map((u) => u.id).includes(member.userId))
-          // this.server.to(socket.id).emit(EVENT.NOTIFICATION, data);
           this.server.to(socket.id).emit(EVENT.GET_CH_MSSGS, messages);
       });
     });

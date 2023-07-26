@@ -2,6 +2,7 @@ import React, { useContext, useState, useRef, Fragment } from "react";
 
 import {
   MdAddBox,
+  MdOutlineAddModerator,
   MdOutlineAdminPanelSettings,
 } from "react-icons/md";
 import { BiArchiveIn, BiArchiveOut} from "react-icons/bi";
@@ -205,7 +206,7 @@ const ProfileBanner = ({
                           setShowMenu(false);
                         }}
                         >
-                        <MdOutlineAdminPanelSettings />
+                        <MdOutlineAddModerator />
                         {role === "OWNER" ? "Remove Owner" : "Set As Owner"}
                       </RightClickMenuItem>           
                     </>

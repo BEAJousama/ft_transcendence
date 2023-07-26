@@ -64,6 +64,7 @@ export default function Chat() {
 
     socket?.on('channel_join', (data: Ichannel) => {
       setCurrentChannel(data);
+      socket?.emit("getChannelMessages", {channelId: data?.id});
     });
 
     socket?.on("channel_remove", (data: Ichannel) => {
@@ -77,6 +78,8 @@ export default function Chat() {
     socket?.on("channel_create", () => {
       if (!isMatch)
         setOpen(true);
+      setMessages([]);
+      // socket?.emit("getChannelMessages", {channelId: data?.id});
     });
 
     socket?.on("dm_create", () => {
@@ -128,7 +131,8 @@ export default function Chat() {
             )}
             {
             currentChannel && Object.keys(currentChannel!).length &&  
-            <MessageBubble className="mt-4 mb-4 ml-1 pb-5" currentChannel={currentChannel} setOpen={setOpen} setCurrentChannel={setCurrentChannel} channelMember={channelMember} messages={messages} inputRef={inputRef}/>
+            <MessageBubble className="mt-4 mb-4 ml-1 pb-5" currentChannel={currentChannel} setOpen={setOpen} setCurrentChannel={setCurrentChannel} 
+                            channelMember={channelMember} messages={messages} inputRef={inputRef}/>
             }
             {showModal && <CreateGroupModal setShowModal={setShowModal} />}
           </div>

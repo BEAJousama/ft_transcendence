@@ -11,7 +11,7 @@ import Input from "../input";
 import Button from "../button";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { throttle } from "lodash";
+import { set, throttle } from "lodash";
 import React from "react";
 
 interface ChannelListProps {
@@ -91,7 +91,8 @@ const ChannelList : React.FC<ChannelListProps> = ({className, setShowModal, setC
       setOpen(true);
       setCurrentChannel(tempChannel);
       setSelectedChannel(tempChannel);
-      loadMessages(tempChannel?.id);
+      const messages = await loadMessages(tempChannel?.id);
+      setMessages(messages);
       inputRef?.current?.focus();
     }
     else
@@ -142,7 +143,7 @@ const ChannelList : React.FC<ChannelListProps> = ({className, setShowModal, setC
         setOpen(true);
         setCurrentChannel(data);
         setSelectedChannel(data);
-        loadMessages(data.id);
+        socket?.emit('getChannelMessages', {channelId: data.id});
         inputRef?.current?.focus();
     });
     

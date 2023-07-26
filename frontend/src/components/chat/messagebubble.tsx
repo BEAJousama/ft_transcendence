@@ -20,7 +20,6 @@ import Picker from "@emoji-mart/react";
 import Divider from "../divider";
 import ProfileBanner from "../profilebanner";
 import { AppContext, fetcher } from "../../context/app.context";
-import Select from "../select";
 import UpdateAvatar from "../update-avatar";
 import { ChatContext, Ichannel, IchannelMember, Imessage } from "../../context/chat.context";
 import clsx from "clsx";
@@ -30,6 +29,7 @@ import RightClickMenu, { RightClickMenuItem } from "../rightclickmenu";
 import axios from "axios";
 import useSWR from "swr";
 import { toast } from "react-toastify";
+import CustomSelect from "../select";
 
 interface ChannelProps {
   className?: string;
@@ -125,7 +125,6 @@ useEffect(() => {
   const handleMessage = useCallback((data :  Imessage) => {
     setMessageId(data?.receiverId);
     if (messageId === chId) {
-      console.log(messageId, currentChannel?.id);
       autoScroll();
     }
   }, [autoScroll, chId, currentChannel, messageId]);
@@ -133,9 +132,9 @@ useEffect(() => {
   useEffect(() => {
     socket?.on("message", handleMessage);
     socket?.on("blockUser", () => {
-      socket?.emit("getChannelMessages", {channelId : currentChannel?.id, user: {id: user?.id}});
       getBlocking();
       getBlocked();
+      socket?.emit("getChannelMessages", {channelId : currentChannel?.id, user: {id: user?.id}});
     });
   
     return () => {
@@ -149,7 +148,8 @@ useEffect(() => {
     setGroupName(currentChannel?.name || "");
     autoScroll();
     setChId(currentChannel?.id);
-  }, [currentChannel, autoScroll]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentChannel]);
 
 
   const ref = useRef(null);
@@ -652,18 +652,19 @@ useEffect(() => {
                     Edit channel visibility
                     <MdOutlineVisibilityOff />
               </Button>
-
-              <Button
-                    className="!bg-inherit !text-white hover:bg-inherit justify-between w-full !font-medium"
-                    onClick={() => {
-                      setChPassword(true);
-                      setShowEdit(false);
-                    }}
-                  >
+              {
+                channelMember?.role === "OWNER" && (
+                <Button
+                className="!bg-inherit !text-white hover:bg-inherit justify-between w-full !font-medium"
+                onClick={() => {
+                  setChPassword(true);
+                  setShowEdit(false);
+                }}
+                >
                     Edit access password
                     <MdOutlinePassword />
-              </Button>
-
+                </Button>
+              )}
               <Button
                     className="!bg-inherit !text-white hover:bg-inherit justify-between w-full !font-medium"
                     onClick={() => {
@@ -685,17 +686,20 @@ useEffect(() => {
                     Banned users
                     <TbUserOff />
               </Button>
-
-              <Button
-                    className="!bg-inherit !text-white hover:bg-inherit justify-between w-full !font-medium"
-                    onClick={() => {
-                      setDeleteChannel(true);
-                      setShowEdit(false);
-                    }}
-                  >
-                    Delete channel
-                    <RiDeleteBin6Line />
-              </Button>
+              {
+                channelMember?.role === "OWNER" && (
+                  <Button
+                        className="!bg-inherit !text-white hover:bg-inherit justify-between w-full !font-medium"
+                        onClick={() => {
+                          setDeleteChannel(true);
+                          setShowEdit(false);
+                        }}
+                      >
+                        Delete channel
+                        <RiDeleteBin6Line />
+                  </Button>
+                )
+              }
                   <Button
                     className="w-[50%] md:w-[30%] lg:w[50%] 2xl:w-[50%] justify-center self-center mt-4"
                     onClick={() => {
@@ -797,7 +801,7 @@ useEffect(() => {
                 setShowEdit={setShowEdit}
                 setShowModal={setShowModal}
               >
-              <Select 
+              <CustomSelect 
                 className="mb-4"
                 label= "Visibility" setX={setVisibility} options={["PUBLIC", "PRIVATE", "PROTECTED"]} value={currentChannel?.visiblity} 
               />

@@ -6,11 +6,12 @@ import Input from "../../components/input";
 import { RiCloseFill } from "react-icons/ri";
 import { FiSend } from "react-icons/fi";
 import ProfileBanner from "../../components/profilebanner";
-import Select from "../select";
+import CustomSelect from "../select";
 import { AppContext, IAppContext, fetcher } from "../../context/app.context";
 import { ChatContext, IchatContext } from "../../context/chat.context";
 import Modal from "../modal";
 import useSWR from "swr";
+import { BsSendPlus } from "react-icons/bs";
 // import addUsers from "./selectusers";
 
 const CreateGroupModal = ({
@@ -120,7 +121,7 @@ const CreateGroupModal = ({
               if (value !== "") setShowSubmit(true);
             }}
             />
-          <Select label= "Visibility" setX={setVisibility} options={["PUBLIC", "PRIVATE", "PROTECTED"]} />
+          <CustomSelect label= "Visibility" setX={setVisibility} options={["PUBLIC", "PRIVATE", "PROTECTED"]} />
           {
             (visibility === "PROTECTED") && (
               <>
@@ -160,7 +161,7 @@ const CreateGroupModal = ({
             }}
             >
             <MdGroupAdd />
-            New Group Chat
+            Group Chat
             <BiRightArrowAlt />
           </Button>
           <Button
@@ -170,8 +171,8 @@ const CreateGroupModal = ({
               setShowDm(true);
             }}
             >
-            <MdGroupAdd />
-            Send Message
+            <BsSendPlus />
+            Direct Message
             <BiRightArrowAlt />
           </Button>
             </>
@@ -194,8 +195,9 @@ const CreateGroupModal = ({
                       />
                     <div className="w-8">
                       <input
+                        id="purple-checkbox"
                         type="checkbox"
-                        className="h-5 w-5 text-primary-500 dark:text-primary-400 border-gray-300 dark:border-gray-700 rounded"
+                        className="w-4 h-4 bg-tertiary-600 focus:border-primary-500 rounded focus:ring-primary-500 focus:text-tertiary-700"
                         onClick={() => {
                         }}
                         onChange={() => {

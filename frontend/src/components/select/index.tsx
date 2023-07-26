@@ -1,11 +1,16 @@
  
 import clsx from "clsx";
+import Select from "react-select";
 
-export default function Select({className, label, options, setX, value} : { className?: string, options?: string[], setX?: any, label?: string, value?: string}) {
+export default function CustomSelect({className, label, options, setX, value} : { className?: string, options?: string[], setX?: any, label?: string, value?: string}) {
+
+  const newOptions = options?.map((option) => {
+    return { value: option, label: option };
+  });
+
   return (
-    <div className={clsx("relative w-full bg-inherit", className && className)}>
+    <div className={clsx("relative w-full bg-inherit z-30 p-0", className && className)}>
         <label
-        htmlFor=""
         className={clsx(
           "man-w-min absolute -top-2 left-1.5 z-10 rounded bg-secondary-500 px-1 text-xs font-semibold",
           "text-quaternary-200",
@@ -13,18 +18,17 @@ export default function Select({className, label, options, setX, value} : { clas
       >
         {label}
       </label>
-        <select id={label} defaultValue={value} 
-        className="bg-inherit border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
-        {
-            options?.map((option,i) => {
-                return(
-                    <option key={i} value={option} onClick={()=>{setX(option)}}>
-                    {option}
-                    </option>
-                )
-            })
-        }
-      </select>
+              <Select
+                className="my-react-select-container"
+                classNamePrefix="my-react-select"
+                id={label}
+                defaultValue={newOptions ? newOptions[0] : ''}
+                options={newOptions}
+                onChange={(selectedOption: any) => {
+                  const optionValue = selectedOption ? selectedOption.value : '';
+                  setX(optionValue);
+                }}
+              />
       </div>
   );
 }
