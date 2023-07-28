@@ -164,8 +164,8 @@ const Channel : React.FC<ChannelProps> = ({
       <div className="flex items-center gap-2">
         <Avatar src={avatar!} alt="" status={userStatus}/>
         <div className="flex flex-col text-sm truncate">
-          <span className="text-white">{name!}</span>
-          <span className="text-secondary-300">{description!}</span>
+          <span className="text-white">{name && name.length > 17 ? name.slice(0,17) + "..." : name}</span>
+          <span className="text-secondary-300">{description && description.length > 17 ? description.slice(0, 17) + "..." : description}</span>
         </div>
       </div>
       <div className="flex items-right flex-col text-black text-sm justify-end">

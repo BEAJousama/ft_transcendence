@@ -44,22 +44,29 @@ const ChatBanner = ({
     };
     
     const handleAccess = async () => {
-        const member = await fetcher(`api/channels/member/${user?.id}/${channel.id}`);
-        if (!member) return;
-
-        if ((channel?.isacessPassword && member.role === "OWNER") || !channel.isacessPassword)
+        try
         {
-            console.log(channel);
-            socket?.emit("channel_access", { userId: user?.id, channelId: channel?.id });
-            socket?.emit('channel_member', { userId : user?.id, channelId : channel?.id });
-            navigate(`/chat`);
-            return;
+            const member = await fetcher(`api/channels/member/${user?.id}/${channel.id}`);
+            if (!member) return;
+    
+            if ((channel?.isacessPassword && member.role === "OWNER") || !channel.isacessPassword)
+            {
+                console.log(channel);
+                socket?.emit("channel_access", { userId: user?.id, channelId: channel?.id });
+                socket?.emit('channel_member', { userId : user?.id, channelId : channel?.id });
+                navigate(`/chat`);
+                return;
+            }
+            else
+            {
+                setAccessModal(true);
+                return;
+            }  
         }
-        else
+        catch(err)
         {
-            setAccessModal(true);
-            return;
-        }  
+            toast.error("Something went wrong !");
+        }
     };
 
     const accessChannel = async () => {

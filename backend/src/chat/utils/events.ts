@@ -56,3 +56,4 @@ export const BLOCK_USER = 'blockUser';
 export const REFRESH_CHANNEL = 'refresh_channel';
 export const CHANNEL_ACCESS = 'channel_access';
 export const RESET_MSSG_COUNT = 'reset_mssg_count';
+export const GET_CLIENT_MSSGS = 'get_client_messages';

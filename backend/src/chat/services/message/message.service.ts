@@ -87,19 +87,36 @@ export class MessageService {
                 updatedAt: message.date,
               },
             });
-            await this.prisma.channelMember.update({
-              where: {
-                userId_channelId: {
-                  userId: member.userId,
-                  channelId: data.receiverId,
+            // await this.prisma.channelMember.update({
+            //   where: {
+            //     userId_channelId: {
+            //       userId: member.userId,
+            //       channelId: data.receiverId,
+            //     },
+            //   },
+            //   data: {
+            //     newMessagesCount: {
+            //       increment: 1,
+            //     },
+            //   },
+            // });
+            if (
+              !(await this.chatService.isBlocked(member.userId, data.senderId))
+            ) {
+              await this.prisma.channelMember.update({
+                where: {
+                  userId_channelId: {
+                    userId: member.userId,
+                    channelId: data.receiverId,
+                  },
                 },
-              },
-              data: {
-                newMessagesCount: {
-                  increment: 1,
+                data: {
+                  newMessagesCount: {
+                    increment: 1,
+                  },
                 },
-              },
-            });
+              });
+            }
           }
         }
       });
