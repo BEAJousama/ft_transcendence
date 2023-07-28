@@ -89,12 +89,14 @@ export default function Chat() {
       if (!isMatch)
         setOpen(true);
       setMessages([]);
+      socket?.emit("getChannelMessages", {channelId: currentChannel?.id});
       // socket?.emit("getChannelMessages", {channelId: data?.id});
     });
 
     socket?.on("dm_create", () => {
       if (!isMatch)
         setOpen(true);
+      setMessages([]);
       socket?.emit("getChannelMessages", {channelId: currentChannel?.id});
     });
 
@@ -116,7 +118,7 @@ export default function Chat() {
       socket?.off('channel_create');
       socket?.off('dm_create');
       socket?.off('current_ch_update');
-      socket?.off('getChannelMessages');
+      // socket?.off('getChannelMessages');
       socket?.off('reset_mssg_count');
     };
   });
