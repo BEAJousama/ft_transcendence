@@ -139,9 +139,9 @@ export default function Notifications() {
                         <Spinner />
                     ) : (
                         <div className="flex w-full flex-col items-center justify-center gap-4">
-                            {notifications?.map((notification: INotification) => {
+                            {notifications?.filter((notif: INotification) => user?.id !== notif.sender?.id).map((notification: INotification) => {
                                 return (
-                                    <Notification {...notification} />
+                                    <Notification key={notification.id} {...notification} />
                                 );
                             })}
                         </div>

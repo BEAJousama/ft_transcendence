@@ -48,13 +48,12 @@ const Input = ({
   required,
 }: InputProps) => {
   const [active, setActive] = useState(false);
-
   return (
     <div className="relative w-full bg-inherit">
       <label
         htmlFor=""
         className={clsx(
-          "man-w-min absolute -top-2 left-1.5 z-10 rounded bg-secondary-500 px-1 text-xs font-semibold",
+          "man-w-min absolute -top-2 left-1.5 z-10 rounded  bg-inherit px-1 text-xs font-semibold",
           disabled && "text-primary-800",
           active && "text-primary-500",
           !disabled && !active && "text-quaternary-200",

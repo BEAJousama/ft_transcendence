@@ -12,7 +12,7 @@ export default function CustomSelect({ className, label, options, setX, value }:
         <div className={clsx("relative w-full bg-inherit z-30 p-0", className && className)}>
             <label
                 className={clsx(
-                    "man-w-min absolute -top-2 left-1.5 z-10 rounded bg-secondary-500 px-1 text-xs font-semibold",
+                    "man-w-min absolute -top-2 left-1.5 z-10 rounded bg-inherit px-1 text-xs font-semibold",
                     "text-quaternary-200",
                 )}
             >
