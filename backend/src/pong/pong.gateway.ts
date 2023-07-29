@@ -25,10 +25,10 @@ export class PongGateway {
   onModuleInit() {
     this.server.on('connect', (socket) => {
       const clientId = socket.handshake.query.clientId;
-      this.usersService.changeUserStatus(parseInt(clientId), 'ONLINE');
+      // this.usersService.changeUserStatus(parseInt(clientId), 'ONLINE');
       console.log('connected', clientId);
       socket.on('disconnect', () => {
-        this.usersService.changeUserStatus(parseInt(clientId), 'OFFLINE');
+        // this.usersService.changeUserStatus(parseInt(clientId), 'OFFLINE');
         console.log('disconnect', clientId);
       });
     });

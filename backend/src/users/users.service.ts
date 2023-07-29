@@ -4,7 +4,7 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { User } from '@prisma/client';
+import { User, UserStatus } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 import { PrismaService } from 'src/prisma/prisma.service';
 import {
@@ -182,6 +182,10 @@ export class UsersService {
         where: {
           login,
         },
+        include: {
+          blockers: true,
+          blocking: true,
+        },
       });
       return user;
     } catch (error) {
@@ -189,16 +193,23 @@ export class UsersService {
     }
   }
 
-  async findAllUsers(fullname: string) {
+  async findAllUsers(username: string) {
     try {
       const users = await this.prisma.user.findMany({
         orderBy: {
           rating: 'desc',
         },
+        where: {
+          NOT: {
+            username: {
+              contains: 'PongMaster',
+            },
+          },
+        },
       });
       return users;
     } catch (error) {
-      throw new NotFoundException(`no users found ? `);
+      throw new NotFoundException(`No users found.`);
     }
   }
 
@@ -227,9 +238,16 @@ export class UsersService {
 
   async deleteUser(id: number) {
     try {
-      const user = await this.prisma.user.delete({
+      const user = await this.prisma.user.update({
         where: {
           id,
+        },
+        data: {
+          status: UserStatus.OFFLINE,
+          username: 'PongMasterUser' + id,
+          login: 'PongMasterUser' + id,
+          email: 'PongMasterUser' + id + '@pongmasters.com',
+          avatar: '/img/deleteduser.png',
         },
       });
       return user;
@@ -258,6 +276,38 @@ export class UsersService {
       return request;
     } catch (error) {
       throw new InternalServerErrorException('Failed to send friend request');
+    }
+  }
+
+  async updateStatus(status: 'ONLINE' | 'INGAME' | 'OFFLINE', id: number) {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: {
+          id: id,
+        },
+      });
+
+      if (!user || !id || !status) return;
+      await this.prisma.user.update({
+        where: {
+          id,
+        },
+        data: {
+          status: UserStatus[status],
+        },
+      });
+      return {
+        message: 'User updated successfully',
+      };
+    } catch (error) {
+      if (error instanceof PrismaClientKnownRequestError) {
+        if (error.code === 'P2016') {
+          throw new NotFoundException(`User with ID ${id} not found`);
+        } else if (error.code === 'P2025') {
+          throw new BadRequestException('Invalid update data');
+        }
+      }
+      // throw error;
     }
   }
 

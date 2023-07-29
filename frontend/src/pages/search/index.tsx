@@ -1,16 +1,16 @@
-import { Input, Spinner, UserBanner } from "../../components";
+import { ChatBanner, Input, Spinner, UserBanner } from "../../components";
 import useSWR from "swr";
 import { fetcher } from "../../context/app.context";
 import Layout from "../layout";
 import { useEffect, useState } from "react";
-import axios from "axios";
 import IUser from "../../interfaces/user";
 import { Link } from "react-router-dom";
 
+// const {user} = useContext(AppContext);
+
 const options = [
   { value: "api/users", label: "users" },
-  { value: "api/channels", label: "channels" },
-  { value: "api/games", label: "games" },
+  { value: `api/channels`, label: "channels" },
 ];
 
 const Select = ({
@@ -60,15 +60,25 @@ export default function Search() {
   const [value, setValue] = useState<string>("");
   const [selected, setSelected] = useState<string>("api/users");
   const [filtred, setFiltred] = useState<IUser[]>();
-  const { data: users, isLoading } = useSWR(selected, fetcher, {
+  let { data: users, isLoading } = useSWR(selected, fetcher, {
     errorRetryCount: 0,
+    timeout: 1000
   });
 
+
+
+
   useEffect(() => {
-    if (users && (filtred || !value))
-      setFiltred(users.filter((item: IUser) => item.fullname.toLowerCase().includes(value.toLowerCase())))
+    if (users && (filtred || !value)) {
+      if (selected === "api/users")
+        setFiltred(users.filter((item: IUser) => item.fullname.toLowerCase().includes(value.toLowerCase())))
+      else if (selected === "api/channels") {
+        setFiltred(users.filter((item: any) => item.name.toLowerCase().includes(value.toLowerCase())))
+      }
+    }
     else
       setFiltred(users)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value, users])
 
   return (
@@ -99,14 +109,20 @@ export default function Search() {
             filtred?.length ? (
               filtred.map((item: any) => {
                 return (
-                  <Link to={`/profile/${item.id}`} className="w-full">
-                    <UserBanner
+                  selected === "api/users" ?
+                    <Link key={item.id} to={`/profile/${item.id}`} className="w-full">
+                      <UserBanner
+                        key={item.id}
+                        user={item}
+                        showRating
+                        rank={item.rating}
+                      />
+                    </Link>
+                    :
+                    <ChatBanner
                       key={item.id}
-                      user={item}
-                      showRating
-                      rank={item.rating}
+                      channel={item}
                     />
-                  </Link>
                 );
               })
             ) : <div className="h-[500px] flex items-center justify-center text-2xl text-primary-500">

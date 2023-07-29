@@ -7,18 +7,22 @@ export const RightClickMenuItem = ({
   className,
 }: {
   children: React.ReactNode;
-  onClick?: () => void;
+  onClick?: (e: any) => void;
   className?: string;
 }) => {
+  const handleClick = (e: any) => {
+    e.preventDefault();
+    onClick && onClick(e);
+  };
   return (
-    <li className="w-full">
+    <li className="w-full h-full rounded-xl hover:!bg-[#4B4B75]">
       <Button
         variant="text"
         className={clsx(
-          "m-2 !bg-inherit !text-sm text-white",
+          "mx-2 !bg-inherit !text-sm text-white ",
           className && className
         )}
-        onClick={onClick}
+        onClick={handleClick}
       >
         {children}
       </Button>
@@ -36,7 +40,7 @@ const RightClickMenu = ({
   return (
     <ul
       className={clsx(
-        "max-h-50 absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 transform overflow-scroll rounded !bg-secondary-800 text-white scrollbar-hide",
+        "max-h-50 divide-y absolute z-30 divide-slate-700 rounded-l-xl flex flex-col justify-content rounded-br-xl !bg-[#7C7CA6] text-white scrollbar-hide",
         className && className
       )}
     >
