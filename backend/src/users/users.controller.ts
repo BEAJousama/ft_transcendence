@@ -50,9 +50,9 @@ export class UsersController {
 
   @Get('non-blocked-users/:userId')
   @FindAllDoc()
-  async findAllNonBlockUsers(@Param('userId') userId: number) {
+  async findAllNonBlockUsers(@Param('userId') userId: string) {
     try {
-      return this.usersService.findAllNonBlockUsers(userId);
+      return this.usersService.findAllNonBlockUsers(parseInt(userId));
     } catch (error) {
       return null;
     }

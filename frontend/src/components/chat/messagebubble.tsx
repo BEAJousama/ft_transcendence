@@ -65,11 +65,11 @@ const MessageBubble : React.FC<ChannelProps> = ({ className, setOpen, setCurrent
   const [showConfirm, setShowConfirm] = useState<boolean>(false);
   const [messageId, setMessageId] = useState<number | undefined>(0);
   const [chId, setChId] = useState<number | undefined>(0);
-  
   const navigate = useNavigate();
   const {socket} = useContext(ChatContext);
   const {user} = useContext(AppContext);
   const refMessage = useRef(null);
+  const [isBlockingOrUnblocking, setIsBlockingOrUnblocking] = useState(false);
   
   const [blocking, setBlocking] = useState<any[]>(user?.blocking?.map((blocking)=> {return blocking.blockerId}) as any[]);
   const [blocked, setBlocked] = useState<any[]>(user?.blockers?.map((blocker)=> {return blocker.blockingId}) as any[]);
@@ -79,75 +79,79 @@ const MessageBubble : React.FC<ChannelProps> = ({ className, setOpen, setCurrent
   
   useEffect(() => {
     setValue("");
-}, [currentChannel]);
-
-let { data: users } = useSWR('api/users', fetcher, {
-  errorRetryCount: 0,
-  timeout : 1000
-});
-
-const getBlocking = useCallback(async () => {
-  const res = await fetcher(`api/users/${user?.id}/blocking-users`);
-  //map with blockerId
-  if (res === undefined)
-    return;
-  setBlocking(res.map((blocking : any)=> {return blocking.blockerId}));
-}, [user?.id])
-
-const getBlocked = useCallback(async () => {
-  const res = await fetcher(`api/users/${user?.id}/blocked-users`);
-  if (res === undefined)
-    return;
-  //map with blockingId
-  setBlocked(res.map((blocker : any)=> {return blocker.blockingId}));
-}, [user?.id])
-
-useEffect(() => {
-  getBlocking();
-  getBlocked();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-},[]);
-
-  const checkBlock = (userId : number | undefined) =>
-  {
+  }, [currentChannel]);
+  
+  const {data: users} = useSWR('api/users', fetcher, {
+    errorRetryCount: 0,
+    timeout : 1000
+  });
+  
+  const getBlocking = useCallback(async () => {
+    try {
+      const res = await fetcher(`api/users/${user?.id}/blocking-users`);
+      // map with blockerId
+      if (res === undefined) {
+        return;
+      }
+      return res.map((blocking : any)=> {return blocking.blockerId});
+    } catch (err) {
+      throw new Error("Error while getting blocking users");
+    }
+  }, [user?.id])
+  
+  const getBlocked = useCallback(async () => {
+    try {
+      const res = await fetcher(`api/users/${user?.id}/blocked-users`);
+      if (res === undefined) {
+        return;
+      }
+      // map with blockingId
+      return res.map((blocker : any)=> {return blocker.blockingId});
+    } catch (err) {
+      throw new Error("Error while getting blocked users");
+    }
+  }, [user?.id])
+  
+  const checkBlock = (userId : number | undefined) => {
     return (blocking.includes(userId) || blocked.includes(userId));
   }
-
-  const autoScroll = useCallback(() => {
+  
+  const autoScroll = () => {
     const scroll = refMessage.current;
     if (scroll) {
       (scroll as HTMLElement).scrollIntoView({
         behavior: 'smooth'
       });
     }
-  }, []);
-
+  };
+  
   const handleMessage = useCallback((data :  Imessage) => {
     setMessageId(data?.receiverId);
     if (messageId === chId) {
       autoScroll();
     }
-  }, [autoScroll, chId, currentChannel, messageId]);
+  }, [chId, messageId]);
   
   useEffect(() => {
     socket?.on("message", handleMessage);
-    socket?.on("blockUser", () => {
-      getBlocking();
-      getBlocked();
-      socket?.emit("getChannelMessages", {channelId : currentChannel?.id, user: {id: user?.id}});
+    socket?.on("blockUser", async() => {
+      const [blockingUsers, blockedUsers] = await Promise.all([getBlocking(), getBlocked()]);
+      setBlocking(blockingUsers || []);
+      setBlocked(blockedUsers || []);
+      socket?.emit("get_client_messages", {channelId : currentChannel?.id});
     });
-  
     return () => {
       socket?.off("message", handleMessage);
+      socket?.off("blockUser");
     }
-  }, [handleMessage, socket, currentChannel, user, getBlocking, getBlocked]);
+  });
 
   useEffect(() => {
     setVisibility(currentChannel?.visiblity);
     setPreviewImage(currentChannel?.avatar || "");
     setGroupName(currentChannel?.name || "");
-    autoScroll();
     setChId(currentChannel?.id);
+    autoScroll();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentChannel]);
 
@@ -259,11 +263,7 @@ useEffect(() => {
     })
     if (response)
     {
-      getBlocking();
-      getBlocked();
       setDmMenu(false);
-      socket?.emit("refresh_channel", {channelId: currentChannel?.id, userId: userId})
-      socket?.emit("getChannelMessages", {channelId : currentChannel?.id, user: {id: user?.id}});
       socket?.emit("blockUser", {blockerId: user?.id, blockedId: userId, isBlock: true});
     }
   }
@@ -280,11 +280,7 @@ useEffect(() => {
       })
       if (response)
       {
-        getBlocking();
-        getBlocked();
         setDmMenu(false);
-        socket?.emit("refresh_channel", {channelId: currentChannel?.id, userId: userId})
-        socket?.emit("getChannelMessages", {channelId : currentChannel?.id, user: {id: user?.id}});
         socket?.emit("blockUser", {blockerId: user?.id, blockedId: userId});
     }
   }
@@ -323,7 +319,7 @@ useEffect(() => {
                           currentChannel?.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.status === "ONLINE" && 
                           !checkBlock(currentChannel?.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.id)}
                           />
-              <div>{currentChannel?.type !== "CONVERSATION" ? currentChannel?.name : currentChannel?.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.username}</div>
+              <div>{currentChannel?.type !== "CONVERSATION" ? (currentChannel?.name && currentChannel?.name.length > 50 ? currentChannel?.name.slice(0,50) + " ..." : currentChannel?.name) : currentChannel?.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.username}</div>
             </div>
             <Button className="col-span-1 flex items-center justify-content bg-secondary-400 !p-1 !text-white font-semi-bold self-center !w-fit !m-auto"
               type="simple"
@@ -363,13 +359,24 @@ useEffect(() => {
                     </>
                   )}
                   <RightClickMenuItem
-                    onClick={() => {
-                      !isBlocked ? handleBlockUser(currentChannel?.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.id) :
-                      handleUnblockUser(currentChannel?.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.id)
+                  onClick={ async () => {
+                    if (!isBlockingOrUnblocking) {
+                      setIsBlockingOrUnblocking(true);
+                      try {
+                        if (!isBlocked) {
+                          await handleBlockUser(currentChannel?.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.id);
+                        } else {
+                          await handleUnblockUser(currentChannel?.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.id);
+                        }
+                      } catch (err) {
+                        toast.error("Something went wrong. Please try again later.");
+                      } finally {
+                        setIsBlockingOrUnblocking(false);
+                      }
                     }
-                  }
+                  }}
                   >
-                  {!isBlocked ? 'Block user' : 'Unblock user'}
+                      {isBlockingOrUnblocking ? "Processing..." : isBlocked ? "Unblock User" : "Block User"}
                   </RightClickMenuItem>
                 </RightClickMenu>
               </div>

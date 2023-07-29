@@ -11,7 +11,7 @@ import Input from "../input";
 import Button from "../button";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { set, throttle } from "lodash";
+import { throttle } from "lodash";
 import React from "react";
 
 interface ChannelListProps {
@@ -51,9 +51,6 @@ const ChannelList : React.FC<ChannelListProps> = ({className, setShowModal, setC
   }
   
   const onClick = throttle(async (channel: Ichannel): Promise<void | undefined> => {
-
-    console.log(channel?.channelMembers);
-    // console.log(channel.channelMembers?.filter((member: any) => member.userId === user?.id)[0].newMessagesCount)
     socket?.emit('reset_mssg_count', {channelId: channel.id});
     const [member, messages] = await Promise.all([
       fetcher(`api/channels/member/${user?.id}/${channel.id}`),

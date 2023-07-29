@@ -689,6 +689,11 @@ export class ChannelService {
               id: userId,
             },
           },
+          deletedFor: {
+            connect: {
+              id: userId,
+            },
+          },
         },
       });
       return updated.count;
@@ -831,6 +836,12 @@ export class ChannelService {
 
   async leaveChannel(userId: number, channelId: number): Promise<number> {
     try {
+      const channelMember = await this.getchannelMemberByUserIdAndChannelId(
+        userId,
+        channelId,
+      );
+      if (!channelMember || channelMember.status === MemberStatus.BANNED)
+        throw new Error('You are not a member of this channel');
       const ru = await this.prisma.channelMember.updateMany({
         where: {
           userId,
@@ -1330,6 +1341,11 @@ export class ChannelService {
               id: userId,
             },
           },
+          deletedFor: {
+            connect: {
+              id: userId,
+            },
+          },
         },
       });
       return updated.count;
@@ -1378,7 +1394,7 @@ export class ChannelService {
             id: userId,
           },
         },
-        kickedUsers: {
+        deletedFor: {
           connect: {
             id: userId,
           },

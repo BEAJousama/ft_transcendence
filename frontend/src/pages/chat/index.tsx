@@ -49,6 +49,16 @@ export default function Chat() {
         setMessages(sortMessages(messages));
     });
 
+    socket?.on("get_client_messages", (mssg: Imessage[]) => {
+      if (mssg[0]?.receiverId === currentChannel?.id)
+      {
+        setMessages(sortMessages(mssg));
+      }
+      else
+        setMessages(sortMessages(messages));    
+    });
+
+
     socket?.on('channel_member', (data: IchannelMember) => {
       setChannelMember(data);
       setIsMuted(data?.status === "MUTED");
@@ -79,12 +89,15 @@ export default function Chat() {
       if (!isMatch)
         setOpen(true);
       setMessages([]);
+      socket?.emit("getChannelMessages", {channelId: currentChannel?.id});
       // socket?.emit("getChannelMessages", {channelId: data?.id});
     });
 
     socket?.on("dm_create", () => {
       if (!isMatch)
         setOpen(true);
+      setMessages([]);
+      socket?.emit("getChannelMessages", {channelId: currentChannel?.id});
     });
 
     socket?.on('current_ch_update', (data: Ichannel) => {
@@ -97,6 +110,17 @@ export default function Chat() {
         setCurrentChannel(currentChannel);
       }
     });
+    return () => {
+      socket?.off('channel_member');
+      socket?.off('channel_leave');
+      socket?.off('channel_join');
+      socket?.off('channel_remove');
+      socket?.off('channel_create');
+      socket?.off('dm_create');
+      socket?.off('current_ch_update');
+      // socket?.off('getChannelMessages');
+      socket?.off('reset_mssg_count');
+    };
   });
 
   useEffect(() => {
