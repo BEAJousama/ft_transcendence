@@ -10,7 +10,7 @@ const Button = ({
   onClick,
   variant = "contained",
 }: {
-  type?: "primary" | "danger" | "success" | "cuation" | "secondary";
+  type?: "primary" | "danger" | "success" | "cuation" | "secondary" | "simple";
   className?: string;
   htmlType?: "button" | "submit" | "reset";
   children: React.ReactNode;
@@ -19,24 +19,27 @@ const Button = ({
   variant?: "text" | "contained" | "outlined";
 }) => {
   const array = Children.toArray(children).slice(0);
-  if (disabled) {
-    return (
-      <button
-        className={clsx(
-          `flex items-center gap-4 rounded border border-primary-800 px-4 py-2 font-bold text-primary-800`,
-          array?.length == 1 && "justify-center",
-          className && className
-        )}
-        disabled={disabled}
-        onClick={onClick}
-        type={htmlType}
-      >
-        {children}
-      </button>
-    );
-  }
   return (
     <>
+      {type === "simple" && (
+        <>
+          <button
+            className={`
+              ${variant === "contained"
+                ? `flex items-center rounded bg-primary-500  font-bold p-2 text-secondary-500  transition ease-in-out duration-400 hover:bg-secondary-200 m-auto`
+                : variant === "outlined"
+                  ? `flex items-center rounded border border-gray-400 bg-white  font-semibold text-gray-800 hover:bg-secondary-200`
+                  : `flex items-center rounded bg-white  font-semibold text-gray-800 hover:bg-secondary-200 `
+              } ${className} ${array?.length === 1 && "!justify-center"}
+            `}
+            disabled={disabled}
+            onClick={onClick}
+            type={htmlType}
+          >
+            {children}
+          </button>
+        </>
+      )}
       {type === "primary" && (
         <>
           <button
