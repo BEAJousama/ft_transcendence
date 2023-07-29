@@ -41,7 +41,7 @@ class AchievementsWatcher {
     this.toWatchAchievements = new Set<Achievements>(
       Object.values(Achievements),
     );
-    console.log(this.toWatchAchievements);
+    // console.log(this.toWatchAchievements);
     this.toAssignAchievements = new Set<Achievements>();
     for (const achievement of this.achievedAchievements) {
       this.toWatchAchievements.delete(achievement);
