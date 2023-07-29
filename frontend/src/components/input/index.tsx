@@ -9,6 +9,7 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   value?: string;
   placeholder?: string;
   onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => void;
   onBlur?: (event: React.FocusEvent<HTMLInputElement>) => void;
   options?: string[];
   pattern?: string;
@@ -21,6 +22,7 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   required?: boolean;
   name?: string;
   id?: string;
+  type?: string;
 }
 
 const Input = ({
@@ -31,6 +33,7 @@ const Input = ({
   name,
   value,
   onChange,
+  onKeyDown,
   onBlur,
   htmlType = "text",
   placeholder,
@@ -41,6 +44,7 @@ const Input = ({
   isError,
   hidden,
   disabled,
+  type = "text",
   required,
 }: InputProps) => {
   const [active, setActive] = useState(false);
@@ -80,6 +84,7 @@ const Input = ({
         placeholder={placeholder}
         value={value}
         onChange={onChange}
+        onKeyDown={onKeyDown}
         pattern={pattern}
         maxLength={MaxLength}
         hidden={hidden}

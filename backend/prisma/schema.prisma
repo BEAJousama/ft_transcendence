@@ -94,7 +94,7 @@ model User {
   deletedChannels       Channel[]       @relation("deletedChannels")
   unreadChannels        Channel[]       @relation("unreadChannels")
   achievements          Achievement[]   @relation("AchievementPlayers")
-  memberInChannels      ChannelMember[]
+  memberInChannels      ChannelMember[] @relation("memberInChannels1")
   sentMessages          Message[]       @relation("send")
   pineedMessages        Message[]       @relation("pinner")
   sentRequests          Friend[]        @relation("SentRequest")
@@ -179,6 +179,7 @@ model Channel {
 }
 
 enum Role {
+  OWNER
   MEMEBER
   ADMIN
 }
@@ -187,17 +188,19 @@ enum MemberStatus {
   MUTED
   BANNED
   ACTIVE
+  LEFT
 }
 
 model ChannelMember {
-  user         User         @relation(fields: [userId], references: [id])
-  userId       Int
-  channel      Channel      @relation("membersInChannels", fields: [channelId], references: [id])
-  channelId    Int
-  role         Role         @default(MEMEBER)
-  status       MemberStatus @default(ACTIVE)
-  banStartTime DateTime?
-  banDuration  Int?
+  user             User         @relation("memberInChannels1", fields: [userId], references: [id])
+  userId           Int
+  channel          Channel      @relation("membersInChannels", fields: [channelId], references: [id])
+  channelId        Int
+  role             Role         @default(MEMEBER)
+  status           MemberStatus @default(ACTIVE)
+  banStartTime     DateTime?
+  banDuration      Int?
+  newMessagesCount Int?         @default(0)
 
   @@id([userId, channelId])
 }
