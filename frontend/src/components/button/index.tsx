@@ -24,14 +24,14 @@ const Button = ({
       {type === "simple" && (
         <>
           <button
-            className={`
+            className={clsx(disabled && `opacity-60`, `
               ${variant === "contained"
                 ? `flex items-center rounded bg-primary-500  font-bold p-2 text-secondary-500  transition ease-in-out duration-400 hover:bg-secondary-200 m-auto`
                 : variant === "outlined"
                   ? `flex items-center rounded border border-gray-400 bg-white  font-semibold text-gray-800 hover:bg-secondary-200`
                   : `flex items-center rounded bg-white  font-semibold text-gray-800 hover:bg-secondary-200 `
               } ${className} ${array?.length === 1 && "!justify-center"}
-            `}
+            `)}
             disabled={disabled}
             onClick={onClick}
             type={htmlType}
@@ -43,7 +43,7 @@ const Button = ({
       {type === "primary" && (
         <>
           <button
-            className={`
+            className={clsx(disabled && `opacity-60`, `
               ${variant === "contained"
                 ? `flex items-center gap-4 rounded
                 bg-primary-500 px-4 py-2 font-bold text-secondary-500 hover:ring-2 hover:ring-primary-500 hover:ring-opacity-40 hover:shadow-primary-500 hover:shadow-[0px_0px_6px] hover:scale-105 transition ease-in-out duration-400`
@@ -51,7 +51,7 @@ const Button = ({
                   ? `flex items-center gap-4 rounded border border-gray-400 bg-white px-4 py-2 font-semibold text-gray-800 shadow  hover:bg-gray-200`
                   : `flex items-center gap-4 rounded bg-white px-4 py-2 font-semibold text-gray-800 hover:bg-gray-200 `
               } ${className} ${array?.length === 1 && "!justify-center"}
-            `}
+            `)}
             disabled={disabled}
             onClick={onClick}
             type={htmlType}
@@ -63,7 +63,7 @@ const Button = ({
       {type === "secondary" && (
         <>
           <button
-            className={`
+            className={clsx(disabled && `opacity-60`, `
               ${variant === "contained"
                 ? `flex items-center gap-4 rounded
                 bg-inherit px-4 py-2 font-bold text-primary-500 hover:bg-primary-500 hover:text-secondary-500 border-2 border-primary-500 hover:shadow-primary-500 hover:shadow-[0px_0px_6px] hover:scale-105 transition ease-in-out duration-400`
@@ -71,7 +71,7 @@ const Button = ({
                   ? `flex items-center gap-4 rounded border border-gray-400 bg-white px-4 py-2 font-semibold text-gray-800 shadow  hover:bg-gray-200`
                   : `flex items-center gap-4 rounded bg-white px-4 py-2 font-semibold text-gray-800 hover:bg-gray-200 `
               } ${className} ${array?.length === 1 && "!justify-center"}
-            `}
+            `)}
             disabled={disabled}
             onClick={onClick}
             type={htmlType}
@@ -84,7 +84,7 @@ const Button = ({
       {type === "success" && (
         <>
           <button
-            className={`flex items-center gap-4 rounded bg-green-500 px-4 py-2 font-bold text-white hover:bg-green-700 ${className}`}
+            className={clsx(disabled && `opacity-60`, `flex items-center gap-4 rounded bg-green-500 px-4 py-2 font-bold text-white hover:bg-green-700, ${className}`)}
             disabled={disabled}
             onClick={onClick}
             type={htmlType}
@@ -96,7 +96,7 @@ const Button = ({
       {type === "danger" && (
         <>
           <button
-            className={`flex items-center gap-4 rounded bg-red-500 px-4 py-2 font-bold text-white hover:bg-red-700 ${className} `}
+            className={clsx(disabled && `opacity-60`, `flex items-center gap-4 rounded bg-red-500 px-4 py-2 font-bold text-white hover:bg-red-700 ${className}`)}
             disabled={disabled}
             onClick={onClick}
             type={htmlType}
@@ -108,7 +108,7 @@ const Button = ({
       {type === "cuation" && (
         <>
           <button
-            className={`flex items-center gap-4 rounded bg-yellow-500 px-4 py-2 font-bold text-white hover:bg-yellow-700 ${className}`}
+            className={clsx(disabled && `opacity-60`, `flex items-center gap-4 rounded bg-yellow-500 px-4 py-2 font-bold text-white hover:bg-yellow-700, ${className}`)}
             disabled={disabled}
             onClick={onClick}
             type={htmlType}

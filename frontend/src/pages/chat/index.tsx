@@ -131,7 +131,7 @@ export default function Chat() {
   });
 
   return (
-    <Layout className="!py-0 !overflow-y-hidden">
+    <Layout className="!py-0 !px-2 !overflow-y-hidden">
       {
         !isMatch ?
           (

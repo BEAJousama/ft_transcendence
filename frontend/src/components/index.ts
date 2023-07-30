@@ -19,7 +19,7 @@ export { default as FlagsSelect } from "./flags-select";
 export { default as JoinGameCard } from "./join-game-card";
 export { default as UpdateAvatar } from "./update-avatar";
 export { default as QrCode } from "./qr-code";
-export { default as ActivateFfa } from "./activate-tfa";
+export { default as ActivateTfa } from "./activate-tfa";
 export { default as Achievement } from "./achievement";
 export { default as ConfirmationModal } from "./confirmationmodal";
 export { default as Container } from "./container";
