@@ -38,44 +38,72 @@ export default function SignUp() {
       } = {};
 
       // Validate email
-      if (!values.email) {
-        errors.email = "Please enter your email";
-      } else if (!isValidEmail(values.email)) {
+
+      if (values.email && !isValidEmail(values.email)) {
         errors.email = "Please enter a valid email";
       }
 
-      // Validate username
-      if (!values.username) {
-        errors.username = "Please enter a username";
-      }
 
-      // Validate fullname
-      if (!values.fullname) {
-        errors.fullname = "Please enter your full name";
-      }
-
-      // Validate password
-      if (!values.password) {
-        errors.password = "Please enter a password";
-      }
-      else if (values.password.length < 12) {
+      if (values.password && values.password.length < 12) {
         errors.password = "Password should be at least 12 characters long";
       }
-      else if (!isStrongPassword(values.password)) {
+      if (values.password && !isStrongPassword(values.password)) {
         errors.password = "Password must contain a combination of uppercase and lowercase letters, numbers, symbols and should not be a common word or name";
       }
 
-      // Validate confirmPassword
-      if (!values.confirmPassword) {
-        errors.confirmPassword = "Please confirm your password";
-      } else if (values.password !== values.confirmPassword) {
+
+      if (values.password && values.confirmPassword && (values.password !== values.confirmPassword)) {
         errors.confirmPassword = "Passwords do not match";
       }
 
       return errors;
     },
-    onSubmit: (values) => { },
+    onSubmit: () => { },
   });
+
+  const checkValues = (values: {
+    email?: string;
+    username?: string;
+    fullname?: string;
+    password?: string;
+    confirmPassword?: string;
+  }) => {
+    const errors: {
+      email?: string;
+      username?: string;
+      fullname?: string;
+      password?: string;
+      confirmPassword?: string;
+    } = {};
+
+    // Validate email
+    if (!values.email) {
+      errors.email = "Please enter your email";
+    }
+
+    // Validate username
+    if (!values.username) {
+      errors.username = "Please enter a username";
+    }
+
+    // Validate fullname
+    if (!values.fullname) {
+      errors.fullname = "Please enter your full name";
+    }
+
+    // Validate password
+    if (!values.password) {
+      errors.password = "Please enter a password";
+    }
+
+
+    // Validate confirmPassword
+    if (!values.confirmPassword) {
+      errors.confirmPassword = "Please confirm your password";
+    }
+    formik.setErrors(errors);
+    return errors;
+  }
 
   const [error, setError] = useState("");
   const [redirect, setRedirect] = useState<boolean>();
@@ -83,10 +111,10 @@ export default function SignUp() {
   const handleSignUp = async () => {
     try {
       setError("");
-
       if (
         Object.keys(formik.errors).length > 0 ||
-        Object.keys(await formik.validateForm()).length > 0
+        Object.keys(await formik.validateForm()).length > 0 ||
+        Object.keys(checkValues(formik.values)).length > 0
       ) {
         return;
       }

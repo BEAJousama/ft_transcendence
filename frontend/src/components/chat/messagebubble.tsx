@@ -504,6 +504,7 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
                   onClick={() => {
                     setSetowner(false);
                   }}
+                  variant="text"
                 >
                   Cancel
                 </Button>
@@ -552,6 +553,7 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
                 onClick={() => {
                   setShowConfirm(false);
                 }}
+                variant="text"
               >
                 Cancel
               </Button>
@@ -607,7 +609,8 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
             (showEdit && (channelMember?.role === "OWNER" || channelMember?.role === "ADMIN")) ? (
               <div className="flex w-full flex-col items-start justify-start gap-4 bg-inherit pt-4">
                 <Button
-                  className="!bg-inherit !text-white hover:bg-inherit justify-between w-full !font-medium"
+                  variant="text"
+                  className=" !bg-inherit !text-white hover:bg-inherit justify-between w-full !font-medium"
                   onClick={() => {
                     setManageMembers(true);
                     setShowEdit(false);
@@ -618,7 +621,8 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
                 </Button>
 
                 <Button
-                  className="!bg-inherit !text-white hover:bg-inherit justify-between w-full !font-medium"
+                  variant="text"
+                  className=" !bg-inherit !text-white hover:bg-inherit justify-between w-full !font-medium"
                   onClick={() => {
                     setChName(true);
                     setShowEdit(false);
@@ -628,7 +632,8 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
                   <BiRename />
                 </Button>
                 <Button
-                  className="!bg-inherit !text-white hover:bg-inherit justify-between w-full !font-medium"
+                  variant="text"
+                  className=" !bg-inherit !text-white hover:bg-inherit justify-between w-full !font-medium"
                   onClick={() => {
                     setChAvatar(true);
                     setShowEdit(false);
@@ -639,7 +644,8 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
                 </Button>
 
                 <Button
-                  className="!bg-inherit !text-white hover:bg-inherit justify-between w-full !font-medium"
+                  variant="text"
+                  className=" !bg-inherit !text-white hover:bg-inherit justify-between w-full !font-medium"
                   onClick={() => {
                     setChVisibility(true);
                     setShowEdit(false);
@@ -651,7 +657,8 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
                 {
                   channelMember?.role === "OWNER" && (
                     <Button
-                      className="!bg-inherit !text-white hover:bg-inherit justify-between w-full !font-medium"
+                      variant="text"
+                      className=" !bg-inherit !text-white hover:bg-inherit justify-between w-full !font-medium"
                       onClick={() => {
                         setChPassword(true);
                         setShowEdit(false);
@@ -662,7 +669,8 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
                     </Button>
                   )}
                 <Button
-                  className="!bg-inherit !text-white hover:bg-inherit justify-between w-full !font-medium"
+                  variant="text"
+                  className=" !bg-inherit !text-white hover:bg-inherit justify-between w-full !font-medium"
                   onClick={() => {
                     setChMembers(true);
                     setShowEdit(false);
@@ -673,7 +681,8 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
                 </Button>
 
                 <Button
-                  className="!bg-inherit !text-white hover:bg-inherit justify-between w-full !font-medium"
+                  variant="text"
+                  className=" !bg-inherit !text-white hover:bg-inherit justify-between w-full !font-medium"
                   onClick={() => {
                     setManageBans(true);
                     setShowEdit(false);
@@ -685,7 +694,8 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
                 {
                   channelMember?.role === "OWNER" && (
                     <Button
-                      className="!bg-inherit !text-white hover:bg-inherit justify-between w-full !font-medium"
+                      variant="text"
+                      className=" !bg-inherit !text-white hover:bg-inherit justify-between w-full !font-medium"
                       onClick={() => {
                         setDeleteChannel(true);
                         setShowEdit(false);
@@ -697,7 +707,7 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
                   )
                 }
                 <Button
-                  className="w-[50%] md:w-[30%] lg:w[50%] 2xl:w-[50%] justify-center self-center mt-4"
+                  className="w-full justify-center self-center mt-4"
                   onClick={() => {
                     leaveGroup();
                   }}

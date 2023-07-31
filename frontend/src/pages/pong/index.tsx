@@ -105,7 +105,7 @@ const PongGame = ({
   }, []);
 
   return (
-    <div className="flex h-full w-full flex-col items-center justify-around ">
+    <div className="flex h-[90%] w-full flex-col items-center justify-around overflow-hidden">
       <div className="flex w-full max-w-[1024px] items-center justify-between">
         <ScoreBoard {...playerA} />
         <ScoreBoard {...playerB} />
