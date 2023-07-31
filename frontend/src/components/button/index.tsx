@@ -66,7 +66,7 @@ const Button = ({
             className={`
               ${variant === "contained"
                 ? `flex items-center gap-4 rounded
-                bg-inherit px-4 py-2 font-bold text-primary-500 hover:bg-secondary-500 hover:text-primary-500 border-2 border-primary-500 hover:shadow-primary-500 hover:shadow-[0px_0px_6px] hover:scale-105 transition ease-in-out duration-400`
+                bg-inherit px-4 py-2 font-bold text-primary-500 hover:bg-primary-500 hover:text-secondary-500 border-2 border-primary-500 hover:shadow-primary-500 hover:shadow-[0px_0px_6px] hover:scale-105 transition ease-in-out duration-400`
                 : variant === "outlined"
                   ? `flex items-center gap-4 rounded border border-gray-400 bg-white px-4 py-2 font-semibold text-gray-800 shadow  hover:bg-gray-200`
                   : `flex items-center gap-4 rounded bg-white px-4 py-2 font-semibold text-gray-800 hover:bg-gray-200 `

@@ -110,6 +110,7 @@ const CreateGroupModal = ({
           <>
             <UpdateAvatar previewImage={previewImage} setPreviewImage={setPreviewImage} />
             <Input
+              className="bg-secondary-500"
               label="Channel name"
               placeholder="Group Chat Name (required)"
               value={groupName}
@@ -125,6 +126,7 @@ const CreateGroupModal = ({
               (visibility === "PROTECTED") && (
                 <>
                   <Input
+                    className="bg-secondary-500"
                     label="Password [Required]"
                     htmlType="password"
                     placeholder="********************"
@@ -139,6 +141,7 @@ const CreateGroupModal = ({
             }
 
             <Input
+              className="bg-secondary-500"
               label="Access password [Optional]"
               htmlType="password"
               placeholder="********************"
