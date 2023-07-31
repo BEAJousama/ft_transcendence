@@ -248,7 +248,6 @@ const CreateGroupModal = ({
           )}
 
 
-
         {showSubmit && (
           <>
             <Divider />
