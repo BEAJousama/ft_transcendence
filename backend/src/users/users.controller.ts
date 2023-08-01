@@ -31,8 +31,8 @@ import {
   UpdateDoc,
 } from './users.decorator';
 import { UsersService } from './users.service';
-import { Public } from 'src/public.decorator';
 import { assignAchievementsDto } from './dto/achievements.dto';
+import { Request } from 'express';
 
 @Controller('users')
 export class UsersController {
@@ -48,6 +48,16 @@ export class UsersController {
     }
   }
 
+  @Get('non-blocked-users/:userId')
+  @FindAllDoc()
+  async findAllNonBlockUsers(@Param('userId') userId: string) {
+    try {
+      return this.usersService.findAllNonBlockUsers(parseInt(userId));
+    } catch (error) {
+      return null;
+    }
+  }
+
   @Get('achievements')
   @FindAllDoc()
   async getAllAchievements() {
@@ -57,19 +67,6 @@ export class UsersController {
       return null;
     }
   }
-
-  // @Post('achievements')
-  // @FindAllDoc()
-  // async assignAchievements(@Body() body: assignAchievementsDto) {
-  //   try {
-  //     return await this.usersService.assignAchievements(
-  //       body.userId,
-  //       body.achievementId,
-  //     );
-  //   } catch (error) {
-  //     throw error;
-  //   }
-  // }
 
   @Get(':id')
   @FindOneDoc()
@@ -85,7 +82,7 @@ export class UsersController {
 
   @Get(':id/friends')
   @GetFriendsDoc()
-  async findFriends(@Param('id') id: string) {
+  async findFriends(@Req() req: Request, @Param('id') id: string) {
     try {
       const friends = await this.usersService.getFriends(parseInt(id));
       if (!friends) throw 'No Matches Found !!!!!';
@@ -142,6 +139,7 @@ export class UsersController {
   @UnblockUserDoc()
   async unblockUsers(@Body() body: UnblockUserDto) {
     try {
+      console.log(body);
       const blockedUser = await this.usersService.unblockUser(body);
       if (!blockedUser) throw 'No Matches Found !!!!!';
       return blockedUser;
@@ -201,6 +199,22 @@ export class UsersController {
       return blockedUsers;
     } catch {
       return null;
+    }
+  }
+
+  @Get(':id/blocking-users')
+  @GetBlockedUsersDoc()
+  async findBlockingUsers(@Param('id') id: string) {
+    try {
+      const blockingUsers = await this.usersService.getBlockingUsers(
+        parseInt(id),
+      );
+      if (!blockingUsers) throw 'No Matches Found !!!!!';
+      return blockingUsers;
+    } catch {
+      return {
+        message: 'No Matches Found !!!!!',
+      };
     }
   }
 

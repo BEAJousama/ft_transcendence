@@ -151,10 +151,11 @@ const ProfileBanner = ({
           {
             userId !== user &&
             <Button
-              className=" !hover:bg-inherit !bg-inherit hover:animate-jump hover:animate-once hover:animate-ease-in"
+              className="!hover:bg-inherit !bg-inherit hover:animate-jump hover:animate-once hover:animate-ease-in text-tertiary-200"
               onClick={() => {
                 setShowMenu(true);
               }}
+              variant="text"
             >
               <SlOptionsVertical />
             </Button>

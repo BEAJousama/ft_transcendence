@@ -113,7 +113,7 @@ const LadderProgressBar = ({ user }: { user: IUser }) => {
 								width={40}
 								className={clsx(
 									i * 20 > (user?.rating / 10000) * 100 &&
-										"grayscale-[70%]"
+									"grayscale-[70%]"
 								)}
 							/>
 						);
@@ -238,7 +238,7 @@ const ProfileInfo = ({
 													setModalText(
 														await addFriend(
 															currentUser?.id ||
-																0,
+															0,
 															user.id
 														)
 													);
