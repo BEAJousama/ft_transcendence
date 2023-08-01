@@ -22,7 +22,6 @@ import Modal from "../../components/modal";
 import { Player, Ball } from "../../interfaces/game";
 import useSWR from "swr";
 import IUser from "../../interfaces/user";
-import { Socket } from "socket.io-client";
 
 export const ScoreBoard = ({ id, score }: { id: number; score: number }) => {
   const { data: user } = useSwr(`api/users/${id}`, fetcher);
@@ -31,7 +30,7 @@ export const ScoreBoard = ({ id, score }: { id: number; score: number }) => {
       <Avatar
         src={user?.avatar || "/img/default.jpg"}
         alt="logo"
-        className="!md:h-20 !md:w-20"
+        className="h-20 w-20 md:h-28 md:w-28"
       />
       <span>{user?.username}</span>
       <span>{score}</span>
@@ -105,8 +104,8 @@ const PongGame = ({
   }, []);
 
   return (
-    <div className="flex h-full w-full flex-col items-center justify-around ">
-      <div className="flex w-full max-w-[1024px] items-center justify-between">
+    <div className="flex h-full w-full flex-col items-center justify-around overflow-hidden">
+      <div className="flex w-full max-w-[1024px] items-center justify-around">
         <ScoreBoard {...playerA} />
         <ScoreBoard {...playerB} />
       </div>
@@ -184,7 +183,7 @@ const CreateGameCard = ({
   className?: string;
   invite?: boolean;
 }) => {
-  const { data: users, isLoading } = useSWR('api/users', fetcher, {
+  const { data: users, isLoading } = useSWR("api/users", fetcher, {
     errorRetryCount: 0,
   });
   const [value, setValue] = useState<string>("");
@@ -194,21 +193,26 @@ const CreateGameCard = ({
   const [gameOption, setGameOption] = useState<string>("Classic");
   const [selectedUser, setSelectedUser] = useState<IUser>();
   const [filtred, setFiltred] = useState<IUser[]>();
-  const { socket } = useContext(GameContext)
-  const { user } = useContext(AppContext)
+  const { socket } = useContext(GameContext);
+  const { user } = useContext(AppContext);
 
   useEffect(() => {
     if (users && (filtred || !value))
-      setFiltred(users.filter((item: IUser) => item.fullname.toLowerCase().includes(value.toLowerCase())))
-    else
-      setFiltred(users)
-  }, [value, users])
+      setFiltred(
+        users.filter((item: IUser) =>
+          item.fullname.toLowerCase().includes(value.toLowerCase())
+        )
+      );
+    else setFiltred(users);
+  }, [value, users]);
 
   return (
-    <Card className={`
+    <Card
+      className={`
 	relative flex w-full !max-w-md flex-col items-center gap-4 overflow-hidden bg-gradient-to-tr from-secondary-500  to-secondary-800 text-gray-400 text-white
 	${className}
-	`}>
+	`}
+    >
       <h1 className="text-center text-xl text-white">{title}</h1>
       {invite && showModal && (
         <Modal className="flex w-full flex-col items-center justify-center gap-2 ">
@@ -223,54 +227,64 @@ const CreateGameCard = ({
           />
           {isLoading ? (
             <Spinner />
+          ) : filtred?.length ? (
+            <div className="flex h-full max-h-[500px] w-full flex-col">
+              {filtred.map((item: IUser) => {
+                return (
+                  <Button
+                    variant="text"
+                    className="!hover:bg-inherit w-full !bg-inherit !p-0"
+                    onClick={() => {
+                      setSelectedUser(item);
+                    }}
+                  >
+                    <UserBanner
+                      key={item.id}
+                      user={item}
+                      showRating
+                      rank={item.rating}
+                    />
+                  </Button>
+                );
+              })}
+            </div>
           ) : (
-            filtred?.length ? (
-              <div className="flex flex-col h-full max-h-[500px] w-full">
-                {filtred.map((item: IUser) => {
-                  return (
-                    <Button variant="text" className="w-full !bg-inherit !hover:bg-inherit !p-0" onClick={() => {
-                      setSelectedUser(item)
-                    }}>
-                      <UserBanner
-                        key={item.id}
-                        user={item}
-                        showRating
-                        rank={item.rating}
-                      />
-                    </Button>
-                  );
-                })}
-              </div>
-            ) : <div className="flex items-center justify-center text-xs md:text-2xl text-primary-500">
+            <div className="flex items-center justify-center text-xs text-primary-500 md:text-2xl">
               No matches found
             </div>
           )}
           <span className="w-full">Selected User : </span>
           {selectedUser && (
-            <UserBanner key={selectedUser.id}
+            <UserBanner
+              key={selectedUser.id}
               user={selectedUser}
               showRating
-              rank={selectedUser.rating} />
+              rank={selectedUser.rating}
+            />
           )}
-          <div className="w-full flex items-center justify-center gap-4">
-            <Button onClick={() => {
-              setShowModal(false)
-            }}>
+          <div className="flex w-full items-center justify-center gap-4">
+            <Button
+              onClick={() => {
+                setShowModal(false);
+              }}
+            >
               Cancel
             </Button>
-            <Button onClick={() => {
-              // socket?.emit("invite", {
-              //   id: selectedUser?.id,
-              //   gameMode,
-              //   gameOption,
-              // });
-              socket?.emit('invite-friend', {
-                inviterId: user?.id,
-                invitedFriendId: selectedUser?.id,
-              })
-              setShowModal(false)
-              setShow(true)
-            }}>
+            <Button
+              onClick={() => {
+                // socket?.emit("invite", {
+                //   id: selectedUser?.id,
+                //   gameMode,
+                //   gameOption,
+                // });
+                socket?.emit("invite-friend", {
+                  inviterId: user?.id,
+                  invitedFriendId: selectedUser?.id,
+                });
+                setShowModal(false);
+                setShow(true);
+              }}
+            >
               Invite
             </Button>
           </div>
@@ -308,7 +322,7 @@ const CreateGameCard = ({
         onClick={() => {
           !invite && onClick();
           !invite && setShow(true);
-          invite && setShowModal(true)
+          invite && setShowModal(true);
         }}
         disabled={disabled}
       >
@@ -339,13 +353,44 @@ const CreateGameCard = ({
   );
 };
 
+const GameOver = ({
+  winnerId,
+  setShow,
+  setWinnerId,
+}: {
+  winnerId: number;
+  setShow: React.Dispatch<React.SetStateAction<boolean>>;
+  setWinnerId: React.Dispatch<React.SetStateAction<number>>;
+}) => {
+  const { data: user } = useSWR(`api/users/${winnerId}`, fetcher);
+  return (
+    <Modal className="flex w-full flex-col items-center justify-center gap-2 ">
+      <h1 className="text-white md:text-2xl">Game Over</h1>
+      <Avatar
+        src={user?.avatar || "/img/default.jpg"}
+        alt="logo"
+        className="h-20 w-20 md:h-32 md:w-32"
+      />
+      <h1 className="text-white md:text-2xl">Winner : {user?.username}</h1>
+      <Button
+        onClick={() => {
+          setWinnerId(0);
+          setShow(false);
+        }}
+      >
+        Play Again
+      </Button>
+    </Modal>
+  );
+};
+
 export default function Pong() {
   const [show, setShow] = useState<boolean>(false);
   const [disabled, setDisabled] = useState<{
     invite: boolean;
     join: boolean;
   }>();
-  const [winnerId, setWinnerId] = useState<number>(0);
+  const [winnerId, setWinnerId] = useState<number>(3);
   const { socket, playerA, setPlayerA, playerB, setPlayerB, ball, setBall } =
     useContext(GameContext);
   const { user } = useContext(AppContext);
@@ -434,6 +479,13 @@ export default function Pong() {
           setPlayerB={setPlayerB}
           ball={ball}
           setBall={setBall}
+          setShow={setShow}
+          setWinnerId={setWinnerId}
+        />
+      )}
+      {!!winnerId && (
+        <GameOver
+          winnerId={winnerId}
           setShow={setShow}
           setWinnerId={setWinnerId}
         />

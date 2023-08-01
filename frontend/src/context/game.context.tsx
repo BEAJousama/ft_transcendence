@@ -97,7 +97,7 @@ export default function SocketProvider({
 		});
 		console.log(newSocket);
 		newSocket.on("connect", () => {
-			console.log("Game Connected");
+			// console.log("Game Connected");
 		});
 		setSocket(newSocket);
 

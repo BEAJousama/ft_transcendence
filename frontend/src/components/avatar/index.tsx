@@ -14,7 +14,7 @@ const Avatar = ({
 }) => {
   return (
     <div
-      className={twMerge("relative w-10 h-10 rounded-full  border-1 border-white", className)}
+      className={twMerge("relative w-10 h-10 rounded-full  border-1 border-white md:w-20 md:h-20", className)}
     >
       <img
         className="w-full h-full rounded-full object-cover"
