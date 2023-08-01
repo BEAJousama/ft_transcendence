@@ -1,12 +1,14 @@
-import { MdSettings } from "react-icons/md";
+import { MdDelete, MdSettings } from "react-icons/md";
 import {
   Avatar,
   Spinner,
   ConfirmationModal,
   UpdateAvatar,
   UpdateInfo,
-  ActivateFfa,
+  ActivateTfa,
   JoinGameCard,
+  Divider,
+  Button,
 } from "./../../components";
 import { useContext, useState } from "react";
 import { AppContext } from "../../context/app.context";
@@ -35,7 +37,7 @@ export default function Settings() {
               previewImage={previewImage}
               setPreviewImage={setPreviewImage}
             />
-            <div className="flex w-full flex-wrap items-start justify-center divide-y divide-quaternary-400 md:mt-4 md:flex-nowrap md:divide-x md:divide-y-0">
+            <div className="flex w-full flex-wrap items-start justify-center divide-y divide-secondary-300 md:mt-4 md:flex-nowrap md:divide-x md:divide-y-0">
               {showmodal && (
                 <ConfirmationModal
                   title="Are you sure you want to delete your account"
@@ -70,7 +72,7 @@ export default function Settings() {
                   showReject
                 />
               )}
-              <ActivateFfa
+              <ActivateTfa
                 setShowmodal={setShowmodal}
                 user={user}
                 setUpdated={setError}
@@ -81,6 +83,7 @@ export default function Settings() {
                   previewImage={previewImage}
                   setModalText={setError}
                   setLoading={setLoading}
+				  setShowmodal={setShowmodal}
                 />
                 {!!error && (
                   <ConfirmationModal
@@ -104,7 +107,7 @@ export default function Settings() {
                     danger={error.includes("Error")}
                   />
                 )}
-                <JoinGameCard />
+                {/* <JoinGameCard /> */}
               </div>
             </div>
           </>

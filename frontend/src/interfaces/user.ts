@@ -29,6 +29,8 @@ interface IUser {
   updatedAt: Date;
   wins: number;
   losses: number;
+  totalMatches: number;
+  winStreak: number;
   blocking: IBlock[];
   blockers: IBlock[];
   achievements: IAchievement[];

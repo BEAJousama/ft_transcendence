@@ -67,7 +67,9 @@ const Notification = ({
             ref={toastId}
         >
             <Link to={url} className="w-full flex items-center justify-between gap-4">
-                <Avatar src={sender.avatar} alt="" className="!h-[70px] !w-[70px]" />
+                <div className="basis-[15%]">
+                    <Avatar src={sender.avatar} alt="" className="h-[70px] w-[70px]" />
+                </div>
                 <div className="w-full flex flex-col truncate">
                     <p className="text-white md:text-lg leading-4">{title}</p>
                     <p className="text-tertiary-200 text-xs md:text-base ">

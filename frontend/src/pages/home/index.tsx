@@ -93,7 +93,6 @@ const MatchHistory = () => {
   const { data: matches, isLoading } = useSWR(`api/pong/match-history/${user?.id}`, fetcher, {
     errorRetryCount: 0,
   });
-  console.log('match history => ', matches);
   return (<Container title="MATCH HISTORY" icon="/img/history.svg">
     {!isLoading ? (
       matches &&
