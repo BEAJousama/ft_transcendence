@@ -228,7 +228,8 @@ export class PongService {
   handleClientDisconnect(client: Socket, playerA, playerB, game, winnerId) {
     if (!client) return;
     client.on('disconnect', () => {
-      // this.usersService.changeUserStatus('ONLINE');
+      this.usersService.changeUserStatus(playerA.id, 'ONLINE');
+      this.usersService.changeUserStatus(playerB.id, 'ONLINE');
       // Update the score and remove the game provider
       this.updateScore(
         game.id,
@@ -269,6 +270,8 @@ export class PongService {
       this.createGameProvider(playerA, playerB);
       playerA.socket.emit('init-game');
       playerB.socket.emit('init-game');
+      this.usersService.changeUserStatus(playerA.id, 'INGAME');
+      this.usersService.changeUserStatus(playerB.id, 'INGAME');
       return;
     }
 

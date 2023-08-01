@@ -30,7 +30,7 @@ export class UsersService {
     try {
       const achievements = await this.prisma.achievement.findMany();
       if (achievements.length === 0) {
-        await this.createUser({
+        const ai = await this.createUser({
           login: 'PongMastersAi',
           avatar: '/img/default.jpg',
           tfaSecret: 'admin',
@@ -38,6 +38,15 @@ export class UsersService {
           phone: '',
           email: 'PongMastersAi@PongMasters.pg',
         });
+        this.updateUser(
+          {
+            user: {
+              ...ai,
+              status: 'ONLINE',
+            },
+          },
+          ai.id,
+        );
         const keys = Object.keys(Achievements);
         keys.map(async (key, i) => {
           await this.prisma.achievement.create({
@@ -207,6 +216,7 @@ export class UsersService {
           },
         },
       });
+      // exclude
       return users;
     } catch (error) {
       throw new NotFoundException(`No users found.`);
