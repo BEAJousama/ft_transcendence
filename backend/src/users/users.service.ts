@@ -167,18 +167,53 @@ export class UsersService {
     }
   }
 
+  // async findUserById(id: number) {
+  //   try {
+  //     const user = await this.prisma.user.findUnique({
+  //       where: {
+  //         id,
+  //       },
+  //       include: {
+  //         sentRequests: true,
+  //         receivedRequests: true,
+  //         achievements: true,
+  //       },
+  //     });
+  //     return user;
+  //   } catch (error) {
+  //     throw new NotFoundException(`user with ${id} does not exist.`);
+  //   }
+  // }
+
   async findUserById(id: number) {
     try {
       const user = await this.prisma.user.findUnique({
         where: {
           id,
         },
-        include: {
+        select: {
+          id: true,
+          login: true,
+          username: true,
+          email: true,
+          fullname: true,
+          country: true,
+          phone: true,
+          avatar: true,
+          twoFactorAuth: true,
+          status: true,
+          ladder: true,
+          rating: true,
+          createdAt: true,
+          updatedAt: true,
+          wins: true,
+          losses: true,
           sentRequests: true,
           receivedRequests: true,
           achievements: true,
         },
       });
+
       return user;
     } catch (error) {
       throw new NotFoundException(`user with ${id} does not exist.`);
@@ -191,6 +226,29 @@ export class UsersService {
         where: {
           login,
         },
+        // select: {
+        //   id: true,
+        //   login: true,
+        //   username: true,
+        //   email: true,
+        //   fullname: true,
+        //   country: true,
+        //   phone: true,
+        //   avatar: true,
+        //   twoFactorAuth: true,
+        //   status: true,
+        //   ladder: true,
+        //   rating: true,
+        //   createdAt: true,
+        //   updatedAt: true,
+        //   wins: true,
+        //   losses: true,
+        //   // sentRequests: true,
+        //   // receivedRequests: true,
+        //   // achievements: true,
+        //   blockers: true,
+        //   blocking: true,
+        // },
         include: {
           blockers: true,
           blocking: true,
@@ -214,6 +272,24 @@ export class UsersService {
               contains: 'PongMaster',
             },
           },
+        },
+        select: {
+          id: true,
+          login: true,
+          username: true,
+          email: true,
+          fullname: true,
+          country: true,
+          phone: true,
+          avatar: true,
+          twoFactorAuth: true,
+          status: true,
+          ladder: true,
+          rating: true,
+          createdAt: true,
+          updatedAt: true,
+          wins: true,
+          losses: true,
         },
       });
       // exclude
@@ -381,7 +457,6 @@ export class UsersService {
           status,
         },
       });
-      console.log(user.username + ' : ' + user.status);
     } catch (error) {
       throw new InternalServerErrorException('Failed to change user status');
     }
