@@ -11,7 +11,6 @@ import { Link } from "react-router-dom";
 const options = [
   { value: "api/users", label: "users" },
   { value: `api/channels`, label: "channels" },
-  { value: "api/games", label: "games" },
 ];
 
 const Select = ({
@@ -63,19 +62,17 @@ export default function Search() {
   const [filtred, setFiltred] = useState<IUser[]>();
   let { data: users, isLoading } = useSWR(selected, fetcher, {
     errorRetryCount: 0,
-    timeout : 1000
+    timeout: 1000
   });
 
 
 
 
   useEffect(() => {
-    if (users && (filtred || !value))
-    {
+    if (users && (filtred || !value)) {
       if (selected === "api/users")
         setFiltred(users.filter((item: IUser) => item.fullname.toLowerCase().includes(value.toLowerCase())))
-      else if (selected === "api/channels")
-      {
+      else if (selected === "api/channels") {
         setFiltred(users.filter((item: any) => item.name.toLowerCase().includes(value.toLowerCase())))
       }
     }

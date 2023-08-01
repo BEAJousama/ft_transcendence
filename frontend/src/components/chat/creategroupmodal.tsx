@@ -56,8 +56,8 @@ const CreateGroupModal = ({
     setPreviewImage("/img/group.jpg");
   }
 
-  const handleCreateDm = (id : number) => {
-    socket?.emit("dm_create", { senderId: user?.id , receiverId: id});
+  const handleCreateDm = (id: number) => {
+    socket?.emit("dm_create", { senderId: user?.id, receiverId: id });
     setShowModal(false);
   }
   return (
@@ -71,33 +71,33 @@ const CreateGroupModal = ({
         setShowModal={setShowModal!}
         >
         <div className="flex items-center justify-between w-full">
-          { !show && !showDm && <span className="text-lg">New Chat</span>}
+          {!show && !showDm && <span className="text-lg">New Chat</span>}
           {show && (
             <>
-            <Button
-              variant="text"
-              className=" !bg-inherit hover:bg-inherit !text-white text-2xl"
-              onClick={() => {
-                setShow(false);
-              }}
+              <Button
+                variant="text"
+                className=" !bg-inherit hover:bg-inherit !text-white text-2xl"
+                onClick={() => {
+                  setShow(false);
+                }}
               >
-              <BiArrowBack />
-            </Button>
+                <BiArrowBack />
+              </Button>
               <span className="text-lg">New Group Chat</span>
             </>
           )}
           {showDm && (
             <>
-            <Button
-            variant="text"
-            className=" !bg-inherit hover:bg-inherit !text-white text-2xl"
-            onClick={() => {
-              setShowDm(false);
-            }}
-            >
-              <BiArrowBack />
-            </Button>
-            <span className="text-lg">Send Message</span>
+              <Button
+                variant="text"
+                className=" !bg-inherit hover:bg-inherit !text-white text-2xl"
+                onClick={() => {
+                  setShowDm(false);
+                }}
+              >
+                <BiArrowBack />
+              </Button>
+              <span className="text-lg">Send Message</span>
             </>
           )}
           <Button
@@ -250,13 +250,13 @@ const CreateGroupModal = ({
                   </Button>
                     </div>
                   </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
           )}
 
 
-        
+
         {showSubmit && (
           <>
             <Divider />

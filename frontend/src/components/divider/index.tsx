@@ -1,7 +1,7 @@
 import clsx from "clsx";
 
 
-const Divider = ({className, vertical, center, title }: { className? : string, vertical?: boolean, center?: boolean, title?: string }) => {
+const Divider = ({ className, vertical, center, title }: { className?: string, vertical?: boolean, center?: boolean, title?: string }) => {
   return (
     <div className={clsx(center && " flex items-center justify-center m-3")}>
       {!vertical ? (

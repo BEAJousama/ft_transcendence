@@ -52,7 +52,7 @@ export const GameContext = createContext<IGameContext>({
 });
 
 
-export default function GameProvider({
+export default function SocketProvider({
 	children,
 }: {
 	children: React.ReactNode;

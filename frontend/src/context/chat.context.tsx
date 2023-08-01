@@ -63,7 +63,7 @@ export const ChatContext = createContext<IchatContext>({
     users: undefined,
 });
 
-export  default function ChatProvider ({
+export default function ChatProvider({
     children,
 }: {
     children: React.ReactNode;

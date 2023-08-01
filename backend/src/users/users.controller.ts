@@ -32,7 +32,6 @@ import {
 } from './users.decorator';
 import { UsersService } from './users.service';
 import { assignAchievementsDto } from './dto/achievements.dto';
-import { Request } from 'express';
 
 @Controller('users')
 export class UsersController {
@@ -68,18 +67,18 @@ export class UsersController {
     }
   }
 
-  @Post('achievements')
-  @FindAllDoc()
-  async assignAchievements(@Body() body: assignAchievementsDto) {
-    try {
-      return await this.usersService.assignAchievements(
-        body.userId,
-        body.achievementId,
-      );
-    } catch (error) {
-      throw error;
-    }
-  }
+  // @Post('achievements')
+  // @FindAllDoc()
+  // async assignAchievements(@Body() body: assignAchievementsDto) {
+  //   try {
+  //     return await this.usersService.assignAchievements(
+  //       body.userId,
+  //       body.achievementId,
+  //     );
+  //   } catch (error) {
+  //     throw error;
+  //   }
+  // }
 
   @Get(':id')
   @FindOneDoc()
@@ -97,7 +96,7 @@ export class UsersController {
 
   @Get(':id/friends')
   @GetFriendsDoc()
-  async findFriends(@Req() req: Request, @Param('id') id: string) {
+  async findFriends(@Param('id') id: string) {
     try {
       const friends = await this.usersService.getFriends(parseInt(id));
       if (!friends) throw 'No Matches Found !!!!!';

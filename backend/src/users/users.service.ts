@@ -88,18 +88,35 @@ export class UsersService {
     } catch (error) {}
   }
 
-  async assignAchievements(userId: number, achievementId: number) {
+  async assignAchievements(userId: number, achievementName: string) {
     try {
+      const achievement = await this.prisma.achievement.findFirst({
+        where: {
+          name: achievementName,
+        },
+      });
+
       await this.prisma.user.update({
         where: { id: userId },
         data: {
           achievements: {
             connect: {
-              id: achievementId,
+              id: achievement.id,
             },
           },
         },
       });
+
+      await this.notificationService.sendNotification(
+        userId,
+        userId,
+        'Achievement Unlocked',
+        `You have unlocked ${achievement.name} achievement`,
+        userId,
+        '/pong',
+      );
+
+      return achievement;
     } catch (error) {
       throw new NotFoundException('user or Achievement Not Found');
     }
@@ -176,16 +193,23 @@ export class UsersService {
     }
   }
 
-  async findAllUsers(fullname: string) {
+  async findAllUsers(username: string) {
     try {
       const users = await this.prisma.user.findMany({
         orderBy: {
           rating: 'desc',
         },
+        where: {
+          NOT: {
+            username: {
+              contains: 'PongMaster',
+            },
+          },
+        },
       });
       return users;
     } catch (error) {
-      throw new NotFoundException(`no users found ? `);
+      throw new NotFoundException(`No users found.`);
     }
   }
 
@@ -265,9 +289,16 @@ export class UsersService {
 
   async deleteUser(id: number) {
     try {
-      const user = await this.prisma.user.delete({
+      const user = await this.prisma.user.update({
         where: {
           id,
+        },
+        data: {
+          status: UserStatus.OFFLINE,
+          username: 'PongMasterUser' + id,
+          login: 'PongMasterUser' + id,
+          email: 'PongMasterUser' + id + '@pongmasters.com',
+          avatar: '/img/deleteduser.png',
         },
       });
       return user;
@@ -299,6 +330,38 @@ export class UsersService {
     }
   }
 
+  async updateStatus(status: 'ONLINE' | 'INGAME' | 'OFFLINE', id: number) {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: {
+          id: id,
+        },
+      });
+
+      if (!user || !id || !status) return;
+      await this.prisma.user.update({
+        where: {
+          id,
+        },
+        data: {
+          status: UserStatus[status],
+        },
+      });
+      return {
+        message: 'User updated successfully',
+      };
+    } catch (error) {
+      if (error instanceof PrismaClientKnownRequestError) {
+        if (error.code === 'P2016') {
+          throw new NotFoundException(`User with ID ${id} not found`);
+        } else if (error.code === 'P2025') {
+          throw new BadRequestException('Invalid update data');
+        }
+      }
+      // throw error;
+    }
+  }
+
   async acceptFriendRequest(id: number) {
     try {
       const request = await this.prisma.friend.update({
@@ -321,6 +384,22 @@ export class UsersService {
       return request;
     } catch (error) {
       throw new InternalServerErrorException('Failed to accept friend request');
+    }
+  }
+
+  async changeUserStatus(id: number, status: 'OFFLINE' | 'INGAME' | 'ONLINE') {
+    try {
+      const user = await this.prisma.user.update({
+        where: {
+          id,
+        },
+        data: {
+          status,
+        },
+      });
+      console.log(user.username + ' : ' + user.status);
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to change user status');
     }
   }
 

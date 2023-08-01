@@ -31,8 +31,7 @@ export class FortyTwoStrategy extends PassportStrategy(Strategy, '42') {
     //   phone: phone === 'hidden' ? '' : phone,
     //   email,
     // };
-    // console.log(user)
-    // console.log(user)
+    console.log(user)
     return user;
   }
 }

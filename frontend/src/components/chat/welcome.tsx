@@ -42,4 +42,3 @@ const Welcome = ({className, setShowModal} : {className: string, setShowModal: R
 
 export default Welcome;
 /* Welcome to your chat section! Stay connected with your friends. Start a new conversation or select one from the list.Use the search bar to find specific messages.Happy chatting! */
-

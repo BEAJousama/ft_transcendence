@@ -14,7 +14,7 @@ import Avatar from "../avatar";
 import Button from "../button";
 import { SlOptionsVertical } from "react-icons/sl";
 import { TbBan } from "react-icons/tb";
-import {IoPersonRemoveOutline} from "react-icons/io5";
+import { IoPersonRemoveOutline } from "react-icons/io5";
 import RightClickMenu, { RightClickMenuItem } from "../rightclickmenu";
 import { BiVolumeMute } from "react-icons/bi";
 import { ChatContext, IchannelMember } from "../../context/chat.context";
@@ -70,7 +70,7 @@ const ProfileBanner = ({
   
 
   const setAsAdmin = () => {
-    socket?.emit("set_admin", {userId, channelId});
+    socket?.emit("set_admin", { userId, channelId });
   };
 
   const setAsOwner = () => {
@@ -78,11 +78,11 @@ const ProfileBanner = ({
   };
 
   const banUser = () => {
-    socket?.emit("ban_user", {userId, channelId});
+    socket?.emit("ban_user", { userId, channelId });
   };
 
   const unbanUser = () => {
-    socket?.emit("unban_user", {userId, channelId});
+    socket?.emit("unban_user", { userId, channelId });
   };
 
   const muteUser = () => {
@@ -91,13 +91,13 @@ const ProfileBanner = ({
   };
 
   const unmuteUser = () => {
-    socket?.emit("unmute_user", {userId, channelId});
+    socket?.emit("unmute_user", { userId, channelId });
   };
 
   const kickUser = () => {
-    socket?.emit("kick_user", {userId, channelId});
+    socket?.emit("kick_user", { userId, channelId });
   };
-  
+
 
   useClickAway(ref, () => setShowMenu(false));
 
@@ -134,7 +134,7 @@ const ProfileBanner = ({
             className=" !hover:bg-inherit !bg-inherit hover:animate-jump hover:animate-once hover:animate-ease-in"
             onClick={() => {
               setShowModal && setShowModal(true);
-              
+
             }}
           >
             <MdAddBox />
@@ -149,8 +149,8 @@ const ProfileBanner = ({
       {showOptions && (
         <div className="flex items-center justify-end">
           {
-            userId !== user && 
-              <Button
+            userId !== user &&
+            <Button
               className=" !hover:bg-inherit !bg-inherit hover:animate-jump hover:animate-once hover:animate-ease-in"
               onClick={() => {
                 setShowMenu(true);
@@ -217,33 +217,23 @@ const ProfileBanner = ({
                         setShowMenu(false);
                       }}
                       >
-                      <BiVolumeMute />
-                      {status === "MUTED" ? "Unmute" : "Mute"}
-                    </RightClickMenuItem>
-                    <RightClickMenuItem
-                      onClick={
-                        () => {
-                          status === "BANNED" ? unbanUser() : banUser();
-                          setShowMenu(false);
-                      }}
-                    >
-                      <TbBan />
-                      {
+                        <TbBan />
+                        {
                           status === "BANNED" ? "Unban" : "Ban"
-                      }
-                    </RightClickMenuItem>
-                    <RightClickMenuItem
-                      onClick={
-                        () => {
-                          kickUser();
-                          setShowMenu(false);
-                      }}
-                    >
-                      <IoPersonRemoveOutline />
-                      {"Kick"}
-                    </RightClickMenuItem>
-                </Fragment>
-                }
+                        }
+                      </RightClickMenuItem>
+                      <RightClickMenuItem
+                        onClick={
+                          () => {
+                            kickUser();
+                            setShowMenu(false);
+                          }}
+                      >
+                        <IoPersonRemoveOutline />
+                        {"Kick"}
+                      </RightClickMenuItem>
+                    </Fragment>
+                  }
 
               </RightClickMenu>
             ) :
@@ -255,17 +245,17 @@ const ProfileBanner = ({
                           status === "BANNED" ? unbanUser() : banUser();
                           setShowMenu(false);
                       }}
-                    >
-                      <TbBan />
-                      {
-                          status === "BANNED" ? "Unban" : "Ban"
-                      }
-                    </RightClickMenuItem>
-              </RightClickMenu>
-              
-            )
+                  >
+                    <TbBan />
+                    {
+                      status === "BANNED" ? "Unban" : "Ban"
+                    }
+                  </RightClickMenuItem>
+                </RightClickMenu>
+
+              )
           }
-            
+
         </div>
       )}
       {

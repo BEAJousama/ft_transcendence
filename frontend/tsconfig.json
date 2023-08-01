@@ -16,7 +16,5 @@
     "noEmit": true,
     "jsx": "react-jsx"
   },
-  "include": [
-    "src"
-, "src/index.d.tsd.ts", "index.d.ts"  ]
+  "include": ["src"]
 }
