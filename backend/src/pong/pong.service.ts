@@ -146,6 +146,7 @@ export class PongService {
   ) {
     try {
       console.log(winnerId, loserId, gameId);
+	  this.adjustPlayerRating(winnerId, loserId);
       const game = await this.prisma.game.update({
         where: {
           id: gameId,

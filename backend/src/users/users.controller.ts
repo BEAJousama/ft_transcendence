@@ -76,9 +76,7 @@ export class UsersController {
       if (!user) throw 'No Matches Found !!!!!';
       return user;
     } catch (error) {
-      return {
-        message: 'No Matches Found !!!!!',
-      };
+      return null;
     }
   }
 
@@ -90,9 +88,7 @@ export class UsersController {
       if (!friends) throw 'No Matches Found !!!!!';
       return friends;
     } catch (error) {
-      return {
-        message: 'No Matches Found !!!!!',
-      };
+      return null;
     }
   }
 
@@ -104,9 +100,7 @@ export class UsersController {
       if (!friends) throw 'No Matches Found !!!!!';
       return friends;
     } catch (error) {
-      return {
-        message: 'No Matches Found !!!!!',
-      };
+      return null;
     }
   }
 
@@ -125,9 +119,7 @@ export class UsersController {
       if (!friend) throw 'No Matches Found !!!!!';
       return friend;
     } catch (error) {
-      return {
-        message: 'No Matches Found !!!!!',
-      };
+      return null;
     }
   }
 
@@ -139,9 +131,7 @@ export class UsersController {
       if (!blockedUser) throw 'No Matches Found !!!!!';
       return blockedUser;
     } catch (error) {
-      return {
-        message: 'No Matches Found !!!!!',
-      };
+      return null;
     }
   }
 
@@ -154,9 +144,7 @@ export class UsersController {
       if (!blockedUser) throw 'No Matches Found !!!!!';
       return blockedUser;
     } catch (error) {
-      return {
-        message: 'No Matches Found !!!!!',
-      };
+      return null;
     }
   }
 
@@ -168,9 +156,7 @@ export class UsersController {
       if (!friendRequest) throw 'No Matches Found !!!!!';
       return friendRequest;
     } catch (error) {
-      return {
-        message: 'No Matches Found !!!!!',
-      };
+      return null;
     }
   }
 
@@ -184,9 +170,7 @@ export class UsersController {
       if (!friendRequest) throw 'No Matches Found !!!!!';
       return friendRequest;
     } catch (error) {
-      return {
-        message: 'No Matches Found !!!!!',
-      };
+      return null;
     }
   }
 
@@ -200,9 +184,7 @@ export class UsersController {
       if (!friendRequest) throw 'No Matches Found !!!!!';
       return friendRequest;
     } catch (error) {
-      return {
-        message: 'No Matches Found !!!!!',
-      };
+      return null;
     }
   }
 
@@ -216,9 +198,7 @@ export class UsersController {
       if (!blockedUsers) throw 'No Matches Found !!!!!';
       return blockedUsers;
     } catch {
-      return {
-        message: 'No Matches Found !!!!!',
-      };
+      return null;
     }
   }
 
