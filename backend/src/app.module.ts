@@ -6,8 +6,13 @@ import { PongModule } from './pong/pong.module';
 import { NotificationModule } from './notification/notification.module';
 
 @Module({
-  imports: [PrismaModule, AuthModule, PongModule, NotificationModule, ChatModule],
+  imports: [
+    PrismaModule,
+    AuthModule,
+    PongModule,
+    NotificationModule,
+    ChatModule,
+  ],
   providers: [],
 })
-export class AppModule {
-}
+export class AppModule {}

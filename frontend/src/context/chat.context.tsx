@@ -1,12 +1,12 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import io, { Socket } from "socket.io-client";
-import { AppContext } from "./app.context";
+import { AppContext, fetcher } from "./app.context";
 import { toast } from "react-toastify";
 import { Toast } from "../components";
 import { Link } from "react-router-dom";
 import { INotification } from "./socket.context";
 import IUser from "../interfaces/user";
-import axios from "axios";
+import useSWR from "swr";
 
 export interface IchatContext {
     users: IUser[] | undefined;
@@ -70,21 +70,18 @@ export  default function ChatProvider ({
 }) {
     const [socket, setSocket] = useState<Socket | null>(null);
     const { user } = useContext(AppContext);
-    const [users, setUsers] = useState<IUser[]>([]);
-    const fetchUsers = async () => {
-        axios.get(`${process.env.REACT_APP_BACK_END_URL}api/users`, {
-            headers: {  Authorization: `Bearer ${localStorage.getItem("access_token")}` },
-            })
-            .then((response) => {
-                setUsers(response.data);
-            })
-            .catch((error) => {
-                console.log(error);
-            });
-      };
-      
+    // const [users, setUsers] = useState<IUser[]>([]);
+    const {data: users} = useSWR(`api/users/non-blocked-users/${user?.id}`, fetcher, {
+        refreshInterval: 5000,
+        revalidateOnMount: true,
+        revalidateOnFocus: true,
+        revalidateOnReconnect: true,
+        refreshWhenOffline: true,
+        refreshWhenHidden: true,
+        dedupingInterval: 60000, 
+        // onSuccess: (newData) => setUsers(newData),
+      });
       useEffect(() => {
-        fetchUsers();
         if (!user) return;
         const newSocket = io(`${process.env.REACT_APP_BACK_END_URL}chat`, {
             query: {
@@ -122,18 +119,11 @@ export  default function ChatProvider ({
                 </div>
             );
         });
-        // newSocket.on("exception", (data: any) => {
-        //     toast.error(
-        //         <div className="">
-        //             <h1 className="text-white">Error</h1>
-        //             <p className="text-sm text-white">{data.message}</p>
-        //         </div>
-        //     );
-        // });
         setSocket(newSocket);
         return () => {
             newSocket.disconnect();
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user]);
     const chatContextValue: IchatContext = {
         socket,

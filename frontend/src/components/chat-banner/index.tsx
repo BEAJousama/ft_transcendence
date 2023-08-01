@@ -136,7 +136,7 @@ const ChatBanner = ({
                         <Input
                             label="Password"
                             className="h-[40px] w-[80%] rounded-md border-2 border-primary-500 text-white text-xs bg-transparent md:mr-2"
-                            type="password"
+                            htmlType="password"
                             placeholder="*****************"
                             value={accessPassword}
                             // inputRef={iRef}
@@ -188,7 +188,7 @@ const ChatBanner = ({
                         <Input
                             label="Password"
                             className="h-[40px] w-[80%] rounded-md border-2 border-primary-500 text-white text-xs bg-transparent md:mr-2"
-                            type="password"
+                            htmlType="password"
                             placeholder="*****************"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}

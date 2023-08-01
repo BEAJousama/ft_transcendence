@@ -7,17 +7,20 @@ import { RiCloseFill } from "react-icons/ri";
 import { FiSend } from "react-icons/fi";
 import ProfileBanner from "../../components/profilebanner";
 import CustomSelect from "../select";
-import { AppContext, IAppContext, fetcher } from "../../context/app.context";
+import { AppContext, IAppContext } from "../../context/app.context";
 import { ChatContext, IchatContext } from "../../context/chat.context";
 import Modal from "../modal";
-import useSWR from "swr";
 import { BsSendPlus } from "react-icons/bs";
+import IUser from "../../interfaces/user";
+
 // import addUsers from "./selectusers";
 
 const CreateGroupModal = ({
   setShowModal,
+  users,
 }: {
   setShowModal: React.Dispatch<React.SetStateAction<boolean>>;
+  users? : IUser[];
 }) => {
   const [show, setShow] = useState<boolean>(false);
   const [showDm, setShowDm] = useState<boolean>(false);
@@ -30,11 +33,12 @@ const CreateGroupModal = ({
   const [accesspass, setaccesspass] = useState<string>("");
   const {user} = useContext<IAppContext>(AppContext);
   const [previewImage, setPreviewImage] = useState<string>("/img/group.jpg" || "");
+  // const {users} = useContext<IchatContext>(ChatContext);
   
-  let { data: users } = useSWR('api/users', fetcher, {
-    errorRetryCount: 0,
-    timeout : 1000
-  });
+  // let { data: users } = useSWR('api/users', fetcher, {
+  //   errorRetryCount: 0,
+  //   timeout : 1000
+  // });
 
   const checkBlock = (userId : number) =>
   {
@@ -127,7 +131,7 @@ const CreateGroupModal = ({
               <>
               <Input
                 label="Password [Required]"
-                type="password"
+                htmlType="password"
                 placeholder="********************"
                 value={password}
                 onChange={(e) => {
@@ -141,7 +145,7 @@ const CreateGroupModal = ({
 
           <Input
           label="Access password [Optional]"
-          type="password"
+          htmlType="password"
           placeholder="********************"
           value={accesspass}
           onChange={(e) => {
@@ -182,7 +186,9 @@ const CreateGroupModal = ({
           show && (
             <div className="w-full h[100px] flex items-center justify-center flex-col align-middle gap-2 pt-2 overflow-y-scroll scrollbar-hide">
             <span className="w-full mb-2 text-sm font-medium text-gray-900 dark:text-white">Select users: </span>
-            {users?.filter((u : any) => {
+            {
+            users ?
+            (users?.filter((u : any) => {
               return u.id !== user?.id && !checkBlock(u.id);
             }).map((u : any) => {
               return (
@@ -209,7 +215,11 @@ const CreateGroupModal = ({
                     </div>
                   </div>
               );
-            })}
+            })) : (
+              <div className="flex flex-col items-center justify-center w-full">
+              <p className="text-gray-500 text-lg">No users found</p>
+              </div>                
+            )}
           </div>
         )}
 

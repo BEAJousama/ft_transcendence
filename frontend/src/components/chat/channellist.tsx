@@ -18,14 +18,14 @@ interface ChannelListProps {
   className?: string;
   setShowModal: React.Dispatch<React.SetStateAction<boolean>>;
   setCurrentChannel: any;
-  setChannelMember: any;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setMessages: any;
   inputRef?: any;
+  checkBlock: any;
 }
 
 
-const ChannelList : React.FC<ChannelListProps> = ({className, setShowModal, setCurrentChannel, setChannelMember, setOpen, setMessages, inputRef} : ChannelListProps) => {
+const ChannelList : React.FC<ChannelListProps> = ({className, setShowModal, setCurrentChannel, setOpen, setMessages, inputRef, checkBlock} : ChannelListProps) => {
   
   const[channels, setChannels] = useState<Ichannel[]>([]);
   const [archiveChannels, setArchiveChannels] = useState<Ichannel[]>([]);
@@ -40,15 +40,19 @@ const ChannelList : React.FC<ChannelListProps> = ({className, setShowModal, setC
   const [isFocused, setIsFocused] = useState<boolean>(false);
   const iRef = React.useRef<HTMLInputElement>(null);
 
-  const checkBlock = (userId : number | undefined) =>
-  {
-    return (user?.blockers[0]?.blockingId === userId || user?.blocking[0]?.blockerId === userId)
-  }
+  // const checkBlock = async (userId : number | undefined) =>
+  // {
+  //   const blockers = await fetcher(`api/users/${user?.id}/blocking-users`);
+  //   const blocking = await fetcher(`api/users/${user?.id}/blocked-users`);
+  //   return (blockers[0]?.blockingId === userId || blocking[0]?.blockerId === userId)
+  // }
 
   const loadMessages = async (channelId: number | undefined) => {
     const messages = fetcher(`api/messages/${channelId}/${user?.id}`)
     return messages;
   }
+
+
   
   const onClick = throttle(async (channel: Ichannel): Promise<void | undefined> => {
     socket?.emit('reset_mssg_count', {channelId: channel.id});
@@ -57,6 +61,7 @@ const ChannelList : React.FC<ChannelListProps> = ({className, setShowModal, setC
       loadMessages(channel.id)
     ]);
   
+    socket?.emit("channel_member", {channelId: channel.id, userId: user?.id});
     if (channel.isacessPassword && member.role !== "OWNER") {
       if (selectedChannel && selectedChannel.id === channel.id) {
         setOpen(true);
@@ -148,6 +153,10 @@ const ChannelList : React.FC<ChannelListProps> = ({className, setShowModal, setC
       setCurrentChannel();
       inputRef?.current?.blur();
       setOpen(false);
+    });
+
+    socket?.on('block-user', () => {
+
     });
     return () => {
       socket?.off('channel_leave');
@@ -425,7 +434,7 @@ const ChannelList : React.FC<ChannelListProps> = ({className, setShowModal, setC
                 <Input
                     label="Password"
                     className="h-[40px] w-[80%] rounded-md border-2 border-primary-500 text-white text-xs bg-transparent md:mr-2"
-                    type="password"
+                    htmlType="password"
                     placeholder="*****************"
                     value={password}
                     inputRef={iRef}

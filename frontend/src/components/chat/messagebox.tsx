@@ -16,10 +16,10 @@ const MessageBox = ({ message, right, autoScroll }: { message?: any; right?: boo
   const [sender, setSender] = useState<IUser>(null as unknown as IUser);
   const ref = useRef(null);
 
-  // useEffect(() => {
-  //   autoScroll();
-  // // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, []);
+  useEffect(() => {
+    autoScroll();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     fetcher(`api/users/${message.senderId}`).then((res) => setSender(res));
