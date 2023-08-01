@@ -95,5 +95,6 @@ export class UpdateUserDto {
   @ApiProperty({
     description: 'The user object to update',
   })
-  user: UserDto;
+  user: any;
+  // user: UserDto;
 }

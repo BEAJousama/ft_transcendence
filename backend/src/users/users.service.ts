@@ -211,6 +211,8 @@ export class UsersService {
           sentRequests: true,
           receivedRequests: true,
           achievements: true,
+          totalGames: true,
+          winStreak: true,
         },
       });
 
@@ -290,6 +292,8 @@ export class UsersService {
           updatedAt: true,
           wins: true,
           losses: true,
+          totalGames: true,
+          winStreak: true,
         },
       });
       // exclude

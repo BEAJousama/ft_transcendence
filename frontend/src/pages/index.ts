@@ -1,5 +1,5 @@
 export { default as TwoFactorAuth } from "./2fa";
-export { default as FourOhFour } from "./404";
+export { default as FourOFour } from "./404";
 export { default as Chat } from "./chat";
 export { default as Home } from "./home";
 export { default as Login } from "./login";

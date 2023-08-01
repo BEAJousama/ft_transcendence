@@ -29,7 +29,7 @@ interface IUser {
   updatedAt: Date;
   wins: number;
   losses: number;
-  totalMatches: number;
+  totalGames: number;
   winStreak: number;
   blocking: IBlock[];
   blockers: IBlock[];

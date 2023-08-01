@@ -22,16 +22,37 @@ export class PongGateway {
 
   // constructor(private usersService: UsersService) {}
 
-  onModuleInit() {
-    this.server.on('connect', (socket) => {
-      const clientId = socket.handshake.query.clientId;
-      // this.usersService.changeUserStatus(parseInt(clientId), 'ONLINE');
-      console.log('connected', clientId);
-      socket.on('disconnect', () => {
-        // this.usersService.changeUserStatus(parseInt(clientId), 'OFFLINE');
-        console.log('disconnect', clientId);
-      });
-    });
+  // onModuleInit() {
+  //   this.server.on('connect', (socket) => {
+  //     const clientId = socket.handshake.query.clientId;
+  //     // this.usersService.changeUserStatus(parseInt(clientId), 'ONLINE');
+  //     // console.log('connected', clientId);
+  //     socket.on('disconnect', () => {
+  //       // this.usersService.changeUserStatus(parseInt(clientId), 'OFFLINE');
+  //       // console.log('disconnect', clientId);
+  //     });
+  //   });
+  // }
+
+  @SubscribeMessage('puase-game')
+  pauseGame(@ConnectedSocket() client: Socket, @MessageBody() info) {
+    this.pongService.pauseGame(client, info);
+  }
+
+  @SubscribeMessage('resume-game')
+  resumeGame(@ConnectedSocket() client: Socket, @MessageBody() info) {
+    this.pongService.resumeGame(client, info);
+  }
+
+  @SubscribeMessage('is-already-in-game')
+  isAlreadyInGame(@ConnectedSocket() client: Socket, @MessageBody() info) {
+    const isInGame = this.pongService.isAlreadyInGame(client, info);
+    client.emit('is-already-in-game', isInGame);
+  }
+
+  @SubscribeMessage('leave-game')
+  leaveGame(@ConnectedSocket() client: Socket, @MessageBody() info) {
+    this.pongService.leaveGame(client, info);
   }
 
   @SubscribeMessage('invite-friend')
@@ -71,33 +92,33 @@ export class PongGateway {
     this.pongService.leaveQueue(client);
   }
 
-  @SubscribeMessage('update')
-  update(@ConnectedSocket() client: Socket, @MessageBody() info) {
-    try {
-      const data = this.pongService.update(info);
-      if (data) {
-        client.emit('update', data.ball);
-        client.emit('update-player-a', {
-          id: data.playerA.id,
-          x: data.playerA.x,
-          y: data.playerA.y,
-          score: data.playerA.score,
-          width: data.playerA.width,
-          height: data.playerA.height,
-        });
-        client.emit('update-player-b', {
-          id: data.playerB.id,
-          x: data.playerB.x,
-          y: data.playerB.y,
-          score: data.playerB.score,
-          width: data.playerB.width,
-          height: data.playerB.height,
-        });
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  }
+  // @SubscribeMessage('update')
+  // update(@ConnectedSocket() client: Socket, @MessageBody() info) {
+  //   try {
+  //     const data = this.pongService.update(info);
+  //     if (data) {
+  //       client.emit('update', data.ball);
+  //       client.emit('update-player-a', {
+  //         id: data.playerA.id,
+  //         x: data.playerA.x,
+  //         y: data.playerA.y,
+  //         score: data.playerA.score,
+  //         width: data.playerA.width,
+  //         height: data.playerA.height,
+  //       });
+  //       client.emit('update-player-b', {
+  //         id: data.playerB.id,
+  //         x: data.playerB.x,
+  //         y: data.playerB.y,
+  //         score: data.playerB.score,
+  //         width: data.playerB.width,
+  //         height: data.playerB.height,
+  //       });
+  //     }
+  //   } catch (err) {
+  //     console.error(err);
+  //   }
+  // }
 
   @SubscribeMessage('keyPressed')
   keyPressed(@MessageBody() info) {

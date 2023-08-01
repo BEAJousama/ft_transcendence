@@ -12,24 +12,24 @@ import {
   Chat,
   Settings,
   Pong,
-  FourOhFour,
+  FourOFour,
   Profile,
   Search,
   CompleteInfo,
   Notifications,
   LivePong
 } from "./pages/";
-import { ToastContainer, toast, Slide } from 'react-toastify';
+import { ToastContainer, Slide } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import GameProvider from "./context/game.context";
 import ChatProvider from "./context/chat.context";
 
 const PrivateRoutes = () => {
-  const { authenticated, loading, user, updateUser } = useContext(AppContext);
+  const { authenticated, loading, user } = useContext(AppContext);
   const path = useLocation().pathname;
   const twoFactorAuth = user?.twoFactorAuth || localStorage.getItem("2fa_access_token");
 
-  // updateUser();
+
   if (loading) {
     return <Spinner />;
   }
@@ -45,7 +45,7 @@ function App() {
     localStorage.getItem('access_token')
   }
   catch (e) {
-    return <FourOhFour show={false} />
+    return <FourOFour show={false} />
   }
 
   return (
@@ -69,7 +69,7 @@ function App() {
               </Route>
               <Route path="/signup" element={<SignUp />} />
               <Route path="/login" element={<Login />} />
-              <Route path="*" element={<FourOhFour />} />
+              <Route path="*" element={<FourOFour />} />
             </Routes>
             <ToastContainer
               position="top-right"

@@ -105,6 +105,8 @@ model User {
   gamesAsPlayer2        Game[]          @relation("player2")
   sentNotifications     Notification[]  @relation("sent")
   receivedNotifications Notification[]  @relation("received")
+  winStreak             Int             @default(0)
+  totalGames            Int             @default(0)
 }
 
 enum RequestStatus {

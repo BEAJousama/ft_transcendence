@@ -1,7 +1,6 @@
-import React, { useContext, useEffect, useRef } from "react";
+import { useContext, useEffect, useRef } from "react";
 import { GameContext } from "../../context/game.context";
 import { useMedia } from "react-use";
-import { Socket } from "socket.io-client";
 import { AppContext } from "../../context/app.context";
 
 enum Keys {
@@ -137,7 +136,7 @@ const Canvas = () => {
 
             renderGame();
         }
-    }, [playerA, playerB, ball]);
+    }, [playerA, playerB, ball, heightScaleFactor, widthScaleFactor]);
 
     return (
         <canvas

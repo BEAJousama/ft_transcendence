@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useRef, useState } from "react";
 import io, { Socket } from "socket.io-client";
 import { AppContext } from "./app.context";
 import { Ball, Player } from "../interfaces/game";
@@ -21,6 +21,9 @@ export interface IGameContext {
 	setPlayerB: React.Dispatch<React.SetStateAction<Player>>;
 	ball: Ball;
 	setBall: React.Dispatch<React.SetStateAction<Ball>>;
+	show?: boolean;
+	setShow: React.Dispatch<React.SetStateAction<boolean>>;
+	isInGame: React.MutableRefObject<boolean>;
 }
 
 export const GameContext = createContext<IGameContext>({
@@ -49,6 +52,9 @@ export const GameContext = createContext<IGameContext>({
 		radius: 0,
 	},
 	setBall: () => { },
+	isInGame: { current: false },
+	show: false,
+	setShow: () => { },
 });
 
 
@@ -79,6 +85,10 @@ export default function SocketProvider({
 		y: 480 / 2,
 		radius: 10,
 	});
+
+	const [show, setShow] = useState<boolean>(false);
+	const isInGame = useRef(false);
+
 	const { user } = useContext(AppContext);
 
 	const [socket, setSocket] = useState<Socket | null>(null);
@@ -143,6 +153,9 @@ export default function SocketProvider({
 		setPlayerA,
 		setPlayerB,
 		setBall,
+		isInGame,
+		show,
+		setShow,
 	}
 
 	return (

@@ -2,26 +2,23 @@ import {
   Avatar,
   Button,
   Card,
-  ConfirmationModal,
-  Divider,
-  GameBanner,
   Input,
-  JoinGameCard,
-  Sidepanel,
   Spinner,
   Canvas,
   UserBanner,
+  ConfirmationModal,
 } from "../../components";
-import { useMeasure } from "react-use";
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { GameContext } from "../../context/game.context";
 import Layout from "../layout";
 import { AppContext, fetcher } from "../../context/app.context";
 import useSwr from "swr";
 import Modal from "../../components/modal";
+import { AiFillWarning } from "react-icons/ai";
 import { Player, Ball } from "../../interfaces/game";
 import useSWR from "swr";
 import IUser from "../../interfaces/user";
+import { Is } from "react-flags-select";
 
 export const ScoreBoard = ({ id, score }: { id: number; score: number }) => {
   const { data: user } = useSwr(`api/users/${id}`, fetcher);
@@ -57,22 +54,21 @@ const PongGame = ({
   setShow: React.Dispatch<React.SetStateAction<boolean>>;
   setWinnerId: React.Dispatch<React.SetStateAction<number>>;
 }) => {
-  const { socket } = useContext(GameContext);
+  const {
+    socket,
+    isInGame,
+    show,
+    setShow: setShowModal,
+  } = useContext(GameContext);
   const { user } = useContext(AppContext);
+  const [showPausedModal, setShowPausedModal] = useState<boolean>(false);
 
   useEffect(() => {
-    const id = setInterval(() => {
-      socket?.emit("update", {
-        userId: user?.id,
-        playerCanvas: {
-          width: 650,
-          height: 480,
-        },
-      });
-    }, 25);
+    isInGame.current = true;
 
     socket?.on("update", (data: Ball) => {
       // Update the ball position with the scaled values
+      setShowPausedModal(false)
       setBall((prev) => {
         return {
           ...prev,
@@ -93,23 +89,64 @@ const PongGame = ({
       });
     });
 
+    socket?.on("game-paused", () => {
+      setShowPausedModal(true);
+    });
+
     socket?.on("game-over", (data: { winner: number }) => {
       setShow(false);
       setWinnerId(data.winner);
+      isInGame.current = false;
+      setShowModal(false);
     });
 
-    socket?.on("disconnect", () => clearInterval(id));
-
-    return () => clearInterval(id);
-  }, []);
+  }, [socket, user?.id, setPlayerA, setPlayerB, setBall, setShow, setWinnerId]);
 
   return (
-    <div className="flex h-[90%] w-full flex-col items-center justify-around overflow-hidden">
+    <div className="flex h-full w-full flex-col items-center justify-around overflow-hidden pb-16 md:pb-0">
       <div className="flex w-full max-w-[1024px] items-center justify-between">
         <ScoreBoard {...playerA} />
         <ScoreBoard {...playerB} />
       </div>
       <Canvas />
+      {show && (
+        <ConfirmationModal
+          icon={<AiFillWarning size={100} />}
+          title="Are You Sure You Want To Leave The Game"
+          accept="Yes, Leave"
+          reject="No, Stay"
+          showReject
+          onAccept={() => {
+            setShowModal(false);
+            isInGame.current = false;
+            socket?.emit("leave-game", {
+              userId: user?.id,
+            })
+          }}
+          onReject={() => {
+            socket?.emit("resume-game", {
+              userId: user?.id,
+            })
+            setShowModal(false);
+          }}
+        />
+      )}
+      {showPausedModal && !show && (
+        <Modal>
+          <Spinner />
+          <span className="text-white">Waiting for opponent</span>
+          {/* <Button
+            onClick={() => {
+              setShowPausedModal(false);
+              socket?.emit("resume-game", {
+                userId: user?.id,
+              })
+            }}
+          >
+            Resume
+          </Button> */}
+        </Modal>
+      )}
     </div>
   );
 };
@@ -189,7 +226,7 @@ const CreateGameCard = ({
   const [value, setValue] = useState<string>("");
   const [show, setShow] = useState<boolean>(false);
   const [showModal, setShowModal] = useState<boolean>(false);
-  const [gameMode, setGameMode] = useState<string>("Normal Mode");
+  const [gameMode, setGameMode] = useState<string>("50");
   const [gameOption, setGameOption] = useState<string>("Classic");
   const [selectedUser, setSelectedUser] = useState<IUser>();
   const [filtred, setFiltred] = useState<IUser[]>();
@@ -209,7 +246,7 @@ const CreateGameCard = ({
   return (
     <Card
       className={`
-	relative flex w-full !max-w-md flex-col items-center gap-4 overflow-hidden bg-gradient-to-tr from-secondary-500  to-secondary-800 text-gray-400 text-white
+	relative flex w-full !max-w-md flex-col items-center gap-4 overflow-hidden bg-gradient-to-tr from-secondary-50  to-secondary-800 text-gray-400 
 	${className}
 	`}
     >
@@ -299,7 +336,7 @@ const CreateGameCard = ({
             }}
             htmlFor={"gamemode" + name}
             label="Select Game Mode"
-            options={["Normal Mode", "Ranked Mode", "survival Mode"]}
+            options={["50", "100", "150"]}
           />
           <RadioCheck
             value={gameOption}
@@ -309,7 +346,7 @@ const CreateGameCard = ({
             }}
             htmlFor={"gameoption" + name}
             label="Select Game Options"
-            options={["Classic", "Power Ups"]}
+            options={["Classic", "Speed", "Invisible"]}
           />
         </>
       ) : (
@@ -390,7 +427,8 @@ export default function Pong() {
     invite: boolean;
     join: boolean;
   }>();
-  const [winnerId, setWinnerId] = useState<number>(3);
+  const [winnerId, setWinnerId] = useState<number>(0);
+  const [showModal, setShowModal] = useState<boolean>(false);
   const { socket, playerA, setPlayerA, playerB, setPlayerB, ball, setBall } =
     useContext(GameContext);
   const { user } = useContext(AppContext);
@@ -404,6 +442,12 @@ export default function Pong() {
       invitedFriendId: 2,
       // invitedFriendId: user?.id,
     });
+    socket.emit("is-already-in-game", {
+      userId: user?.id,
+    })
+    socket.on("is-already-in-game", (data) => {
+      setShowModal(data as boolean);
+    })
   }, [socket]);
 
   return (
@@ -488,6 +532,17 @@ export default function Pong() {
           winnerId={winnerId}
           setShow={setShow}
           setWinnerId={setWinnerId}
+        />
+      )}
+      {showModal && (
+        <ConfirmationModal
+          icon={<AiFillWarning size={100} />}
+          title="You are already in a game"
+          accept="Ok"
+          onAccept={() => {
+            setShow(true)
+            setShowModal(false);
+          }}
         />
       )}
     </Layout>
