@@ -1,4 +1,4 @@
-import clsx from "clsx";
+import { twMerge } from "tailwind-merge";
 
 const Container = ({
     children,
@@ -12,8 +12,8 @@ const Container = ({
     className?: string;
 }) => {
     return (
-        <div className="flex w-full max-w-[800px] animate-fade-right flex-col gap-2  md:w-full mt-4">
-            <div className="relative flex h-[500px] rounded border-2 border-secondary-400 shadow-sm shadow-secondary-400">
+        <div className="flex w-full max-w-[800px] animate-fade-right flex-col gap-2 md:w-full mt-4">
+            <div className="relative flex h-[500px] rounded-lg border-[1px] border-secondary-400 ">
                 <img
                     src={icon}
                     alt="icon"
@@ -23,7 +23,7 @@ const Container = ({
                     {title}
                 </span>
                 <div
-                    className={clsx(
+                    className={twMerge(
                         "absolute top-12 flex h-[90%] w-full flex-col gap-2 overflow-y-auto overflow-x-hidden px-2 scrollbar-hide md:gap-4",
                         className
                     )}

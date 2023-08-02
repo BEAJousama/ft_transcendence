@@ -11,7 +11,7 @@ const QrCode = () => {
         <img
           src={qrcode || ""}
           alt="qrcode"
-          className="w-full max-w-md grid-cols-10 "
+          className="w-full max-w-[400px] border-4 border-secondary-400 rounded-xl  grid-cols-10 "
         />
       ) : (
         <Spinner />

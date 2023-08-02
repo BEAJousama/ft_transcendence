@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "../../components";
-const FourOhFour = ({ show = true }: { show?: boolean }) => {
+const FourOFour = ({ show = true }: { show?: boolean }) => {
   return (
     <div
       tabIndex={0}
@@ -27,4 +27,4 @@ const FourOhFour = ({ show = true }: { show?: boolean }) => {
   );
 };
 
-export default FourOhFour;
+export default FourOFour;

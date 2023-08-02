@@ -1,7 +1,6 @@
-import React, { useContext, useEffect, useRef } from "react";
+import { useContext, useEffect, useRef } from "react";
 import { GameContext } from "../../context/game.context";
 import { useMedia } from "react-use";
-import { Socket } from "socket.io-client";
 import { AppContext } from "../../context/app.context";
 
 enum Keys {
@@ -77,10 +76,19 @@ const Canvas = () => {
         const canvas = canvasRef.current;
         const context = canvas?.getContext("2d");
         if (canvas && context) {
+            const image = new Image();
+
+            image.src = "/img/fire.jpeg";
+
+            // image.onload = () => {
+            //     context.drawImage(image, 0, 50, 50, 50);
+            // };
+
 
             const clearCanvas = () => {
                 context.fillStyle = "#0F1019";
                 context.fillRect(0, 0, canvas.width, canvas.height);
+                // context.drawImage(image, 0, 0, canvas.width, canvas.height);
             };
 
             const drawRect = (
@@ -99,6 +107,7 @@ const Canvas = () => {
                 context.roundRect(x, y, w, h, r);
                 context.closePath();
                 context.fill();
+                // context.drawImage(image, x, y, w, h);
             };
 
             const drawBall = (x: number, y: number, raduis: number) => {
@@ -137,7 +146,7 @@ const Canvas = () => {
 
             renderGame();
         }
-    }, [playerA, playerB, ball]);
+    }, [playerA, playerB, ball, heightScaleFactor, widthScaleFactor]);
 
     return (
         <canvas

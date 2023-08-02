@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 import Button from "../button";
 import Modal from "../modal";
-import clsx from "clsx";
+import { twMerge } from "tailwind-merge";
 
 const ConfirmationModal = ({ onAccept, onReject, icon, title, accept, reject, showReject, className, danger }: {
     onAccept?: () => void;
@@ -15,7 +15,8 @@ const ConfirmationModal = ({ onAccept, onReject, icon, title, accept, reject, sh
     danger?: boolean;
 }) => {
     return (
-        <Modal className={clsx("!w-[50%] !max-w-md", className && className)}>
+        <Modal className={twMerge("!w-[50%] !max-w-md", className && className)}>
+
             {icon}
             <span className="max-w-xs text-center text-2xl">
                 {title}

@@ -3,11 +3,11 @@ import { Module } from '@nestjs/common';
 import { PongService } from './pong.service';
 import { PongGateway } from './pong.gateway';
 import { PongController } from './pong.controller';
+import { NotificationGateway } from 'src/notification/notification.gateway';
 
 @Module({
-  // imports: [PrismaModule],
-    controllers: [PongController],
-  providers: [PongService, PongGateway],
+  controllers: [PongController],
+  providers: [PongService, PongGateway, NotificationGateway],
   exports: [PongService],
 })
 export class PongModule {}

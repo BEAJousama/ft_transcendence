@@ -29,7 +29,7 @@ const GameBanner = ({ player1, player2,
                     <span className="hidden md:block">{player2?.username}</span>
                 </div>
             </div>
-            <div className="basis-[15%]">
+            <div className="basis-[15%] flex items-center justify-end">
 
                 <Avatar
                     src={player2?.avatar || ""}

@@ -1,4 +1,3 @@
-import clsx from "clsx";
 import { twMerge } from "tailwind-merge";
 
 const Avatar = ({
@@ -14,7 +13,7 @@ const Avatar = ({
 }) => {
   return (
     <div
-      className={twMerge("relative w-10 h-10 rounded-full  border-1 border-white", className)}
+      className={twMerge("relative inline-block w-10 h-10 rounded-full  border-1 border-white ", className)}
     >
       <img
         className="w-full h-full rounded-full object-cover"

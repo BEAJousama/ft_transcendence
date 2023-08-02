@@ -6,17 +6,21 @@ import FlagsSelect from "../flags-select";
 import Button from "../button";
 import axios from "axios";
 import clsx from "clsx";
+import Divider from "../divider";
+import { MdDelete } from "react-icons/md";
 
 const UpdateInfo = ({
     user,
     previewImage,
     setModalText,
     setLoading,
+	setShowmodal
 }: {
     user: any;
     previewImage: string;
     setModalText: React.Dispatch<React.SetStateAction<string>>;
     setLoading: React.Dispatch<React.SetStateAction<boolean>>;
+	setShowmodal: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
     const { updateUser } = useContext(AppContext);
     const formik = useFormik({
@@ -38,16 +42,16 @@ const UpdateInfo = ({
 
     return (
         <>
-            <div className="flex w-full max-w-md flex-col items-center justify-center gap-4 ">
+            <div className="py-8 flex w-full max-w-md flex-col items-center justify-center gap-4 ">
                 <Input
-                    label="FullName"
+                    label="Full Name"
                     disabled
                     value={formik.values.fullname}
                     onChange={formik.handleChange}
                     name="fullname"
                 />
                 <Input
-                    label="UserName"
+                    label="Username"
                     name="username"
                     value={formik.values.username}
                     onChange={formik.handleChange}
@@ -135,6 +139,20 @@ const UpdateInfo = ({
                     Reset
                 </Button>
             </div>
+			<div className="w-full max-w-md">
+                <Divider />
+            </div>
+            <span className="w-full max-w-md text-quaternary-200">Danger Zone</span>
+            <Button
+                className="w-full max-w-md justify-center"
+                type="danger"
+                onClick={() => {
+                    setShowmodal(true);
+                }}
+            >
+                <MdDelete />
+                Remove account
+            </Button>
         </>
     );
 };

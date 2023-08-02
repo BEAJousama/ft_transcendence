@@ -18,13 +18,12 @@ export class NotificationGateway {
   onModuleInit() {
     this.server.on('connect', (socket) => {
       const clientId = socket.handshake.query.clientId;
+      this.clients_map.delete(clientId);
       this.clients_map.set(clientId, socket.id);
-      // this.usersService.chnageUserStatus(clientId, 'ONLINE');
     });
     this.server.on('disconnect', (socket) => {
       const clientId = socket.handshake.query.clientId;
-      this.clients_map.set(clientId, socket.id);
-      // this.usersService.chnageUserStatus(clientId, 'OFFLINE');
+      this.clients_map.delete(clientId);
     });
   }
 }

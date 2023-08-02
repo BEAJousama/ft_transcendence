@@ -8,6 +8,9 @@ import { IoIosNotifications } from "react-icons/io";
 import { Link, useLocation } from "react-router-dom";
 import { BiSearch } from "react-icons/bi";
 import { twMerge } from "tailwind-merge";
+import { useContext } from "react";
+import { GameContext } from "../../context/game.context";
+import { AppContext } from "../../context/app.context";
 
 const sidePanelItems = [
   {
@@ -75,8 +78,19 @@ const SidePanelItem = ({
   icon?: React.ReactNode;
   text?: string;
 }) => {
+  const { socket, isInGame, setShow } = useContext(GameContext);
+  const { user } = useContext(AppContext);
   return (
-    <Link to={to || ""} className="w-full">
+    <Link to={to || ""} className="w-full" onClick={(e) => {
+      console.log(isInGame)
+      if (isInGame.current) {
+        e.preventDefault();
+        setShow(true)
+        socket?.emit("puase-game", {
+          userId: user?.id
+        });
+      }
+    }}>
       <li
         className={twMerge(
           `flex w-full items-center justify-center pt-2`,
@@ -86,7 +100,7 @@ const SidePanelItem = ({
         )}
       >
         <button
-          className={`flex items-center justify-start gap-4 rounded bg-secondary-800 py-2 font-bold hover:bg-secondary-800 md:w-8/12 ${selected ? "text-primary-500" : "text-secondary-400"
+          className={`flex items-center justify-start gap-4 rounded bg-secondary-900 py-2 font-bold hover:bg-secondary-900 md:w-8/12 ${selected ? "text-primary-500" : "text-secondary-300"
             }`}
           onClick={(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
             onClick && onClick();
@@ -97,7 +111,7 @@ const SidePanelItem = ({
           ) : (
             <>
               {icon}
-              <span className="hidden truncate text-left md:block">{text}</span>
+              <span className="hidden truncate text-left font-semibold md:block">{text}</span>
             </>
           )}
         </button>
@@ -109,15 +123,27 @@ const SidePanelItem = ({
 
 const Sidepanel = ({ className }: { className?: string }) => {
   const path = useLocation().pathname;
+  const { socket, isInGame, setShow } = useContext(GameContext);
+  const { user } = useContext(AppContext);
+
 
   return (
     <aside
       className={twMerge(
-        "sticky flex h-screen w-full flex-col items-center justify-between overflow-auto bg-secondary-800 py-4 text-secondary-300 scrollbar-hide md:py-8",
+        "sticky flex h-screen w-full flex-col items-center justify-between overflow-auto bg-secondary-900 py-8 text-secondary-300 scrollbar-hide md:py-8 rounded-r-3xl",
         className
       )}
     >
-      <Link to="/">
+      <Link to="/" onClick={(e) => {
+        console.log(isInGame)
+        if (isInGame.current) {
+          e.preventDefault();
+          setShow(true)
+          socket?.emit("puase-game", {
+            userId: user?.id
+          });
+        }
+      }}>
         <div className="w-46 hidden items-center justify-center md:flex">
           <img className="!w-64 px-6" src="/img/logo.png" alt="logo" />
         </div>
@@ -133,7 +159,7 @@ const Sidepanel = ({ className }: { className?: string }) => {
             <SidePanelItem
               key={index}
               to={item.path}
-              selected={path === item.path}
+              selected={(path.includes(item.path) && item.path !== "/") || (path === "/" && item.path === "/")}
               icon={item.icon}
               text={item.text}
             />
@@ -142,7 +168,7 @@ const Sidepanel = ({ className }: { className?: string }) => {
       </Items>
       <div className="flex w-full flex-col items-center justify-center gap-4">
         <SidePanelItem
-          className="bg-secondary-800 text-secondary-300 hover:bg-secondary-800"
+          className="bg-secondary-900 text-secondary-300 hover:bg-secondary-900"
           onClick={() => {
             localStorage?.removeItem("access_token");
             localStorage?.removeItem("2fa_access_token");
