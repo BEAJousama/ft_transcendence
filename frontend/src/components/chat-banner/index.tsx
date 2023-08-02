@@ -105,13 +105,6 @@ const ChatBanner = ({
                             <BsFillPeopleFill /> {channel?.visiblity}
                         </div>
                     </div>
-                    {
-                        !channelMembers?.map((item: any) => item.userId).includes(user?.id) || channel?.kickedUsers.map((u: any) => u.id).includes(user?.id) ?
-                            <Button onClick={handleJoin} className="w-full sm:w-auto ">Join</Button>
-                            :
-                            <Button onClick={handleAccess} className="w-full sm:w-auto ">Access</Button>
-
-                    }
                 </div>
                 {
                     !channelMembers?.map((item: any) => item.userId).includes(user?.id) || channel?.kickedUsers.map((u : any) => u.id).includes(user?.id) ?
@@ -143,7 +136,7 @@ const ChatBanner = ({
                         <Input
                             label="Password"
                             className="h-[40px] w-[80%] rounded-md border-2 border-primary-500 text-white text-xs bg-transparent md:mr-2"
-                            htmlType="password"
+                            type="password"
                             placeholder="*****************"
                             value={accessPassword}
                             // inputRef={iRef}
@@ -187,15 +180,15 @@ const ChatBanner = ({
             }
             { showModal && (
                 <Card
-                    setShowModal={setshowModal}
-                    className="z-10 bg-secondary-800 border-none flex flex-col items-center justify-start shadow-lg shadow-secondary-500 gap-4 text-white min-w-[90%] lg:min-w-[40%] xl:min-w-[50%] animate-jump-in animate-ease-out animate-duration-400 max-w-[100%] w-full"
+                setShowModal={setshowModal}
+                className="z-10 bg-secondary-800 border-none flex flex-col items-center justify-start shadow-lg shadow-secondary-500 gap-4 text-white min-w-[90%] lg:min-w-[40%] xl:min-w-[50%] animate-jump-in animate-ease-out animate-duration-400 max-w-[100%] w-full"
                 >
                     <span className="text-md">This channel is protected</span>
                     <div className="flex flex-col justify-center items-center w-full">
                         <Input
                             label="Password"
                             className="h-[40px] w-[80%] rounded-md border-2 border-primary-500 text-white text-xs bg-transparent md:mr-2"
-                            htmlType="password"
+                            type="password"
                             placeholder="*****************"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
@@ -234,10 +227,10 @@ const ChatBanner = ({
                         </div>
                     </div>
                 </Card>
-            )
+                )
             }
         </>
-
+        
     );
 };
 

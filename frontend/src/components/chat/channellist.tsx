@@ -227,8 +227,8 @@ const ChannelList : React.FC<ChannelListProps> = ({className, setShowModal, setC
 
   return (
   <>
-    <div className={clsx("lg:col-span-3 col-span-10 flex flex-col justify-start gap-4 py-2 w-full h-screen overflow-y-scroll scrollbar-hide", className && className)}>
-      <div className=" relative flex items-center gap-2 w-full pr-2 rounded-xl py-2">
+    <div className={clsx("lg:col-span-3 relative col-span-10 flex flex-col justify-start gap-4 py-2 w-full h-screen overflow-y-scroll scrollbar-hide", className && className)}>
+      <div className=" sticky top-0 z-30 flex items-center gap-2 w-full pr-2 bg-secondary-600 py-2">
         <form className="pl-4 pr-1 w-full">
                 <div className="relative">
                     <svg

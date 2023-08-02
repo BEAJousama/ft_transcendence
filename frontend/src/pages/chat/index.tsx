@@ -24,28 +24,6 @@ export default function Chat() {
   const isBlocked = (currentChannel?.type === "CONVERSATION" && blocked.includes(currentChannel?.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.id));
   const isBlocking = (currentChannel?.type === "CONVERSATION" && blocking.includes(currentChannel?.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.id));
   const [users, setUsers] = useState<IUser[]>([]);
-  // useEffect(() => {
-  //   if (currentChannel?.id === undefined) return;
-  //   const intervalId = setInterval(() => {
-  //     fetcher(`api/channels/member/${user?.id}/${currentChannel?.id}`)
-  //       .then((data) => {
-  //         setChannelMember(data);
-  //         setIsMuted(data?.status === "MUTED");
-  //       });
-  //   }, 300);
-  //   return () => clearInterval(intervalId);
-  // });
-
-  // const {data: users} = useSWR(`api/users/non-blocked-users/${user?.id}`, fetcher, {
-  //   refreshInterval: 5000,
-  //   revalidateOnMount: true,
-  //   revalidateOnFocus: true,
-  //   revalidateOnReconnect: true,
-  //   refreshWhenOffline: true,
-  //   refreshWhenHidden: true,
-  //   dedupingInterval: 60000, 
-  //   // dedupingInterval: [userId]
-  // });
 
   const fetchUsers = (async () => {
     try {
@@ -225,11 +203,11 @@ export default function Chat() {
   });
 
   return (
-    <Layout className="!py-0 !px-1 !md:px-4 !overflow-y-hidden !bg-secondary-600">
+    <Layout className="!py-0 !px-0 !overflow-y-hidden !bg-secondary-600">
       {
         !isMatch ?
         (
-          <div className="grid grid-cols-10 h-full w-full">
+          <div className="grid grid-cols-10 h-full w-full ">
             {(!open) && (
               <ChannelList
                 className="animate-fade-right"
@@ -244,7 +222,7 @@ export default function Chat() {
                 )}
             {
               currentChannel && Object.keys(currentChannel!).length &&  
-              <MessageBubble className="mt-4 mb-4 ml-1 pb-5" currentChannel={currentChannel} setOpen={setOpen} setCurrentChannel={setCurrentChannel} 
+              <MessageBubble className="!mt-3 !mr-3 mb-4 ml-1" currentChannel={currentChannel} setOpen={setOpen} setCurrentChannel={setCurrentChannel} 
               messages={messages} inputRef={inputRef} isBlocked={isBlocked} isBlocking={isBlocking} checkBlock={checkBlock} users={users} />
             }
             {showModal && <CreateGroupModal setShowModal={setShowModal} users={users} />}
@@ -262,7 +240,7 @@ export default function Chat() {
               inputRef={inputRef}
               checkBlock={checkBlock}
               />
-          {(currentChannel && Object.keys(currentChannel!).length) ? <MessageBubble className="mt-4 ml-1" setCurrentChannel={setCurrentChannel} 
+          {(currentChannel && Object.keys(currentChannel!).length) ? <MessageBubble className="!mt-3 !mr-3 mb-4 ml-1" setCurrentChannel={setCurrentChannel} 
             currentChannel={currentChannel} setOpen={setOpen} messages={messages} inputRef={inputRef} isBlocked={isBlocked} isBlocking={isBlocking} checkBlock={checkBlock} users={users} />
           : 
             < Welcome className="mt-4 mb-4 pb-3 ml-1" setShowModal={setShowModal}/>

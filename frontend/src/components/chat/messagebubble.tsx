@@ -253,8 +253,8 @@ const MessageBubble : React.FC<ChannelProps> = ({ className, setOpen, setCurrent
     setSelectedUsers([]);
   };
   return (
-    <div id="chat-window" className={clsx("col-span-10 flex h-screen w-full flex-col justify-start rounded-t-3xl bg-secondary-500 lg:col-span-7", className && className)}>
-      <div className=" bg-secondary-400 rounded-t-3xl align-middle items-center  sticky top-0 z-20">
+    <div id="chat-window" className={clsx("col-span-10 flex h-screen w-full flex-col justify-start rounded-t-3xl bg-secondary-500 lg:col-span-7 mr-3", className && className)}>
+      <div className=" bg-secondary-400 rounded-t-3xl align-middle items-center sticky top-0 z-20">
         <div className="relative grid grid-cols-10 lg:grid-cols-12">
           <Button
               type="simple"
