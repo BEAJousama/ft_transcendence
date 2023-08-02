@@ -211,6 +211,7 @@ export default function Chat() {
     });
     socket?.on("blockUser", handleSocketEvent);
     return () => {
+      socket?.off("blockUser");
       // socket?.off('channel_member');
       // socket?.off('channel_leave');
       // socket?.off('channel_join');
@@ -224,7 +225,7 @@ export default function Chat() {
   });
 
   return (
-    <Layout className="!py-0 !px-1 !md:px-4 !overflow-y-hidden">
+    <Layout className="!py-0 !px-1 !md:px-4 !overflow-y-hidden !bg-secondary-600">
       {
         !isMatch ?
         (

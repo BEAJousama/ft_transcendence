@@ -70,8 +70,8 @@ const MessageBox = ({ message, right, autoScroll }: { message?: any; right?: boo
       <div
         className={clsx(
           "flex flex-col text-white m-1 p-2 text-sm max-w-md mx-auto relative ",
-          right && "bg-primary-500 rounded-l-xl rounded-br-xl",
-          !right && "bg-secondary-400 rounded-r-xl rounded-bl-xl"
+          right && "bg-primary-600 rounded-l-xl rounded-br-xl",
+          !right && "bg-tertiary-600 rounded-r-xl rounded-bl-xl"
         )}
       >
       <div className="flex">
@@ -81,8 +81,8 @@ const MessageBox = ({ message, right, autoScroll }: { message?: any; right?: boo
               {sender?.username}
               </h1>
             )}
-            <p className="break-all md:break-words">{message.content}</p>
-            <span className={clsx("w-full text-right", !right ? "text-secondary-300" : "text-secondary-200")}>
+            <p className="break-all md:break-words text-base">{message.content}</p>
+            <span className={clsx("w-full text-[10px]", !right ? "text-secondary-100" : "text-primary-50")}>
               {
                 new Date(message.date).getHours() > 12 ?
                 new Date(message.date).getHours() - 12 :

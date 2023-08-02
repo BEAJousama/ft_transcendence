@@ -79,6 +79,8 @@ const CreateGroupModal = ({
                 className=" !bg-inherit hover:bg-inherit !text-white text-2xl"
                 onClick={() => {
                   setShow(false);
+                  setShowSubmit(false);
+                  setGroupName("");
                 }}
               >
                 <BiArrowBack />
@@ -187,7 +189,7 @@ const CreateGroupModal = ({
             <div className="w-full h[100px] flex items-center justify-center flex-col align-middle gap-2 pt-2 overflow-y-scroll scrollbar-hide">
             <span className="w-full mb-2 text-sm font-medium text-gray-900 dark:text-white">Select users: </span>
             {
-            users ?
+            users?.length ?
             (users?.filter((u : any) => {
               return u.id !== user?.id && !checkBlock(u.id);
             }).map((u : any) => {
@@ -217,7 +219,7 @@ const CreateGroupModal = ({
               );
             })) : (
               <div className="flex flex-col items-center justify-center w-full">
-              <p className="text-gray-500 text-lg">No users found</p>
+                <p className="text-gray-500 text-lg">No users found</p>
               </div>                
             )}
           </div>
@@ -227,7 +229,8 @@ const CreateGroupModal = ({
           showDm && (
             
             <div className="w-full h[100px] flex items-center justify-center flex-col align-middle gap-2 pt-2 overflow-y-scroll scrollbar-hide">
-            {users?.filter((u : any) => {
+            { users?.length ? (
+            users?.filter((u : any) => {
               return u.id !== user?.id  && !checkBlock(u.id);
             }).map((u : any) => {
               return (
@@ -251,7 +254,11 @@ const CreateGroupModal = ({
                     </div>
                   </div>
                 );
-              })}
+              })) : (
+                <div className="flex flex-col items-center justify-center w-full">
+                  <p className="text-gray-500 text-lg">No users found</p>
+                </div>                
+              )}
             </div>
           )}
 

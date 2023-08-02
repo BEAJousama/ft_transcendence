@@ -222,14 +222,18 @@ export class UsersService {
           },
           blockers: {
             none: {
-              blockerId: userId,
+              blockingId: userId,
             },
           },
           blocking: {
             none: {
-              blockingId: userId,
+              blockerId: userId,
             },
           },
+        },
+        include: {
+          blockers: true,
+          blocking: true,
         },
       });
       return users;
@@ -261,31 +265,31 @@ export class UsersService {
     }
   }
 
-  async updateStatus(status: string, id: number) {
-    try {
-      if (!id || !status) return;
-      const user = await this.prisma.user.update({
-        where: {
-          id,
-        },
-        data: {
-          status: UserStatus[status],
-        },
-      });
-      return {
-        message: 'User updated successfully',
-      };
-    } catch (error) {
-      if (error instanceof PrismaClientKnownRequestError) {
-        if (error.code === 'P2016') {
-          throw new NotFoundException(`User with ID ${id} not found`);
-        } else if (error.code === 'P2025') {
-          throw new BadRequestException('Invalid update data');
-        }
-      }
-      throw error;
-    }
-  }
+  // async updateStatus(status: string, id: number) {
+  //   try {
+  //     if (!id || !status) return;
+  //     const user = await this.prisma.user.update({
+  //       where: {
+  //         id,
+  //       },
+  //       data: {
+  //         status: UserStatus[status],
+  //       },
+  //     });
+  //     return {
+  //       message: 'User updated successfully',
+  //     };
+  //   } catch (error) {
+  //     if (error instanceof PrismaClientKnownRequestError) {
+  //       if (error.code === 'P2016') {
+  //         throw new NotFoundException(`User with ID ${id} not found`);
+  //       } else if (error.code === 'P2025') {
+  //         throw new BadRequestException('Invalid update data');
+  //       }
+  //     }
+  //     throw error;
+  //   }
+  // }
 
   async deleteUser(id: number) {
     try {

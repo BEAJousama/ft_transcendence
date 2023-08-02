@@ -154,7 +154,7 @@ const Channel: React.FC<ChannelProps> = ({
 
   return (
     <div
-      className={clsx("relative flex items-center justify-between gap-[10px] w-full px-4 cursor-pointer hover:bg-tertiary-700 rounded-xl py-2", selected && "bg-tertiary-600")}
+      className={clsx("relative flex items-center justify-between gap-[10px] w-full px-4 cursor-pointer hover:bg-tertiary-700 rounded-xl py-2", selected && "bg-secondary-500")}
       onContextMenu={handleContextMenu}
       onClick={(e) => {
         onClick && onClick(e);

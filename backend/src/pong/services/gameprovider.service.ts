@@ -3,9 +3,9 @@ import { Canvas, Game, Player } from '../classes';
 class GameProvider {
   public id: number;
   public game: Game;
-  public gameStarted: boolean = false;
+  public gameStarted = false;
   public ballChangedDirection = false;
-  public ballDirection: number = -1;
+  public ballDirection = -1;
   constructor() {
     // this.game = null;
     // const id = setTimeout(() => {

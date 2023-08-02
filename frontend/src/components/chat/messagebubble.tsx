@@ -253,7 +253,7 @@ const MessageBubble : React.FC<ChannelProps> = ({ className, setOpen, setCurrent
     setSelectedUsers([]);
   };
   return (
-    <div id="chat-window" className={clsx("col-span-10 flex h-screen w-full flex-col justify-start rounded-t-3xl bg-secondary-600 lg:col-span-7", className && className)}>
+    <div id="chat-window" className={clsx("col-span-10 flex h-screen w-full flex-col justify-start rounded-t-3xl bg-secondary-500 lg:col-span-7", className && className)}>
       <div className=" bg-secondary-400 rounded-t-3xl align-middle items-center  sticky top-0 z-20">
         <div className="relative grid grid-cols-10 lg:grid-cols-12">
           <Button
@@ -814,7 +814,10 @@ const MessageBubble : React.FC<ChannelProps> = ({ className, setOpen, setCurrent
               >
                 <div className="w-full h[100px] flex items-center justify-center flex-col align-middle gap-2 pt-2 overflow-y-scroll scrollbar-hide">
                   
-                  { users  ?
+                  { users?.filter((u : any) => {
+                    return u.id !== user?.id && !checkBlock(u.id) && ((currentChannel?.channelMembers.find((cm : IchannelMember) => cm.userId === u.id) === undefined
+                    || currentChannel?.channelMembers.find((cm : IchannelMember) => cm.userId === u.id)?.status === "LEFT"));
+                  }).length  ?
                     (users?.filter((u : any) => {
                     return u.id !== user?.id && !checkBlock(u.id) && ((currentChannel?.channelMembers.find((cm : IchannelMember) => cm.userId === u.id) === undefined
                     || currentChannel?.channelMembers.find((cm : IchannelMember) => cm.userId === u.id)?.status === "LEFT"));
@@ -898,7 +901,9 @@ const MessageBubble : React.FC<ChannelProps> = ({ className, setOpen, setCurrent
                 setShowModal={setShowModal}
               >
                 <div className=" h-max w-full pt-2">
-                  {currentChannel?.channelMembers?.filter((member : IchannelMember) => member.status === "BANNED" && !checkBlock(member.userId)).map((member : IchannelMember) => {
+                  {currentChannel?.channelMembers?.filter((member : IchannelMember) => member.status === "BANNED" && !checkBlock(member.userId)).length ?
+                    (
+                    currentChannel?.channelMembers?.filter((member : IchannelMember) => member.status === "BANNED" && !checkBlock(member.userId)).map((member : IchannelMember) => {
                     return (
                       <ProfileBanner
                       channelMember={currentChannel.channelMembers.filter((channelMember: IchannelMember) => channelMember.userId === user?.id)[0]}
@@ -915,7 +920,12 @@ const MessageBubble : React.FC<ChannelProps> = ({ className, setOpen, setCurrent
                       description={member.user.status}
                       />
                       );
-                    })}
+                    })) : (
+                      <div className="flex flex-col items-center justify-center w-full">
+                        <p className="text-gray-500 text-lg">No banned users</p>
+                      </div>
+                    )
+                    }
                 </div>
               </UpdateChannel>
             )
