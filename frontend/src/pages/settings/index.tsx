@@ -1,4 +1,4 @@
-import { MdDelete, MdSettings } from "react-icons/md";
+import { MdSettings } from "react-icons/md";
 import {
   Avatar,
   Spinner,
@@ -6,9 +6,6 @@ import {
   UpdateAvatar,
   UpdateInfo,
   ActivateTfa,
-  JoinGameCard,
-  Divider,
-  Button,
 } from "./../../components";
 import { useContext, useState } from "react";
 import { AppContext } from "../../context/app.context";
@@ -83,7 +80,7 @@ export default function Settings() {
                   previewImage={previewImage}
                   setModalText={setError}
                   setLoading={setLoading}
-				  setShowmodal={setShowmodal}
+                  setShowmodal={setShowmodal}
                 />
                 {!!error && (
                   <ConfirmationModal
@@ -107,7 +104,7 @@ export default function Settings() {
                     danger={error.includes("Error")}
                   />
                 )}
-                {/* <JoinGameCard /> */}
+
               </div>
             </div>
           </>

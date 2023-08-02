@@ -2,8 +2,8 @@ import axios from "axios";
 
 const addFriend = async (senderId: number, receiverId: number) => {
   try {
-    const accessToken = window.localStorage?.getItem("access_token"); // Replace with your actual access token
-    const response = await axios.post(
+    const accessToken = window.localStorage?.getItem("access_token");
+    await axios.post(
       `${process.env.REACT_APP_BACK_END_URL}api/users/add-friend`,
       {
         senderId: senderId,
@@ -23,8 +23,8 @@ const addFriend = async (senderId: number, receiverId: number) => {
 
 const acceptFriend = async (id: number) => {
   try {
-    const accessToken = window.localStorage?.getItem("access_token"); // Replace with your actual access token
-    const response = await axios.get(
+    const accessToken = window.localStorage?.getItem("access_token");
+    await axios.get(
       `${process.env.REACT_APP_BACK_END_URL}api/users/accept-friend/${id}`,
       {
         headers: {
@@ -40,8 +40,8 @@ const acceptFriend = async (id: number) => {
 
 const cancelFriend = async (id: number) => {
   try {
-    const accessToken = window.localStorage?.getItem("access_token"); // Replace with your actual access token
-    const response = await axios.delete(
+    const accessToken = window.localStorage?.getItem("access_token");
+   await axios.delete(
       `${process.env.REACT_APP_BACK_END_URL}api/users/remove-friend/${id}`,
       {
         headers: {

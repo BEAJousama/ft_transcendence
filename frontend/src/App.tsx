@@ -12,7 +12,7 @@ import {
 	Chat,
 	Settings,
 	Pong,
-	FourOhFour,
+	FourOFour,
 	Profile,
 	Search,
 	CompleteInfo,
@@ -46,7 +46,7 @@ function App() {
 	try {
 		localStorage.getItem("access_token");
 	} catch (e) {
-		return <FourOhFour show={false} />;
+		return <FourOFour show={false} />;
 	}
 
 	return (
@@ -87,7 +87,7 @@ function App() {
 								/>
 							</Route>
 							<Route path="/" element={<LandingPage />} />
-							<Route path="*" element={<FourOhFour />} />
+							<Route path="*" element={<FourOFour />} />
 						</Routes>
 						<ToastContainer
 							position="top-right"

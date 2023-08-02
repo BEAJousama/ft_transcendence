@@ -53,6 +53,7 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
   const updateUser = useCallback(async () => {
     try {
       const data = await fetcher("api/auth/42");
+      // const { data } = useSWR("api/auth/42", fetcher, { refreshInterval: 1000 });
       setData(data);
     } catch (error) {
       setIsAuthenticated(false)
@@ -65,7 +66,11 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
       await updateUser();
     };
     window.addEventListener("storage", handleLocalStorageChange);
+    // const id = setInterval(async () => {
+    //   await updateUser();
+    // }, 1000);
     return () => {
+      // clearInterval(id);
       window.removeEventListener("storage", handleLocalStorageChange);
     };
   }, [fetchUser]);

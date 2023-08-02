@@ -5,7 +5,6 @@ import {
   GameBanner,
   UserBanner,
   Spinner,
-  Toast,
 } from "../../components";
 import { useContext } from "react";
 import { AppContext, fetcher } from "../../context/app.context";
@@ -156,7 +155,7 @@ export default function Home() {
               <img src="/img/smalllogo.svg" alt="logo" width={20} />
             </div>
             <div className="flex ">
-              <span>87 %</span>
+              <span>{user ? user.totalGames && ((user.wins / user.totalGames) * 100).toFixed().toString() : 0} %</span>
             </div>
             <div className="flex">
               {user && <span>{user.wins + user.losses}</span>}

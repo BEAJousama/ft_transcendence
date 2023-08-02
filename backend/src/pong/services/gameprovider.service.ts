@@ -6,12 +6,14 @@ class GameProvider {
   public gameStarted: boolean = false;
   public ballChangedDirection = false;
   public ballDirection: number = -1;
+  public intervalId: NodeJS.Timeout;
+  public paused: boolean = false;
   constructor() {
     // this.game = null;
-    // const id = setTimeout(() => {
-    this.gameStarted = true;
-    //   clearTimeout(id);
-    // }, 5000);
+    const id = setTimeout(() => {
+      this.gameStarted = true;
+      clearTimeout(id);
+    }, 5000);
   }
 
   init(playerA: Player, playerB: Player) {

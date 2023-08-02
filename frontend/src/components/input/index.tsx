@@ -1,5 +1,4 @@
 import { InputHTMLAttributes, RefObject, useState } from "react";
-import clsx from "clsx";
 import { twMerge } from "tailwind-merge";
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
@@ -59,7 +58,7 @@ const Input = ({
           active && "text-primary-500",
           !disabled && !active && "text-quaternary-200",
           error && !active && "text-red-700",
-          (className === undefined || className?.lastIndexOf('bg-') == -1) && "!bg-secondary-500"
+          (className === undefined || className?.lastIndexOf('bg-') === -1) && "!bg-secondary-50"
         )}
       >
         {label}

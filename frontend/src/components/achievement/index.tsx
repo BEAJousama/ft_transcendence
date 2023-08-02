@@ -1,5 +1,5 @@
-import clsx from "clsx";
 import Card from "../card";
+import { twMerge } from "tailwind-merge";
 
 const Achievement = ({
 	title,
@@ -15,14 +15,14 @@ const Achievement = ({
 	return (
 		<Card
 			className=
-				{`relative flex flex-col items-center justify-center 
-        gap-3 overflow-hidden !border-tertiary-500 !bg-secondary-600 text-white !shadow-2xl !shadow-secondary-600 hover:before:hidden`}
+			{`relative flex flex-col items-center justify-center 
+        gap-3 overflow-hidden border-tertiary-500 bg-secondary-50 text-white shadow-2xl shadow-secondary-50`}
 		>
 			<div className="basis-2/3 flex justify-center">
 				<img
 					src={`/achievements/${image}`}
 					alt="Achievement"
-					className={clsx("h-44 rounded-xl object-scale-down", disabled && "grayscale-[60%] blur-sm opacity-50")}
+					className={twMerge("h-44 rounded-xl object-scale-down", disabled && "grayscale-[60%] blur-sm opacity-50")}
 					loading="lazy"
 				/>
 			</div>

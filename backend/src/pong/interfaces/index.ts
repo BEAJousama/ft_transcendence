@@ -6,4 +6,6 @@ export interface Invitation {
   invitedFriendId: number;
   invitedFriendSocket?: Socket;
   timestamp: number;
+  bit: string;
+  powerUps: string;
 }
