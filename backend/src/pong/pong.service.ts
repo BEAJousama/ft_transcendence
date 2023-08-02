@@ -1,4 +1,3 @@
-import { assignAchievementsDto } from './../users/dto/achievements.dto';
 import NotificationService from 'src/notification/notification.service';
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { GameStatus, Ladder } from '@prisma/client';
@@ -8,11 +7,17 @@ import { AIPlayer, Ball, Canvas, Player } from './classes';
 import { Invitation } from './interfaces/index';
 import { GameProvider } from './services/gameprovider.service';
 import { UsersService } from 'src/users/users.service';
-import { get } from 'https';
+
+type Game = {
+  playerASocket: Socket;
+  playerBSocket: Socket;
+  bit: string;
+  powerUps: string;
+};
 
 @Injectable()
 export class PongService {
-  private queue: Socket[] = []; // Socket[] - Queue to store players waiting to join a game
+  private queue: Game[] = []; // Socket[] - Queue to store players waiting to join a game
   private gameProviders: GameProvider[] = []; // Array to store active game providers
   private activeInvitations: Map<number, Invitation> = new Map<
     number,
@@ -25,6 +30,75 @@ export class PongService {
     private notificationService: NotificationService,
     private usersService: UsersService,
   ) {}
+
+  private isMatchingGameMode(game: Game, gameMode: string): boolean {
+    const playerGameMode = this.getClientGameMode(game); // Implement a function to get the player's game mode
+    return playerGameMode === gameMode;
+  }
+
+  // Checks if a player's play mode matches the requested play mode
+  private isMatchingPlayMode(game: Game, playMode: string): boolean {
+    const playerPlayMode = this.getClientPlayMode(game); // Implement a function to get the player's play mode
+    return playerPlayMode === playMode;
+  }
+
+  // Adds a player to the queue
+  async joinQueue(
+    client: Socket,
+    {
+      userId,
+      bit,
+      powerUps,
+    }: {
+      userId: number;
+      bit: string;
+      powerUps: string;
+    },
+  ) {
+    /*
+      userid,
+      gameMode,
+      playMode,
+      socket,
+    */
+    client.on('disconnect', () => {
+      this.leaveQueue(client);
+    });
+
+    // Check if the player is already in the queue
+    if (this.isInQueue(client)) {
+      console.log('Player is already in the queue.');
+      return;
+    }
+
+    const matchingPlayers = this.queue.filter(
+      (game) =>
+        this.isMatchingGameMode(game, bit) &&
+        this.isMatchingPlayMode(game, powerUps),
+    );
+
+    // Check if there is a matching player in the queue
+    if (matchingPlayers.length > 0) {
+      const playerA = await this.createPlayer(
+        matchingPlayers.shift().playerASocket,
+      );
+      const playerB = await this.createPlayer(client);
+      playerB.x = playerB.canvas.width - playerB.width;
+      this.createGameProvider(playerA, playerB);
+      playerA.socket.emit('init-game');
+      playerB.socket.emit('init-game');
+      return;
+    }
+
+    const game: Game = {
+      playerASocket: client,
+      playerBSocket: null,
+      bit: bit,
+      powerUps: powerUps,
+    };
+
+    this.queue.push(game);
+  }
 
   // get player from game provider by id
   getPlayerById(id: number) {
@@ -58,7 +132,10 @@ export class PongService {
     this.gameOver(gameProvider);
   }
 
-  inviteFriend(inviterId: number, invitedFriendId: number, client: Socket) {
+  inviteFriend(
+    { inviterId, invitedFriendId, bit, powerUps }: any,
+    client: Socket,
+  ) {
     // Check if the invited friend is already in an active invitation
     if (this.isInvited(invitedFriendId)) {
       console.log('Invitation already sent to the friend.');
@@ -71,6 +148,8 @@ export class PongService {
       inviterSocket: client,
       invitedFriendId,
       timestamp: Date.now(),
+      bit,
+      powerUps,
     };
 
     // Add the invitation to the active invitations dictionary
@@ -88,28 +167,35 @@ export class PongService {
     setTimeout(() => {
       this.resetInvitation(inviterId);
     }, 30000); // 30 seconds
+    return invitation;
   }
 
-  acceptInvitation(invitedFriendId: number, client: Socket) {
+  async acceptInvitation(invitedFriendId: number, client: Socket) {
     // Check if the invited friend has an active invitation
-    // if (this.isInvited(invitedFriendId)) {
-    //   // Remove the invitation from the active invitations dictionary
-    //   this.activeInvitations.delete(invitedFriendId);
-    //   const invitation = this.activeInvitations.get(invitedFriendId);
-    //   // Proceed with joining the game or taking any other action
-    //   // to fulfill the invitation request
-    //   const playerA = this.createPlayer(invitation.inviterSocket);
-    //   const playerB = this.createPlayer(client);
-    //   playerB.x = playerB.canvas.width - playerB.width;
-    //   this.createGameProvider(playerA, playerB);
-    //   playerA.socket.emit('init-game');
-    //   playerB.socket.emit('init-game');
-    //   // return;
-    //   console.log('Invitation accepted. Joining the game...');
-    // } else {
-    //   console.log('No active invitation found for the friend.');
-    //   console.log(this.activeInvitations);
-    // }
+    if (this.isInvited(invitedFriendId)) {
+      // Remove the invitation from the active invitations dictionary
+      const invitations = Array.from(this.activeInvitations.values());
+
+      const invitation = invitations.find(
+        (invitation) =>
+          invitation.invitedFriendId.toString() === invitedFriendId.toString(),
+      );
+      this.activeInvitations.delete(invitation.inviterId);
+      // invitation.values()[0].inviterSocket.emit('init-game');
+      // const invitation = this.activeInvitations.get(invitedFriendId);
+      // Proceed with joining the game or taking any other action
+      // to fulfill the invitation request
+      const playerA = await this.createPlayer(invitation.inviterSocket);
+      const playerB = await this.createPlayer(client);
+      playerB.x = playerB.canvas.width - playerB.width;
+      this.createGameProvider(playerA, playerB);
+      playerA.socket.emit('init-game');
+      playerB.socket.emit('init-game');
+      // return;
+      console.log('Invitation accepted. Joining the game...');
+    } else {
+      console.log('No active invitation found for the friend.');
+    }
   }
 
   resetInvitation(inviterId: number) {
@@ -124,9 +210,24 @@ export class PongService {
   }
 
   isInvited(playerId: number): boolean {
-    return this.activeInvitations.has(playerId);
+    const invitations = Array.from(this.activeInvitations.values());
+    if (!invitations || !playerId) return false;
+    const activeInvitations = invitations.filter(
+      (invitation) =>
+        invitation.invitedFriendId.toString() === playerId.toString(),
+    );
+    return activeInvitations.length > 0;
   }
 
+  checkForActiveInvitations(client) {
+    const id = this.getClientIdFromClient(client);
+    const invitations = Array.from(this.activeInvitations.values());
+    const activeInvitations = invitations.filter(
+      (invitation) => invitation.invitedFriendId.toString() === id,
+    );
+    if (activeInvitations.length > 0)
+      client.emit('check-for-active-invitations', activeInvitations[0]);
+  }
   // Fetches the list of ongoing games with player information
   async getLiveGames() {
     try {
@@ -277,46 +378,12 @@ export class PongService {
     });
   }
 
-  // Adds a player to the queue
-  async joinQueue(client: Socket) {
-    client.on('disconnect', () => {
-      this.leaveQueue(client);
-    });
-
-    const gameMode: string = this.getClientGameMode(client);
-    const playMode: string = this.getClientPlayMode(client);
-    // Check if the player is already in the queue
-    if (this.isInQueue(client)) {
-      console.log('Player is already in the queue.');
-      return;
-    }
-
-    const matchingPlayers = this.queue.filter(
-      (player) =>
-        this.isMatchingGameMode(player, gameMode) &&
-        this.isMatchingPlayMode(player, playMode),
-    );
-
-    // Check if there is a matching player in the queue
-    if (matchingPlayers.length > 0) {
-      const playerA = await this.createPlayer(matchingPlayers.shift());
-      const playerB = await this.createPlayer(client);
-      playerB.x = playerB.canvas.width - playerB.width;
-      this.createGameProvider(playerA, playerB);
-      playerA.socket.emit('init-game');
-      playerB.socket.emit('init-game');
-      return;
-    }
-
-    this.queue.push(client);
+  getClientGameMode(game: Game) {
+    return game.bit;
   }
 
-  getClientGameMode(client) {
-    return 'classic';
-  }
-
-  getClientPlayMode(client) {
-    return 'single';
+  getClientPlayMode(game: Game) {
+    return game.powerUps;
   }
 
   // get players acheivements
@@ -337,16 +404,6 @@ export class PongService {
   }
 
   // Checks if a player's game mode matches the requested game mode
-  private isMatchingGameMode(client: Socket, gameMode: string): boolean {
-    const playerGameMode = this.getClientGameMode(client); // Implement a function to get the player's game mode
-    return playerGameMode === gameMode;
-  }
-
-  // Checks if a player's play mode matches the requested play mode
-  private isMatchingPlayMode(client: Socket, playMode: string): boolean {
-    const playerPlayMode = this.getClientPlayMode(client); // Implement a function to get the player's play mode
-    return playerPlayMode === playMode;
-  }
 
   // Plays the game with an AI player
   async playWithAI(client: Socket) {
@@ -364,7 +421,9 @@ export class PongService {
 
   // Removes a player from the queue
   leaveQueue(client: Socket) {
-    this.queue = this.queue.filter((socket) => socket !== client);
+    this.queue = this.queue.filter(
+      (game) => game.playerASocket !== client && game.playerBSocket !== client,
+    );
   }
 
   // Creates a player instance from a client socket
@@ -448,7 +507,11 @@ export class PongService {
 
   // Checks if a client is in the queue
   private isInQueue(client: Socket): boolean {
-    return this.queue.includes(client);
+    return this.queue
+      .map((game) => {
+        return game.playerASocket === client || game.playerBSocket === client;
+      })
+      .includes(true);
   }
 
   assingAchievements(player: Player) {
@@ -532,7 +595,7 @@ export class PongService {
   update(info: { userId: number; playerCanvas: Canvas }) {
     const gameProvider = this.getGameProviderByUserId(info.userId);
     if (!gameProvider) return null;
-    if (gameProvider.paused) return;
+    if (gameProvider.paused || !gameProvider.gameStarted) return;
     const game = gameProvider.update(info);
     const { playerA, playerB } = game;
     this.assingAchievements(playerA);

@@ -155,7 +155,7 @@ export default function Home() {
               <img src="/img/smalllogo.svg" alt="logo" width={20} />
             </div>
             <div className="flex ">
-              <span>{user ? ((user.wins / user.totalGames) * 100).toFixed(2).toString() : 0} %</span>
+              <span>{user ? user.totalGames && ((user.wins / user.totalGames) * 100).toFixed().toString() : 0} %</span>
             </div>
             <div className="flex">
               {user && <span>{user.wins + user.losses}</span>}

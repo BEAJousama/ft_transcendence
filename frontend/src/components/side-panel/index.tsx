@@ -126,6 +126,7 @@ const Sidepanel = ({ className }: { className?: string }) => {
   const { socket, isInGame, setShow } = useContext(GameContext);
   const { user } = useContext(AppContext);
 
+
   return (
     <aside
       className={twMerge(

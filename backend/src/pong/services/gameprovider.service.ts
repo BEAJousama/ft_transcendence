@@ -10,10 +10,10 @@ class GameProvider {
   public paused: boolean = false;
   constructor() {
     // this.game = null;
-    // const id = setTimeout(() => {
-    this.gameStarted = true;
-    //   clearTimeout(id);
-    // }, 5000);
+    const id = setTimeout(() => {
+      this.gameStarted = true;
+      clearTimeout(id);
+    }, 5000);
   }
 
   init(playerA: Player, playerB: Player) {
