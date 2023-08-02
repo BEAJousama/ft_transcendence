@@ -151,13 +151,11 @@ export default function SignUp() {
   if (redirect) return <Navigate to="/" />;
 
   return (
-    <div
-      className="flex h-screen w-screen items-center justify-center overflow-auto bg-secondary-700 scrollbar-hide"
-      onKeyDown={handleKeyPress}
-    >
-      <Card className="flex w-full max-w-xs  flex-col items-center justify-center gap-4 border-none bg-secondary-500 px-8 text-white shadow-lg shadow-secondary-500 md:max-w-md lg:max-w-lg lg:gap-4 lg:px-12 lg:py-16">
-        <img src="/img/smalllogo.svg" alt="logo" width={40} />
-        <div className="flex flex-col items-center gap-2">
+	<div className="grid place-items-center w-full">
+	<div className="flex flex-col items-center justify-center w-full max-w-sm md:max-w-md lg:max-w-lg gap-4 px-8 py-12 text-white"
+	onKeyDown={handleKeyPress}
+	>
+        <div className="flex flex-col items-center gap-2 text-center">
           <h1 className="text-2xl">Let's create your account</h1>
           <p className=" text-tertiary-200">Please enter your details</p>
         </div>
@@ -222,13 +220,13 @@ export default function SignUp() {
         <Button className="w-full" onClick={handleSignUp}>
           Sign Up
         </Button>
-        <div className="w-full pt-1 text-center text-tertiary-300 flex flex-col md:flex-row items-center justify-center">
+        {/* <div className="w-full pt-1 text-center text-tertiary-300 flex flex-col md:flex-row items-center justify-center">
           Already have an account?
           <Link to="/login" className="ml-1 text-tertiary-100 underline hover:text-primary-500  hover:scale-105 transition ease-in-out duration-400">
             Sign in
           </Link>
-        </div>
-      </Card>
+        </div> */}
+    </div>
     </div>
   );
 }

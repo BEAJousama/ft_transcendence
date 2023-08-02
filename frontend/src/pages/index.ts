@@ -11,3 +11,4 @@ export { default as CompleteInfo } from "./completeinfo";
 export { default as SignUp } from "./sign-up";
 export { default as Profile } from "./profile";
 export { default as Notifications } from "./notifications";
+export { default as LandingPage } from "./landing-page";
