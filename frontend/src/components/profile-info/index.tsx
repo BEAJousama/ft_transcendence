@@ -1,3 +1,6 @@
+
+"use client";
+
 import useSWR from "swr";
 import IUser from "../../interfaces/user";
 import axios from "axios";
@@ -32,7 +35,7 @@ const ProfileInfo = ({
         async (url) => {
             const accessToken = window.localStorage?.getItem("access_token"); // Replace with your actual access token
             const response = await axios.get(
-                `${process.env.REACT_APP_BACK_END_URL}${url}`,
+                `${process.env.NEXT_PUBLIC_BACK_END_URL}${url}`,
                 {
                     params: {
                         senderId: currentUser?.id,

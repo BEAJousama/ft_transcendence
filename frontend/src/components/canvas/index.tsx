@@ -1,3 +1,5 @@
+"use client"
+
 import { useContext, useEffect, useRef } from "react";
 import { GameContext } from "../../context/game.context";
 import { useMedia } from "react-use";

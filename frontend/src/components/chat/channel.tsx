@@ -1,3 +1,6 @@
+"use client";
+
+
 import Avatar from "../avatar";
 import { BiVolumeMute } from "react-icons/bi";
 import { BsArchiveFill, BsPinAngleFill } from "react-icons/bs";
@@ -6,8 +9,8 @@ import { MdDelete } from "react-icons/md";
 import { useContext, useRef, useState } from "react";
 import RightClickMenu, { RightClickMenuItem } from "../rightclickmenu";
 import { useClickAway } from "react-use";
-import clsx from "clsx";
 import { ChatContext } from "../../context/chat.context";
+import { twMerge } from "tailwind-merge";
 
 interface ChannelProps {
   id: number | undefined;
@@ -154,7 +157,7 @@ const Channel: React.FC<ChannelProps> = ({
 
   return (
     <div
-      className={clsx("relative flex items-center justify-between gap-[10px] w-full px-4 cursor-pointer hover:bg-tertiary-700 rounded-xl py-2", selected && "bg-secondary-500")}
+      className={twMerge("relative flex items-center justify-between gap-[10px] w-full px-4 cursor-pointer hover:bg-tertiary-700 rounded-xl py-2", selected && "bg-secondary-500")}
       onContextMenu={handleContextMenu}
       onClick={(e) => {
         onClick && onClick(e);
@@ -169,7 +172,7 @@ const Channel: React.FC<ChannelProps> = ({
         </div>
       </div>
       <div className="flex items-right flex-col text-black text-sm justify-end">
-        <span className={clsx("p-0 w-14", unread ? "text-primary-500" : "text-secondary-300")}>
+        <span className={twMerge("p-0 w-14", unread ? "text-primary-500" : "text-secondary-300")}>
           {MessageDate()}
         </span>
         <div className="flex items-center gap-2 justify-end">

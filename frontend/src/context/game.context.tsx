@@ -1,7 +1,9 @@
+"use client";
+
 import React, { createContext, useContext, useEffect, useRef, useState } from "react";
 import io, { Socket } from "socket.io-client";
 import { AppContext } from "./app.context";
-import { Ball, Player } from "../interfaces/game";
+import { Ball, Player } from "@/interfaces/game";
 
 enum Keys {
 	ArrowUp = "ArrowUp",
@@ -97,7 +99,7 @@ export default function SocketProvider({
 
 	useEffect(() => {
 		if (!user) return
-		const newSocket = io(`${process.env.REACT_APP_BACK_END_URL}pong`, {
+		const newSocket = io(`${process.env.NEXT_PUBLIC_BACK_END_URL}pong`, {
 			query: {
 				clientId: user?.id,
 			},

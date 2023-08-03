@@ -1,6 +1,8 @@
+"use client";
+
 import axios from "axios";
 import React, { useCallback, useEffect, useState } from "react";
-import IUser from "../interfaces/user";
+import IUser from "@/interfaces/user";
 
 export interface IAppContext {
   user: IUser | undefined;
@@ -21,7 +23,7 @@ export const AppContext = React.createContext<IAppContext>({
 export const fetcher = async (url: string) => {
   const accessToken = window.localStorage.getItem("access_token"); // Replace with your actual access token
   const response = await axios.get(
-    `${process.env.REACT_APP_BACK_END_URL}${url}`,
+    `${process.env.NEXT_PUBLIC_BACK_END_URL}${url}`,
     {
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -73,7 +75,7 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
       // clearInterval(id);
       window.removeEventListener("storage", handleLocalStorageChange);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchUser]);
 
   const appContextValue: IAppContext = {

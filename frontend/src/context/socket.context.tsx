@@ -1,10 +1,13 @@
+"use client"
+
 import React, { createContext, useContext, useEffect, useState } from "react";
 import io, { Socket } from "socket.io-client";
 import { toast } from "react-toastify";
-import { Toast } from "../components";
-import IUser from "../interfaces/user";
+import { Toast } from "@/components";
+import IUser from "@/interfaces/user";
 import { AppContext } from "./app.context";
-import { Link } from "react-router-dom";
+import Link from "next/link";
+
 
 export const SocketContext = createContext<Socket | null>(null);
 
@@ -31,7 +34,7 @@ export default function GameProvider({
     useEffect(() => {
         if (!user) return;
         // const newSocket = io(`http://e2r2p14.1337.ma:3000/notification`, {
-        const newSocket = io(`${process.env.REACT_APP_BACK_END_URL}notification`, {
+        const newSocket = io(`${process.env.NEXT_PUBLIC_BACK_END_URL}notification`, {
             query: {
                 clientId: user?.id,
             },
@@ -47,7 +50,7 @@ export default function GameProvider({
         newSocket.on("notification", (data: INotification) => {
             console.log(data.url);
             toast(
-                <Link to={data.url}>
+                <Link href={data.url}>
                     <Toast
                         title={data.title}
                         content={data.content}
