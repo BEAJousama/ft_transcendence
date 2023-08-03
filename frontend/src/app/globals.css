@@ -36,7 +36,7 @@
 
 @layer base {
   html {
-    @apply scroll-smooth font-montserrat;
+    @apply scroll-smooth;
   }
 }
 @tailwind utilities;

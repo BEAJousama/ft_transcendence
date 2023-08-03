@@ -30,11 +30,11 @@ const Achievement = ({
 				/>
 			</div>
 			<div className="flex basis-1/3 flex-col items-center gap-2">
-				<div className="font-montserrat text-sm font-bold">
+				<div className=" text-sm font-bold">
 					{title.charAt(0).toLocaleUpperCase() +
 						title.slice(1).toLocaleLowerCase().replaceAll("_", " ")}
 				</div>
-				<div className="bottom-0 text-center font-montserrat text-xs text-tertiary-200">
+				<div className="bottom-0 text-center  text-xs text-tertiary-200">
 					{description}
 				</div>
 			</div>

@@ -1,12 +1,12 @@
 import AppProvider from '@/context/app.context'
 import './globals.css'
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { Montserrat } from 'next/font/google'
 import GameProvider from '@/context/socket.context'
 import SocketProvider from '@/context/game.context'
 import ChatProvider from '@/context/chat.context'
 
-const inter = Inter({ subsets: ['latin'] })
+const montserrat = Montserrat({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'ft_transcendence',
@@ -24,7 +24,7 @@ export default function RootLayout({
         <GameProvider>
           <SocketProvider>
             <ChatProvider>
-              <body className={inter.className}>{children}</body>
+              <body className={montserrat.className}>{children}</body>
             </ChatProvider>
           </SocketProvider>
         </GameProvider>
