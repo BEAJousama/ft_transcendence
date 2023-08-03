@@ -83,7 +83,7 @@ const MessageBubble : React.FC<ChannelProps> = ({ className, setOpen, setCurrent
     const scroll = refMessage.current;
     if (scroll) {
       (scroll as HTMLElement).scrollIntoView({
-        behavior: 'smooth'
+        behavior: 'smooth',
       });
     }
   };
@@ -107,9 +107,6 @@ const MessageBubble : React.FC<ChannelProps> = ({ className, setOpen, setCurrent
     setPreviewImage(currentChannel?.avatar || "");
     setGroupName(currentChannel?.name || "");
     setChId(currentChannel?.id);
-    if (currentChannel) {
-      autoScroll();
-    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentChannel]);
 
@@ -383,7 +380,7 @@ const MessageBubble : React.FC<ChannelProps> = ({ className, setOpen, setCurrent
             </div>)
             ) 
         })}
-        <div className="mt-20"></div>
+        <div className="mt-5"></div>
       </div>
       // : 
       // <div className="mb-2 flex h-full flex-col  justify-end gap-2 z-[0] px-[10px] ">

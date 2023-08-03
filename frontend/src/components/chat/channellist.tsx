@@ -143,9 +143,9 @@ const ChannelList : React.FC<ChannelListProps> = ({className, setShowModal, setC
 
     socket?.on('channel_access', (data: Ichannel) => {
         setOpen(true);
+        socket?.emit("getChannelMessages", {channelId: data?.id});
         setCurrentChannel(data);
         setSelectedChannel(data);
-        socket?.emit('getChannelMessages', {channelId: data.id});
         inputRef?.current?.focus();
     });
     
@@ -166,7 +166,7 @@ const ChannelList : React.FC<ChannelListProps> = ({className, setShowModal, setC
       socket?.off('getArchiveChannels');
       socket?.off('channel_create');
       socket?.off('dm_create');
-      socket?.off('channel_member');
+      socket?.off('channel_access');
     }
     //eslint-disable-next-line
   });
@@ -228,7 +228,7 @@ const ChannelList : React.FC<ChannelListProps> = ({className, setShowModal, setC
   return (
   <>
     <div className={clsx("lg:col-span-3 relative col-span-10 flex flex-col justify-start gap-4 py-2 w-full h-screen overflow-y-scroll scrollbar-hide", className && className)}>
-      <div className=" sticky top-0 z-30 flex items-center gap-2 w-full pr-2 bg-secondary-600 py-2">
+      <div className=" sticky top-0 z-30 flex items-center gap-2 w-full pr-2 bg-secondary-50 py-2">
         <form className="pl-4 pr-1 w-full">
                 <div className="relative">
                     <svg

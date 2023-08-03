@@ -38,7 +38,7 @@ const ChatBanner = ({
         } else 
         {
             socket?.emit("channel_join", { channelId: channel?.id, userId: user?.id });
-            socket?.emit('channel_member', {userId : user?.id, channelId : channel?.id });
+            // socket?.emit('channel_member', {userId : user?.id, channelId : channel?.id });
             navigate(`/chat`);
         }
     };
@@ -51,9 +51,8 @@ const ChatBanner = ({
     
             if ((channel?.isacessPassword && member.role === "OWNER") || !channel.isacessPassword)
             {
-                console.log(channel);
                 socket?.emit("channel_access", { userId: user?.id, channelId: channel?.id });
-                socket?.emit('channel_member', { userId : user?.id, channelId : channel?.id });
+                // socket?.emit('channel_member', { userId : user?.id, channelId : channel?.id });
                 navigate(`/chat`);
                 return;
             }
@@ -77,7 +76,7 @@ const ChatBanner = ({
         if(res.data === true)
         {
             socket?.emit("channel_access", { userId: user?.id, channelId: channel?.id });
-            socket?.emit('channel_member', {userId : user?.id, channelId : channel?.id });
+            // socket?.emit('channel_member', {userId : user?.id, channelId : channel?.id });
             navigate(`/chat`);
         //   setOpen(true);
         //   setCurrentChannel(tempChannel);
@@ -196,7 +195,7 @@ const ChatBanner = ({
                             onKeyDown={(e) => {
                                 if (e.key === "Enter") {
                                     socket?.emit("channel_join", {channelId: channel?.id, userId: user?.id, password: password});
-                                    socket?.emit('channel_member', {userId : user?.id, channelId : channel?.id });
+                                    // socket?.emit('channel_member', {userId : user?.id, channelId : channel?.id });
                                     setshowModal(false);
                                     navigate(`/chat`);      
                                 }
@@ -217,7 +216,7 @@ const ChatBanner = ({
                                 className="h-8 w-auto md:w-20 bg-primary-500 text-white text-xs rounded-full mt-2 ml-3"
                                 onClick={() => {
                                     socket?.emit("channel_join", {channelId: channel?.id, userId: user?.id, password: password});
-                                    socket?.emit('channel_member', {userId : user?.id, channelId : channel?.id });
+                                    // socket?.emit('channel_member', {userId : user?.id, channelId : channel?.id });
                                     setshowModal(false);
                                     navigate(`/chat`);      
                                 }}

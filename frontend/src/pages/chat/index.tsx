@@ -154,7 +154,7 @@ export default function Chat() {
       socket?.emit("getChannelMessages", {channelId: data?.id});
     });
 
-    socket?.on("channel_remove", (data: Ichannel) => {
+    socket?.on("channel_remove", (data: {id: number}) => {
       if (data?.id === currentChannel?.id)
       {
         setCurrentChannel({} as Ichannel);
@@ -176,6 +176,12 @@ export default function Chat() {
       setMessages([]);
       socket?.emit("getChannelMessages", {channelId: currentChannel?.id});
     });
+
+    // socket?.on("channel_access", () => {
+    //   if (!isMatch)
+    //     setOpen(true);
+    //   socket?.emit("getChannelMessages", {channelId: currentChannel?.id});
+    // });
 
     socket?.on('current_ch_update', (data: Ichannel) => {
       setChannelId(data?.id);
@@ -203,7 +209,7 @@ export default function Chat() {
   });
 
   return (
-    <Layout className="!py-0 !px-0 !overflow-y-hidden !bg-secondary-600">
+    <Layout className="!py-0 !px-0 !overflow-y-hidden">
       {
         !isMatch ?
         (

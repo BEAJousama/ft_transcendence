@@ -65,7 +65,9 @@ const MessageBox = ({ message, right, autoScroll }: { message?: any; right?: boo
             </span>
           </div>
           :
-           <Spinner/>
+          <div className="h-24">
+            <Spinner/>
+          </div>
         )}
       <div
         className={clsx(
