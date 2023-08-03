@@ -7,15 +7,13 @@ import { TbDeviceGamepad2 } from "react-icons/tb";
 import { CgProfile } from "react-icons/cg";
 import { RiListSettingsFill } from "react-icons/ri";
 import { RiLogoutBoxRLine } from "react-icons/ri";
-import { IoIosNotifications } from "react-icons/io";
-// import { Link, useLocation } from "react-router-dom";
+
 import { BiSearch } from "react-icons/bi";
 import { twMerge } from "tailwind-merge";
 import { useContext } from "react";
 import { GameContext } from "../../context/game.context";
 import { AppContext } from "../../context/app.context";
 import Link from "next/link";
-import { useLocation } from "react-use";
 import { usePathname } from "next/navigation";
 
 const sidePanelItems = [
@@ -38,11 +36,6 @@ const sidePanelItems = [
     icon: <TbDeviceGamepad2 size={18} />,
     text: "Pong Game",
     path: "/pong",
-  },
-  {
-    icon: <IoIosNotifications size={20} />,
-    text: "Notifications",
-    path: "/notifications",
   },
   {
     icon: <CgProfile size={18} />,
@@ -129,7 +122,6 @@ const SidePanelItem = ({
 
 const Sidepanel = ({ className }: { className?: string }) => {
   const path = usePathname();
-  console.log(path)
   const { socket, isInGame, setShow } = useContext(GameContext);
   const { user } = useContext(AppContext);
 
