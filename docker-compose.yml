@@ -23,6 +23,8 @@ services:
     # Load environment variables from ./frontend/.env file
     env_file:
       - ./frontend/.env
+    depends_on:
+      - backend
 
   # Define a container for the database
   db:

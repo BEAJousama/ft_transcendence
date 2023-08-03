@@ -78,7 +78,7 @@ export default function Search() {
     }
     else
       setFiltred(users)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value, users])
 
   return (
@@ -110,15 +110,15 @@ export default function Search() {
               filtred.map((item: any) => {
                 return (
                   selected === "api/users" ?
-                    <Link key={item.id} to={`/profile/${item.id}`} className="w-full">
-                      <UserBanner
-                        key={item.id}
-                        user={item}
-                        showRating
-                        rank={item.rating}
-                      />
-                    </Link>
-                    :
+                  <Link key={item.id} to={`/profile/${item.id}`} className="w-full">
+                    <UserBanner
+                      key={item.id}
+                      user={item}
+                      showRating
+                      rank={item.rating}
+                    />
+                  </Link>
+                  :
                     <ChatBanner
                       key={item.id}
                       channel={item}

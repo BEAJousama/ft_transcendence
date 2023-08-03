@@ -303,6 +303,35 @@ export class UsersService {
     }
   }
 
+  async findAllNonBlockUsers(userId: number) {
+    try {
+      const users = await this.prisma.user.findMany({
+        where: {
+          id: {
+            not: userId,
+          },
+          blockers: {
+            none: {
+              blockingId: userId,
+            },
+          },
+          blocking: {
+            none: {
+              blockerId: userId,
+            },
+          },
+        },
+        include: {
+          blockers: true,
+          blocking: true,
+        },
+      });
+      return users;
+    } catch (error) {
+      throw new NotFoundException(`no users found ? `);
+    }
+  }
+
   async updateUser(body: UpdateUserDto, id: number) {
     try {
       const user = await this.prisma.user.update({
@@ -326,30 +355,31 @@ export class UsersService {
     }
   }
 
-  async findAllNonBlockUsers(userId: number) {
-    try {
-      const users = await this.prisma.user.findMany({
-        where: {
-          id: {
-            not: userId,
-          },
-          blockers: {
-            none: {
-              blockerId: userId,
-            },
-          },
-          blocking: {
-            none: {
-              blockingId: userId,
-            },
-          },
-        },
-      });
-      return users;
-    } catch (error) {
-      throw new NotFoundException(`no users found ? `);
-    }
-  }
+  // async updateStatus(status: string, id: number) {
+  //   try {
+  //     if (!id || !status) return;
+  //     const user = await this.prisma.user.update({
+  //       where: {
+  //         id,
+  //       },
+  //       data: {
+  //         status: UserStatus[status],
+  //       },
+  //     });
+  //     return {
+  //       message: 'User updated successfully',
+  //     };
+  //   } catch (error) {
+  //     if (error instanceof PrismaClientKnownRequestError) {
+  //       if (error.code === 'P2016') {
+  //         throw new NotFoundException(`User with ID ${id} not found`);
+  //       } else if (error.code === 'P2025') {
+  //         throw new BadRequestException('Invalid update data');
+  //       }
+  //     }
+  //     throw error;
+  //   }
+  // }
 
   async deleteUser(id: number) {
     try {
@@ -593,9 +623,6 @@ export class UsersService {
         where: {
           blockerId: id,
         },
-        include: {
-          blocking: true,
-        },
       });
       return blockedUsers;
     } catch (error) {
@@ -608,9 +635,6 @@ export class UsersService {
       const blockingUsers = await this.prisma.block.findMany({
         where: {
           blockingId: id,
-        },
-        include: {
-          blocker: true,
         },
       });
       return blockingUsers;

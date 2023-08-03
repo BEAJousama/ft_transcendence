@@ -73,6 +73,7 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
       // clearInterval(id);
       window.removeEventListener("storage", handleLocalStorageChange);
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchUser]);
 
   const appContextValue: IAppContext = {

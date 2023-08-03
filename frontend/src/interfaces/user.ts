@@ -10,7 +10,6 @@ export interface IBlock {
   blockingId: number;
   blockerId: number;
 }
-
 interface IUser {
   id: number;
   login: string;
