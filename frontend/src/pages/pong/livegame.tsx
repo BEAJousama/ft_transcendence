@@ -3,7 +3,7 @@ import { Canvas } from "../../components";
 import Layout from "../layout";
 import { GameContext } from "../../context/game.context";
 import { useParams } from "react-router-dom";
-import { Ball, Game, Player } from "../../interfaces/game";
+import { Ball, Player } from "../../interfaces/game";
 import { ScoreBoard } from ".";
 
 export default function LivePong() {
@@ -18,6 +18,7 @@ export default function LivePong() {
     } = useContext(GameContext);
 
     useEffect(() => {
+        if (!socket) return;
 
         const id = setInterval(() => {
             socket?.emit("update", {
@@ -59,7 +60,7 @@ export default function LivePong() {
         socket?.on("disconnect", () => clearInterval(id));
 
         return () => clearInterval(id);
-    }, []);
+    }, [socket, gameId, setPlayerA, setPlayerB, setBall]);
 
     return (
         <Layout className="!py-4 h-full flex flex-col items-center justify-around">

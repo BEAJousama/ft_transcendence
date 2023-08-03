@@ -127,7 +127,6 @@ export default class NotificationService {
           receiver: true,
         },
       });
-
       return notifications;
     } catch (error) {
       // Handle the error

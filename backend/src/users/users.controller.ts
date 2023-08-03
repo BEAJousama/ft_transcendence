@@ -32,6 +32,7 @@ import {
 } from './users.decorator';
 import { UsersService } from './users.service';
 import { assignAchievementsDto } from './dto/achievements.dto';
+import { Request } from 'express';
 
 @Controller('users')
 export class UsersController {
@@ -67,19 +68,6 @@ export class UsersController {
     }
   }
 
-  // @Post('achievements')
-  // @FindAllDoc()
-  // async assignAchievements(@Body() body: assignAchievementsDto) {
-  //   try {
-  //     return await this.usersService.assignAchievements(
-  //       body.userId,
-  //       body.achievementId,
-  //     );
-  //   } catch (error) {
-  //     throw error;
-  //   }
-  // }
-
   @Get(':id')
   @FindOneDoc()
   async findOne(@Param('id') id: string) {
@@ -88,23 +76,19 @@ export class UsersController {
       if (!user) throw 'No Matches Found !!!!!';
       return user;
     } catch (error) {
-      return {
-        message: 'No Matches Found !!!!!',
-      };
+      return null;
     }
   }
 
   @Get(':id/friends')
   @GetFriendsDoc()
-  async findFriends(@Param('id') id: string) {
+  async findFriends(@Req() req: Request, @Param('id') id: string) {
     try {
       const friends = await this.usersService.getFriends(parseInt(id));
       if (!friends) throw 'No Matches Found !!!!!';
       return friends;
     } catch (error) {
-      return {
-        message: 'No Matches Found !!!!!',
-      };
+      return null;
     }
   }
 
@@ -116,9 +100,7 @@ export class UsersController {
       if (!friends) throw 'No Matches Found !!!!!';
       return friends;
     } catch (error) {
-      return {
-        message: 'No Matches Found !!!!!',
-      };
+      return null;
     }
   }
 
@@ -137,9 +119,7 @@ export class UsersController {
       if (!friend) throw 'No Matches Found !!!!!';
       return friend;
     } catch (error) {
-      return {
-        message: 'No Matches Found !!!!!',
-      };
+      return null;
     }
   }
 
@@ -151,9 +131,7 @@ export class UsersController {
       if (!blockedUser) throw 'No Matches Found !!!!!';
       return blockedUser;
     } catch (error) {
-      return {
-        message: 'No Matches Found !!!!!',
-      };
+      return null;
     }
   }
 
@@ -166,9 +144,7 @@ export class UsersController {
       if (!blockedUser) throw 'No Matches Found !!!!!';
       return blockedUser;
     } catch (error) {
-      return {
-        message: 'No Matches Found !!!!!',
-      };
+      return null;
     }
   }
 
@@ -180,9 +156,7 @@ export class UsersController {
       if (!friendRequest) throw 'No Matches Found !!!!!';
       return friendRequest;
     } catch (error) {
-      return {
-        message: 'No Matches Found !!!!!',
-      };
+      return null;
     }
   }
 
@@ -196,9 +170,7 @@ export class UsersController {
       if (!friendRequest) throw 'No Matches Found !!!!!';
       return friendRequest;
     } catch (error) {
-      return {
-        message: 'No Matches Found !!!!!',
-      };
+      return null;
     }
   }
 
@@ -212,9 +184,7 @@ export class UsersController {
       if (!friendRequest) throw 'No Matches Found !!!!!';
       return friendRequest;
     } catch (error) {
-      return {
-        message: 'No Matches Found !!!!!',
-      };
+      return null;
     }
   }
 
@@ -228,9 +198,7 @@ export class UsersController {
       if (!blockedUsers) throw 'No Matches Found !!!!!';
       return blockedUsers;
     } catch {
-      return {
-        message: 'No Matches Found !!!!!',
-      };
+      return null;
     }
   }
 

@@ -3,6 +3,8 @@ import { Game, Player } from '../classes';
 import { Inject, Injectable } from '@nestjs/common';
 import { UsersService } from 'src/users/users.service';
 
+type UpdatedUser = Omit<User, 'password' | 'tfaSecret'>;
+
 enum Achievements {
   PERFECT_GAME = 'PERFECT_GAME',
   COMEBACK_KING = 'COMEBACK_KING',
@@ -53,7 +55,7 @@ class AchievementsWatcher {
     // player: Player,
     playerA: Player,
     playerB: Player,
-    user: User,
+    user: UpdatedUser,
   ) {
     if (playerA.score === 7 && playerB.score === 0) {
       this.achieveAchievement(Achievements.PERFECT_GAME);

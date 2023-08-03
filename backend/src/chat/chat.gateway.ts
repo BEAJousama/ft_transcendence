@@ -1303,17 +1303,18 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       receiver: userId,
       url: '/chat',
     };
-    this.notificationService.createNotification(
+    this.notificationService.sendNotification(
       userId,
       user2Id,
       data.title,
       data.content,
+      user2Id,
       data.url,
     );
-    const sockets: Socket[] = this.getConnectedUsers(user2Id);
-    for (const socket of sockets) {
-      this.server.to(socket.id).emit(EVENT.NOTIFICATION, data);
-    }
+    // const sockets: Socket[] = this.getConnectedUsers(user2Id);
+    // for (const socket of sockets) {
+    //   this.server.to(socket.id).emit(EVENT.NOTIFICATION, data);
+    // }
   }
 
   private async sendMessagesToMembers(channelId: number) {

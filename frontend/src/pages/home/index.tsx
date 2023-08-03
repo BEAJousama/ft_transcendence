@@ -5,7 +5,6 @@ import {
   GameBanner,
   UserBanner,
   Spinner,
-  Toast,
 } from "../../components";
 import { useContext } from "react";
 import { AppContext, fetcher } from "../../context/app.context";
@@ -93,7 +92,6 @@ const MatchHistory = () => {
   const { data: matches, isLoading } = useSWR(`api/pong/match-history/${user?.id}`, fetcher, {
     errorRetryCount: 0,
   });
-  console.log('match history => ', matches);
   return (<Container title="MATCH HISTORY" icon="/img/history.svg">
     {!isLoading ? (
       matches &&
@@ -111,6 +109,16 @@ const MatchHistory = () => {
 
 export default function Home() {
   const { user } = useContext(AppContext);
+  const { data: channels, isLoading } = useSWR("api/channels", fetcher, {
+    errorRetryCount: 0,
+  });
+
+  //order channels by number of members
+  channels?.sort((a: any, b: any) => {
+    return b.channelMembers.length - a.channelMembers.length;
+  });
+
+  if (isLoading) return <Spinner />;
 
   if (
     user &&
@@ -147,7 +155,7 @@ export default function Home() {
               <img src="/img/smalllogo.svg" alt="logo" width={20} />
             </div>
             <div className="flex ">
-              <span>87 %</span>
+              <span>{user ? user.totalGames && ((user.wins / user.totalGames) * 100).toFixed().toString() : 0} %</span>
             </div>
             <div className="flex">
               {user && <span>{user.wins + user.losses}</span>}
@@ -164,6 +172,11 @@ export default function Home() {
         icon="/img/3dchat.svg"
         className="!grid grid-cols-1 place-items-center xl:grid-cols-2"
       >
+        {
+          channels?.filter((channel: any) => channel.channelMembers.length >= 3).map((channel: any) => {
+            return <ChatBanner key={channel.id} channel={channel} />
+          })
+        }
       </Container>
     </Layout>
   );

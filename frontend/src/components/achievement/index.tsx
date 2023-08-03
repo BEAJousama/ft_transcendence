@@ -1,44 +1,42 @@
-import clsx from "clsx";
 import Card from "../card";
-
+import { twMerge } from "tailwind-merge";
 
 const Achievement = ({
-    title,
-    description,
-    disabled,
-    image,
+	title,
+	description,
+	disabled,
+	image,
 }: {
-    title: string;
-    description: string;
-    disabled?: boolean;
-    image: string;
+	title: string;
+	description: string;
+	disabled?: boolean;
+	image: string;
 }) => {
-    return (
-        <Card
-            className={clsx(
-                `relative flex flex-col items-center justify-center gap-3 
-        overflow-hidden  !border-tertiary-500 !bg-secondary-600 text-white !shadow-2xl !shadow-secondary-600 hover:before:hidden`,
-                disabled &&
-                `w-full before:absolute before:inset-0 before:bg-secondary-600 before:bg-opacity-5 before:backdrop-blur-sm before:content-['']`
-            )}
-        >
-            <img
-                src={`/achievements/${image}`}
-                alt="Achievement"
-                width={150}
-                className="rounded-xl"
-                loading="lazy"
-            />
-            <div className="font-montserrat text-sm font-bold">
-                {title.charAt(0).toLocaleUpperCase() +
-                    title.slice(1).toLocaleLowerCase().replaceAll("_", " ")}
-            </div>
-            <div className="text-center font-montserrat text-xs text-tertiary-200">
-                {description}
-            </div>
-        </Card>
-    );
+	return (
+		<Card
+			className=
+			{`relative flex flex-col items-center justify-center 
+        gap-3 overflow-hidden border-tertiary-500 bg-secondary-50 text-white shadow-2xl shadow-secondary-50`}
+		>
+			<div className="basis-2/3 flex justify-center">
+				<img
+					src={`/achievements/${image}`}
+					alt="Achievement"
+					className={twMerge("h-44 rounded-xl object-scale-down", disabled && "grayscale-[60%] blur-sm opacity-50")}
+					loading="lazy"
+				/>
+			</div>
+			<div className="flex basis-1/3 flex-col items-center gap-2">
+				<div className="font-montserrat text-sm font-bold">
+					{title.charAt(0).toLocaleUpperCase() +
+						title.slice(1).toLocaleLowerCase().replaceAll("_", " ")}
+				</div>
+				<div className="bottom-0 text-center font-montserrat text-xs text-tertiary-200">
+					{description}
+				</div>
+			</div>
+		</Card>
+	);
 };
-
 
 export default Achievement;

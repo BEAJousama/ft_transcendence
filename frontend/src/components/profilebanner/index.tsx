@@ -149,12 +149,13 @@ const ProfileBanner = ({
       {showOptions && (
         <div className="flex items-center justify-end">
           {
-            userId !== user && 
-              <Button
-              className=" !hover:bg-inherit !bg-inherit hover:animate-jump hover:animate-once hover:animate-ease-in"
+            userId !== user &&
+            <Button
+              className="!hover:bg-inherit !bg-inherit hover:animate-jump hover:animate-once hover:animate-ease-in text-tertiary-200"
               onClick={() => {
                 setShowMenu(true);
               }}
+              variant="text"
             >
               <SlOptionsVertical />
             </Button>

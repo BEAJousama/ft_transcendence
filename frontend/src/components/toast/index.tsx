@@ -16,16 +16,16 @@ const Toast = ({
         const audio = new Audio('/sound/toast_sound.mp3');
         audio.muted = false;
         var playedPromise = audio.play();
-                if (playedPromise) {
-                    playedPromise.catch((e) => {
-                        console.log(e)
-                        if (e.name === 'NotAllowedError' || e.name === 'NotSupportedError') {
-                            console.log(e.name);
-                        }
-                    }).then(() => {
-
-                    });
+        if (playedPromise) {
+            playedPromise.catch((e) => {
+                console.log(e)
+                if (e.name === 'NotAllowedError' || e.name === 'NotSupportedError') {
+                    console.log(e.name);
                 }
+            }).then(() => {
+
+            });
+        }
     }
     toastShow();
 

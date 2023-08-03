@@ -11,11 +11,13 @@ const GameBanner = ({ player1, player2,
 }) => {
     return (
         <div className="my-4 flex h-12 w-full items-center justify-center rounded-full bg-tertiary-500 text-white">
-            <Avatar
-                src={player1?.avatar || ""}
-                className="h-16 w-16"
-                alt=""
-            />
+            <div className="basis-[15%]">
+                <Avatar
+                    src={player1?.avatar || ""}
+                    className="h-16 w-16"
+                    alt=""
+                />
+            </div>
             <div className="w-full flex items-center justify-between">
                 <div className="flex flex-col items-center justify-center w-full">
                     <span>{player1Score}</span>
@@ -27,11 +29,14 @@ const GameBanner = ({ player1, player2,
                     <span className="hidden md:block">{player2?.username}</span>
                 </div>
             </div>
-            <Avatar
-                src={player2?.avatar || ""}
-                className="h-16 w-16"
-                alt=""
-            />
+            <div className="basis-[15%] flex items-center justify-end">
+
+                <Avatar
+                    src={player2?.avatar || ""}
+                    className="h-16 w-16"
+                    alt=""
+                />
+            </div>
         </div>
     );
 };

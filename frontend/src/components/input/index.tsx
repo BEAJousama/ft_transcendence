@@ -1,5 +1,5 @@
 import { InputHTMLAttributes, RefObject, useState } from "react";
-import clsx from "clsx";
+import { twMerge } from "tailwind-merge";
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   className?: string;
@@ -48,17 +48,17 @@ const Input = ({
   required,
 }: InputProps) => {
   const [active, setActive] = useState(false);
-
   return (
     <div className="relative w-full bg-inherit">
       <label
         htmlFor=""
-        className={clsx(
-          "man-w-min absolute -top-2 left-1.5 z-10 rounded bg-secondary-500 px-1 text-xs font-semibold",
+        className={twMerge(
+          "man-w-min absolute -top-2 left-1.5 rounded bg-inherit px-1 text-xs font-semibold ",
           disabled && "text-primary-800",
           active && "text-primary-500",
           !disabled && !active && "text-quaternary-200",
-          error && !active && "text-red-700"
+          error && !active && "text-red-700",
+          (className === undefined || className?.lastIndexOf('bg-') === -1) && "!bg-secondary-50"
         )}
       >
         {label}
@@ -74,11 +74,11 @@ const Input = ({
           onBlur && onBlur(e);
         }}
         type={htmlType}
-        className={`flex w-full flex-col items-center justify-center rounded-md border-2 border-quaternary-200 bg-transparent p-3 text-sm font-semibold text-quaternary-200 
+        className={twMerge(`flex w-full flex-col items-center justify-center rounded-md border-2 border-quaternary-200 bg-transparent p-3 
+        text-sm font-semibold text-quaternary-200 
         outline-none focus:border-primary-500 focus:text-primary-500 focus:shadow-md focus:shadow-gray-700 
-        disabled:border-primary-800 disabled:text-primary-800 ${clsx(
-          isError && "border-red-700 text-red-700"
-        )} ${className}`}
+        disabled:border-primary-800 disabled:text-primary-800`,
+          isError && `border-red-700 text-red-700`, className)}
         required={required}
         disabled={disabled}
         placeholder={placeholder}
@@ -89,7 +89,6 @@ const Input = ({
         maxLength={MaxLength}
         hidden={hidden}
         ref={inputRef}
-
       />
       {error && (
         <p className="mt-2 text-xs text-red-600 dark:text-red-500">

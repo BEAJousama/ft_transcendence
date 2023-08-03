@@ -7,7 +7,7 @@ import QrCode from "../qr-code";
 import Input from "../input";
 import { AppContext } from "../../context/app.context";
 
-const ActivateFfa = ({
+const ActivateTfa = ({
     setShowmodal,
     user,
     setUpdated,
@@ -91,7 +91,7 @@ const ActivateFfa = ({
                     </Button>
                 </div>
             </div>
-            <div className="w-full max-w-md">
+            {/* <div className="w-full max-w-md">
                 <Divider />
             </div>
             <span className="w-full max-w-md text-quaternary-200">Danger Zone</span>
@@ -104,10 +104,10 @@ const ActivateFfa = ({
             >
                 <MdDelete />
                 Remove account
-            </Button>
+            </Button> */}
         </div>
     );
 };
 
 
-export default ActivateFfa;
+export default ActivateTfa;
