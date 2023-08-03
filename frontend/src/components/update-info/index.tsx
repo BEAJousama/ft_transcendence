@@ -1,3 +1,6 @@
+"use client"
+
+
 import { useContext } from "react";
 import { AppContext } from "../../context/app.context";
 import { useFormik } from "formik";

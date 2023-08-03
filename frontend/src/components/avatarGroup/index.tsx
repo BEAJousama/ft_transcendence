@@ -1,3 +1,6 @@
+"use client"
+
+
 import { Children } from "react";
 
 const AvatarGroup = ({

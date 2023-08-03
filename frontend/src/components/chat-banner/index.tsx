@@ -1,3 +1,5 @@
+"use client";
+
 import { useContext, useState } from "react";
 import { AppContext, fetcher } from "../../context/app.context";
 import { ChatContext } from "../../context/chat.context";

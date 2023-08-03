@@ -1,3 +1,6 @@
+"use client"
+
+
 import Avatar from "../avatar";
 import IUser from "../../interfaces/user";
 import { twMerge } from "tailwind-merge";

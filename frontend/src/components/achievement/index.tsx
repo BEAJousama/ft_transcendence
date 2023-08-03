@@ -1,3 +1,6 @@
+"use client"
+
+
 import Card from "../card";
 import { twMerge } from "tailwind-merge";
 
