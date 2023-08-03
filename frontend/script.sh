@@ -3,7 +3,7 @@
 echo "Waiting for server to start..."
 
 while true; do
-	if curl -sSfL "$REACT_APP_BACK_END_URL""api" >/dev/null; then
+	if curl -sSfL "$NEXT_PUBLIC_BACK_END_URL""api" >/dev/null; then
 		echo "Server started. Installing dependencies"
 		npm install
 		break
@@ -15,4 +15,4 @@ done
 
 echo "Starting app"
 
-npm run start
+npm run dev

@@ -1,4 +1,7 @@
-import clsx from "clsx";
+
+
+
+import { twMerge } from "tailwind-merge";
 import Button from "../button";
 
 
@@ -26,7 +29,7 @@ const UpdateChannel = ({
     }) => {
 
     return (
-        <div className={clsx("flex flex-col items-center justify-center w-[80%]", className && className)}>
+        <div className={twMerge("flex flex-col items-center justify-center w-[80%]", className && className)}>
             {children}
             {!updatable ? (
                 <div className="flex flex-row items-center justify-center pt-3">

@@ -1,17 +1,20 @@
+"use client";
+
 import React, { createContext, useContext, useEffect, useState } from "react";
 import io, { Socket } from "socket.io-client";
 import { AppContext, fetcher } from "./app.context";
 import { toast } from "react-toastify";
 import { Toast } from "../components";
-import { Link } from "react-router-dom";
+
 import { INotification } from "./socket.context";
-import IUser from "../interfaces/user";
+import IUser from "@/interfaces/user";
 import useSWR from "swr";
+import Link from "next/link";
 
 export interface IchatContext {
     users: IUser[] | undefined;
     socket: Socket | null;
-  }
+}
 
 export interface Ichannel {
     id: number | undefined;
@@ -71,19 +74,19 @@ export default function ChatProvider({
     const [socket, setSocket] = useState<Socket | null>(null);
     const { user } = useContext(AppContext);
     // const [users, setUsers] = useState<IUser[]>([]);
-    const {data: users} = useSWR(`api/users/non-blocked-users/${user?.id}`, fetcher, {
+    const { data: users } = useSWR(`api/users/non-blocked-users/${user?.id}`, fetcher, {
         refreshInterval: 5000,
         revalidateOnMount: true,
         revalidateOnFocus: true,
         revalidateOnReconnect: true,
         refreshWhenOffline: true,
         refreshWhenHidden: true,
-        dedupingInterval: 60000, 
+        dedupingInterval: 60000,
         // onSuccess: (newData) => setUsers(newData),
-      });
-      useEffect(() => {
+    });
+    useEffect(() => {
         if (!user) return;
-        const newSocket = io(`${process.env.REACT_APP_BACK_END_URL}chat`, {
+        const newSocket = io(`${process.env.NEXT_PUBLIC_BACK_END_URL}chat`, {
             query: {
                 clientId: user?.id,
             },
@@ -97,7 +100,7 @@ export default function ChatProvider({
         newSocket.on("notification", (data: INotification) => {
             if (data.sender.id === user?.id) return;
             toast(
-                <Link to={data.url}>
+                <Link href={data.url}>
                     <Toast
                         title={data.title}
                         content={data.content}
@@ -128,10 +131,10 @@ export default function ChatProvider({
     const chatContextValue: IchatContext = {
         socket,
         users,
-      };
+    };
     return (
-        <ChatContext.Provider value={ chatContextValue}>
-            {children} 
+        <ChatContext.Provider value={chatContextValue}>
+            {children}
         </ChatContext.Provider>
     );
 }

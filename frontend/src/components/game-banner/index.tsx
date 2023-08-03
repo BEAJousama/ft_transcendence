@@ -1,4 +1,4 @@
-import IUser from "../../interfaces/user";
+import IUser from "@/interfaces/user";
 import Avatar from "../avatar";
 
 const GameBanner = ({ player1, player2,

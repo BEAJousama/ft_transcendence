@@ -2,7 +2,6 @@ import { useContext } from "react";
 import { AppContext } from "../../context/app.context";
 import { useFormik } from "formik";
 import Input from "../input";
-import FlagsSelect from "../flags-select";
 import Button from "../button";
 import axios from "axios";
 import clsx from "clsx";
@@ -14,13 +13,13 @@ const UpdateInfo = ({
     previewImage,
     setModalText,
     setLoading,
-	setShowmodal
+    setShowmodal
 }: {
     user: any;
     previewImage: string;
     setModalText: React.Dispatch<React.SetStateAction<string>>;
     setLoading: React.Dispatch<React.SetStateAction<boolean>>;
-	setShowmodal: React.Dispatch<React.SetStateAction<boolean>>;
+    setShowmodal: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
     const { updateUser } = useContext(AppContext);
     const formik = useFormik({
@@ -62,22 +61,6 @@ const UpdateInfo = ({
                     onChange={formik.handleChange}
                     name="email"
                 />
-                <div className="relative w-full bg-inherit">
-                    <label
-                        htmlFor=""
-                        className={clsx(
-                            "man-w-min absolute -top-2 left-1.5 z-10 rounded bg-secondary-500 px-1 text-xs font-semibold text-quaternary-200"
-                        )}
-                    >
-                        Country
-                    </label>
-                    <FlagsSelect
-                        selected={formik.values.country || "MA"}
-                        onSelect={(code) => {
-                            formik.setFieldValue("country", code);
-                        }}
-                    />
-                </div>
                 <Input
                     label="Phone Number"
                     name="phone"
@@ -104,7 +87,7 @@ const UpdateInfo = ({
                             setLoading(true);
                             const accessToken = window?.localStorage?.getItem("access_token");
                             await axios.post(
-                                `${process.env.REACT_APP_BACK_END_URL}api/users/${user?.id}`,
+                                `${process.env.NEXT_PUBLIC_BACK_END_URL}api/users/${user?.id}`,
                                 {
                                     user: {
                                         username: formik.values.username,
@@ -139,7 +122,7 @@ const UpdateInfo = ({
                     Reset
                 </Button>
             </div>
-			<div className="w-full max-w-md">
+            <div className="w-full max-w-md">
                 <Divider />
             </div>
             <span className="w-full max-w-md text-quaternary-200">Danger Zone</span>

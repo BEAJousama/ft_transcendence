@@ -1,11 +1,11 @@
-import { MdDelete } from "react-icons/md";
+"use client";
+
 import Button from "../button";
-import Divider from "../divider";
 import axios from "axios";
 import { useContext, useState } from "react";
 import QrCode from "../qr-code";
 import Input from "../input";
-import { AppContext } from "../../context/app.context";
+import { AppContext } from "@/context/app.context";
 
 const ActivateTfa = ({
     setShowmodal,
@@ -71,7 +71,7 @@ const ActivateTfa = ({
                         disabled={user?.twoFactorAuth}
                         onClick={() => {
                             TurnOnOrOffTfa(
-                                `${process.env.REACT_APP_BACK_END_URL}api/auth/2fa/turn-on`
+                                `${process.env.NEXT_PUBLIC_BACK_END_URL}api/auth/2fa/turn-on`
                             );
                         }}
                     >
@@ -83,7 +83,7 @@ const ActivateTfa = ({
                         disabled={!user?.twoFactorAuth}
                         onClick={() => {
                             TurnOnOrOffTfa(
-                                `${process.env.REACT_APP_BACK_END_URL}api/auth/2fa/turn-off`
+                                `${process.env.NEXT_PUBLIC_BACK_END_URL}api/auth/2fa/turn-off`
                             );
                         }}
                     >
@@ -91,20 +91,6 @@ const ActivateTfa = ({
                     </Button>
                 </div>
             </div>
-            {/* <div className="w-full max-w-md">
-                <Divider />
-            </div>
-            <span className="w-full max-w-md text-quaternary-200">Danger Zone</span>
-            <Button
-                className="w-full max-w-md justify-center"
-                type="danger"
-                onClick={() => {
-                    setShowmodal(true);
-                }}
-            >
-                <MdDelete />
-                Remove account
-            </Button> */}
         </div>
     );
 };

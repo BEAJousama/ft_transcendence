@@ -4,7 +4,7 @@ const addFriend = async (senderId: number, receiverId: number) => {
   try {
     const accessToken = window.localStorage?.getItem("access_token");
     await axios.post(
-      `${process.env.REACT_APP_BACK_END_URL}api/users/add-friend`,
+      `${process.env.NEXT_PUBLIC_BACK_END_URL}api/users/add-friend`,
       {
         senderId: senderId,
         receiverId: receiverId,
@@ -25,7 +25,7 @@ const acceptFriend = async (id: number) => {
   try {
     const accessToken = window.localStorage?.getItem("access_token");
     await axios.get(
-      `${process.env.REACT_APP_BACK_END_URL}api/users/accept-friend/${id}`,
+      `${process.env.NEXT_PUBLIC_BACK_END_URL}api/users/accept-friend/${id}`,
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -41,8 +41,8 @@ const acceptFriend = async (id: number) => {
 const cancelFriend = async (id: number) => {
   try {
     const accessToken = window.localStorage?.getItem("access_token");
-   await axios.delete(
-      `${process.env.REACT_APP_BACK_END_URL}api/users/remove-friend/${id}`,
+    await axios.delete(
+      `${process.env.NEXT_PUBLIC_BACK_END_URL}api/users/remove-friend/${id}`,
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,

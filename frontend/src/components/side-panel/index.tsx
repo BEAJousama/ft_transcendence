@@ -5,18 +5,21 @@ import { CgProfile } from "react-icons/cg";
 import { RiListSettingsFill } from "react-icons/ri";
 import { RiLogoutBoxRLine } from "react-icons/ri";
 import { IoIosNotifications } from "react-icons/io";
-import { Link, useLocation } from "react-router-dom";
+// import { Link, useLocation } from "react-router-dom";
 import { BiSearch } from "react-icons/bi";
 import { twMerge } from "tailwind-merge";
 import { useContext } from "react";
 import { GameContext } from "../../context/game.context";
 import { AppContext } from "../../context/app.context";
+import Link from "next/link";
+import { useLocation } from "react-use";
+import { usePathname } from "next/navigation";
 
 const sidePanelItems = [
   {
     icon: <AiFillHome size={18} />,
     text: "Home",
-    path: "/",
+    path: "/home",
   },
   {
     icon: <BsFillChatDotsFill size={18} />,
@@ -81,7 +84,7 @@ const SidePanelItem = ({
   const { socket, isInGame, setShow } = useContext(GameContext);
   const { user } = useContext(AppContext);
   return (
-    <Link to={to || ""} className="w-full" onClick={(e) => {
+    <Link href={to || ""} className="w-full" onClick={(e) => {
       console.log(isInGame)
       if (isInGame.current) {
         e.preventDefault();
@@ -122,7 +125,8 @@ const SidePanelItem = ({
 
 
 const Sidepanel = ({ className }: { className?: string }) => {
-  const path = useLocation().pathname;
+  const path = usePathname();
+  console.log(path)
   const { socket, isInGame, setShow } = useContext(GameContext);
   const { user } = useContext(AppContext);
 
@@ -134,7 +138,7 @@ const Sidepanel = ({ className }: { className?: string }) => {
         className
       )}
     >
-      <Link to="/" onClick={(e) => {
+      <Link href="/" onClick={(e) => {
         console.log(isInGame)
         if (isInGame.current) {
           e.preventDefault();
@@ -159,7 +163,7 @@ const Sidepanel = ({ className }: { className?: string }) => {
             <SidePanelItem
               key={index}
               to={item.path}
-              selected={(path.includes(item.path) && item.path !== "/") || (path === "/" && item.path === "/")}
+              selected={(path?.includes(item.path) && item.path !== "/") || (path === "/" && item.path === "/")}
               icon={item.icon}
               text={item.text}
             />
