@@ -10,13 +10,11 @@ CMPS_FILE		:= ./docker-compose.yml
 # Define the complete Docker Compose command with the specified project name and file
 COMPOSE			:= $(CMPS_CMD) -f $(CMPS_FILE) -p $(NAME)
 
+# Define the hostname command
+HOSTNAME_CMD := $(shell hostname)
 
-# define sed cmd for macos and linux
-ifeq ($(shell uname),Darwin)
-SED := sed -i '' 's/hostname/'"`hostname`"'/g'
-else
-SED := sed -i 's/hostname/'"`hostname`"'/g'
-endif
+# Define the sed command to replace 'hostname' with the actual hostname
+SED_CMD := sed -e "s/hostname/$(HOSTNAME_CMD)/g"
 
 # Target to bring up the project, creating volumes if necessary
 $(NAME): env
@@ -27,10 +25,8 @@ build: env
 	@$(COMPOSE) build
 
 env:
-	@cp ./frontend/.env-sample ./frontend/.env
-	@$(SED) ./frontend/.env
-	@cp ./backend/.env-sample ./backend/.env
-	@$(SED) ./backend/.env
+	@cat ./frontend/.env.sample | $(SED_CMD) > ./frontend/.env
+	@cat ./backend/.env.sample ./backend/.env.local | $(SED_CMD) > ./backend/.env
 
 # Target to show the status of the project services
 ps:
