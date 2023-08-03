@@ -1,3 +1,5 @@
+"use client"
+
 import {
     useContext,
     useEffect,
@@ -101,7 +103,7 @@ const Login = () => {
     }
 
     if (authenticated) {
-        router.push("/")
+        router.push("/home")
         // return <Navigate to="/" />;
 
     }

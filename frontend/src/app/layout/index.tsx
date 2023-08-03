@@ -1,3 +1,6 @@
+"use client"
+
+
 import { twMerge } from "tailwind-merge";
 import { Sidepanel } from "../../components";
 

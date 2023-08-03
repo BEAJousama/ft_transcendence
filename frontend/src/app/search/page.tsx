@@ -1,3 +1,6 @@
+"use client"
+
+
 import { ChatBanner, Input, Spinner, UserBanner } from "../../components";
 import useSWR from "swr";
 import { fetcher } from "../../context/app.context";

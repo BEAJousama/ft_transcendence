@@ -80,7 +80,7 @@ const MessageBox = ({ message, right, autoScroll }: { message?: any; right?: boo
           <div className="flex">
             <div className="max-w-full">
               {user?.id !== message.senderId && (
-                <h1 className="font-montserrat font-bold text-sm text-primary-300">
+                <h1 className=" font-bold text-sm text-primary-300">
                   {sender?.username}
                 </h1>
               )}
