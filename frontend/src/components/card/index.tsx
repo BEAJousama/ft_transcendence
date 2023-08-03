@@ -1,3 +1,5 @@
+"use client";
+
 import { useClickAway } from "react-use";
 import { useRef } from "react";
 

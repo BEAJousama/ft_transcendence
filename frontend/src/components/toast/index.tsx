@@ -1,3 +1,5 @@
+"use client"
+
 import { CgClose } from "react-icons/cg"
 import Button from "../button"
 import Avatar from "../avatar"

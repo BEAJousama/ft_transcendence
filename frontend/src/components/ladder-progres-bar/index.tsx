@@ -1,3 +1,6 @@
+"use client"
+
+
 import { twMerge } from "tailwind-merge";
 import IUser from "../../interfaces/user";
 

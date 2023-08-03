@@ -1,3 +1,6 @@
+"use client"
+
+
 import IUser from "@/interfaces/user";
 import Avatar from "../avatar";
 

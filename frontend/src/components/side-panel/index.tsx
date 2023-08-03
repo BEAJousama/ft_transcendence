@@ -1,3 +1,6 @@
+"use client"
+
+
 import { BsFillChatDotsFill } from "react-icons/bs";
 import { AiFillHome } from "react-icons/ai";
 import { TbDeviceGamepad2 } from "react-icons/tb";

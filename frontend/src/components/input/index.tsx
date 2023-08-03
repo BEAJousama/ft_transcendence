@@ -1,3 +1,5 @@
+"use client"
+
 import { InputHTMLAttributes, RefObject, useState } from "react";
 import { twMerge } from "tailwind-merge";
 

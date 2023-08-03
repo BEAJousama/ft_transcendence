@@ -13,13 +13,13 @@ const Welcome = ({ className, setShowModal }: {
         <div className="flex justify-centerbg-opacity-50 backdrop-filter backdrop-blur-lg absolute top-0 left-0 right-0 bottom-0" >
         </div>
         <div >
-          <h1 className="text-primary-500 text-2xl font-montserrat font-bold relative z-10 flex justify-center mb-3">
+          <h1 className="text-primary-500 text-2xl  font-bold relative z-10 flex justify-center mb-3">
             Welcome to your chat section!
           </h1>
-          <p className="text-primary-50 text-lg font-semibold font-montserrat relative z-10 flex justify-center mb-3"> Stay connected with your friends. </p>
-          <p className="text-primary-50 text-lg font-semibold font-montserrat relative z-10 flex justify-center mb"> Start a new conversation or select one from the list.</p>
-          <p className="text-primary-50 text-lg font-semibold font-montserrat relative z-10 flex justify-center mb-3"> Use the search bar to find specific channels. <br /> <br /> </p>
-          <p className="text-primary-50 text-lg font-semibold font-montserrat relative z-10 flex justify-center"> Happy chatting!</p>
+          <p className="text-primary-50 text-lg font-semibold  relative z-10 flex justify-center mb-3"> Stay connected with your friends. </p>
+          <p className="text-primary-50 text-lg font-semibold  relative z-10 flex justify-center mb"> Start a new conversation or select one from the list.</p>
+          <p className="text-primary-50 text-lg font-semibold  relative z-10 flex justify-center mb-3"> Use the search bar to find specific channels. <br /> <br /> </p>
+          <p className="text-primary-50 text-lg font-semibold  relative z-10 flex justify-center"> Happy chatting!</p>
           <Button
             variant="contained"
             className=" mt-14 bottom-0 left-0 right-0 relative m-auto w-1/2 !bg-inherit !text-primary-300 text-xl !font-normal hover:border-primary-300"

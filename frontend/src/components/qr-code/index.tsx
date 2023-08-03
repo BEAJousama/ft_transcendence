@@ -1,3 +1,5 @@
+"use client"
+
 import useSWR from "swr";
 import { fetcher } from "../../context/app.context";
 import Spinner from "../spinner";
