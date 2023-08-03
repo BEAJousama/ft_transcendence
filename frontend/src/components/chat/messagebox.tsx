@@ -11,6 +11,8 @@ import { ChatContext, IchatContext } from "../../context/chat.context";
 import Spinner from "../spinner";
 import IUser from "../../interfaces/user";
 import { twMerge } from "tailwind-merge";
+import Image from "next/image";
+
 
 const MessageBox = ({ message, right, autoScroll }: { message?: any; right?: boolean, autoScroll: any }) => {
   const [showMenu, setShowMenu] = useState(false);
@@ -60,7 +62,7 @@ const MessageBox = ({ message, right, autoScroll }: { message?: any; right?: boo
           sender ?
             <div>
               <span className="relative group">
-                <img
+                <Image
                   className="w-10 h-10 rounded-full mr-2 min-w-[25px]"
                   src={sender?.avatar}
                   alt={sender?.username}

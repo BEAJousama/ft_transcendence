@@ -15,6 +15,7 @@ import Layout from "../layout/index";
 import useSWR from "swr";
 import IUser from "../../interfaces/user";
 import Link from "next/link";
+import Image from "next/image";
 
 
 const LeaderBoard = () => {
@@ -151,7 +152,7 @@ export default function Home() {
           <div className="flex flex-col text-white">
             <div className="flex gap-2">
               <span>{user?.rating}</span>
-              <img src="/img/smalllogo.svg" alt="logo" width={20} />
+              <Image src="/img/smalllogo.svg" alt="logo" width={20} />
             </div>
             <div className="flex ">
               <span>{user ? user.totalGames && ((user.wins / user.totalGames) * 100).toFixed().toString() : 0} %</span>

@@ -7,7 +7,7 @@ import { TbDeviceGamepad2 } from "react-icons/tb";
 import { CgProfile } from "react-icons/cg";
 import { RiListSettingsFill } from "react-icons/ri";
 import { RiLogoutBoxRLine } from "react-icons/ri";
-
+import Image from "next/image";
 import { BiSearch } from "react-icons/bi";
 import { twMerge } from "tailwind-merge";
 import { useContext } from "react";
@@ -144,9 +144,9 @@ const Sidepanel = ({ className }: { className?: string }) => {
         }
       }}>
         <div className="w-46 hidden items-center justify-center md:flex">
-          <img className="!w-64 px-6" src="/img/logo.png" alt="logo" />
+          <Image className="!w-64 px-6" src="/img/logo.png" alt="logo" />
         </div>
-        <img
+        <Image
           className="w-16 px-4 md:hidden"
           src="/img/smalllogo.svg"
           alt="logo"

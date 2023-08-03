@@ -1,4 +1,5 @@
 "use client"
+import Image from "next/image";
 
 import {
     useContext,
@@ -156,7 +157,7 @@ const Login = () => {
                             type="secondary"
                             className="h-14 w-14 justify-center rounded-full md:h-auto md:w-full text-sm"
                         >
-                            <img
+                            <Image
                                 src="/img/42Logo-light.svg"
                                 alt="logo"
                                 width={30}
@@ -174,7 +175,7 @@ const Login = () => {
                                 formik.dirty
                             }
                         >
-                            <img src="/img/google.svg" alt="logo" width={30} />
+                            <Image src="/img/google.svg" alt="logo" width={30} />
                             <p className="hidden md:block">Continue with Google</p>
                         </Button>
                     </Link>

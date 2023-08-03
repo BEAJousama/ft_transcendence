@@ -4,6 +4,7 @@
 import Avatar from "../avatar";
 import IUser from "../../interfaces/user";
 import { twMerge } from "tailwind-merge";
+import Image from "next/image";
 
 const UserBanner = ({
     showRank,
@@ -43,7 +44,7 @@ const UserBanner = ({
                 )}
             >
                 {user?.rating}
-                <img src="/img/smalllogo.svg" alt="logo" width={20} />
+                <Image src="/img/smalllogo.svg" alt="logo" width={20} />
             </div>
         </div>
     );

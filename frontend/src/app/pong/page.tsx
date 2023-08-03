@@ -22,11 +22,12 @@ import useSWR from "swr";
 import IUser from "../../interfaces/user";
 import { Socket } from "socket.io-client";
 import { twMerge } from "tailwind-merge";
+import Image from "next/image";
 import { SocketContext } from "../../context/socket.context";
 
 
 
-export const ScoreBoard = ({ id, score }: { id: number; score?: number }) => {
+const ScoreBoard = ({ id, score }: { id: number; score?: number }) => {
   const { data: user } = useSwr(`api/users/${id}`, fetcher);
   return (
     <div className="flex flex-col items-center gap-2 text-xs text-white md:text-lg">
@@ -484,7 +485,7 @@ const CreateGameCard = ({
         </>
       ) : (
         <>
-          <img src="/img/3839218-removebg-preview.png" alt="" width={200} />
+          <Image src="/img/3839218-removebg-preview.png" alt="" width={200} />
         </>
       )}
       <Button

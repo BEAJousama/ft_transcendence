@@ -166,3 +166,8 @@ export default function SocketProvider({
 		</GameContext.Provider>
 	);
 }
+
+
+export async function getServerSideProps() {
+	return { props: {} };
+}

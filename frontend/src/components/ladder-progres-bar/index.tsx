@@ -3,6 +3,8 @@
 
 import { twMerge } from "tailwind-merge";
 import IUser from "../../interfaces/user";
+import Image from "next/image";
+
 
 const icons = [
     "beginner.svg",
@@ -20,7 +22,7 @@ const LadderProgressBar = ({ user }: { user: IUser }) => {
                 <div className="absolute -top-5 z-10 flex w-full items-center justify-between">
                     {icons.map((item, i) => {
                         return (
-                            <img
+                            <Image
                                 key={i}
                                 src={`/levels/${item}`}
                                 alt=""

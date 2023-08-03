@@ -9,6 +9,7 @@ import Spinner from "../spinner";
 import Avatar from "../avatar";
 import { addFriend, cancelFriend, acceptFriend } from "./tools";
 import Button from "../button";
+import Image from "next/image";
 
 const status = {
     ONLINE: { status: "online", color: "text-green-500" },
@@ -158,7 +159,7 @@ const ProfileInfo = ({
                                                 /10000
                                             </span>
                                         </span>
-                                        <img
+                                        <Image
                                             src={`/img/smalllogo.svg`}
                                             alt=""
                                             width={14}

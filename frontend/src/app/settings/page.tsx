@@ -1,4 +1,5 @@
 "use client"
+import Image from "next/image";
 
 import { MdSettings } from "react-icons/md";
 import {
@@ -43,7 +44,7 @@ export default function Settings() {
                   accept="Yes, Delete"
                   reject="Keep Account"
                   icon={
-                    <img src={"/img/danger.png"} alt="" className="h-32 w-32" />
+                    <Image src={"/img/danger.png"} alt="" className="h-32 w-32" />
                   }
                   onAccept={async () => {
                     try {

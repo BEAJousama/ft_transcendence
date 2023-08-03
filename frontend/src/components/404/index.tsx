@@ -1,7 +1,7 @@
 "use client"
 
 import React from "react";
-
+import Image from "next/image";
 import { Button } from "../../components";
 import Link from "next/link";
 const FourOFour = ({ show = true }: { show?: boolean }) => {
@@ -11,7 +11,7 @@ const FourOFour = ({ show = true }: { show?: boolean }) => {
       className="grid h-screen w-screen place-items-center bg-secondary-500"
     >
       <div className="relative grid w-full place-items-center">
-        <img
+        <Image
           src="/img/giphy.gif"
           alt="game"
           className="w-[80%] rounded-lg shadow-lg shadow-secondary-800 drop-shadow-lg "
