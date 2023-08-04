@@ -14,7 +14,7 @@
 /build
 
 # data
-/data
+/db
 /.vscode
 # misc
 .DS_Store
