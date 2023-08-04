@@ -3,6 +3,8 @@
 import axios from "axios";
 import React, { useCallback, useEffect, useState } from "react";
 import IUser from "@/interfaces/user";
+import { Spinner } from "@/components";
+import { redirect, usePathname } from "next/navigation";
 
 export interface IAppContext {
   user: IUser | undefined;
@@ -25,15 +27,20 @@ export const fetcher = async (url: string) => {
   const response = await axios.get(
     `${process.env.NEXT_PUBLIC_BACK_END_URL}${url}`,
     {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
+      withCredentials: true,
+      // headers: {
+      //   Authorization: `Bearer ${accessToken}`,
+      // },
     }
   );
   return response.data;
 };
 
-const AppProvider = ({ children }: { children: React.ReactNode }) => {
+const AppProvider = ({ children }: {
+  children: React.ReactNode,
+
+}) => {
+  // const router = useRouter();
   const [data, setData] = useState<IUser | undefined>(undefined);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
@@ -78,6 +85,17 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchUser]);
 
+  const path = usePathname();
+
+  // console.log(path)
+
+  if (!isAuthenticated && path !== "/")
+    redirect("/");
+
+  // if (isLoading && path !== "/")
+  //   return <Spinner />;
+
+
   const appContextValue: IAppContext = {
     user: data,
     loading: isLoading,
@@ -85,6 +103,7 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
     fetchUser,
     updateUser,
   };
+
 
 
   return (

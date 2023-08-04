@@ -42,14 +42,14 @@ export class AuthGuard implements CanActivate {
     return true;
   }
 
-  private extractTokenFromHeader(req: Request) {
-    const authorizationHeader = req.headers.authorization;
-
-    if (authorizationHeader && authorizationHeader.startsWith('Bearer ')) {
-      const token = authorizationHeader.substring(7); // Remove the 'Bearer ' prefix
-      return token;
-    }
-
-    return undefined;
+  // private extractTokenFromHeader(req: Request) {
+  private extractTokenFromHeader(req) {
+    if (
+      req.cookies &&
+      'access_token' in req.cookies &&
+      req.cookies.access_token.length > 0
+    )
+      return req.cookies.access_token;
+    return null;
   }
 }

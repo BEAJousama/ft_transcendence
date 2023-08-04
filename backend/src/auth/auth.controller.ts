@@ -46,8 +46,10 @@ export class AuthController {
   @GoogleCallbackDoc()
   @UseGuards(GoogleGuard)
   async googleAuthRedirect(@Req() req, @Res() res) {
-    await this.authService.callback(req);
-    return res.redirect(process.env.FRONTEND_URL);
+    const accesToken = await this.authService.callback(req);
+    res.cookie(accesToken.name, accesToken.value);
+    res.redirect(process.env.FRONTEND_URL);
+    res.end();
   }
 
   @Public()
@@ -74,14 +76,14 @@ export class AuthController {
     }
   }
 
-  @Public()
-  @LoginDoc()
-  @Get('42/login')
-  async login() {
-    try {
-      return this.authService.getAccessToken();
-    } catch (error) {}
-  }
+  // @Public()
+  // @LoginDoc()
+  // @Get('42/login')
+  // async login() {
+  //   try {
+  //     return this.authService.getAccessToken();
+  //   } catch (error) {}
+  // }
 
   @UseGuards(FourtyTwoGuard)
   @Public()
@@ -89,8 +91,11 @@ export class AuthController {
   @Get('42/callback')
   async fortyTwoLoginCallback(@Req() req, @Res() res: Response) {
     try {
-      await this.authService.callback(req);
-      return res.redirect(process.env.FRONTEND_URL);
+      const accesToken = await this.authService.callback(req);
+      res.cookie(accesToken.name, accesToken.value);
+      res.redirect(process.env.FRONTEND_URL);
+      res.end();
+      // return res.redirect(process.env.FRONTEND_URL);
     } catch (e) {
       throw e;
     }

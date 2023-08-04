@@ -3,6 +3,8 @@
 
 import Card from "../card";
 import { twMerge } from "tailwind-merge";
+import Image from "next/image";
+
 
 const Achievement = ({
 	title,

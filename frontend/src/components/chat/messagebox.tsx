@@ -11,6 +11,8 @@ import { ChatContext, IchatContext } from "../../context/chat.context";
 import Spinner from "../spinner";
 import IUser from "../../interfaces/user";
 import { twMerge } from "tailwind-merge";
+import Image from "next/image";
+
 
 const MessageBox = ({ message, right, autoScroll }: { message?: any; right?: boolean, autoScroll: any }) => {
   const [showMenu, setShowMenu] = useState(false);

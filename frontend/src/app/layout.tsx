@@ -21,13 +21,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <AppProvider>
-        <GameProvider>
-          <SocketProvider>
-            <ChatProvider>
-              <body className={montserrat.className}>{children}</body>
-            </ChatProvider>
-          </SocketProvider>
-        </GameProvider>
+        <SocketProvider>
+          {/* <ChatProvider> */}
+          <GameProvider>
+            <body className={montserrat.className}>{children}</body>
+          </GameProvider>
+          {/* </ChatProvider> */}
+        </SocketProvider>
       </AppProvider>
     </html>
   )
