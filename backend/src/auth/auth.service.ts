@@ -136,6 +136,7 @@ export class AuthService {
         const access_token = this.jwtService.sign(payload, {
           secret: process.env.TFA_JWT_SECRET,
           expiresIn: '7d',
+          // httpOnly: true,
         });
         return {
           name: '2fa_access_token',

@@ -94,9 +94,15 @@ export default function ChatProvider({
                 token: localStorage.getItem("access_token"),
             },
         });
+
         newSocket.on("connect", () => {
-            console.log("Connected");
+            console.log("Chat Connected");
         });
+
+        newSocket.on("disconnect", () => {
+            console.log("Chat Disconnected");
+        });
+
         newSocket.on("notification", (data: INotification) => {
             if (data.sender.id === user?.id) return;
             toast(
@@ -128,6 +134,8 @@ export default function ChatProvider({
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user]);
+
+
     const chatContextValue: IchatContext = {
         socket,
         users,

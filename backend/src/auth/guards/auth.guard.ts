@@ -43,20 +43,13 @@ export class AuthGuard implements CanActivate {
   }
 
   // private extractTokenFromHeader(req: Request) {
-  private extractTokenFromHeader(req: Request) {
-    const cookies = document.cookie;
-    const cookieArray = cookies.split(';');
-
-    // Assuming the access token is stored in a cookie named "access_token"
-    const tokenCookie = cookieArray.find((cookie) =>
-      cookie.trim().startsWith('access_token='),
-    );
-
-    if (tokenCookie) {
-      const token = tokenCookie.split('=')[1];
-      return token.trim();
-    } else {
-      return undefined; // If the access token cookie is not found
-    }
+  private extractTokenFromHeader(req) {
+    if (
+      req.cookies &&
+      'access_token' in req.cookies &&
+      req.cookies.access_token.length > 0
+    )
+      return req.cookies.access_token;
+    return null;
   }
 }

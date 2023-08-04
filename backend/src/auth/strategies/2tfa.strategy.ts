@@ -12,20 +12,14 @@ export class Jwt2faStrategy extends PassportStrategy(Strategy, 'jwt-2fa') {
   ) {
     super({
       jwtFromRequest: (req: Request) => {
-        const cookies = document.cookie;
-        const cookieArray = cookies.split(';');
-
-        // Assuming the access token is stored in a cookie named "access_token"
-        const tokenCookie = cookieArray.find((cookie) =>
-          cookie.trim().startsWith('access_token='),
-        );
-
-        if (tokenCookie) {
-          const token = tokenCookie.split('=')[1];
-          return token.trim();
-        } else {
-          return undefined; // If the access token cookie is not found
+        if (
+          req.cookies &&
+          'token' in req.cookies &&
+          req.cookies.token.length > 0
+        ) {
+          return req.cookies.token;
         }
+        return null;
       },
       ignoreExpiration: false,
       secretOrKey: process.env.TFA_JWT_SECRET,

@@ -15,6 +15,7 @@ import { GameContext } from "../../context/game.context";
 import { AppContext } from "../../context/app.context";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { cookies } from "next/dist/client/components/headers";
 
 const sidePanelItems = [
   {
@@ -171,6 +172,8 @@ const Sidepanel = ({ className }: { className?: string }) => {
           onClick={() => {
             localStorage?.removeItem("access_token");
             localStorage?.removeItem("2fa_access_token");
+            // remove("access_token");
+            document.cookie = "access_token" + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
             window.location.reload();
           }}
         >

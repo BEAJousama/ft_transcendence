@@ -13,7 +13,7 @@ import { AppContext } from "./../../context/app.context";
 import { useFormik } from "formik";
 import { twMerge } from "tailwind-merge";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 
 const Login = () => {
     const router = useRouter();
@@ -83,12 +83,12 @@ const Login = () => {
 
 
     if (authenticated) {
-        router.push("/home")
+        redirect("/home")
         // return <Navigate to="/" />;
 
     }
 
-    if (twoFactorAuth) router.push("/tfa");
+    if (twoFactorAuth) redirect("/tfa");
     return (
         <div className="grid place-items-center w-full">
             <div className="flex flex-col items-center justify-center w-full max-w-sm md:max-w-md lg:max-w-lg gap-4 px-8 py-12 text-white">
