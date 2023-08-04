@@ -54,7 +54,7 @@ export default function Chat() {
       if (res === undefined) {
         return;
       }
-      return res.map((blocking: any) => { return blocking.blockerId });
+      return res.map((blocking: any) => { return blocking?.blockerId });
     } catch (err) {
       throw new Error("Error while getting blocking users");
     }
@@ -74,7 +74,7 @@ export default function Chat() {
   }, [user?.id])
 
   const checkBlock = (userId: number | undefined) => {
-    return (blocking.includes(userId) || blocked.includes(userId));
+    return (blocking?.includes(userId) || blocked?.includes(userId));
   }
 
   useEffect(() => {

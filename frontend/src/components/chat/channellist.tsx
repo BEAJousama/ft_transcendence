@@ -1,21 +1,24 @@
 
 "use client";
 
+import React from "react";
 import { useContext, useEffect, useState } from "react";
+
 import Channel from "./channel";
 import { IAppContext, fetcher } from "../../context/app.context"
-import { AppContext } from "../../context/app.context";
-import { BsFillChatLeftTextFill } from "react-icons/bs";
-import { BiFilter } from "react-icons/bi";
 import { ChatContext, Ichannel, IchannelMember, IchatContext } from "../../context/chat.context";
 import Modal from "../modal";
 import Input from "../input";
 import Button from "../button";
+
+import { AppContext } from "../../context/app.context";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { throttle } from "lodash";
-import React from "react";
 import { twMerge } from "tailwind-merge";
+
+import { BsFillChatLeftTextFill } from "react-icons/bs";
+import { BiFilter } from "react-icons/bi";
 
 interface ChannelListProps {
   className?: string;
@@ -43,19 +46,10 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
   const [isFocused, setIsFocused] = useState<boolean>(false);
   const iRef = React.useRef<HTMLInputElement>(null);
 
-  // const checkBlock = async (userId : number | undefined) =>
-  // {
-  //   const blockers = await fetcher(`api/users/${user?.id}/blocking-users`);
-  //   const blocking = await fetcher(`api/users/${user?.id}/blocked-users`);
-  //   return (blockers[0]?.blockingId === userId || blocking[0]?.blockerId === userId)
-  // }
-
   const loadMessages = async (channelId: number | undefined) => {
     const messages = fetcher(`api/messages/${channelId}/${user?.id}`)
     return messages;
   }
-
-
 
   const onClick = throttle(async (channel: Ichannel): Promise<void | undefined> => {
     socket?.emit('reset_mssg_count', { channelId: channel.id });
@@ -63,8 +57,6 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
       fetcher(`api/channels/member/${user?.id}/${channel.id}`),
       loadMessages(channel.id)
     ]);
-
-    socket?.emit("channel_member", { channelId: channel.id, userId: user?.id });
     if (channel.isacessPassword && member.role !== "OWNER") {
       if (selectedChannel && selectedChannel.id === channel.id) {
         setOpen(true);
@@ -144,10 +136,13 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
 
     socket?.on('channel_access', (data: Ichannel) => {
         setOpen(true);
-        socket?.emit("getChannelMessages", {channelId: data?.id});
         setCurrentChannel(data);
         setSelectedChannel(data);
-        inputRef?.current?.focus();
+        setTimeout(() => {
+          socket?.emit("getChannelMessages", {channelId: data?.id});
+          inputRef?.current?.focus();
+        }, 300);
+        // inputRef?.current?.focus();
     });
 
     socket?.on('channel_delete', () => {
@@ -229,7 +224,7 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
   return (
     <>
       <div className={twMerge("lg:col-span-3 relative col-span-10 flex flex-col justify-start gap-4 py-2 w-full h-screen overflow-y-scroll scrollbar-hide", className && className)}>
-        <div className=" sticky top-0 z-30 flex items-center gap-2 w-full pr-2 bg-secondary-600 py-2">
+        <div className=" sticky top-0 z-30 flex items-center gap-2 w-full pr-2 bg-secondary-50 py-2">
           <form className="pl-4 pr-1 w-full">
             <div className="relative">
               <svg

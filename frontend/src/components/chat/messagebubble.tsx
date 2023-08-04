@@ -1,5 +1,10 @@
 "use client";
 
+import { useState, useRef, useContext, useEffect, useCallback } from "react";
+import { useClickAway } from "react-use";
+import { AppContext } from "../../context/app.context";
+import { ChatContext, Ichannel, IchannelMember, Imessage } from "../../context/chat.context";
+
 import Button from "../button";
 import Input from "../input";
 import MessageBox from "./messagebox";
@@ -14,16 +19,12 @@ import { TbUserOff } from "react-icons/tb"
 import { FcMenu } from "react-icons/fc"
 
 import Avatar from "../avatar";
-import { useState, useRef, useContext, useEffect, useCallback } from "react";
-import { useClickAway } from "react-use";
 import Modal from "../modal";
 import data from "@emoji-mart/data";
 import Picker from "@emoji-mart/react";
 import Divider from "../divider";
 import ProfileBanner from "../profilebanner";
-import { AppContext } from "../../context/app.context";
 import UpdateAvatar from "../update-avatar";
-import { ChatContext, Ichannel, IchannelMember, Imessage } from "../../context/chat.context";
 
 import UpdateChannel from "./updateChannel";
 import RightClickMenu, { RightClickMenuItem } from "../rightclickmenu";
@@ -70,11 +71,11 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
   const [showConfirm, setShowConfirm] = useState<boolean>(false);
   const [messageId, setMessageId] = useState<number | undefined>(0);
   const [chId, setChId] = useState<number | undefined>(0);
+  const [isBlockingOrUnblocking, setIsBlockingOrUnblocking] = useState(false);
   // const navigate = useNavigate();
   const { socket } = useContext(ChatContext);
   const { user } = useContext(AppContext);
   const refMessage = useRef(null);
-  const [isBlockingOrUnblocking, setIsBlockingOrUnblocking] = useState(false);
 
   useEffect(() => {
     setValue("");

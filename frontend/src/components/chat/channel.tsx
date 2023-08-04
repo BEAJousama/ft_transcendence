@@ -1,16 +1,18 @@
 "use client";
 
+import { useContext, useRef, useState } from "react";
+import { useClickAway } from "react-use";
+
+import { ChatContext } from "../../context/chat.context";
 
 import Avatar from "../avatar";
+import RightClickMenu, { RightClickMenuItem } from "../rightclickmenu";
+import { twMerge } from "tailwind-merge";
+
 import { BiVolumeMute } from "react-icons/bi";
 import { BsArchiveFill, BsPinAngleFill } from "react-icons/bs";
 import { RiMailUnreadFill } from "react-icons/ri";
 import { MdDelete } from "react-icons/md";
-import { useContext, useRef, useState } from "react";
-import RightClickMenu, { RightClickMenuItem } from "../rightclickmenu";
-import { useClickAway } from "react-use";
-import { ChatContext } from "../../context/chat.context";
-import { twMerge } from "tailwind-merge";
 
 interface ChannelProps {
   id: number | undefined;

@@ -1,26 +1,28 @@
 "use client";
 
+import React, {useRef} from "react";
 import { useContext, useState } from "react";
 import { AppContext, fetcher } from "../../context/app.context";
 import { ChatContext } from "../../context/chat.context";
+import { useRouter } from "next/router";
+
 import Avatar from "../avatar";
 import AvatarGroup from "../avatarGroup";
 import Button from "../button";
-import { BsKeyFill, BsFillPeopleFill } from "react-icons/bs";
 import Input from "../input";
-// import { useNavigate } from 'react-router-dom';
 import Card from "../card";
-import React, {useRef} from "react";
 import Modal from "../modal";
 import axios from "axios";
 import { toast } from "react-toastify";
+
+import { BsKeyFill, BsFillPeopleFill } from "react-icons/bs";
 
 const ChatBanner = ({
     channel,
 }: {
     channel?: any;
 }) => {
-    // const navigate = useNavigate();
+    const router = useRouter();
     const { user } = useContext(AppContext);
     const { socket } = useContext(ChatContext);
     const [password, setPassword] = useState("");
@@ -39,7 +41,7 @@ const ChatBanner = ({
         } else {
             socket?.emit("channel_join", { channelId: channel?.id, userId: user?.id });
             socket?.emit('channel_member', { userId: user?.id, channelId: channel?.id });
-            // navigate(`/chat`);
+            router.push(`/chat`);
         }
     };
 
@@ -51,8 +53,7 @@ const ChatBanner = ({
             if ((channel?.isacessPassword && member.role === "OWNER") || !channel.isacessPassword) {
                 console.log(channel);
                 socket?.emit("channel_access", { userId: user?.id, channelId: channel?.id });
-                socket?.emit('channel_member', { userId: user?.id, channelId: channel?.id });
-                // navigate(`/chat`);
+                router.push(`/chat`);
                 return;
             }
             else {
@@ -72,13 +73,7 @@ const ChatBanner = ({
             { headers: { Authorization: `Bearer ${accesstoken}` } });
         if (res.data === true) {
             socket?.emit("channel_access", { userId: user?.id, channelId: channel?.id });
-            socket?.emit('channel_member', { userId: user?.id, channelId: channel?.id });
-            // navigate(`/chat`);
-            //   setOpen(true);
-            //   setCurrentChannel(tempChannel);
-            //   getChannelMember(tempChannel.id);
-            //   setSelectedChannel(tempChannel);
-            //   loadMessages(tempChannel.id);
+            router.push(`/chat`);
         }
         else {
             toast.error("Wrong access password !");
@@ -190,9 +185,8 @@ const ChatBanner = ({
                             onKeyDown={(e) => {
                                 if (e.key === "Enter") {
                                     socket?.emit("channel_join", { channelId: channel?.id, userId: user?.id, password: password });
-                                    socket?.emit('channel_member', { userId: user?.id, channelId: channel?.id });
                                     setshowModal(false);
-                                    // navigate(`/chat`);      
+                                    router.push(`/chat`);     
                                 }
                             }
                             }
@@ -211,9 +205,8 @@ const ChatBanner = ({
                                 className="h-8 w-auto md:w-20 bg-primary-500 text-white text-xs rounded-full mt-2 ml-3"
                                 onClick={() => {
                                     socket?.emit("channel_join", { channelId: channel?.id, userId: user?.id, password: password });
-                                    socket?.emit('channel_member', { userId: user?.id, channelId: channel?.id });
                                     setshowModal(false);
-                                    // navigate(`/chat`);      
+                                    router.push(`/chat`);     
                                 }}
                             >
                                 <span className="text-xs">Join</span>
