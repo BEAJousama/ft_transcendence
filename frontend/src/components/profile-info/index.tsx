@@ -159,7 +159,7 @@ const ProfileInfo = ({
                                                 /10000
                                             </span>
                                         </span>
-                                        <Image
+                                        <img
                                             src={`/img/smalllogo.svg`}
                                             alt=""
                                             width={14}

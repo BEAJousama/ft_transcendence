@@ -74,22 +74,20 @@ export class AuthService {
           secret: process.env.TFA_JWT_SECRET,
           expiresIn: '7d',
         });
-        const accessToken = {
+        return {
           name: '2fa_access_token',
           value: access_token,
         };
-        return accessToken;
       }
       const payload = { login: user.login, sub: user.id, email: user.email };
       const access_token = this.jwtService.sign(payload, {
         secret: process.env.JWT_SECRET,
         expiresIn: '24h',
       });
-      const accessToken = {
+      return {
         name: 'access_token',
         value: access_token,
       };
-      return accessToken;
     } catch (error) {
       throw error;
     }
@@ -106,14 +104,14 @@ export class AuthService {
     }
   }
 
-  async getAccessToken() {
-    const token = this.accessToken;
-    this.accessToken = {
-      name: '',
-      value: '',
-    };
-    return token;
-  }
+  // async getAccessToken() {
+  //   const token = this.accessToken;
+  //   this.accessToken = {
+  //     name: '',
+  //     value: '',
+  //   };
+  //   return token;
+  // }
 
   async callback(req) {
     try {
@@ -139,18 +137,17 @@ export class AuthService {
           secret: process.env.TFA_JWT_SECRET,
           expiresIn: '7d',
         });
-        this.accessToken = {
+        return {
           name: '2fa_access_token',
           value: access_token,
         };
-        return;
       }
       const payload = { login: user.login, sub: user.id, email: user.email };
       const access_token = this.jwtService.sign(payload, {
         secret: process.env.JWT_SECRET,
         expiresIn: '24h',
       });
-      this.accessToken = {
+      return {
         name: 'access_token',
         value: access_token,
       };

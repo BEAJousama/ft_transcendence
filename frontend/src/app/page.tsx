@@ -12,7 +12,7 @@ const LandingPage = () => {
     <div className="overflow-auto scrollbar-hide flex flex-col items-center w-screen h-screen bg-secondary-500">
       <div className="grid w-full max-w-5xl h-fit grid-cols-1 place-items-center justify-center gap-8 md:gap-16 p-8 lg:grid-cols-2">
         <div className="flex w-full max-w-xs items-center justify-center lg:col-span-2 lg:max-w-xl py-16">
-          <Image src="/img/Logo.svg" alt="logo" className={"w-[80%]"} />
+          <img src="/img/Logo.svg" alt="logo" className={"w-[80%]"} />
         </div>
         <div className="flex flex-col items-center justify-center">
           <div className="overflow-hidden group relative w-fit rounded-xl shadow-lg shadow-secondary-700">

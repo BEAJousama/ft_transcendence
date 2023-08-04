@@ -19,7 +19,7 @@ const Container = ({
     return (
         <div className="flex w-full max-w-[800px] animate-fade-right flex-col gap-2 md:w-full mt-4">
             <div className="relative flex h-[500px] rounded-lg border-[1px] border-secondary-400 ">
-                <Image
+                <img
                     src={icon}
                     alt="icon"
                     className="absolute -top-10 left-1/2 -translate-x-1/2 transform "

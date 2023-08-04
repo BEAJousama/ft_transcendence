@@ -62,7 +62,7 @@ const MessageBox = ({ message, right, autoScroll }: { message?: any; right?: boo
           sender ?
             <div>
               <span className="relative group">
-                <Image
+                <img
                   className="w-10 h-10 rounded-full mr-2 min-w-[25px]"
                   src={sender?.avatar}
                   alt={sender?.username}

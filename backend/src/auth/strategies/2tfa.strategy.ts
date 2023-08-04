@@ -6,19 +6,26 @@ import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class Jwt2faStrategy extends PassportStrategy(Strategy, 'jwt-2fa') {
-  constructor(@Inject(UsersService)
-    private readonly usersService: UsersService,) {
+  constructor(
+    @Inject(UsersService)
+    private readonly usersService: UsersService,
+  ) {
     super({
       jwtFromRequest: (req: Request) => {
-        const authorizationHeader = req.headers.authorization;
+        const cookies = document.cookie;
+        const cookieArray = cookies.split(';');
 
-        if (authorizationHeader && authorizationHeader.startsWith('Bearer ')) {
-          const token = authorizationHeader.substring(7); // Remove the 'Bearer ' prefix
+        // Assuming the access token is stored in a cookie named "access_token"
+        const tokenCookie = cookieArray.find((cookie) =>
+          cookie.trim().startsWith('access_token='),
+        );
 
-          return token;
+        if (tokenCookie) {
+          const token = tokenCookie.split('=')[1];
+          return token.trim();
+        } else {
+          return undefined; // If the access token cookie is not found
         }
-
-        return undefined;
       },
       ignoreExpiration: false,
       secretOrKey: process.env.TFA_JWT_SECRET,

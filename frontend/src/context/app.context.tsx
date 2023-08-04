@@ -25,9 +25,10 @@ export const fetcher = async (url: string) => {
   const response = await axios.get(
     `${process.env.NEXT_PUBLIC_BACK_END_URL}${url}`,
     {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
+      withCredentials: true,
+      // headers: {
+      //   Authorization: `Bearer ${accessToken}`,
+      // },
     }
   );
   return response.data;

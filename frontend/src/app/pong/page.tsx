@@ -485,7 +485,7 @@ const CreateGameCard = ({
         </>
       ) : (
         <>
-          <Image src="/img/3839218-removebg-preview.png" alt="" width={200} />
+          <img src="/img/3839218-removebg-preview.png" alt="" width={200} />
         </>
       )}
       <Button

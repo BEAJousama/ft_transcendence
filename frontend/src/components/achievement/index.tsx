@@ -24,7 +24,7 @@ const Achievement = ({
         gap-3 overflow-hidden border-tertiary-500 bg-secondary-50 text-white shadow-2xl shadow-secondary-50`}
 		>
 			<div className="basis-2/3 flex justify-center">
-				<Image
+				<img
 					src={`/achievements/${image}`}
 					alt="Achievement"
 					className={twMerge("h-44 rounded-xl object-scale-down", disabled && "grayscale-[60%] blur-sm opacity-50")}

@@ -44,7 +44,7 @@ export default function Settings() {
                   accept="Yes, Delete"
                   reject="Keep Account"
                   icon={
-                    <Image src={"/img/danger.png"} alt="" className="h-32 w-32" />
+                    <img src={"/img/danger.png"} alt="" className="h-32 w-32" />
                   }
                   onAccept={async () => {
                     try {

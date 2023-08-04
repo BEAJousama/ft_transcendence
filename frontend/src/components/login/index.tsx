@@ -1,5 +1,4 @@
 "use client"
-import Image from "next/image";
 
 import {
     useContext,
@@ -81,27 +80,7 @@ const Login = () => {
         }
     };
 
-    useEffect(() => {
-        (async () => {
-            try {
-                const res = await axios(
-                    `${process.env.NEXT_PUBLIC_BACK_END_URL}api/auth/42/login`
-                );
-                if (res.data.name) {
-                    setTwoFactorAuth(res.data.name === "2fa_access_token");
-                    window.localStorage?.setItem(res.data.name, res.data.value);
-                    await fetchUser();
-                }
-                setLaoding(false);
-            } catch (_e) {
-                setLaoding(false);
-            }
-        })();
-    }, [fetchUser]);
 
-    if (loading) {
-        return <Spinner />
-    }
 
     if (authenticated) {
         router.push("/home")
@@ -157,7 +136,7 @@ const Login = () => {
                             type="secondary"
                             className="h-14 w-14 justify-center rounded-full md:h-auto md:w-full text-sm"
                         >
-                            <Image
+                            <img
                                 src="/img/42Logo-light.svg"
                                 alt="logo"
                                 width={30}
@@ -175,7 +154,7 @@ const Login = () => {
                                 formik.dirty
                             }
                         >
-                            <Image src="/img/google.svg" alt="logo" width={30} />
+                            <img src="/img/google.svg" alt="logo" width={30} />
                             <p className="hidden md:block">Continue with Google</p>
                         </Button>
                     </Link>

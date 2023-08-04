@@ -22,7 +22,7 @@ const LadderProgressBar = ({ user }: { user: IUser }) => {
                 <div className="absolute -top-5 z-10 flex w-full items-center justify-between">
                     {icons.map((item, i) => {
                         return (
-                            <Image
+                            <img
                                 key={i}
                                 src={`/levels/${item}`}
                                 alt=""

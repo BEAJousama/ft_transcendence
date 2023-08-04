@@ -19,7 +19,7 @@ const Avatar = ({
     <div
       className={twMerge("relative inline-block w-10 h-10 rounded-full  border-1 border-white ", className)}
     >
-      <Image
+      <img
         className="w-full h-full rounded-full object-cover"
         src={src}
         alt={alt}
