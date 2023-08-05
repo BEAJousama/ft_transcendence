@@ -29,6 +29,9 @@ export default function Chat() {
 
   const fetchUsers = (async () => {
     try {
+      if (user === undefined) {
+        return;
+      }
       const res = await fetcher(`api/users/non-blocked-users/${user?.id}`);
       if (res === undefined) {
         return;
@@ -49,6 +52,9 @@ export default function Chat() {
 
   const getBlocking = useCallback(async () => {
     try {
+      if (user === undefined) {
+        return;
+      }
       const res = await fetcher(`api/users/${user?.id}/blocking-users`);
       // map with blockerId
       if (res === undefined) {
@@ -62,6 +68,9 @@ export default function Chat() {
 
   const getBlocked = useCallback(async () => {
     try {
+      if (user === undefined) {
+        return;
+      }
       const res = await fetcher(`api/users/${user?.id}/blocked-users`);
       if (res === undefined) {
         return;

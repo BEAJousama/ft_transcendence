@@ -82,7 +82,7 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
     const accesstoken = window.localStorage.getItem("access_token");
     const res = await axios.post(`${process.env.NEXT_PUBLIC_BACK_END_URL}api/channels/checkpass`,
       { password, channelId: tempChannel?.id },
-      { headers: { Authorization: `Bearer ${accesstoken}` } });
+      { withCredentials: true });
     if (res.data === true) {
       setOpen(true);
       setCurrentChannel(tempChannel);
@@ -436,9 +436,9 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
                 inputRef={iRef}
                 onChange={(e) => setPassword(e.target.value)}
                 onKeyDown={
-                  (e) => {
+                  async (e) => {
                     if (e.key === "Enter") {
-                      accessChannel();
+                      await accessChannel();
                       setModal(false);
                       iRef?.current?.blur();
                       setPassword("");
@@ -458,8 +458,8 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
                 </Button>
                 <Button
                   className="h-8 w-auto md:w-20 bg-primary-500 text-white text-xs rounded-full mt-2"
-                  onClick={() => {
-                    accessChannel()
+                  onClick={async() => {
+                    await accessChannel()
                     setModal(false);
                     setPassword("");
                     iRef?.current?.blur();

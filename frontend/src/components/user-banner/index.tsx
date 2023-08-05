@@ -4,6 +4,7 @@
 import Avatar from "../avatar";
 import IUser from "../../interfaces/user";
 import { twMerge } from "tailwind-merge";
+import Image from "next/image";
 
 const UserBanner = ({
     showRank,

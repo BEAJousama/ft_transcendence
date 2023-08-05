@@ -13,10 +13,9 @@ import { AppContext } from "./../../context/app.context";
 import { useFormik } from "formik";
 import { twMerge } from "tailwind-merge";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { redirect } from "next/navigation";
 
 const Login = () => {
-    const router = useRouter();
     const { authenticated, fetchUser } = useContext(AppContext);
     const [loading, setLaoding] = useState<boolean>(true);
     const [twoFactorAuth, setTwoFactorAuth] = useState<boolean>(false);
@@ -80,35 +79,15 @@ const Login = () => {
         }
     };
 
-    useEffect(() => {
-        (async () => {
-            try {
-                const res = await axios(
-                    `${process.env.NEXT_PUBLIC_BACK_END_URL}api/auth/42/login`
-                );
-                if (res.data.name) {
-                    setTwoFactorAuth(res.data.name === "2fa_access_token");
-                    window.localStorage?.setItem(res.data.name, res.data.value);
-                    await fetchUser();
-                }
-                setLaoding(false);
-            } catch (_e) {
-                setLaoding(false);
-            }
-        })();
-    }, [fetchUser]);
 
-    if (loading) {
-        return <Spinner />
-    }
 
     if (authenticated) {
-        router.push("/home")
+        redirect("/home")
         // return <Navigate to="/" />;
 
     }
 
-    if (twoFactorAuth) router.push("/tfa");
+    if (twoFactorAuth) redirect("/tfa");
     return (
         <div className="grid place-items-center w-full">
             <div className="flex flex-col items-center justify-center w-full max-w-sm md:max-w-md lg:max-w-lg gap-4 px-8 py-12 text-white">

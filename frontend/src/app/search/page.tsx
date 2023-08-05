@@ -49,7 +49,7 @@ const Select = ({
       >
         {options.map((item, i) => {
           return (
-            <option key={i} className="w-full px-4 py-2 border-b" value={item.value} >
+            <option key={i} className="w-full px-4 py-2 border-b" value={item.value}>
               {item.label}
             </option>
           );

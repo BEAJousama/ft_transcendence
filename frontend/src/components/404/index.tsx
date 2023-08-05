@@ -1,7 +1,7 @@
 "use client"
 
 import React from "react";
-
+import Image from "next/image";
 import { Button } from "../../components";
 import Link from "next/link";
 const FourOFour = ({ show = true }: { show?: boolean }) => {

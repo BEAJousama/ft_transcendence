@@ -15,6 +15,7 @@ import Layout from "../layout/index";
 import useSWR from "swr";
 import IUser from "../../interfaces/user";
 import Link from "next/link";
+import Image from "next/image";
 
 
 const LeaderBoard = () => {

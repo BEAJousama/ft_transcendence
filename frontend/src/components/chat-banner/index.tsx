@@ -4,8 +4,7 @@ import React, {useRef} from "react";
 import { useContext, useState } from "react";
 import { AppContext, fetcher } from "../../context/app.context";
 import { ChatContext } from "../../context/chat.context";
-import { useRouter } from "next/router";
-
+import { useRouter } from "next/navigation";
 import Avatar from "../avatar";
 import AvatarGroup from "../avatarGroup";
 import Button from "../button";
@@ -34,6 +33,7 @@ const ChatBanner = ({
     const channelMembers = channel?.channelMembers?.filter((member: any) => {
         return member.status === "ACTIVE";
     });
+    
     const handleJoin = () => {
         if (channel?.visiblity === "PROTECTED") {
             setshowModal(true);
@@ -51,7 +51,6 @@ const ChatBanner = ({
             if (!member) return;
 
             if ((channel?.isacessPassword && member.role === "OWNER") || !channel.isacessPassword) {
-                console.log(channel);
                 socket?.emit("channel_access", { userId: user?.id, channelId: channel?.id });
                 router.push(`/chat`);
                 return;
@@ -67,16 +66,20 @@ const ChatBanner = ({
     };
 
     const accessChannel = async () => {
-        const accesstoken = window.localStorage.getItem("access_token");
-        const res = await axios.post(`${process.env.NEXT_PUBLIC_BACK_END_URL}api/channels/checkpass`,
-            { password: accessPassword, channelId: channel.id },
-            { headers: { Authorization: `Bearer ${accesstoken}` } });
-        if (res.data === true) {
-            socket?.emit("channel_access", { userId: user?.id, channelId: channel?.id });
-            router.push(`/chat`);
-        }
-        else {
-            toast.error("Wrong access password !");
+        try {
+            const res = await axios.post(`${process.env.NEXT_PUBLIC_BACK_END_URL}api/channels/checkpass`,
+                { password: accessPassword, channelId: channel.id },
+                { withCredentials: true });
+            if (res.data === true) {
+                socket?.emit("channel_access", { userId: user?.id, channelId: channel?.id });
+                router.push(`/chat`);
+            }
+            else {
+                toast.error("Wrong access password !");
+            }
+            
+        } catch (error) {
+            
         }
     }
 
@@ -131,9 +134,9 @@ const ChatBanner = ({
                                 // inputRef={iRef}
                                 onChange={(e) => setAccessPassword(e.target.value)}
                                 onKeyDown={
-                                    (e) => {
+                                    async (e) => {
                                         if (e.key === "Enter") {
-                                            accessChannel();
+                                            await accessChannel();
                                             setAccessModal(false);
                                             // iRef?.current?.blur();
                                             setAccessPassword("");
@@ -153,8 +156,8 @@ const ChatBanner = ({
                                 </Button>
                                 <Button
                                     className="h-8 w-auto md:w-20 bg-primary-500 text-white text-xs rounded-full mt-2"
-                                    onClick={() => {
-                                        accessChannel()
+                                    onClick={ async() => {
+                                        await accessChannel()
                                         setAccessModal(false);
                                         setAccessPassword("");
                                         // iRef?.current?.blur();

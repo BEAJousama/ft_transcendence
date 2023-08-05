@@ -210,9 +210,7 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
         blockerId: user?.id, blockingId: userId
       },
       {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
+        withCredentials: true,
       })
     if (response) {
       setDmMenu(false);
@@ -225,9 +223,7 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
     const response = await axios.post(`${process.env.NEXT_PUBLIC_BACK_END_URL}api/users/unblock-user`,
       { blockerId: user?.id, blockingId: userId },
       {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
+        withCredentials: true,
       })
     if (response) {
       setDmMenu(false);

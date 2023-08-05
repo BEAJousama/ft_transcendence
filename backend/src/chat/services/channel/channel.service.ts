@@ -423,7 +423,6 @@ export class ChannelService {
   ): Promise<Channel> {
     let hashPassword;
     try {
-      console.log(channelData);
       const channelMember = await this.getChannelMemberByUserIdAndChannelId(
         userId,
         channelData.id,

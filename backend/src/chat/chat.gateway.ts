@@ -43,11 +43,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   async handleConnection(@ConnectedSocket() client: Socket) {
     try {
+      // console.log(client.handshake.auth.token);
       await this.verifyClient(client);
+      // console.log('verified');
       this.connectedClient.put(client.data.sub, client);
       await this.joinChannels(client);
       await this.sendChannelsToClient(client);
       // await this.sendChannelsToChannelMembers(client.data.sub); // send all channels to all channel members
+      // console.log('connected');
       if (client.data.sub)
         await this.userService.updateStatus('ONLINE', client.data.sub);
     } catch (error) {

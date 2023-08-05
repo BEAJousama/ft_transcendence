@@ -109,8 +109,14 @@ export default function SocketProvider({
 		});
 		console.log(newSocket);
 		newSocket.on("connect", () => {
-			// console.log("Game Connected");
+			console.log("Game Connected");
 		});
+
+		newSocket.on("disconnect", () => {
+			console.log("Game Disconnected");
+		});
+
+
 		setSocket(newSocket);
 
 		return () => {

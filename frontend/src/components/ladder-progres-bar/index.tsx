@@ -3,6 +3,8 @@
 
 import { twMerge } from "tailwind-merge";
 import IUser from "../../interfaces/user";
+import Image from "next/image";
+
 
 const icons = [
     "beginner.svg",

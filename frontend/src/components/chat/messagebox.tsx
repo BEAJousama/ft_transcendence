@@ -11,6 +11,8 @@ import RightClickMenu, { RightClickMenuItem } from "../rightclickmenu";
 import Spinner from "../spinner";
 import IUser from "../../interfaces/user";
 import { twMerge } from "tailwind-merge";
+import Image from "next/image";
+
 
 import { MdDelete } from "react-icons/md";
 

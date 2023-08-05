@@ -3,6 +3,7 @@
 import useSWR from "swr";
 import { fetcher } from "../../context/app.context";
 import Spinner from "../spinner";
+import Image from "next/image";
 
 const QrCode = () => {
   const { data: qrcode, isLoading } = useSWR("api/auth/2fa/qrcode", fetcher);
