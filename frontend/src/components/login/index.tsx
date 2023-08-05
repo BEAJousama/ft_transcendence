@@ -1,12 +1,10 @@
 "use client";
 
 import { useContext, useEffect, useState, KeyboardEvent } from "react";
-import { Card, Button, Spinner, Input } from "./../../components";
+import { Button, Input } from "@/components";
 import axios from "axios";
 import { AppContext } from "./../../context/app.context";
-// import { Link, Navigate } from "react-router-dom";
 import { useFormik } from "formik";
-import { twMerge } from "tailwind-merge";
 import Link from "next/link";
 import { redirect, useRouter } from "next/navigation";
 
@@ -88,11 +86,7 @@ const Login = ({ selected = true }: LoginProps) => {
 	};
 
 	if (authenticated) redirect("/home");
-	// return <Navigate to="/" />;
 
-	// }
-
-	// if (twoFactorAuth) redirect("/tfa");
 	return (
 		<div className="grid place-items-center w-full">
 			{show && (
@@ -152,15 +146,6 @@ const Login = ({ selected = true }: LoginProps) => {
 							</Button>
 						</Link>
 					</div>
-					{/* <div className="flex w-full flex-col items-center justify-center pt-1 text-center text-tertiary-300 md:flex-row">
-				Don't have an account?
-				<Link
-					to="/signup"
-					className="duration-400 ml-1 text-tertiary-100 underline  transition ease-in-out hover:scale-105 hover:text-primary-500"
-				>
-					Sign up
-				</Link>
-			</div> */}
 				</div>
 			)}
 		</div>

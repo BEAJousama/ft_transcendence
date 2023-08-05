@@ -67,6 +67,7 @@ export class AuthController {
   }
 
   @ProfileDoc()
+  @UseGuards(Jwt2faAuthGuard)
   @Get('42')
   async fortyTwoLogin(@Req() req) {
     try {
@@ -139,9 +140,13 @@ export class AuthController {
   @UseGuards(Jwt2faAuthGuard)
   @VerifyDoc()
   @Post('2fa/verify')
-  async verifyTwoFactorAuthentication(@Req() req) {
+  async verifyTwoFactorAuthentication(@Req() req, @Res() res) {
     try {
-      return await this.authService.verify(req);
+      const value = await this.authService.verify(req);
+      if (value) {
+        res.cookie('2fa_access_token', value);
+      }
+      res.send(value);
     } catch (e) {
       throw e;
     }
