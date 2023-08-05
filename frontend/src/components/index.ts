@@ -17,6 +17,7 @@ export { default as ProfileBanner } from "./profilebanner";
 export { default as UpdateInfo } from "./update-info";
 export { default as UpdateAvatar } from "./update-avatar";
 export { default as QrCode } from "./qr-code";
+export { default as TwoFactorAuth } from "./tfa";
 export { default as ActivateTfa } from "./activate-tfa";
 export { default as Achievement } from "./achievement";
 export { default as ConfirmationModal } from "./confirmationmodal";
