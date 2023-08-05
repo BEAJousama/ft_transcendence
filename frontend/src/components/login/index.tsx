@@ -84,8 +84,6 @@ const Login = () => {
 
     if (authenticated) {
         redirect("/home")
-        // return <Navigate to="/" />;
-
     }
 
     if (twoFactorAuth) redirect("/tfa");
