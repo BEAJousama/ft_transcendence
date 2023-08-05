@@ -17,47 +17,47 @@ const options = [
   { value: `api/channels`, label: "channels" },
 ];
 
-const Select = ({
-  selected,
-  options,
-  label,
-  onChange,
-}: {
-  selected: string;
-  options: {
-    [key: string]: string;
-  }[];
-  label?: string;
-  onChange?: (event: React.ChangeEvent<HTMLSelectElement>) => void;
-}) => {
-  return (
-    <div className="flex flex-col gap-2 w-full">
-      {label && (
+// const Select = ({
+//   selected,
+//   options,
+//   label,
+//   onChange,
+// }: {
+//   selected: string;
+//   options: {
+//     [key: string]: string;
+//   }[];
+//   label?: string;
+//   onChange?: (event: React.ChangeEvent<HTMLSelectElement>) => void;
+// }) => {
+//   return (
+//     <div className="flex flex-col gap-2 w-full">
+//       {label && (
 
-        <label
-          htmlFor="countries"
-          className="block text-sm font-medium text-gray-900 dark:text-white"
-        >
-          {label}
-        </label>
-      )}
-      <select
-        id="countries"
-        className="block w-full rounded-lg bg-transparent border-2 border-tertiary-200 text-white p-3"
-        value={selected}
-        onChange={onChange}
-      >
-        {options.map((item, i) => {
-          return (
-            <option key={i} className="w-full px-4 py-2 border-b" value={item.value}>
-              {item.label}
-            </option>
-          );
-        })}
-      </select>
-    </div>
-  );
-};
+//         <label
+//           htmlFor="countries"
+//           className="block text-sm font-medium text-gray-900 dark:text-white"
+//         >
+//           {label}
+//         </label>
+//       )}
+//       <select
+//         id="countries"
+//         className="block w-full rounded-lg bg-transparent border-2 border-tertiary-200 text-white p-3"
+//         value={selected}
+//         onChange={onChange}
+//       >
+//         {options.map((item, i) => {
+//           return (
+//             <option key={i} className="w-full px-4 py-2 border-b" value={item.value}>
+//               {item.label}
+//             </option>
+//           );
+//         })}
+//       </select>
+//     </div>
+//   );
+// };
 
 export default function Search() {
 
@@ -100,7 +100,7 @@ export default function Search() {
             }}
           />
           <div className="w-full sm:w-[30%]">
-            <Select selected={selected} options={options} onChange={(e) => {
+            <Input type="select" value={selected} options={options} onChange={(e) => {
               const { value } = e.target;
               setSelected(value);
             }} />

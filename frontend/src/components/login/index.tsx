@@ -159,15 +159,6 @@ const Login = () => {
                         </Button>
                     </Link>
                 </div>
-                {/* <div className="flex w-full flex-col items-center justify-center pt-1 text-center text-tertiary-300 md:flex-row">
-				Don't have an account?
-				<Link
-					to="/signup"
-					className="duration-400 ml-1 text-tertiary-100 underline  transition ease-in-out hover:scale-105 hover:text-primary-500"
-				>
-					Sign up
-				</Link>
-			</div> */}
             </div>
         </div>
     );
