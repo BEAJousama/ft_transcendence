@@ -8,14 +8,11 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 // import { Link, Navigate } from "react-router-dom";
 
-interface SignUpProps {
-	selected?: boolean;
-}
 
-export default function SignUp({ selected = true }: SignUpProps) {
+export default function SignUp() {
 	const router = useRouter();
 	const { fetchUser } = useContext(AppContext);
-	const [show, setShow] = useState<boolean>(selected);
+
 	function isValidEmail(email: string) {
 		// Regular expression pattern for email validation
 		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -69,18 +66,10 @@ export default function SignUp({ selected = true }: SignUpProps) {
 
 			return errors;
 		},
-		onSubmit: () => {},
+		onSubmit: () => { },
 	});
 
-	useEffect(() => {
-		if (!selected) {
-			setTimeout(() => {
-				setShow(false);
-			}, 700);
-		} else {
-			setShow(true);
-		}
-	}, [selected]);
+
 
 	const checkValues = (values: {
 		email?: string;
@@ -169,84 +158,79 @@ export default function SignUp({ selected = true }: SignUpProps) {
 
 	return (
 		<div className="grid place-items-center w-full">
-			{show && (
-				<div
-					className="flex flex-col items-center justify-center w-full max-w-sm md:max-w-md lg:max-w-lg gap-4 px-8 py-12 text-white"
-					onKeyDown={handleKeyPress}
-				>
-					<div className="flex flex-col items-center gap-2 text-center">
-						<h1 className="text-2xl">Let's create your account</h1>
-						<p className=" text-tertiary-200">Please enter your details</p>
-					</div>
-					<Input
-						onBlur={formik.handleBlur}
-						required
-						onChange={formik.handleChange}
-						value={formik.values.fullname}
-						error={formik.errors.fullname}
-						isError={!!formik.errors.fullname}
-						name="fullname"
-						label="Full Name"
-					/>
-					<Input
-						onBlur={formik.handleBlur}
-						required
-						onChange={formik.handleChange}
-						value={formik.values.username}
-						error={formik.errors.username}
-						isError={!!formik.errors.username}
-						name="username"
-						label="Username"
-						htmlType="email"
-					/>
-					<Input
-						onBlur={formik.handleBlur}
-						required
-						onChange={formik.handleChange}
-						value={formik.values.email}
-						error={formik.errors.email}
-						isError={!!formik.errors.email}
-						name="email"
-						label="Email"
-					/>
-					<Input
-						onBlur={formik.handleBlur}
-						required
-						onChange={formik.handleChange}
-						value={formik.values.password}
-						error={formik.errors.password}
-						isError={!!formik.errors.password}
-						name="password"
-						label="Password"
-						htmlType="password"
-					/>
-					<Input
-						onBlur={formik.handleBlur}
-						required
-						onChange={formik.handleChange}
-						value={formik.values.confirmPassword}
-						error={formik.errors.confirmPassword}
-						isError={!!formik.errors.confirmPassword}
-						name="confirmPassword"
-						label="Confirm Password"
-						htmlType="password"
-					/>
-					{error && (
-						<p className="mt-2 text-xs text-red-600 dark:text-red-500">
-							<span className="font-medium">{error}</span>
-						</p>
-					)}
-					<Button className="w-full" onClick={handleSignUp}>
-						Sign Up
-					</Button>
-					{/* <div className="w-full pt-1 text-center text-tertiary-300 flex flex-col md:flex-row items-center justify-center">
-          Already have an account?
-          <Link to="/login" className="ml-1 text-tertiary-100 underline hover:text-primary-500  hover:scale-105 transition ease-in-out duration-400">
-            Sign in
-          </Link>
-        </div> */}
+
+			<div
+				className="flex flex-col items-center justify-center w-full max-w-sm md:max-w-md lg:max-w-lg gap-4 px-8 py-12 text-white"
+				onKeyDown={handleKeyPress}
+			>
+				<div className="flex flex-col items-center gap-2 text-center">
+					<h1 className="text-2xl">Let's create your account</h1>
+					<p className=" text-tertiary-200">Please enter your details</p>
 				</div>
-			)}
+				<Input
+					onBlur={formik.handleBlur}
+					required
+					onChange={formik.handleChange}
+					value={formik.values.fullname}
+					error={formik.errors.fullname}
+					isError={!!formik.errors.fullname}
+					name="fullname"
+					label="Full Name"
+				/>
+				<Input
+					onBlur={formik.handleBlur}
+					required
+					onChange={formik.handleChange}
+					value={formik.values.username}
+					error={formik.errors.username}
+					isError={!!formik.errors.username}
+					name="username"
+					label="Username"
+					htmlType="email"
+				/>
+				<Input
+					onBlur={formik.handleBlur}
+					required
+					onChange={formik.handleChange}
+					value={formik.values.email}
+					error={formik.errors.email}
+					isError={!!formik.errors.email}
+					name="email"
+					label="Email"
+				/>
+				<Input
+					onBlur={formik.handleBlur}
+					required
+					onChange={formik.handleChange}
+					value={formik.values.password}
+					error={formik.errors.password}
+					isError={!!formik.errors.password}
+					name="password"
+					label="Password"
+					htmlType="password"
+				/>
+				<Input
+					onBlur={formik.handleBlur}
+					required
+					onChange={formik.handleChange}
+					value={formik.values.confirmPassword}
+					error={formik.errors.confirmPassword}
+					isError={!!formik.errors.confirmPassword}
+					name="confirmPassword"
+					label="Confirm Password"
+					htmlType="password"
+				/>
+				{error && (
+					<p className="mt-2 text-xs text-red-600 dark:text-red-500">
+						<span className="font-medium">{error}</span>
+					</p>
+				)}
+				<Button className="w-full" onClick={handleSignUp}>
+					Sign Up
+				</Button>
+
+			</div>
+
 		</div>
 	);
 }

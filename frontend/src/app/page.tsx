@@ -26,7 +26,7 @@ const LandingPage = () => {
 	};
 
 	useEffect(() => {
-		if (getCookieItem("2fa_access_token")) setSlide(0);
+		if (getCookieItem("2fa_access_token") && !getCookieItem("access_token")) setSlide(0);
 		if (!user) return;
 		if (user.createdAt === user.updatedAt) setSlide(3);
 	}, [user]);
@@ -97,10 +97,10 @@ const LandingPage = () => {
 							slide={slide}
 							className="w-full h-full"
 						>
-							<TwoFactorAuth selected={slide === 0} />
-							<Login selected={slide === 1} />
-							<SignUp selected={slide === 2} />
-							<CompleteInfo selected={slide === 3} />
+							<TwoFactorAuth />
+							<Login />
+							<SignUp />
+							<CompleteInfo />
 						</Carousel>
 					</div>
 				</div>

@@ -67,7 +67,6 @@ export class AuthController {
   }
 
   @ProfileDoc()
-  @UseGuards(Jwt2faAuthGuard)
   @Get('42')
   async fortyTwoLogin(@Req() req) {
     try {
@@ -144,7 +143,7 @@ export class AuthController {
     try {
       const value = await this.authService.verify(req);
       if (value) {
-        res.cookie('2fa_access_token', value);
+        res.cookie('access_token', value.access_token);
       }
       res.send(value);
     } catch (e) {
