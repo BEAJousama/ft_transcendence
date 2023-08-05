@@ -118,6 +118,18 @@ export class AuthService {
         });
       }
 
+      if (user.twoFactorAuth === true) {
+        const payload = { login: user.login, sub: user.id };
+        const access_token = this.jwtService.sign(payload, {
+          secret: process.env.TFA_JWT_SECRET,
+          expiresIn: '24h',
+        });
+        return {
+          name: '2fa_access_token',
+          value: access_token,
+        };
+      }
+
       const payload = { login: user.login, sub: user.id, email: user.email };
       const access_token = this.jwtService.sign(payload, {
         secret: process.env.JWT_SECRET,
@@ -186,8 +198,8 @@ export class AuthService {
       if (isvalid === true) {
         const payload = { login: user.login, sub: user.id };
         const access_token = this.jwtService.sign(payload, {
-          secret: process.env.TFA_JWT_SECRET,
-          expiresIn: '24h',
+          secret: process.env.JWT_SECRET,
+          expiresIn: '7d',
         });
         return {
           access_token,

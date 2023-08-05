@@ -19,9 +19,9 @@ export const AppContext = React.createContext<IAppContext>({
 	user: undefined,
 	loading: true,
 	authenticated: false,
-	setAuthenticated: () => {},
-	fetchUser: async () => {},
-	updateUser: async () => {},
+	setAuthenticated: () => { },
+	fetchUser: async () => { },
+	updateUser: async () => { },
 });
 
 export const fetcher = async (url: string) => {
@@ -35,6 +35,19 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
 	const [data, setData] = useState<IUser | undefined>(undefined);
 	const [isLoading, setIsLoading] = useState<boolean>(true);
 	const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+	const getCookieItem = (key: string): string | undefined => {
+		const cookieString = document.cookie;
+		const cookiesArray = cookieString.split("; ");
+
+		for (const cookie of cookiesArray) {
+			const [cookieKey, cookieValue] = cookie.split("=");
+			if (cookieKey === key) {
+				return decodeURIComponent(cookieValue);
+			}
+		}
+
+		return undefined;
+	};
 
 	const fetchUser = useCallback(async () => {
 		if (isAuthenticated) return;
@@ -43,7 +56,7 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
 			const data = await fetcher("api/auth/42");
 			if (data) {
 				setData(data);
-				if (!data.twoFactorAuth) {
+				if (getCookieItem("access_token")) {
 					setIsAuthenticated(true);
 				}
 			}
@@ -86,7 +99,11 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
 	if (!isAuthenticated && path !== "/") redirect("/");
 
 	// if (isLoading && path !== "/")
+
 	//   return <Spinner />;
+
+	// if (isAuthenticated && path === "/")
+	// 	redirect("/home");
 
 	const appContextValue: IAppContext = {
 		user: data,
