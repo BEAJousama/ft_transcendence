@@ -156,9 +156,9 @@ export default function Chat() {
       }
     });
 
-    socket?.on('channel_join', (data: Ichannel) => {
-      setCurrentChannel(data);
-      socket?.emit("getChannelMessages", { channelId: data?.id });
+    socket?.on('channel_join', (data: {channel : Ichannel, messages : Imessage[]}) => {
+      setCurrentChannel(data.channel);
+      setMessages(sortMessages(data.messages));
     });
 
     socket?.on("channel_remove", (data: {id: number}) => {

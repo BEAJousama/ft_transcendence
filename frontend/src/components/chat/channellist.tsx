@@ -6,7 +6,7 @@ import { useContext, useEffect, useState } from "react";
 
 import Channel from "./channel";
 import { IAppContext, fetcher } from "../../context/app.context"
-import { ChatContext, Ichannel, IchannelMember, IchatContext } from "../../context/chat.context";
+import { ChatContext, Ichannel, IchannelMember, IchatContext, Imessage } from "../../context/chat.context";
 import Modal from "../modal";
 import Input from "../input";
 import Button from "../button";
@@ -134,14 +134,11 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
       setOpen(false);
     });
 
-    socket?.on('channel_access', (data: Ichannel) => {
+    socket?.on('channel_access', (data: {channel: Ichannel, messages : Imessage[]}) => {
         setOpen(true);
-        setCurrentChannel(data);
-        setSelectedChannel(data);
-        setTimeout(() => {
-          socket?.emit("getChannelMessages", {channelId: data?.id});
-          inputRef?.current?.focus();
-        }, 300);
+        setCurrentChannel(data?.channel);
+        setSelectedChannel(data?.channel);
+        setMessages(data?.messages);
         // inputRef?.current?.focus();
     });
 
@@ -423,13 +420,13 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
           <Modal
             setShowModal={setModal}
             className="z-10 bg-secondary-800 
-        border-none flex flex-col items-center justify-start shadow-lg shadow-secondary-500 gap-4 text-white min-w-[90%]
-        lg:min-w-[40%] xl:min-w-[800px] animate-jump-in animate-ease-out animate-duration-400">
+                      border-none flex flex-col items-center justify-center shadow-lg shadow-secondary-500 gap-4 text-white min-w-[90%]
+                      lg:min-w-[40%] xl:min-w-[800px] animate-jump-in animate-ease-out animate-duration-400">
             <span className="text-md">This channel requires an access password ! </span>
             <div className="flex flex-col justify-center items-center w-full">
               <Input
                 label="Password"
-                className="h-[40px] w-[80%] rounded-md border-2 border-primary-500 text-white text-xs bg-transparent md:mr-2"
+                className="h-[40px] w-[80%] rounded-md border-2 border-primary-500 text-white text-xs bg-transparent md:mr-2 self-center"
                 htmlType="password"
                 placeholder="*****************"
                 value={password}

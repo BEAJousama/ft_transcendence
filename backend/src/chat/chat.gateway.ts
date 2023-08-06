@@ -193,7 +193,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   async joinChannel(client: Socket, payload: CommunDto) {
     try {
       let ch;
-      const channel = await this.channelService.getChannelById(
+      let channel;
+      channel = await this.channelService.getChannelById(
         parseInt(payload.channelId),
       );
       if (!channel || channel.type === ChannelType.CONVERSATION) {
@@ -225,10 +226,18 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         ' has joined the channel',
       );
       const sockets = this.getConnectedUsers(client.data.sub);
+      channel = await this.channelService.getChannelById(
+        parseInt(payload.channelId),
+      );
+      const messages = await this.messageService.getMessagesByChannelId(
+        parseInt(payload.channelId),
+        client.data.sub,
+      );
+      client.emit(EVENT.CHANNEL_JOIN, { channel, messages });
       if (!sockets || sockets.length === 0) return;
       sockets.forEach((s) => {
         s.join(parseInt(payload.channelId).toString());
-        this.server.to(s.id).emit(EVENT.CHANNEL_JOIN, channel);
+        // this.server.to(s.id).emit(EVENT.CHANNEL_JOIN, { channel, messages });
       });
       await this.updateCurrentChannel(parseInt(payload.channelId), client);
     } catch (err) {
@@ -387,7 +396,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const channel = await this.channelService.getChannelById(
         parseInt(payload.channelId),
       );
-      client.emit(EVENT.CHANNEL_ACCESS, channel);
+      const messages = await this.messageService.getMessagesByChannelId(
+        parseInt(payload.channelId),
+        client.data.sub,
+      );
+      client.emit(EVENT.CHANNEL_ACCESS, { channel, messages });
     } catch (err) {
       throw new WsException({
         error: EVENT.ERROR,

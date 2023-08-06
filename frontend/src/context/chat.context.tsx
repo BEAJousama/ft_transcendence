@@ -74,19 +74,8 @@ export default function ChatProvider({
 }) {
     const [socket, setSocket] = useState<Socket | null>(null);
     const { user } = useContext(AppContext);
-    // const [users, setUsers] = useState<IUser[]>([]);
-    // const { data: users } = useSWR(`api/users/non-blocked-users/${user?.id}`, fetcher, {
-    //     refreshInterval: 5000,
-    //     revalidateOnMount: true,
-    //     revalidateOnFocus: true,
-    //     revalidateOnReconnect: true,
-    //     refreshWhenOffline: true,
-    //     refreshWhenHidden: true,
-    //     dedupingInterval: 60000,
-    //     // onSuccess: (newData) => setUsers(newData),
-    // });
+
     useEffect(() => {
-        // if (!user) return;
         const newSocket = io(`${process.env.NEXT_PUBLIC_BACK_END_URL}chat`, {
             auth: {
                 token: document.cookie.split("=")[1],

@@ -40,7 +40,6 @@ const ChatBanner = ({
             inputRef?.current?.focus();
         } else {
             socket?.emit("channel_join", { channelId: channel?.id, userId: user?.id });
-            socket?.emit('channel_member', { userId: user?.id, channelId: channel?.id });
             router.push(`/chat`);
         }
     };

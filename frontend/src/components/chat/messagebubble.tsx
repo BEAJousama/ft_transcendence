@@ -52,7 +52,7 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
   const [showPicker, setShowPicker] = useState<boolean>(false);
   const [showModal, setShowModal] = useState<boolean>(false);
   const [showEdit, setShowEdit] = useState<boolean>(false);
-  const [visibility, setVisibility] = useState<string | undefined>(currentChannel?.visiblity);
+  const [visibility, setVisibility] = useState<string >(currentChannel?.visiblity || "");
   const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
   const [previewImage, setPreviewImage] = useState<string>(currentChannel?.avatar || "");
   const [groupName, setGroupName] = useState<string>(currentChannel?.name || "");
@@ -106,7 +106,7 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
   });
 
   useEffect(() => {
-    setVisibility(currentChannel?.visiblity);
+    setVisibility(currentChannel?.visiblity || "");
     setPreviewImage(currentChannel?.avatar || "");
     setGroupName(currentChannel?.name || "");
     setChId(currentChannel?.id);
@@ -628,7 +628,9 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
                         setShowEdit(false);
                       }}
                     >
-                      Edit access password
+                      {                   
+                        currentChannel?.isacessPassword ? "Edit access password" : "Add access password"
+                      }
                       <MdOutlinePassword />
                     </Button>
                   )}
@@ -720,6 +722,8 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
                 updateX={handleEditChannelName}
                 setShowEdit={setShowEdit}
                 setShowModal={setShowModal}
+                setValue={setGroupName}
+                defaultValue={currentChannel?.name}
               >
                 <Input
                   label="Name"
@@ -755,6 +759,8 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
                 updateX={handleEditChannelAvatar}
                 setShowModal={setShowModal}
                 setShowEdit={setShowEdit}
+                setValue={setPreviewImage}
+                defaultValue={currentChannel?.avatar}
               >
                 <UpdateAvatar previewImage={previewImage} setPreviewImage={setPreviewImage} />
               </UpdateChannel>
@@ -767,6 +773,8 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
                 updateX={handleEditChannelVisibility}
                 setShowEdit={setShowEdit}
                 setShowModal={setShowModal}
+                defaultValue={currentChannel?.visiblity}
+                setValue={setVisibility}
               >
                 <CustomSelect
                   className="mb-4"
@@ -775,11 +783,11 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
                 {
                   visibility === "PROTECTED" && (
                     <Input label="Password [required]" placeholder="*****************" htmlType="password"
-                      value={password}
+                      value={password.trim()}
                       onChange={
                         (event) => {
                           const { value } = event.target;
-                          setPassword(value);
+                          setPassword(value.trim());
                         }
                       }
                     />
@@ -845,32 +853,30 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
                 updateX={handleEditChannelPassword}
                 setShowEdit={setShowEdit}
                 setShowModal={setShowModal}
+                setValue={setAccessPassword}
+                defaultValue=""
               >
+                {currentChannel?.isacessPassword && (
+                  <button
+                    onClick={() => {
+                      handleRemovePassword();
+                    }}
+                  >
+                    Remove
+                  </button>
+                  )}
                 <Input
                   label={currentChannel?.isacessPassword ? "Edit password" : "Set password"}
                   htmlType="password"
                   placeholder="*****************"
-                  value={accessPassword}
+                  value={accessPassword.trim()}
                   onChange={
                     (event) => {
                       const { value } = event.target;
-                      setAccessPassword(value);
+                      setAccessPassword(value.trim());
                     }
                   }
                 />
-                {
-                  currentChannel?.isacessPassword &&
-                  (
-                    <Button
-                      className="bg-red-400 !text-white hover:bg-inherit justify-between !w-[40%] !font-medium ml-1 mt-4"
-                      onClick={() => {
-                        handleRemovePassword();
-                      }}
-                    >
-                      Remove
-                    </Button>
-                  )
-                }
               </UpdateChannel>
             )
           }

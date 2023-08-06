@@ -10,7 +10,7 @@ import Spinner from "../spinner";
 import Avatar from "../avatar";
 import { addFriend, cancelFriend, acceptFriend } from "./tools";
 import Button from "../button";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 const status = {
     ONLINE: { status: "online", color: "text-green-500" },
@@ -28,6 +28,7 @@ const ProfileInfo = ({
     currentUser?: IUser;
     setModalText: React.Dispatch<React.SetStateAction<string>>;
 }) => {
+    const router = useRouter();
     const {socket} = useContext(ChatContext);
     const {
         data: friendRequest,
@@ -146,7 +147,7 @@ const ProfileInfo = ({
                                             onClick={
                                                 () => {
                                                   socket?.emit("dm_create", { senderId: currentUser?.id , receiverId: user?.id});
-                                                  redirect(`/chat`);
+                                                  router.push(`/chat`);
                                                 }
                                               }
                                         >

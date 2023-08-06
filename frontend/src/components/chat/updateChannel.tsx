@@ -12,8 +12,10 @@ const UpdateChannel = ({
     setX,
     setShowEdit,
     setShowModal,
+    setValue,
     updatable,
     verify,
+    defaultValue,
 }
     :
     {
@@ -23,8 +25,10 @@ const UpdateChannel = ({
         setX: React.Dispatch<React.SetStateAction<boolean>>,
         setShowEdit: React.Dispatch<React.SetStateAction<boolean>>,
         setShowModal: React.Dispatch<React.SetStateAction<boolean>>,
+        setValue?: React.Dispatch<React.SetStateAction<string>>,
         updatable?: boolean,
         verify?: boolean,
+        defaultValue?: string,
 
     }) => {
 
@@ -38,6 +42,7 @@ const UpdateChannel = ({
                         onClick={() => {
                             setX(false);
                             setShowEdit(true);
+                            defaultValue && setValue && setValue(defaultValue);
                         }}
                         variant="text"
                     >

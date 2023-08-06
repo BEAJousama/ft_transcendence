@@ -4,6 +4,18 @@
 import { twMerge } from "tailwind-merge";
 import Image from "next/image";
 
+interface Istatus {
+  ONLINE : string;
+  OFFLINE : string;
+  INGAME : string;
+}
+interface IAvatar {
+  src?: string;
+  alt?: string;
+  className?: string;
+  status?: Istatus;
+}
+
 const Avatar = ({
   src = "img/default.jpg",
   alt = "",
@@ -13,7 +25,7 @@ const Avatar = ({
   src?: string;
   alt?: string;
   className?: string;
-  status?: boolean;
+  status?: {};
 }) => {
   return (
     <div
