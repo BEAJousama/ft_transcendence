@@ -55,7 +55,7 @@ const Carousel = ({
 	}, [slide]);
 
 	return (
-		<div className={`relative overflow-hidden ${className}`} {...(swipeable ? handlers : {})}>
+		<div className={twMerge(`relative overflow-hidden`, className)} {...(swipeable ? handlers : {})}>
 			<div
 				className="flex transition-transform ease-out duration-500"
 				style={{ transform: `translateX(-${curr * 100}%)` }}
@@ -64,7 +64,7 @@ const Carousel = ({
 					<div
 						key={i}
 						className={twMerge(
-							"w-full shrink-0 ease transition-all duration-300",
+							"w-full grid place-items-center shrink-0 ease transition-all duration-300",
 							curr !== i && "blur-sm opacity-20"
 						)}
 					>
@@ -73,20 +73,20 @@ const Carousel = ({
 				))}
 			</div>
 			{chevrons && (
-				<div className="absolute inset-0 flex items-center justify-between p-4">
+				<>
 					<button
 						onClick={prev}
-						className={`transition-all pl-1.5 hover:pl-1 opacity-70 hover:opacity-100 color-secondary-700`}
+						className={`absolute left-4 top-1/2 transform -translate-y-1/2 transition-all pl-1.5 hover:pl-1 opacity-70 hover:opacity-100 color-secondary-700`}
 					>
 						<TbSquareRoundedChevronLeftFilled size={34} />
 					</button>
 					<button
 						onClick={next}
-						className={`transition-all pr-1.5 hover:pr-1 opacity-70 hover:opacity-100 color-secondary-700`}
+						className={`absolute right-4 top-1/2 transform -translate-y-1/2 transition-all pr-1.5 hover:pr-1 opacity-70 hover:opacity-100 color-secondary-700`}
 					>
 						<TbSquareRoundedChevronRightFilled size={34} />
 					</button>
-				</div>
+				</>
 			)}
 			{indicators && (
 				<div className="absolute bottom-4 right-0 left-0">

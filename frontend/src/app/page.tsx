@@ -7,11 +7,12 @@ import Image from "next/image";
 import { AppContext } from "@/context/app.context";
 import Link from "next/link";
 import { IoLogoGithub, IoLogoInstagram, IoLogoLinkedin } from "react-icons/io5";
+import { redirect } from "next/navigation";
 if (typeof window !== "undefined") require("@lottiefiles/lottie-player");
 
 const LandingPage = () => {
 	const [slide, setSlide] = useState(1);
-	const { user, loading } = useContext(AppContext);
+	const { user, loading, authenticated } = useContext(AppContext);
 
 	const getCookieItem = (key: string): string | undefined => {
 		const cookieString = document.cookie;
@@ -32,6 +33,11 @@ const LandingPage = () => {
 		if (!user) return;
 		if (user.createdAt === user.updatedAt) setSlide(3);
 	}, [user]);
+
+	if (authenticated && user && user.createdAt !== user.updatedAt) {
+		console.log("to home");
+		redirect("/home");
+	}
 
 	return (
 		<div className="overflow-auto scrollbar-hide relative flex flex-col items-center w-screen h-screen bg-secondary-500">

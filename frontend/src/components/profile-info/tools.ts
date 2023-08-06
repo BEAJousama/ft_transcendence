@@ -1,8 +1,8 @@
 import axios from "axios";
+import { toast } from "react-toastify";
 
 const addFriend = async (senderId: number, receiverId: number) => {
   try {
-    const accessToken = window.localStorage?.getItem("access_token");
     await axios.post(
       `${process.env.NEXT_PUBLIC_BACK_END_URL}api/users/add-friend`,
       {
@@ -10,48 +10,40 @@ const addFriend = async (senderId: number, receiverId: number) => {
         receiverId: receiverId,
       },
       {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
+        withCredentials: true,
       }
     );
-    return "Friend Added Successfully";
+    toast.success("Friend Added Successfully");
   } catch (e) {
-    return "Could Not Add Friend";
+    toast.error("Could Not Add Friend");
   }
 };
 
 const acceptFriend = async (id: number) => {
   try {
-    const accessToken = window.localStorage?.getItem("access_token");
     await axios.get(
       `${process.env.NEXT_PUBLIC_BACK_END_URL}api/users/accept-friend/${id}`,
       {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
+        withCredentials: true,
       }
     );
-    return "Friend Accepted Successfully";
+    toast.success("Friend Accepted Successfully");
   } catch (e) {
-    return "Could Not Accept Friend";
+    toast.error("Could Not Accept Friend");
   }
 };
 
 const cancelFriend = async (id: number) => {
   try {
-    const accessToken = window.localStorage?.getItem("access_token");
     await axios.delete(
       `${process.env.NEXT_PUBLIC_BACK_END_URL}api/users/remove-friend/${id}`,
       {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
+        withCredentials: true,
       }
     );
-    return "Friend Request Canceled Successfully";
+    toast.success("Friend Request Canceled Successfully");
   } catch (e) {
-    return "Could Not Cancel Friend Request";
+    toast.error("Could Not Cancel Friend Request");
   }
 };
 

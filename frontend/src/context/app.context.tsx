@@ -3,7 +3,7 @@
 import axios from "axios";
 import React, { useCallback, useEffect, useState } from "react";
 import IUser from "@/interfaces/user";
-import { Spinner } from "@/components";
+import { FourOFour, Spinner } from "@/components";
 import { redirect, usePathname } from "next/navigation";
 
 export interface IAppContext {
@@ -68,9 +68,13 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
 
 	const updateUser = useCallback(async () => {
 		try {
-			const data = await fetcher("api/auth/42");
-			// const { data } = useSWR("api/auth/42", fetcher, { refreshInterval: 1000 });
-			setData(data);
+			const user = await fetcher("api/auth/42");
+			if (data && data !== user) {
+				setData(data);
+				if (!isAuthenticated)
+					setIsAuthenticated(true);
+			}
+
 		} catch (error) {
 			setIsAuthenticated(false);
 		}
@@ -78,16 +82,14 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
 
 	useEffect(() => {
 		fetchUser();
-		const handleLocalStorageChange = async () => {
+
+		const id = setInterval(async () => {
+			console.log("update user")
 			await updateUser();
-		};
-		window.addEventListener("storage", handleLocalStorageChange);
-		// const id = setInterval(async () => {
-		//   await updateUser();
-		// }, 1000);
+		}, 500);
+
 		return () => {
-			// clearInterval(id);
-			window.removeEventListener("storage", handleLocalStorageChange);
+			clearInterval(id);
 		};
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [fetchUser]);
@@ -113,6 +115,13 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
 		fetchUser,
 		updateUser,
 	};
+
+	// try {
+	// 	localStorage.getItem('access_token')
+	// }
+	// catch (e) {
+	// 	return <FourOFour show={false} />
+	// }
 
 	return <AppContext.Provider value={appContextValue}>{children}</AppContext.Provider>;
 };

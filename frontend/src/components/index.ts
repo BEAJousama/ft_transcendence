@@ -34,3 +34,5 @@ export { default as Login } from "./login";
 export { default as SignUp } from "./sign-up";
 export { default as CompleteInfo } from "./completeinfo";
 export { default as FourOFour } from "./404";
+export { default as ScoreBoard } from "./score-board";
+export { default as PauseGame } from "./puase-game";

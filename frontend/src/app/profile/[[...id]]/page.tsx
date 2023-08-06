@@ -4,22 +4,18 @@ import {
 	Divider,
 	Spinner,
 	Achievement,
-	ConfirmationModal,
-	Avatar,
 	ProfileInfo,
 	LadderProgressBar,
 	FourOFour
 } from "@/components";
 import { CgProfile } from "react-icons/cg";
-import { useCallback, useContext, useState } from "react";
-import { AppContext, fetcher } from "../../context/app.context";
-import IAchievement from "../../interfaces/achievement";
+import { useCallback, useContext } from "react";
+import { AppContext, fetcher } from "../../../context/app.context";
+import IAchievement from "../../../interfaces/achievement";
 import useSWR from "swr";
-import Layout from "../layout/index";
-
-import IUser from "../../interfaces/user";
+import Layout from "../../layout/index";
+import IUser from "@/interfaces/user";
 import { useParams } from "next/navigation";
-// import FourOFour from "../404";
 
 const Achievements = ({ user }: { user: IUser }) => {
 	const { data: achievements, isLoading } = useSWR(
@@ -90,8 +86,7 @@ const Achievements = ({ user }: { user: IUser }) => {
 };
 
 export default function Profile() {
-	const { id } = useParams();
-	const [modalText, setModalText] = useState("");
+	const { id } = useParams()
 	const { user: currentUser } = useContext(AppContext);
 	const {
 		data: user,
@@ -119,35 +114,11 @@ export default function Profile() {
 					<ProfileInfo
 						user={user}
 						currentUser={currentUser}
-						setModalText={setModalText}
+
 					/>
 					<LadderProgressBar user={user} />
 					<Divider />
 					<Achievements user={user} />
-					{!!modalText && (
-						<ConfirmationModal
-							title={modalText}
-							accept={
-								!modalText.includes("Error")
-									? "Continue"
-									: "Close"
-							}
-							icon={
-								<Avatar
-									src={
-										!modalText.includes("Error")
-											? "/img/success.png"
-											: "/img/failure.png"
-									}
-									alt=""
-									className="h-32 w-32"
-								/>
-							}
-							onAccept={() => {
-								setModalText("");
-							}}
-						/>
-					)}
 				</>
 			)}
 		</Layout>
