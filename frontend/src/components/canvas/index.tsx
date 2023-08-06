@@ -78,19 +78,11 @@ const Canvas = () => {
         const canvas = canvasRef.current;
         const context = canvas?.getContext("2d");
         if (canvas && context) {
-            const image = new Image();
-
-            image.src = "/img/fire.jpeg";
-
-            // image.onload = () => {
-            //     context.drawImage(image, 0, 50, 50, 50);
-            // };
-
 
             const clearCanvas = () => {
                 context.fillStyle = "#0F1019";
                 context.fillRect(0, 0, canvas.width, canvas.height);
-                // context.drawImage(image, 0, 0, canvas.width, canvas.height);
+
             };
 
             const drawRect = (

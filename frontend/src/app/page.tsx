@@ -5,10 +5,11 @@ import { Button } from "@/components";
 import { twMerge } from "tailwind-merge";
 import Image from "next/image";
 import { AppContext } from "@/context/app.context";
+import { redirect } from "next/navigation";
 
 const LandingPage = () => {
 	const [slide, setSlide] = useState(1);
-	const { user, loading } = useContext(AppContext);
+	const { user, loading, authenticated } = useContext(AppContext);
 	const [showSpinner, setShowSpinner] = useState(true);
 
 	const getCookieItem = (key: string): string | undefined => {
@@ -36,6 +37,12 @@ const LandingPage = () => {
 			setShowSpinner(false);
 		} else setShowSpinner(true);
 	}, [loading]);
+
+	if (authenticated && user && user.createdAt !== user.updatedAt) {
+		console.log('to home')
+		redirect("/home");
+	}
+
 
 	return (
 		<div className="overflow-auto scrollbar-hide flex flex-col items-center w-screen h-screen bg-secondary-500">

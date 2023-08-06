@@ -170,10 +170,8 @@ const Sidepanel = ({ className }: { className?: string }) => {
         <SidePanelItem
           className="bg-secondary-900 text-secondary-300 hover:bg-secondary-900"
           onClick={() => {
-            localStorage?.removeItem("access_token");
-            localStorage?.removeItem("2fa_access_token");
-            // remove("access_token");
-            document.cookie = "access_token" + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            document.cookie = `${"2fa_access_token"}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+            document.cookie = `${"access_token"}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
             window.location.reload();
           }}
         >

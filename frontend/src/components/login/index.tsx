@@ -75,8 +75,6 @@ const Login = () => {
         }
     };
 
-    if (authenticated) redirect("/home");
-
     return (
         <div className="grid place-items-center w-full">
 

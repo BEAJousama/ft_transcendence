@@ -1,5 +1,6 @@
 "use client"
 import Image from "next/image";
+import { toast } from "react-toastify";
 
 import { MdSettings } from "react-icons/md";
 import {
@@ -19,7 +20,6 @@ export default function Settings() {
   const { user } = useContext(AppContext);
   const [previewImage, setPreviewImage] = useState<string>(user?.avatar || "");
   const [showmodal, setShowmodal] = useState<boolean>(false);
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState<boolean>(false);
 
   return (
@@ -48,22 +48,18 @@ export default function Settings() {
                   }
                   onAccept={async () => {
                     try {
-                      const accessToken =
-                        window.localStorage?.getItem("access_token");
                       await axios.delete(
                         `${process.env.NEXT_PUBLIC_BACK_END_URL}api/users/${user?.id}`,
                         {
-                          headers: {
-                            Authorization: `Bearer ${accessToken}`,
-                          },
+                          withCredentials: true,
                         }
                       );
-                      localStorage?.removeItem("access_token");
-                      localStorage?.removeItem("2fa_access_token");
+                      document.cookie = `${"2fa_access_token"}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+                      document.cookie = `${"access_token"}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
                       window.location.reload();
                     } catch (e) {
                       setShowmodal(false);
-                      setError("Error: Could not delete Accout");
+                      toast.error("Error: Could not delete Accout");
                     }
                   }}
                   onReject={() => {
@@ -72,42 +68,14 @@ export default function Settings() {
                   showReject
                 />
               )}
-              <ActivateTfa
-                setShowmodal={setShowmodal}
-                user={user}
-                setUpdated={setError}
-              />
+              <ActivateTfa />
               <div className="flex w-full flex-col items-center justify-center gap-4 p-4 ">
                 <UpdateInfo
                   user={user}
                   previewImage={previewImage}
-                  setModalText={setError}
                   setLoading={setLoading}
                   setShowmodal={setShowmodal}
                 />
-                {!!error && (
-                  <ConfirmationModal
-                    className="flex flex-col items-center justify-center gap-8"
-                    title={error}
-                    accept={!error.includes("Error") ? "Continue" : "Close"}
-                    icon={
-                      <Avatar
-                        src={
-                          !error.includes("Error")
-                            ? "/img/success.png"
-                            : "/img/failure.png"
-                        }
-                        alt=""
-                        className="h-32 w-32"
-                      />
-                    }
-                    onAccept={() => {
-                      setError("");
-                    }}
-                    danger={error.includes("Error")}
-                  />
-                )}
-
               </div>
             </div>
           </>
