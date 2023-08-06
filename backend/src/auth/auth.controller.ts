@@ -76,15 +76,6 @@ export class AuthController {
     }
   }
 
-  // @Public()
-  // @LoginDoc()
-  // @Get('42/login')
-  // async login() {
-  //   try {
-  //     return this.authService.getAccessToken();
-  //   } catch (error) {}
-  // }
-
   @UseGuards(FourtyTwoGuard)
   @Public()
   @CallbackDoc()

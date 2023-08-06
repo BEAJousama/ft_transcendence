@@ -44,7 +44,7 @@ export class PongService {
 
   // Adds a player to the queue
   async joinQueue(
-    client: Socket,
+    client,
     {
       userId,
       bit,
@@ -71,6 +71,16 @@ export class PongService {
       return;
     }
 
+    console.log(
+      'Player joined the queue.',
+      this.getClientIdFromClient(client),
+      // clientquery,
+      ' !=== ',
+      userId,
+      powerUps,
+      bit,
+    );
+
     const matchingPlayers = this.queue.filter(
       (game) =>
         this.isMatchingGameMode(game, bit) &&
@@ -84,7 +94,7 @@ export class PongService {
       );
       const playerB = await this.createPlayer(client);
       playerB.x = playerB.canvas.width - playerB.width;
-      this.createGameProvider(playerA, playerB);
+      this.createGameProvider(playerA, playerB, powerUps, bit);
       playerA.socket.emit('init-game');
       playerB.socket.emit('init-game');
       return;
@@ -355,7 +365,7 @@ export class PongService {
 
   // Retrieves the client ID from the socket client
   private getClientIdFromClient(client: Socket): string {
-    return client.handshake.query.clientId[0];
+    return client.handshake.query.clientId.toString();
   }
 
   // Handles client disconnection
@@ -409,7 +419,7 @@ export class PongService {
   async playWithAI(client: Socket) {
     const playerA = await this.createPlayer(client);
     const playerB = new AIPlayer(1, playerA.canvas, 3, new Ball(new Canvas()));
-    const game = await this.createGameProvider(playerA, playerB);
+    const game = await this.createGameProvider(playerA, playerB, 'Power Shot');
     playerB.ball = game.game.ball;
     client.on('disconnect', () => {
       // this.updateScore(game.id, playerA.score, 7, playerA.id, playerB.id);
@@ -436,8 +446,13 @@ export class PongService {
   }
 
   // Creates a game provider with two players
-  private async createGameProvider(playerA: Player, playerB: Player) {
-    const gameProvider = new GameProvider();
+  private async createGameProvider(
+    playerA: Player,
+    playerB: Player,
+    powerUps?: string,
+    bit?: string,
+  ) {
+    const gameProvider = new GameProvider(powerUps, bit);
     const game = await this.createGame(playerA.id, playerB.id);
     gameProvider.id = game.id;
     gameProvider.init(playerA, playerB);

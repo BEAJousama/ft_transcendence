@@ -8,8 +8,12 @@ class GameProvider {
   public ballDirection = -1;
   public intervalId: NodeJS.Timeout;
   public paused = false;
-  constructor() {
-    // this.game = null;
+  public powerups: string;
+  public bet: string;
+  public old_ball_speed: number;
+  constructor(powerUps?: string, bet?: string) {
+    this.powerups = powerUps;
+    this.bet = bet;
     const id = setTimeout(() => {
       this.gameStarted = true;
       clearTimeout(id);
@@ -75,6 +79,9 @@ class GameProvider {
       playerB.y += 5;
     }
 
+    if (playerA.keyState['ArrowUp']) {
+    }
+
     ball.x += (ball.velocity.x * ball.speed) / 10;
     ball.y += (ball.velocity.y * ball.speed) / 10;
 
@@ -98,11 +105,63 @@ class GameProvider {
       ball.velocity.x +=
         Math.sign(ball.velocity.x) * (2 - Math.abs(ball.velocity.y));
       ball.speed++;
-      // console.log(ball.velocity);
+      if (!playerA.powerup && !playerB.powerup) {
+        this.old_ball_speed = ball.speed;
+      }
       const timeoutId = setTimeout(() => {
         this.ballChangedDirection = false;
         clearTimeout(timeoutId);
-      }, 1000);
+      }, 500);
+    }
+
+    // add powerups here
+    if (playerA.keyState[' '] && !playerA.powerup) {
+      playerA.powerup = true;
+      const timeoutId = setTimeout(() => {
+        playerA.powerup = false;
+        console.log('deactivate powerup');
+        clearTimeout(timeoutId);
+      }, 5000);
+    }
+
+    if (playerB.keyState[' '] && !playerB.powerup) {
+      playerB.powerup = true;
+      const timeoutId = setTimeout(() => {
+        playerB.powerup = false;
+        clearTimeout(timeoutId);
+      }, 5000);
+    }
+
+    if (
+      playerA.powerup &&
+      this.powerups === 'Power Shot' &&
+      this.paddleCol(playerA)
+    ) {
+      ball.speed = 40;
+    }
+
+    if (
+      playerA.powerup &&
+      this.powerups === 'Power Shot' &&
+      this.paddleCol(playerB)
+    ) {
+      ball.speed = this.old_ball_speed;
+    }
+
+    if (
+      playerB.powerup &&
+      this.powerups === 'Power Shot' &&
+      this.paddleCol(playerB)
+    ) {
+      ball.speed = 40;
+    }
+
+    if (
+      playerB.powerup &&
+      this.powerups === 'Power Shot' &&
+      this.paddleCol(playerA)
+    ) {
+      ball.speed = this.old_ball_speed;
     }
 
     // Check if ball goes out of bounds (player A scores)
@@ -141,6 +200,7 @@ class GameProvider {
         ? this.game.playerA
         : this.game.playerB;
     player.keyState[info.key] = true;
+    console.log(player.keyState);
     return this.game;
   }
 

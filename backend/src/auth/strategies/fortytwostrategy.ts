@@ -5,8 +5,10 @@ import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class FortyTwoStrategy extends PassportStrategy(Strategy, '42') {
-  constructor(@Inject(UsersService)
-    private readonly usersService: UsersService,) {
+  constructor(
+    @Inject(UsersService)
+    private readonly usersService: UsersService,
+  ) {
     super({
       clientID: process.env.FORTYTWO_CLIENT_ID,
       clientSecret: process.env.FORTYTWO_CLIENT_SECRET,
@@ -16,22 +18,13 @@ export class FortyTwoStrategy extends PassportStrategy(Strategy, '42') {
 
   async validate(accessToken: string, refreshToken: string, profile: any) {
     const { login, image, id, displayname, phone, email } = profile._json;
-    const user = await this.usersService.findOrCreateUser(
-      {login,
+    const user = await this.usersService.findOrCreateUser({
+      login,
       avatar: image.link,
       fullname: displayname,
       phone: phone === 'hidden' ? '' : phone,
-      email,}
-    )
-    // return {
-    //   id,
-    //   login,
-    //   avatar: image.link,
-    //   fullname: displayname,
-    //   phone: phone === 'hidden' ? '' : phone,
-    //   email,
-    // };
-    console.log(user)
+      email,
+    });
     return user;
   }
 }
