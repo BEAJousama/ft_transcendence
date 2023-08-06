@@ -164,6 +164,23 @@ class GameProvider {
       ball.speed = this.old_ball_speed;
     }
 
+    console.log('powerup', this.powerups);
+    if (playerA.powerup && this.powerups === 'ShrinkingPaddle') {
+      playerA.height = 200;
+    }
+
+    if (!playerA.powerup && this.powerups === 'ShrinkingPaddle') {
+      playerA.height = 96;
+    }
+
+    if (playerB.powerup && this.powerups === 'ShrinkingPaddle') {
+      playerB.height = 200;
+    }
+
+    if (!playerB.powerup && this.powerups === 'ShrinkingPaddle') {
+      playerB.height = 96;
+    }
+
     // Check if ball goes out of bounds (player A scores)
     if (ball.x > width) {
       playerA.score++;

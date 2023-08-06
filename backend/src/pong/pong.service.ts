@@ -198,7 +198,12 @@ export class PongService {
       const playerA = await this.createPlayer(invitation.inviterSocket);
       const playerB = await this.createPlayer(client);
       playerB.x = playerB.canvas.width - playerB.width;
-      this.createGameProvider(playerA, playerB);
+      this.createGameProvider(
+        playerA,
+        playerB,
+        invitation.powerUps,
+        invitation.bit,
+      );
       playerA.socket.emit('init-game');
       playerB.socket.emit('init-game');
       // return;
