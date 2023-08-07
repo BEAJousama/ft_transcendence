@@ -102,13 +102,13 @@ export default function SocketProvider({
 				clientId: user?.id,
 			},
 		});
-		console.log(newSocket);
+
 		newSocket.on("connect", () => {
-			console.log("Game Connected");
+
 		});
 
 		newSocket.on("disconnect", () => {
-			console.log("Game Disconnected");
+
 		});
 
 
@@ -123,14 +123,14 @@ export default function SocketProvider({
 		const handleKeyDown = (event: KeyboardEvent) => {
 			const { key } = event;
 			if (Object.values(Keys).includes(key as Keys) && !keyState[key]) {
-				if (key === " " && !activatePowerUp.current) {
-					toast.info("Sorry, you cannot use the power-up right now. It is on cooldown for the next 10 seconds since you've recently used it");
-					return
-				}
-				else if (key === " ")
-					toast.success("Power-up activated! You can now use the power-up for the next 5 seconds");
+				// if (key === " " && !activatePowerUp.current) {
+				// 	toast.info("Sorry, you cannot use the power-up right now. It is on cooldown for the next 10 seconds since you've recently used it");
+				// 	return
+				// }
+				// else if (key === " ")
+				// 	toast.success("Power-up activated! You can now use the power-up for the next 5 seconds");
 				keyState[key] = true;
-				activatePowerUp.current = false;
+				// activatePowerUp.current = false;
 				const id = setTimeout(() => {
 					activatePowerUp.current = true;
 					clearTimeout(id);
@@ -143,7 +143,7 @@ export default function SocketProvider({
 			const { key } = event;
 			if (Object.values(Keys).includes(key as Keys)) {
 				keyState[key] = false;
-				// console.log(user?.id, "released", key);
+
 				// Emit the event for the specific key release
 				socket?.emit("keyReleased", { key, userId: user?.id });
 			}

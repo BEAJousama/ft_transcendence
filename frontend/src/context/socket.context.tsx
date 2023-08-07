@@ -33,22 +33,20 @@ export default function GameProvider({
 
     useEffect(() => {
         if (!user) return;
-        // const newSocket = io(`http://e2r2p14.1337.ma:3000/notification`, {
+
         const newSocket = io(`${process.env.NEXT_PUBLIC_BACK_END_URL}notification`, {
             query: {
                 clientId: user?.id,
             },
-            auth: {
-                token: localStorage.getItem("access_token"),
-            },
+
         });
-        // console.log(newSocket)
+
         newSocket.on("connect", () => {
-            console.log("Connected");
+
         });
 
         newSocket.on("notification", (data: INotification) => {
-            console.log(data.url);
+
             toast(
                 <Link href={data.url}>
                     <Toast

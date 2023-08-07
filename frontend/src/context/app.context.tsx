@@ -25,10 +25,15 @@ export const AppContext = React.createContext<IAppContext>({
 });
 
 export const fetcher = async (url: string) => {
-	const response = await axios.get(`${process.env.NEXT_PUBLIC_BACK_END_URL}${url}`, {
-		withCredentials: true,
-	});
-	return response.data;
+	try {
+		const response = await axios.get(`${process.env.NEXT_PUBLIC_BACK_END_URL}${url}`, {
+			withCredentials: true,
+		});
+		return response.data;
+	}
+	catch (error) {
+		throw error;
+	}
 };
 
 const AppProvider = ({ children }: { children: React.ReactNode }) => {
@@ -68,13 +73,11 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
 
 	const updateUser = useCallback(async () => {
 		try {
+			if (!isAuthenticated) return;
 			const user = await fetcher("api/auth/42");
 			if (data && data !== user) {
 				setData(data);
-				if (!isAuthenticated)
-					setIsAuthenticated(true);
 			}
-
 		} catch (error) {
 			setIsAuthenticated(false);
 		}
@@ -82,12 +85,9 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
 
 	useEffect(() => {
 		fetchUser();
-
 		const id = setInterval(async () => {
-			console.log("update user")
 			await updateUser();
 		}, 500);
-
 		return () => {
 			clearInterval(id);
 		};
@@ -96,16 +96,10 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
 
 	const path = usePathname();
 
-	// console.log(path)
+	// if (isLoading) return <Spinner />;
 
-	if (!isAuthenticated && path !== "/") redirect("/");
-
-	// if (isLoading && path !== "/")
-
-	//   return <Spinner />;
-
-	// if (isAuthenticated && path === "/")
-	// 	redirect("/home");
+	if (!isAuthenticated && !isLoading && path !== "/")
+		redirect("/");
 
 	const appContextValue: IAppContext = {
 		user: data,
@@ -122,6 +116,8 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
 	// catch (e) {
 	// 	return <FourOFour show={false} />
 	// }
+
+
 
 	return <AppContext.Provider value={appContextValue}>{children}</AppContext.Provider>;
 };

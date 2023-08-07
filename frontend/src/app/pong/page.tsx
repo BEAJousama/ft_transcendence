@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import {
   Avatar,
@@ -13,7 +13,13 @@ import {
   ScoreBoard,
   PauseGame,
 } from "@/components";
-import React, { ReactNode, useContext, useEffect, useRef, useState } from "react";
+import React, {
+  ReactNode,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { GameContext } from "../../context/game.context";
 import Layout from "../layout/index";
 import { AppContext, fetcher } from "../../context/app.context";
@@ -27,6 +33,40 @@ import { twMerge } from "tailwind-merge";
 import Image from "next/image";
 import { SocketContext } from "../../context/socket.context";
 import GameCards from "./game-cards";
+import { toast } from "react-toastify";
+
+
+interface TimeDifferenceProps {
+  time: Date;
+}
+
+const TimeDifference: React.FC<TimeDifferenceProps> = ({ time }) => {
+  const [timeDiff, setTimeDiff] = useState("");
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const currentTime = new Date();
+      const diff = time.getTime() - currentTime.getTime();
+
+      if (diff <= 0) {
+        // If the countdown has reached or passed the target time, stop the interval
+        clearInterval(interval);
+        toast.info("Time's up!");
+      } else {
+        const minutes = Math.floor(diff / 60000);
+        const seconds = Math.floor((diff % 60000) / 1000);
+        setTimeDiff(`${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`);
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [time]);
+
+  return (
+    <div className="absolute top-2 left-1/2 transform -translate-x-1/2">
+      {timeDiff}
+    </div>
+  );
+};
 
 
 
@@ -58,20 +98,25 @@ const PongGame = ({
   const { user } = useContext(AppContext);
   const [showPausedModal, setShowPausedModal] = useState<boolean>(false);
   const [showstartingModal, setshowStartingModal] = useState<number>(5);
-
+  const time = useRef<Date | null>(null);
 
   useEffect(() => {
     isInGame.current = true;
 
     socket?.on("update", (data: Ball) => {
       // Update the ball position with the scaled values
-      setShowPausedModal(false)
+      setShowPausedModal(false);
       setBall((prev) => {
         return {
           ...prev,
           ...data,
         };
       });
+    });
+
+    socket?.on("update-time", (data: string) => {
+      if (data && !time.current)
+        time.current = new Date(data);
     });
 
     socket?.on("update-player-a", (data: Player) => {
@@ -109,8 +154,7 @@ const PongGame = ({
 
     return () => {
       clearInterval(intervalId);
-    }
-
+    };
   }, [socket, user?.id, setPlayerA, setPlayerB, setBall, setShow, setWinnerId]);
 
   const [timer, setTimer] = useState(250);
@@ -118,17 +162,16 @@ const PongGame = ({
   let intervalId = useRef<NodeJS.Timer>();
 
   return (
-    <div className="flex h-full w-full flex-col items-center justify-around overflow-hidden pb-16 md:pb-0">
-      {
-        !!showstartingModal && (
-          <Modal>
-            <div className="flex w-full flex-col items-center justify-center gap-2">
-              <div className="text-white text-2xl">Game Starting in</div>
-              <div className="text-white text-2xl">{showstartingModal}</div>
-            </div>
-          </Modal>
-        )
-      }
+    <div className="flex h-full w-full flex-col items-center justify-around overflow-hidden pb-16 md:pb-0 relative">
+      {time && time.current && <TimeDifference time={time.current} />}
+      {!!showstartingModal && (
+        <Modal>
+          <div className="flex w-full flex-col items-center justify-center gap-2">
+            <div className="text-white text-2xl">Game Starting in</div>
+            <div className="text-white text-2xl">{showstartingModal}</div>
+          </div>
+        </Modal>
+      )}
       <div className="flex w-full max-w-[1024px] items-center justify-between">
         <ScoreBoard {...playerA} />
         <ScoreBoard {...playerB} />
@@ -150,17 +193,15 @@ const PongGame = ({
             isInGame.current = false;
             socket?.emit("leave-game", {
               userId: user?.id,
-            })
+            });
           }}
           onReject={() => {
-            clearInterval(intervalId.current)
+            clearInterval(intervalId.current);
             socket?.emit("resume-game", {
               userId: user?.id,
-            })
+            });
             setShowModal(false);
-          }
-
-          }
+          }}
           accept="Yes, Leave"
           reject="No, Stay"
           showReject
@@ -182,7 +223,7 @@ const PongGame = ({
             isInGame.current = false;
             socket?.emit("leave-game", {
               userId: user?.id,
-            })
+            });
           }}
           accept="Exit Game"
         />
@@ -191,47 +232,12 @@ const PongGame = ({
   );
 };
 
-
-
-
-
-const GameOver = ({
-  winnerId,
-  setShow,
-  setWinnerId,
-}: {
-  winnerId: number;
-  setShow: React.Dispatch<React.SetStateAction<boolean>>;
-  setWinnerId: React.Dispatch<React.SetStateAction<number>>;
-}) => {
-  const { data: user } = useSWR(`api/users/${winnerId}`, fetcher);
-  return (
-    <Modal className="flex w-full flex-col items-center justify-center gap-2 ">
-      <h1 className="text-white md:text-2xl">Game Over</h1>
-      <Avatar
-        src={user?.avatar || "/img/default.jpg"}
-        alt="logo"
-        className="h-20 w-20 md:h-32 md:w-32"
-      />
-      <h1 className="text-white md:text-2xl">Winner : {user?.username}</h1>
-      <Button
-        onClick={() => {
-          setWinnerId(0);
-          setShow(false);
-        }}
-      >
-        Play Again
-      </Button>
-    </Modal>
-  );
-};
-
 export default function Pong() {
   const [show, setShow] = useState<boolean>(false);
   const [winnerId, setWinnerId] = useState<number>(0);
   const [showModal, setShowModal] = useState<boolean>(false);
   const [showInvitaionModal, setShowInvitaionModal] = useState<boolean>(false);
-  const [gameData, setGameData] = useState<any>()
+  const [gameData, setGameData] = useState<any>();
 
   const { socket, playerA, setPlayerA, playerB, setPlayerB, ball, setBall } =
     useContext(GameContext);
@@ -246,88 +252,116 @@ export default function Pong() {
     });
 
     // check for accctive anivitations
-    socket.emit(
-      "check-for-active-invitations",
-      {
-        userId: user?.id,
-      },
-    )
+    socket.emit("check-for-active-invitations", {
+      userId: user?.id,
+    });
 
     socket.on("check-for-active-invitations", (data) => {
-      console.log('data', data)
+      console.log("data", data);
       setShowInvitaionModal(!!data);
-      setGameData(data)
-    })
+      setGameData(data);
+    });
 
     notificationSocket?.on("check-for-active-invitations", (data) => {
-      console.log('data', data)
+      console.log("data", data);
       setShowInvitaionModal(!!data);
-      setGameData(data)
-    })
-
+      setGameData(data);
+    });
 
     socket.emit("is-already-in-game", {
       userId: user?.id,
-    })
+    });
     socket.on("is-already-in-game", (data) => {
       setShowModal(data as boolean);
-    })
+    });
 
     // diconnect handler
     socket.on("disconnect", () => {
       setShow(false);
     });
+
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault(); // This is required to show the custom message in some browsers
+      // set
+      // event.returnValue = "Are you sure you want to leave? Your progress will be lost.";
+    };
+
+    const handleUnload = () => {
+      // Perform any additional actions when the page is refreshed
+      socket?.emit("leave-game", {
+        userId: user?.id,
+      });
+      socket?.emit("cancel-invite", {
+        inviterId: user?.id,
+      });
+      socket?.emit("leave-queue", {
+        userId: user?.id,
+      });
+      console.log("Refresh Accepted: Additional actions after refresh");
+    };
+
+    // window.addEventListener("beforeunload", handleBeforeUnload);
+    window.addEventListener("unload", handleUnload);
+
+    return () => {
+
+      // window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("unload", handleUnload);
+    }
+
   }, [socket]);
 
+  useEffect(() => {
+    if (winnerId === 0) return;
+    if (winnerId === user?.id) {
+      toast.success("You won the game");
+    }
+    else {
+      toast.error("You lost the game");
+    }
+    setWinnerId(0)
+  }, [winnerId]);
 
   return (
     <Layout className="grid place-items-center gap-8 !py-2">
-      {
-        showInvitaionModal && (
-          <Modal className="flex w-full flex-col items-center justify-between gap-2">
-            <h1 className="text-white md:text-2xl">You have an invitation</h1>
-            <div className="flex items-center justify-around w-full">
-              <ScoreBoard
-                id={gameData?.inviterId}
-              />
-              <div className="text-lg">Vs</div>
-              <ScoreBoard
-                id={gameData?.invitedFriendId}
-              />
-            </div>
-            <div className="flex items-center w-full justify-around gap-4">
-              <Button
-                className="w-full"
-                onClick={() => {
-                  socket?.emit("accept-invitation", {
-                    invitedFriendId: user?.id,
-                  });
-                  setShowInvitaionModal(false);
-                }}
-              >
-                Accept
-              </Button>
-              <Button
-                className="w-full"
-                onClick={() => {
-                  setShowInvitaionModal(false);
-                  socket?.emit("reject-invitation", {
-                    inviterId: gameData?.inviterId,
-                  });
-                }}
-              >
-                Reject
-              </Button>
-            </div>
-          </Modal>
-        )}
+      {showInvitaionModal && (
+        <Modal className="flex w-full flex-col items-center justify-between gap-2">
+          <h1 className="text-white md:text-2xl">You have an invitation</h1>
+          <div className="flex items-center justify-around w-full">
+            <ScoreBoard id={gameData?.inviterId} />
+            <div className="text-lg">Vs</div>
+            <ScoreBoard id={gameData?.invitedFriendId} />
+          </div>
+          <div className="flex items-center w-full justify-around gap-4">
+            <Button
+              className="w-full"
+              onClick={() => {
+                socket?.emit("accept-invitation", {
+                  invitedFriendId: user?.id,
+                });
+                setShowInvitaionModal(false);
+              }}
+            >
+              Accept
+            </Button>
+            <Button
+              className="w-full"
+              onClick={() => {
+                setShowInvitaionModal(false);
+                socket?.emit("reject-invitation", {
+                  inviterId: gameData?.inviterId,
+                });
+              }}
+            >
+              Reject
+            </Button>
+          </div>
+        </Modal>
+      )}
       {!show ? (
-        // <div className="grid w-full place-items-center">
-
         <GameCards />
-
-        // </div>
       ) : (
+
         <PongGame
           playerA={playerA}
           setPlayerA={setPlayerA}
@@ -339,20 +373,13 @@ export default function Pong() {
           setWinnerId={setWinnerId}
         />
       )}
-      {!!winnerId && (
-        <GameOver
-          winnerId={winnerId}
-          setShow={setShow}
-          setWinnerId={setWinnerId}
-        />
-      )}
       {showModal && (
         <ConfirmationModal
           icon={<AiFillWarning size={100} />}
           title="You are already in a game"
           accept="Ok"
           onAccept={() => {
-            setShow(true)
+            setShow(true);
             setShowModal(false);
           }}
         />
