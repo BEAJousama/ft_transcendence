@@ -76,15 +76,6 @@ export class AuthController {
     }
   }
 
-  // @Public()
-  // @LoginDoc()
-  // @Get('42/login')
-  // async login() {
-  //   try {
-  //     return this.authService.getAccessToken();
-  //   } catch (error) {}
-  // }
-
   @UseGuards(FourtyTwoGuard)
   @Public()
   @CallbackDoc()
@@ -139,9 +130,13 @@ export class AuthController {
   @UseGuards(Jwt2faAuthGuard)
   @VerifyDoc()
   @Post('2fa/verify')
-  async verifyTwoFactorAuthentication(@Req() req) {
+  async verifyTwoFactorAuthentication(@Req() req, @Res() res) {
     try {
-      return await this.authService.verify(req);
+      const value = await this.authService.verify(req);
+      if (value) {
+        res.cookie('access_token', value.access_token);
+      }
+      res.send(value);
     } catch (e) {
       throw e;
     }

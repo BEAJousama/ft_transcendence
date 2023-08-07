@@ -10,6 +10,7 @@
   "dependencies": {
     "@emoji-mart/data": "^1.1.2",
     "@emoji-mart/react": "^1.1.1",
+    "@lottiefiles/lottie-player": "^2.0.2",
     "@types/node": "20.4.6",
     "@types/react": "18.2.18",
     "@types/react-dom": "18.2.7",
@@ -26,7 +27,6 @@
     "prettier-plugin-tailwindcss": "^0.4.1",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "react-hook-form": "^7.45.2",
     "react-icons": "^4.10.1",
     "react-select": "^5.7.4",
     "react-swipeable": "^7.0.1",

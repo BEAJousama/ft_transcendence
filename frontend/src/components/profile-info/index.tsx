@@ -2,15 +2,18 @@
 "use client";
 
 import useSWR from "swr";
-import IUser from "../../interfaces/user";
+import IUser from "@/interfaces/user";
 import axios from "axios";
-import { useEffect, useState, useContext } from "react";
-import { ChatContext } from "../../context/chat.context";
-import Spinner from "../spinner";
-import Avatar from "../avatar";
+import { useContext, useEffect, useState } from "react";
 import { addFriend, cancelFriend, acceptFriend } from "./tools";
-import Button from "../button";
-import { useRouter } from "next/navigation";
+import Image from "next/image";
+
+import {
+    Spinner, Avatar, Button
+} from "@/components";
+import { ChatContext } from "@/context/chat.context";
+import { useRouter } from "next/router";
+
 
 const status = {
     ONLINE: { status: "online", color: "text-green-500" },
@@ -22,11 +25,9 @@ const status = {
 const ProfileInfo = ({
     user,
     currentUser,
-    setModalText,
 }: {
     user: IUser;
     currentUser?: IUser;
-    setModalText: React.Dispatch<React.SetStateAction<string>>;
 }) => {
     const router = useRouter();
     const {socket} = useContext(ChatContext);
@@ -37,24 +38,21 @@ const ProfileInfo = ({
     } = useSWR(
         `api/users/${user?.id}/friend-request`,
         async (url) => {
-            const accessToken = window.localStorage?.getItem("access_token"); // Replace with your actual access token
             const response = await axios.get(
                 `${process.env.NEXT_PUBLIC_BACK_END_URL}${url}`,
                 {
+                    withCredentials: true,
                     params: {
                         senderId: currentUser?.id,
                         receiverId: user?.id,
                     },
-                    headers: {
-                        Authorization: `Bearer ${accessToken}`,
-                    },
-                }
+
+                },
             );
             return response.data;
-        },
-        {
-            refreshInterval: 1,
-        }
+        }, {
+        refreshInterval: 1,
+    }
     );
     const [text, setText] = useState("");
 
@@ -115,25 +113,25 @@ const ProfileInfo = ({
                                             className="w-full !text-xs"
                                             onClick={async () => {
                                                 if (text === "Add Friend")
-                                                    setModalText(
-                                                        await addFriend(
-                                                            currentUser?.id ||
-                                                            0,
-                                                            user.id
-                                                        )
-                                                    );
+
+                                                    await addFriend(
+                                                        currentUser?.id ||
+                                                        0,
+                                                        user.id
+                                                    )
+
                                                 else if (text === "Accept")
-                                                    setModalText(
-                                                        await acceptFriend(
-                                                            friendRequest.id
-                                                        )
-                                                    );
+
+                                                    await acceptFriend(
+                                                        friendRequest.id
+                                                    )
+
                                                 else
-                                                    setModalText(
-                                                        await cancelFriend(
-                                                            friendRequest.id
-                                                        )
-                                                    );
+
+                                                    await cancelFriend(
+                                                        friendRequest.id
+                                                    )
+
                                                 await mutate();
                                             }}
                                         >

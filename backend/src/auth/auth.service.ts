@@ -67,18 +67,6 @@ export class AuthService {
       if (!isMatch) {
         throw new UnauthorizedException('Invalid credentials');
       }
-      if (user.twoFactorAuth) {
-        const payload = { login: user.login, sub: user.id, email: user.email };
-
-        const access_token = this.jwtService.sign(payload, {
-          secret: process.env.TFA_JWT_SECRET,
-          expiresIn: '7d',
-        });
-        return {
-          name: '2fa_access_token',
-          value: access_token,
-        };
-      }
       const payload = { login: user.login, sub: user.id, email: user.email };
       const access_token = this.jwtService.sign(payload, {
         secret: process.env.JWT_SECRET,
@@ -130,19 +118,18 @@ export class AuthService {
         });
       }
 
-      if (user.twoFactorAuth) {
-        const payload = { login: user.login, sub: user.id, email: user.email };
-
+      if (user.twoFactorAuth === true) {
+        const payload = { login: user.login, sub: user.id };
         const access_token = this.jwtService.sign(payload, {
           secret: process.env.TFA_JWT_SECRET,
-          expiresIn: '7d',
-          // httpOnly: true,
+          expiresIn: '24h',
         });
         return {
           name: '2fa_access_token',
           value: access_token,
         };
       }
+
       const payload = { login: user.login, sub: user.id, email: user.email };
       const access_token = this.jwtService.sign(payload, {
         secret: process.env.JWT_SECRET,
@@ -159,13 +146,20 @@ export class AuthService {
 
   async turnOnTwoFactorAuthentication(req) {
     try {
-      const isvalid = await this.verify(req);
-      if (isvalid) {
-        const user: User = await this.usersService.findUserByLogin(
-          req.user.login ? req.user.login : '',
+      const user = await this.usersService.findUserByLogin(req.user.login);
+      const isvalid = await this.verifyTwoFactorAuthentication(
+        req.body.code,
+        user,
+      );
+      if (isvalid && user) {
+        await this.usersService.updateUser(
+          {
+            user: {
+              twoFactorAuth: true,
+            },
+          },
+          user.id,
         );
-        user.twoFactorAuth = true;
-        await this.usersService.updateUser({ user }, user.id);
         return {
           message: 'success',
         };
@@ -182,13 +176,20 @@ export class AuthService {
 
   async turnOffTwoFactorAuthentication(req) {
     try {
-      const isvalid = await this.verify(req);
-      if (isvalid) {
-        const user: User = await this.usersService.findUserByLogin(
-          req.user.login ? req.user.login : '',
+      const user = await this.usersService.findUserByLogin(req.user.login);
+      const isvalid = await this.verifyTwoFactorAuthentication(
+        req.body.code,
+        user,
+      );
+      if (isvalid && user) {
+        await this.usersService.updateUser(
+          {
+            user: {
+              twoFactorAuth: false,
+            },
+          },
+          user.id,
         );
-        user.twoFactorAuth = false;
-        await this.usersService.updateUser({ user }, user.id);
         return {
           message: 'success',
         };
@@ -197,6 +198,7 @@ export class AuthService {
         message: 'fail',
       };
     } catch (error) {
+      console.log(error);
       throw new InternalServerErrorException(
         'An internal server error occurred.',
       );
@@ -212,7 +214,7 @@ export class AuthService {
         const payload = { login: user.login, sub: user.id };
         const access_token = this.jwtService.sign(payload, {
           secret: process.env.JWT_SECRET,
-          expiresIn: '24h',
+          expiresIn: '7d',
         });
         return {
           access_token,
@@ -220,17 +222,14 @@ export class AuthService {
       }
       return null;
     } catch (error) {
-      throw new InternalServerErrorException(
-        'An internal server error occurred.',
-      );
+      throw new UnauthorizedException('Invalid credentials');
     }
   }
 
-  verifyTwoFactorAuthentication(
-    twoFactorAuthenticationCode: string,
-    user: User,
-  ) {
+  verifyTwoFactorAuthentication(twoFactorAuthenticationCode: string, user) {
     try {
+      if (!user || twoFactorAuthenticationCode) return false;
+
       return authenticator.verify({
         token: twoFactorAuthenticationCode,
         secret: user.tfaSecret,

@@ -70,27 +70,6 @@ const FriendList = () => {
   );
 };
 
-const LiveFeed = () => {
-  const { data: matches, isLoading } = useSWR("api/pong/live-games", fetcher, {
-    errorRetryCount: 0,
-  });
-  return (
-    <Container title="LIVE FEED" icon="/img/3dCam.svg">
-      {!isLoading ? (
-        matches &&
-        matches.map((match: any) => {
-          return <Link href={`/pong/${match.player1.id}`} key={match?.id}>
-            <GameBanner player1={match.player1} player2={match.player2} player1Score={match.player1Score}
-              player2Score={match.player2Score} />
-          </Link>
-        })
-      ) : (
-        <Spinner />
-      )}
-    </Container>
-  )
-}
-
 const MatchHistory = () => {
   const { user } = useContext(AppContext);
 
@@ -165,7 +144,6 @@ export default function Home() {
       </Link>
       <LeaderBoard />
       <FriendList />
-      <LiveFeed />
       <MatchHistory />
       <Container
         title="POPULAR ROOMS"

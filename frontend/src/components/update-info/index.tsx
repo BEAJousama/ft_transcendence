@@ -9,17 +9,17 @@ import Button from "../button";
 import axios from "axios";
 import Divider from "../divider";
 import { MdDelete } from "react-icons/md";
+import { toast } from "react-toastify";
+
 
 const UpdateInfo = ({
     user,
     previewImage,
-    setModalText,
     setLoading,
     setShowmodal
 }: {
     user: any;
     previewImage: string;
-    setModalText: React.Dispatch<React.SetStateAction<string>>;
     setLoading: React.Dispatch<React.SetStateAction<boolean>>;
     setShowmodal: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
@@ -77,17 +77,16 @@ const UpdateInfo = ({
                     onClick={async () => {
                         try {
                             if (!formik.dirty && user?.avatar === previewImage) {
-                                setModalText("Error : You haven't made any changes");
+                                toast.error("Error : You haven't made any changes");
                                 return;
                             } else if (
                                 formik.values.phone !== "" &&
                                 !validatePhoneNumber(formik.values.phone)
                             ) {
-                                setModalText("Error : Invalid phone number");
+                                toast.error("Error : Invalid phone number");
                                 return;
                             }
                             setLoading(true);
-                            const accessToken = window?.localStorage?.getItem("access_token");
                             await axios.post(
                                 `${process.env.NEXT_PUBLIC_BACK_END_URL}api/users/${user?.id}`,
                                 {
@@ -100,16 +99,16 @@ const UpdateInfo = ({
                                     },
                                 },
                                 {
-                                    headers: {
-                                        Authorization: `Bearer ${accessToken}`,
-                                    },
+                                    withCredentials: true
                                 }
                             );
                             await updateUser();
-                            setModalText("User updated successfully!");
+                            toast.success("User updated successfully!");
+                            // setModalText("User updated successfully!");
                             setLoading(false);
                         } catch (error) {
-                            setModalText("Error updating user");
+                            toast.error("Error updating user");
+                            // setModalText("Error updating user");
                             setLoading(false);
                         }
                     }}

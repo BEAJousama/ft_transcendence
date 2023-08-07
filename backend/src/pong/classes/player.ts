@@ -20,6 +20,7 @@ class Player {
     ArrowUp: boolean;
     ArrowDown: boolean;
   };
+  public powerup: boolean;
   public socket: Socket | null;
   public scoredInCorner: boolean;
   public acheivementsWatcher: AchievementsWatcher;
@@ -29,6 +30,7 @@ class Player {
     socket: Socket | null,
     achievedAchievements,
   ) {
+    this.powerup = false;
     this.id = id;
     this.width = 10;
     this.height = canvas.height / 5;

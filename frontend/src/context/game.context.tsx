@@ -4,15 +4,12 @@ import React, { createContext, useContext, useEffect, useRef, useState } from "r
 import io, { Socket } from "socket.io-client";
 import { AppContext } from "./app.context";
 import { Ball, Player } from "@/interfaces/game";
+import { toast } from "react-toastify";
 
 enum Keys {
 	ArrowUp = "ArrowUp",
 	ArrowDown = "ArrowDown",
-	// ArrowLeft = "ArrowLeft",
-	// ArrowRight = "ArrowRight",
-	W = "w",
-	S = "s",
-	// Space = " ",
+	Space = " ",
 }
 
 export interface IGameContext {
@@ -90,6 +87,7 @@ export default function SocketProvider({
 
 	const [show, setShow] = useState<boolean>(false);
 	const isInGame = useRef(false);
+	const activatePowerUp = useRef(true);
 
 	const { user } = useContext(AppContext);
 
@@ -102,9 +100,6 @@ export default function SocketProvider({
 		const newSocket = io(`${process.env.NEXT_PUBLIC_BACK_END_URL}pong`, {
 			query: {
 				clientId: user?.id,
-			},
-			auth: {
-				token: localStorage.getItem("access_token"),
 			},
 		});
 		console.log(newSocket);
@@ -128,9 +123,18 @@ export default function SocketProvider({
 		const handleKeyDown = (event: KeyboardEvent) => {
 			const { key } = event;
 			if (Object.values(Keys).includes(key as Keys) && !keyState[key]) {
+				if (key === " " && !activatePowerUp.current) {
+					toast.info("Sorry, you cannot use the power-up right now. It is on cooldown for the next 10 seconds since you've recently used it");
+					return
+				}
+				else if (key === " ")
+					toast.success("Power-up activated! You can now use the power-up for the next 5 seconds");
 				keyState[key] = true;
-				// console.log(user?.id, "pressed", key);
-				// Emit the event for the specific key press
+				activatePowerUp.current = false;
+				const id = setTimeout(() => {
+					activatePowerUp.current = true;
+					clearTimeout(id);
+				}, 10000);
 				socket?.emit("keyPressed", { key, userId: user?.id });
 			}
 		};

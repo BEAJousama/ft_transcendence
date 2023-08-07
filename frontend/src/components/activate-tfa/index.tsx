@@ -6,45 +6,39 @@ import { useContext, useState } from "react";
 import QrCode from "../qr-code";
 import Input from "../input";
 import { AppContext } from "@/context/app.context";
+import { toast } from "react-toastify";
 
-const ActivateTfa = ({
-    setShowmodal,
-    user,
-    setUpdated,
-}: {
-    user: any;
-    setShowmodal: React.Dispatch<React.SetStateAction<boolean>>;
-    setUpdated?: React.Dispatch<React.SetStateAction<string>>;
-}) => {
+const ActivateTfa = () => {
     const { updateUser } = useContext(AppContext);
     const [error, setError] = useState("");
     const [code, setCode] = useState("");
+    const { user } = useContext(AppContext);
 
     const TurnOnOrOffTfa = async (url: string) => {
         try {
             setError("");
-            const accessToken = window.localStorage.getItem("access_token");
             const response = await axios.post(
                 url,
                 { code },
                 {
-                    headers: {
-                        Authorization: `Bearer ${accessToken}`,
-                    },
+                    withCredentials: true,
                 }
             );
             if (response.data.message === "success") {
                 await updateUser();
-                setUpdated &&
-                    setUpdated(
-                        `Two Factor Authentication ${!user?.twoFactorAuth ? "Avtivated" : "deactivated"
-                        } successfully`
-                    );
+
+                toast.success(
+                    `Two Factor Authentication ${!user?.twoFactorAuth ? "Avtivated" : "deactivated"
+                    } successfully`
+                );
                 return;
             }
+            console.log(response.data)
+            toast.error("Invalid Code");
             setError("Invalid Code");
         } catch (error) {
-            setError("Invalid Code");
+            console.log(error)
+            toast.error("Somthing Went Wrong !!!");
         }
     };
     return (
@@ -61,7 +55,6 @@ const ActivateTfa = ({
                     onChange={(e) => {
                         setCode(e.target.value);
                     }}
-                    error={error}
                     isError={!!error}
                 />
                 <div className="flex w-full items-center justify-center gap-4">

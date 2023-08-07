@@ -1,25 +1,21 @@
-"use client"
+"use client";
 
-import {
-    useContext,
-    useEffect,
-    useState,
-    KeyboardEvent,
-} from "react";
-import { Card, Button, Spinner, Input } from "./../../components";
+import { useContext, useEffect, useState, KeyboardEvent } from "react";
+import { Button, Input } from "@/components";
 import axios from "axios";
 import { AppContext } from "./../../context/app.context";
-// import { Link, Navigate } from "react-router-dom";
 import { useFormik } from "formik";
-import { twMerge } from "tailwind-merge";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+
+
 
 const Login = () => {
     const { authenticated, fetchUser } = useContext(AppContext);
     const [loading, setLaoding] = useState<boolean>(true);
     const [twoFactorAuth, setTwoFactorAuth] = useState<boolean>(false);
     const [error, setError] = useState("");
+
     const formik = useFormik({
         initialValues: {
             username: "",
@@ -44,6 +40,8 @@ const Login = () => {
         onSubmit: async (values) => { },
     });
 
+
+
     const handleLogin = async () => {
         try {
             setError("");
@@ -55,17 +53,14 @@ const Login = () => {
             ) {
                 return;
             }
-            const res = await axios.post(
-                `${process.env.NEXT_PUBLIC_BACK_END_URL}api/auth/signin`,
-                {
-                    username: formik.values.username,
-                    password: formik.values.password,
-                }
-            );
+            const res = await axios.post(`${process.env.NEXT_PUBLIC_BACK_END_URL}api/auth/signin`, {
+                username: formik.values.username,
+                password: formik.values.password,
+            });
             if (res.data.name) {
-                setTwoFactorAuth(res.data.name === "2fa_access_token");
-                window.localStorage?.setItem(res.data.name, res.data.value);
-                await fetchUser();
+                // setTwoFactorAuth(res.data.name === "2fa_access_token");
+                // window.localStorage?.setItem(res.data.name, res.data.value);
+                // await fetchUser();
             }
         } catch (_e) {
             setError("Incorrect username or password");
@@ -79,22 +74,12 @@ const Login = () => {
         }
     };
 
-
-
-    if (authenticated) {
-        redirect("/home")
-        // return <Navigate to="/" />;
-
-    }
-
-    if (twoFactorAuth) redirect("/tfa");
     return (
         <div className="grid place-items-center w-full">
+
             <div className="flex flex-col items-center justify-center w-full max-w-sm md:max-w-md lg:max-w-lg gap-4 px-8 py-12 text-white">
                 <h1 className="text-2xl">Welcome Back</h1>
-                <p className=" text-tertiary-200">
-                    Please enter your credentials
-                </p>
+                <p className=" text-tertiary-200">Please enter your credentials</p>
                 <Input
                     value={formik.values.username}
                     error={formik.errors.username}
@@ -128,46 +113,28 @@ const Login = () => {
                     <hr className="w-[70%] border-gray-500" />
                 </div>
                 <div className="flex w-full justify-center gap-4 md:flex-col">
-                    <Link
-                        href={`${process.env.NEXT_PUBLIC_BACK_END_URL}api/auth/42/callback`}
-                    >
+                    <Link href={`${process.env.NEXT_PUBLIC_BACK_END_URL}api/auth/42/callback`}>
                         <Button
                             type="secondary"
                             className="h-14 w-14 justify-center rounded-full md:h-auto md:w-full text-sm"
                         >
-                            <img
-                                src="/img/42Logo-light.svg"
-                                alt="logo"
-                                width={30}
-                            />
+                            <img src="/img/42Logo-light.svg" alt="logo" width={30} />
                             <p className="hidden md:block">Continue with Intra</p>
                         </Button>
                     </Link>
-                    <Link
-                        href={`${process.env.NEXT_PUBLIC_BACK_END_URL}api/auth/google/login`}
-                    >
+                    <Link href={`${process.env.NEXT_PUBLIC_BACK_END_URL}api/auth/google/login`}>
                         <Button
                             type="secondary"
                             className="h-14 w-14 justify-center rounded-full md:h-auto md:w-full text-sm"
-                            disabled={
-                                formik.dirty
-                            }
+                            disabled={formik.dirty}
                         >
                             <img src="/img/google.svg" alt="logo" width={30} />
                             <p className="hidden md:block">Continue with Google</p>
                         </Button>
                     </Link>
                 </div>
-                {/* <div className="flex w-full flex-col items-center justify-center pt-1 text-center text-tertiary-300 md:flex-row">
-				Don't have an account?
-				<Link
-					to="/signup"
-					className="duration-400 ml-1 text-tertiary-100 underline  transition ease-in-out hover:scale-105 hover:text-primary-500"
-				>
-					Sign up
-				</Link>
-			</div> */}
             </div>
+
         </div>
     );
 };
