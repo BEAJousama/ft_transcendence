@@ -1,13 +1,12 @@
 "use client";
 
-import { Card, Button, Input } from "../../components";
+import { Card, Button, Input, Spinner } from "../../components";
 import { useContext, useState, KeyboardEvent, useEffect } from "react";
 import { useFormik } from "formik";
 import { AppContext } from "../../context/app.context";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 // import { Link, Navigate } from "react-router-dom";
-
 
 export default function SignUp() {
 	const router = useRouter();
@@ -33,6 +32,7 @@ export default function SignUp() {
 			confirmPassword: "",
 		},
 		validateOnChange: false,
+		validateOnBlur: true,
 		validate: (values) => {
 			const errors: {
 				email?: string;
@@ -66,10 +66,8 @@ export default function SignUp() {
 
 			return errors;
 		},
-		onSubmit: () => { },
+		onSubmit: () => {},
 	});
-
-
 
 	const checkValues = (values: {
 		email?: string;
@@ -116,8 +114,10 @@ export default function SignUp() {
 
 	const [error, setError] = useState("");
 	const [redirect, setRedirect] = useState<boolean>();
+	const [loading, setLoading] = useState<boolean>(false);
 
 	const handleSignUp = async () => {
+		setLoading(true);
 		try {
 			setError("");
 			if (
@@ -146,6 +146,7 @@ export default function SignUp() {
 			console.log(e);
 			if (e) setError(e.response.data.message);
 		}
+		setLoading(false);
 	};
 
 	const handleKeyPress = (event: KeyboardEvent<HTMLInputElement>) => {
@@ -158,7 +159,6 @@ export default function SignUp() {
 
 	return (
 		<div className="grid place-items-center w-full">
-
 			<div
 				className="flex flex-col items-center justify-center w-full max-w-sm md:max-w-md lg:max-w-lg gap-4 px-8 py-12 text-white"
 				onKeyDown={handleKeyPress}
@@ -225,12 +225,27 @@ export default function SignUp() {
 						<span className="font-medium">{error}</span>
 					</p>
 				)}
-				<Button className="w-full" onClick={handleSignUp}>
-					Sign Up
-				</Button>
-
+				<div className="relative flex w-full">
+					{loading && (
+						<Spinner className="absolute flex items-center justify-center w-1/3 h-full transition duration-300 ease-out z-10 backdrop-blur-[2px] inset-x-1/3" />
+					)}
+					<Button
+						className="relative w-full"
+						onClick={handleSignUp}
+						disabled={
+							loading ||
+							!formik.values.email ||
+							!formik.values.username ||
+							!formik.values.fullname ||
+							!formik.values.password ||
+							!formik.values.confirmPassword ||
+							Object.keys(formik.errors).length > 0
+						}
+					>
+						Sign Up
+					</Button>
+				</div>
 			</div>
-
 		</div>
 	);
 }
