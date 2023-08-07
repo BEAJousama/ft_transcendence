@@ -33,6 +33,7 @@ import { toast } from "react-toastify";
 import CustomSelect from "../select";
 import IUser from "../../interfaces/user";
 import { twMerge } from "tailwind-merge";
+import { set } from "lodash";
 
 interface ChannelProps {
   className?: string;
@@ -233,6 +234,9 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
 
   const handleRemovePassword = () => {
     socket?.emit("channel_update", { id: currentChannel?.id, type: "rm_access_pass" });
+    setAccessPassword("");
+    setChPassword(false);
+    setShowEdit(true);
   }
 
   const handleAddMembers = () => {
@@ -260,9 +264,9 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
           >
             <Avatar src={currentChannel?.type !== "CONVERSATION" ? currentChannel?.avatar :
               currentChannel?.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.avatar} alt=""
-              status={currentChannel?.type !== "CONVERSATION" ? false :
-                currentChannel?.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.status === "ONLINE" &&
-                !checkBlock(currentChannel?.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.id)}
+              status={currentChannel?.type !== "CONVERSATION" ? "OFFLINE" :
+                (currentChannel?.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.status === "ONLINE" &&
+                !checkBlock(currentChannel?.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.id) ? "ONLINE" : "OFFLINE")}
             />
             <div>{currentChannel?.type !== "CONVERSATION" ? (currentChannel?.name && currentChannel?.name.length > 50 ? currentChannel?.name.slice(0, 50) + " ..." : currentChannel?.name) : currentChannel?.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.username}</div>
           </div>
@@ -551,7 +555,7 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
               {
                 (currentChannel?.channelMembers?.filter((member: IchannelMember) => member.userId === user?.id)[0].role === "ADMIN" || currentChannel?.channelMembers?.filter((member: IchannelMember) => member.userId === user?.id)[0].role === "OWNER") ? (
                   <div
-                    className="!bg-inherit !text-white hover:bg-inherit ml-2">
+                    className="!bg-inherit !text-white font-bold hover:bg-inherit pl-2">
                     Edit Channel
                   </div>
                 ) :
@@ -658,7 +662,7 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
                 {
                   currentChannel?.channelMembers?.filter((member: IchannelMember) => member.userId === user?.id)[0].role === "OWNER" && (
                     <Button
-                      className="!bg-inherit !text-white hover:bg-inherit justify-between w-full !font-medium"
+                      className="!bg-inherit !text-red-400 hover:bg-inherit justify-between w-full !font-medium"
                       onClick={() => {
                         setDeleteChannel(true);
                         setShowEdit(false);
@@ -670,7 +674,7 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
                   )
                 }
                 <Button
-                  className="w-[50%] md:w-[30%] lg:w[50%] 2xl:w-[50%] justify-center self-center mt-4"
+                  className="w-full justify-center self-center mt-4"
                   onClick={() => {
                     leaveGroup();
                   }}
@@ -703,7 +707,7 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
                       );
                     })}
                     <Button
-                      className="w-[50%] md:w-[30%] lg:w[50%] 2xl:w-[50%] justify-center self-center mt-4"
+                      className="w-full justify-center self-center mt-4"
                       onClick={() => {
                         leaveGroup();
                       }}
@@ -854,17 +858,10 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
                 setShowEdit={setShowEdit}
                 setShowModal={setShowModal}
                 setValue={setAccessPassword}
+                remove={currentChannel?.isacessPassword}
+                handleRemovePassword={handleRemovePassword}
                 defaultValue=""
               >
-                {currentChannel?.isacessPassword && (
-                  <button
-                    onClick={() => {
-                      handleRemovePassword();
-                    }}
-                  >
-                    Remove
-                  </button>
-                  )}
                 <Input
                   label={currentChannel?.isacessPassword ? "Edit password" : "Set password"}
                   htmlType="password"

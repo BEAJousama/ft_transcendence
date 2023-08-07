@@ -56,7 +56,6 @@ export default function Chat() {
         return;
       }
       const res = await fetcher(`api/users/${user?.id}/blocking-users`);
-      // map with blockerId
       if (res === undefined) {
         return;
       }
@@ -64,6 +63,7 @@ export default function Chat() {
     } catch (err) {
       throw new Error("Error while getting blocking users");
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id])
 
   const getBlocked = useCallback(async () => {
@@ -75,11 +75,11 @@ export default function Chat() {
       if (res === undefined) {
         return;
       }
-      // map with blockingId
       return res.map((blocker: any) => { return blocker.blockingId });
     } catch (err) {
       throw new Error("Error while getting blocked users");
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id])
 
   const checkBlock = (userId: number | undefined) => {
@@ -133,15 +133,6 @@ export default function Chat() {
         setMessages(sortMessages(messages));
     });
 
-
-    // socket?.on('channel_member', (data: any) => {
-    //   if (data?.channelId === currentChannel?.id)
-    //   {
-    //     setChannelMember(data);
-    //     setIsMuted(data?.status === "MUTED");
-    //   }
-    // });
-
     socket?.on('channel_leave', (data: Ichannel) => {
       if (data?.id === currentChannel?.id) {
         setCurrentChannel({} as Ichannel);
@@ -173,22 +164,13 @@ export default function Chat() {
       if (!isMatch)
         setOpen(true);
       setMessages([]);
-      socket?.emit("getChannelMessages", { channelId: currentChannel?.id });
-      // socket?.emit("getChannelMessages", {channelId: data?.id});
     });
 
     socket?.on("dm_create", () => {
       if (!isMatch)
         setOpen(true);
       setMessages([]);
-      socket?.emit("getChannelMessages", { channelId: currentChannel?.id });
     });
-
-    // socket?.on("channel_access", () => {
-    //   if (!isMatch)
-    //     setOpen(true);
-    //   socket?.emit("getChannelMessages", {channelId: currentChannel?.id});
-    // });
 
     socket?.on('current_ch_update', (data: Ichannel) => {
       setChannelId(data?.id);
@@ -224,7 +206,6 @@ export default function Chat() {
                 <ChannelList
                   className="animate-fade-right"
                   setCurrentChannel={setCurrentChannel}
-                  // setChannelMember={setChannelMember}
                   setShowModal={setShowModal}
                   setOpen={setOpen}
                   setMessages={setMessages}
@@ -245,7 +226,6 @@ export default function Chat() {
               <ChannelList
                 className="animate-fade-right"
                 setCurrentChannel={setCurrentChannel}
-                // setChannelMember={setChannelMember}
                 setShowModal={setShowModal}
                 setOpen={setOpen}
                 setMessages={setMessages}

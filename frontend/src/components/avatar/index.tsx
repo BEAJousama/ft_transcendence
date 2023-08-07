@@ -4,18 +4,6 @@
 import { twMerge } from "tailwind-merge";
 import Image from "next/image";
 
-interface Istatus {
-  ONLINE : string;
-  OFFLINE : string;
-  INGAME : string;
-}
-interface IAvatar {
-  src?: string;
-  alt?: string;
-  className?: string;
-  status?: Istatus;
-}
-
 const Avatar = ({
   src = "img/default.jpg",
   alt = "",
@@ -25,7 +13,7 @@ const Avatar = ({
   src?: string;
   alt?: string;
   className?: string;
-  status?: {};
+  status?: "ONLINE" | "OFFLINE" | "INGAME";
 }) => {
   return (
     <div
@@ -36,7 +24,9 @@ const Avatar = ({
         src={src}
         alt={alt}
       />
-      {status && <span className="w-3 h-3 rounded-full bg-green-500 border-1 border-white absolute bottom-0 right-0"></span>}
+      {status === "ONLINE" && <span className="w-3 h-3 rounded-full bg-green-500 border-1 border-white absolute bottom-0 right-0"></span>}
+      {status === "INGAME" && <span className="w-3 h-3 rounded-full bg-yellow-600 border-1 border-white absolute bottom-0 right-0"></span>}
+      {/* {status === "OFFLINE" && <span className="w-3 h-3 rounded-full bg-red-700 border-1 border-white absolute bottom-0 right-0"></span>} */}
     </div>
   );
 };

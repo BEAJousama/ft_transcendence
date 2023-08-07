@@ -13,8 +13,10 @@ const UpdateChannel = ({
     setShowEdit,
     setShowModal,
     setValue,
+    handleRemovePassword,
     updatable,
     verify,
+    remove,
     defaultValue,
 }
     :
@@ -26,8 +28,10 @@ const UpdateChannel = ({
         setShowEdit: React.Dispatch<React.SetStateAction<boolean>>,
         setShowModal: React.Dispatch<React.SetStateAction<boolean>>,
         setValue?: React.Dispatch<React.SetStateAction<string>>,
+        handleRemovePassword?: (() => void),
         updatable?: boolean,
         verify?: boolean,
+        remove?: boolean,
         defaultValue?: string,
 
     }) => {
@@ -49,7 +53,8 @@ const UpdateChannel = ({
                         Cancel
                     </Button>
                     <Button
-                        className="bg-primary-500  justify-between w-full !font-medium mr-1"
+                        type={verify ? "danger" : "primary"}
+                        className="bg-primary-500 !text-secondary-500  justify-between w-full !font-medium mr-1"
                         onClick={() => {
                             setX(false);
                             updateX();
@@ -59,6 +64,16 @@ const UpdateChannel = ({
                     >
                         {verify ? "Delete" : "Update"}
                     </Button>
+                    {remove && (                     
+                        <Button
+                        type="danger"
+                        onClick={() => {
+                            handleRemovePassword && handleRemovePassword();
+                        }}
+                        >
+                        Remove
+                    </Button>
+                    )}
                 </div>
             ) :
                 (

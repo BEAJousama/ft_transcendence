@@ -111,7 +111,9 @@ const ProfileBanner = ({
         className && className
       )}
     >
-      <Avatar src={avatar} alt="" status={description === "ONLINE"} />
+      <div className=" basis-[15%]">
+      <Avatar src={avatar} alt="" status={description === "ONLINE" ? "ONLINE" : "OFFLINE"} />
+      </div>
       <div
         className={twMerge(
           "flex w-full  flex-col truncate text-sm md:max-w-full ",

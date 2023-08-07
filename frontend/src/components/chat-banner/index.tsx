@@ -120,14 +120,14 @@ const ChatBanner = ({
                     <Modal
                         setShowModal={setAccessModal}
                         className="z-10 bg-secondary-800 
-                border-none flex flex-col items-center justify-start shadow-lg shadow-secondary-500 gap-4 text-white min-w-[90%]
-                lg:min-w-[40%] xl:min-w-[800px] animate-jump-in animate-ease-out animate-duration-400">
+                                    border-none flex flex-col !items-center !justify-center shadow-lg shadow-secondary-500 gap-4 text-white min-w-[90%]
+                                    lg:min-w-[40%] xl:min-w-[800px] animate-jump-in animate-ease-out animate-duration-400">
                         <span className="text-md">This channel requires an access password ! </span>
                         <div className="flex flex-col justify-center items-center w-full">
                             <Input
                                 label="Password"
-                                className="h-[40px] w-[80%] rounded-md border-2 border-primary-500 text-white text-xs bg-transparent md:mr-2"
-                                type="password"
+                                className="h-[40px] w-full rounded-md border-2 border-primary-500 text-white text-xs bg-transparent md:mr-2"
+                                htmlType="password"
                                 placeholder="*****************"
                                 value={accessPassword}
                                 // inputRef={iRef}
@@ -136,9 +136,9 @@ const ChatBanner = ({
                                     async (e) => {
                                         if (e.key === "Enter") {
                                             await accessChannel();
+                                            setAccessPassword("");
                                             setAccessModal(false);
                                             // iRef?.current?.blur();
-                                            setAccessPassword("");
                                         }
                                     }
                                 }
@@ -147,6 +147,7 @@ const ChatBanner = ({
                                 <Button
                                     className="h-8 w-auto md:w-20 !bg-inherit text-white text-xs rounded-full mt-2 mr-2"
                                     onClick={() => {
+                                        setAccessPassword("");
                                         setAccessModal(false);
                                         // iRef?.current?.blur();
                                     }}
@@ -157,8 +158,8 @@ const ChatBanner = ({
                                     className="h-8 w-auto md:w-20 bg-primary-500 text-white text-xs rounded-full mt-2"
                                     onClick={ async() => {
                                         await accessChannel()
-                                        setAccessModal(false);
                                         setAccessPassword("");
+                                        setAccessModal(false);
                                         // iRef?.current?.blur();
                                     }}
                                 >
@@ -172,14 +173,14 @@ const ChatBanner = ({
             {showModal && (
                 <Card
                     setShowModal={setshowModal}
-                    className="z-10 bg-secondary-800 border-none flex flex-col items-center justify-start shadow-lg shadow-secondary-500 gap-4 text-white min-w-[90%] lg:min-w-[40%] xl:min-w-[50%] animate-jump-in animate-ease-out animate-duration-400 max-w-[100%] w-full"
+                    className="z-10 bg-secondary-800 border-none flex flex-col !items-center !justify-center shadow-lg shadow-secondary-500 gap-4 text-white min-w-[90%] lg:min-w-[40%] xl:min-w-[50%] animate-jump-in animate-ease-out animate-duration-400 max-w-[100%] w-full"
                 >
                     <span className="text-md">This channel is protected</span>
                     <div className="flex flex-col justify-center items-center w-full">
                         <Input
                             label="Password"
-                            className="h-[40px] w-[80%] rounded-md border-2 border-primary-500 text-white text-xs bg-transparent md:mr-2"
-                            type="password"
+                            className="h-[40px] w-full rounded-md border-2 border-primary-500 text-white text-xs bg-transparent md:mr-2"
+                            htmlType="password"
                             placeholder="*****************"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
@@ -188,6 +189,7 @@ const ChatBanner = ({
                                 if (e.key === "Enter") {
                                     socket?.emit("channel_join", { channelId: channel?.id, userId: user?.id, password: password });
                                     setshowModal(false);
+                                    setPassword("");
                                     router.push(`/chat`);     
                                 }
                             }
@@ -199,6 +201,7 @@ const ChatBanner = ({
                                 onClick={() => {
                                     setshowModal(false);
                                     inputRef?.current?.blur();
+                                    setPassword("");
                                 }}
                             >
                                 <span className="text-xs">Cancel</span>
@@ -208,6 +211,7 @@ const ChatBanner = ({
                                 onClick={() => {
                                     socket?.emit("channel_join", { channelId: channel?.id, userId: user?.id, password: password });
                                     setshowModal(false);
+                                    setPassword("");
                                     router.push(`/chat`);     
                                 }}
                             >

@@ -14,7 +14,7 @@ import Button from "../button";
 import { AppContext } from "../../context/app.context";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { throttle } from "lodash";
+import { set, throttle } from "lodash";
 import { twMerge } from "tailwind-merge";
 
 import { BsFillChatLeftTextFill } from "react-icons/bs";
@@ -154,15 +154,33 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
     return () => {
       socket?.off('channel_leave');
       socket?.off('channel_delete');
-      socket?.off('channel_remove');
-      socket?.off('getChannels');
-      socket?.off('getArchiveChannels');
-      socket?.off('channel_create');
-      socket?.off('dm_create');
-      socket?.off('channel_access');
+      // socket?.off('channel_remove');
+      // socket?.off('getChannels');
+      // socket?.off('getArchiveChannels');
+      // socket?.off('channel_create');
+      // socket?.off('dm_create');
+      // socket?.off('channel_access');
     }
     //eslint-disable-next-line
   });
+
+  const fetchChannels = async () => {
+    const channels = await fetcher(`api/channels/${user?.id}`);
+    channels.forEach((channel: Ichannel) => {
+      if (channel.type === "CONVERSATION") {
+        channel.name = channel.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.username;
+        channel.avatar = channel.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.avatar;
+      }
+    }
+    );
+    channels.sort((a: Ichannel, b: Ichannel) => {
+      if (a.updatedAt < b.updatedAt) return 1;
+      else return -1;
+    }
+    );
+    setChannels(channels);
+  }
+
 
   const getuserChannels = async () => {
     socket?.on('getChannels', (channels: Ichannel[]) => {
@@ -210,11 +228,12 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
 
   const onChange = (e: any) => {
     e.preventDefault();
-    setSearch(e.target.value)
-    if (search.trim() !== "") {
-      setChannels(channels.filter((item: Ichannel) => item.name.toLowerCase().includes(search.toLowerCase())));
+    const {value} = e.target
+    setSearch(value);
+    if (value.trim().length > 0) {
+      setChannels(channels.filter((item: Ichannel) => item.name.toLowerCase().includes(value.toLowerCase())));
     } else {
-      getuserChannels();
+      fetchChannels();
     }
   }
 
