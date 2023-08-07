@@ -294,7 +294,6 @@ export class PongService {
     gameId: number,
   ) {
     try {
-      await this.adjustPlayerRating(winnerId, loserId);
       const game = await this.prisma.game.update({
         where: {
           id: gameId,
@@ -329,14 +328,7 @@ export class PongService {
     player2Id: number,
   ) {
     try {
-      if (player1score === 7 || player2score === 7) {
-        this.updateWinnerandLoser(
-          player1score === 7 ? player1Id : player2Id,
-          player1score === 7 ? player2Id : player1Id,
-          gameId,
-        );
-      }
-      const game = await this.prisma.game.update({
+      await this.prisma.game.update({
         where: {
           id: gameId,
         },
@@ -424,7 +416,12 @@ export class PongService {
   async playWithAI(client: Socket) {
     const playerA = await this.createPlayer(client);
     const playerB = new AIPlayer(1, playerA.canvas, 3, new Ball(new Canvas()));
-    const game = await this.createGameProvider(playerA, playerB, 'Power Shot');
+    const game = await this.createGameProvider(
+      playerA,
+      playerB,
+      'Classic',
+      'Time Attack',
+    );
     playerB.ball = game.game.ball;
     client.on('disconnect', () => {
       // this.updateScore(game.id, playerA.score, 7, playerA.id, playerB.id);
@@ -568,7 +565,10 @@ export class PongService {
       playerA,
       playerBUser,
     );
-    await this.adjustPlayerRating(winner.id, loser.id);
+    if (gameProvider.bet === 'Ranked Mode') {
+      await this.adjustPlayerRating(winner.id, loser.id);
+    }
+
     if (playerA.socket) {
       playerA.socket.emit('game-over', {
         winner: winner.id,
@@ -590,9 +590,11 @@ export class PongService {
   emitUpdate(
     data: { ball: Ball; playerA: Player; playerB: Player },
     client: Socket,
+    timeremaining: Date,
   ) {
     if (data && client) {
       client.emit('update', data.ball);
+      client.emit('update-time', timeremaining);
       client.emit('update-player-a', {
         id: data.playerA.id,
         x: data.playerA.x,
@@ -627,13 +629,26 @@ export class PongService {
       playerA.id,
       playerB.id,
     );
-    if (playerA.score >= 7 || playerB.score >= 7) {
+    if (gameProvider.bet !== 'Time Attack') {
+      if (playerA.score >= 7 || playerB.score >= 7) {
+        this.gameOver(gameProvider);
+        this.removeGameProvider(gameProvider);
+        return;
+      }
+    }
+
+    // Calculate the difference between 'endsAt' and 'startedAt' in minutes
+    let differenceInMinutes =
+      (gameProvider.endsAt.getTime() - Date.now()) / 60000;
+
+    if (differenceInMinutes < 0 && gameProvider.bet === 'Time Attack') {
       this.gameOver(gameProvider);
       this.removeGameProvider(gameProvider);
-      return;
     }
-    this.emitUpdate(game, playerA.socket);
-    this.emitUpdate(game, playerB.socket);
+
+    this.emitUpdate(game, playerA.socket, gameProvider.endsAt);
+    this.emitUpdate(game, playerB.socket, gameProvider.endsAt);
+    // console.log(gameProvider.startedAt.toLocaleString());
     return game;
   }
 

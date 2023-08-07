@@ -1,26 +1,30 @@
-
 "use client";
 
 import useSWR from "swr";
 import IUser from "@/interfaces/user";
 import axios from "axios";
 import { useContext, useEffect, useState } from "react";
-import { addFriend, cancelFriend, acceptFriend } from "./tools";
+import {
+    addFriend,
+    cancelFriend,
+    acceptFriend,
+    BlockUser,
+    UnBlockUser,
+    isBlocked,
+} from "./tools";
 import Image from "next/image";
 
-import {
-    Spinner, Avatar, Button
-} from "@/components";
+import { Spinner, Avatar, Button } from "@/components";
 import { ChatContext } from "@/context/chat.context";
-import { useRouter } from "next/router";
-
+import { useRouter } from "next/navigation";
+import { BiBlock } from "react-icons/bi";
+import { CgUnblock } from "react-icons/cg";
 
 const status = {
     ONLINE: { status: "online", color: "text-green-500" },
     OFFLINE: { status: "offline", color: "text-red-500" },
     INGAME: { status: "in game", color: "text-yellow-600" },
 };
-
 
 const ProfileInfo = ({
     user,
@@ -30,7 +34,7 @@ const ProfileInfo = ({
     currentUser?: IUser;
 }) => {
     const router = useRouter();
-    const {socket} = useContext(ChatContext);
+    const { socket } = useContext(ChatContext);
     const {
         data: friendRequest,
         isLoading,
@@ -46,15 +50,16 @@ const ProfileInfo = ({
                         senderId: currentUser?.id,
                         receiverId: user?.id,
                     },
-
-                },
+                }
             );
             return response.data;
-        }, {
-        refreshInterval: 1,
-    }
+        },
+        {
+            refreshInterval: 1,
+        }
     );
     const [text, setText] = useState("");
+    const blocked = isBlocked(currentUser?.id || 0);
 
     useEffect(() => {
         if (
@@ -83,10 +88,7 @@ const ProfileInfo = ({
                             <div className="flex w-full flex-col items-center justify-center gap-6 md:flex-row">
                                 <div className="basis-1/3">
                                     <Avatar
-                                        src={
-                                            user?.avatar ||
-                                            "/img/default-avatar.png"
-                                        }
+                                        src={user?.avatar || "/img/default-avatar.png"}
                                         alt="avatar"
                                         className="h-48 w-48 md:h-24 md:w-24"
                                     />
@@ -99,38 +101,20 @@ const ProfileInfo = ({
                                         <span className="text-sm font-light">
                                             @{user?.username}
                                         </span>
-                                        <span
-                                            className={`${userStatus.color}`}
-                                        >
+                                        <span className={`${userStatus.color}`}>
                                             {userStatus.status}
                                         </span>
                                     </div>
                                     <div className="flex w-full gap-4">
                                         <Button
-                                            disabled={
-                                                user?.id === currentUser?.id
-                                            }
+                                            disabled={user?.id === currentUser?.id}
                                             className="w-full !text-xs"
                                             onClick={async () => {
                                                 if (text === "Add Friend")
-
-                                                    await addFriend(
-                                                        currentUser?.id ||
-                                                        0,
-                                                        user.id
-                                                    )
-
+                                                    await addFriend(currentUser?.id || 0, user.id);
                                                 else if (text === "Accept")
-
-                                                    await acceptFriend(
-                                                        friendRequest.id
-                                                    )
-
-                                                else
-
-                                                    await cancelFriend(
-                                                        friendRequest.id
-                                                    )
+                                                    await acceptFriend(friendRequest.id);
+                                                else await cancelFriend(friendRequest.id);
 
                                                 await mutate();
                                             }}
@@ -138,18 +122,29 @@ const ProfileInfo = ({
                                             {text}
                                         </Button>
                                         <Button
-                                            disabled={
-                                                user?.id === currentUser?.id
-                                            }
+                                            disabled={user?.id === currentUser?.id}
                                             className="w-full !text-xs"
-                                            onClick={
-                                                () => {
-                                                  socket?.emit("dm_create", { senderId: currentUser?.id , receiverId: user?.id});
-                                                  router.push(`/chat`);
-                                                }
-                                              }
+                                            onClick={() => {
+                                                socket?.emit("dm_create", {
+                                                    senderId: currentUser?.id,
+                                                    receiverId: user?.id,
+                                                });
+                                                router.push(`/chat`);
+                                            }}
                                         >
                                             Message
+                                        </Button>
+                                        <Button
+                                            type={blocked ? "success" : "danger"}
+                                            onClick={async () => {
+                                                blocked
+                                                    ? UnBlockUser(currentUser?.id || 0, user.id)
+                                                    : BlockUser(currentUser?.id || 0, user.id);
+                                                await mutate();
+
+                                            }}
+                                        >
+                                            {blocked ? <CgUnblock /> : <BiBlock />}
                                         </Button>
                                     </div>
                                 </div>
@@ -162,15 +157,9 @@ const ProfileInfo = ({
                                     <div className="flex items-center gap-2">
                                         <span className=" font-medium">
                                             {user?.rating}
-                                            <span className=" text-gray-300 ">
-                                                /10000
-                                            </span>
+                                            <span className=" text-gray-300 ">/10000</span>
                                         </span>
-                                        <img
-                                            src={`/img/smalllogo.svg`}
-                                            alt=""
-                                            width={14}
-                                        />
+                                        <img src={`/img/smalllogo.svg`} alt="" width={14} />
                                     </div>
                                 </div>
                                 <div className="flex w-full justify-between gap-1">
@@ -183,10 +172,7 @@ const ProfileInfo = ({
                                             .split("_")
                                             .map(
                                                 (word: string) =>
-                                                    word
-                                                        .charAt(0)
-                                                        .toUpperCase() +
-                                                    word.slice(1)
+                                                    word.charAt(0).toUpperCase() + word.slice(1)
                                             )
                                             .join(" ")}
                                     </span>

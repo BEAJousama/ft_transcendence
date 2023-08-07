@@ -11,11 +11,17 @@ class GameProvider {
   public powerups: string;
   public bet: string;
   public old_ball_speed: number;
+  public startedAt: Date;
+  public endsAt: Date;
   constructor(powerUps?: string, bet?: string) {
     this.powerups = powerUps;
     this.bet = bet;
     const id = setTimeout(() => {
       this.gameStarted = true;
+      this.startedAt = new Date();
+      this.endsAt = new Date(this.startedAt.getTime() + 2 * 60000);
+      console.log(this.startedAt, '|', this.endsAt);
+
       clearTimeout(id);
     }, 5000);
   }
@@ -164,7 +170,7 @@ class GameProvider {
       ball.speed = this.old_ball_speed;
     }
 
-    console.log('powerup', this.powerups);
+    // console.log('powerup', this.powerups);
     if (playerA.powerup && this.powerups === 'ShrinkingPaddle') {
       playerA.height = 200;
     }
