@@ -4,13 +4,15 @@
 import useSWR from "swr";
 import IUser from "@/interfaces/user";
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { addFriend, cancelFriend, acceptFriend } from "./tools";
 import Image from "next/image";
 
 import {
     Spinner, Avatar, Button
 } from "@/components";
+import { ChatContext } from "@/context/chat.context";
+import { useRouter } from "next/router";
 
 
 const status = {
@@ -27,6 +29,8 @@ const ProfileInfo = ({
     user: IUser;
     currentUser?: IUser;
 }) => {
+    const router = useRouter();
+    const {socket} = useContext(ChatContext);
     const {
         data: friendRequest,
         isLoading,
@@ -138,6 +142,12 @@ const ProfileInfo = ({
                                                 user?.id === currentUser?.id
                                             }
                                             className="w-full !text-xs"
+                                            onClick={
+                                                () => {
+                                                  socket?.emit("dm_create", { senderId: currentUser?.id , receiverId: user?.id});
+                                                  router.push(`/chat`);
+                                                }
+                                              }
                                         >
                                             Message
                                         </Button>

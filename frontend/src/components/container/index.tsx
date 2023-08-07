@@ -2,8 +2,6 @@
 
 
 import { twMerge } from "tailwind-merge";
-import Image from "next/image";
-
 
 const Container = ({
     children,

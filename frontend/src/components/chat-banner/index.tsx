@@ -1,45 +1,46 @@
 "use client";
 
+import React, {useRef} from "react";
 import { useContext, useState } from "react";
 import { AppContext, fetcher } from "../../context/app.context";
 import { ChatContext } from "../../context/chat.context";
+import { useRouter } from "next/navigation";
 import Avatar from "../avatar";
 import AvatarGroup from "../avatarGroup";
 import Button from "../button";
-import { BsKeyFill, BsFillPeopleFill } from "react-icons/bs";
 import Input from "../input";
-// import { useNavigate } from 'react-router-dom';
 import Card from "../card";
-import React from "react";
 import Modal from "../modal";
 import axios from "axios";
 import { toast } from "react-toastify";
+
+import { BsKeyFill, BsFillPeopleFill } from "react-icons/bs";
 
 const ChatBanner = ({
     channel,
 }: {
     channel?: any;
 }) => {
-    // const navigate = useNavigate();
+    const router = useRouter();
     const { user } = useContext(AppContext);
     const { socket } = useContext(ChatContext);
     const [password, setPassword] = useState("");
     const [accessPassword, setAccessPassword] = useState("");
     const [showModal, setshowModal] = useState(false);
-    const inputRef = React.useRef<HTMLInputElement>(null);
+    const inputRef = useRef<HTMLInputElement>(null);
     const [accesModal, setAccessModal] = useState(false);
 
     const channelMembers = channel?.channelMembers?.filter((member: any) => {
         return member.status === "ACTIVE";
     });
+    
     const handleJoin = () => {
         if (channel?.visiblity === "PROTECTED") {
             setshowModal(true);
             inputRef?.current?.focus();
         } else {
             socket?.emit("channel_join", { channelId: channel?.id, userId: user?.id });
-            socket?.emit('channel_member', { userId: user?.id, channelId: channel?.id });
-            // navigate(`/chat`);
+            router.push(`/chat`);
         }
     };
 
@@ -49,10 +50,8 @@ const ChatBanner = ({
             if (!member) return;
 
             if ((channel?.isacessPassword && member.role === "OWNER") || !channel.isacessPassword) {
-                console.log(channel);
                 socket?.emit("channel_access", { userId: user?.id, channelId: channel?.id });
-                socket?.emit('channel_member', { userId: user?.id, channelId: channel?.id });
-                // navigate(`/chat`);
+                router.push(`/chat`);
                 return;
             }
             else {
@@ -66,22 +65,20 @@ const ChatBanner = ({
     };
 
     const accessChannel = async () => {
-        const accesstoken = window.localStorage.getItem("access_token");
-        const res = await axios.post(`${process.env.NEXT_PUBLIC_BACK_END_URL}api/channels/checkpass`,
-            { password: accessPassword, channelId: channel.id },
-            { headers: { Authorization: `Bearer ${accesstoken}` } });
-        if (res.data === true) {
-            socket?.emit("channel_access", { userId: user?.id, channelId: channel?.id });
-            socket?.emit('channel_member', { userId: user?.id, channelId: channel?.id });
-            // navigate(`/chat`);
-            //   setOpen(true);
-            //   setCurrentChannel(tempChannel);
-            //   getChannelMember(tempChannel.id);
-            //   setSelectedChannel(tempChannel);
-            //   loadMessages(tempChannel.id);
-        }
-        else {
-            toast.error("Wrong access password !");
+        try {
+            const res = await axios.post(`${process.env.NEXT_PUBLIC_BACK_END_URL}api/channels/checkpass`,
+                { password: accessPassword, channelId: channel.id },
+                { withCredentials: true });
+            if (res.data === true) {
+                socket?.emit("channel_access", { userId: user?.id, channelId: channel?.id });
+                router.push(`/chat`);
+            }
+            else {
+                toast.error("Wrong access password !");
+            }
+            
+        } catch (error) {
+            
         }
     }
 
@@ -123,25 +120,25 @@ const ChatBanner = ({
                     <Modal
                         setShowModal={setAccessModal}
                         className="z-10 bg-secondary-800 
-                border-none flex flex-col items-center justify-start shadow-lg shadow-secondary-500 gap-4 text-white min-w-[90%]
-                lg:min-w-[40%] xl:min-w-[800px] animate-jump-in animate-ease-out animate-duration-400">
+                                    border-none flex flex-col !items-center !justify-center shadow-lg shadow-secondary-500 gap-4 text-white min-w-[90%]
+                                    lg:min-w-[40%] xl:min-w-[800px] animate-jump-in animate-ease-out animate-duration-400">
                         <span className="text-md">This channel requires an access password ! </span>
                         <div className="flex flex-col justify-center items-center w-full">
                             <Input
                                 label="Password"
-                                className="h-[40px] w-[80%] rounded-md border-2 border-primary-500 text-white text-xs bg-transparent md:mr-2"
-                                type="password"
+                                className="h-[40px] w-full rounded-md border-2 border-primary-500 text-white text-xs bg-transparent md:mr-2"
+                                htmlType="password"
                                 placeholder="*****************"
                                 value={accessPassword}
                                 // inputRef={iRef}
                                 onChange={(e) => setAccessPassword(e.target.value)}
                                 onKeyDown={
-                                    (e) => {
+                                    async (e) => {
                                         if (e.key === "Enter") {
-                                            accessChannel();
+                                            await accessChannel();
+                                            setAccessPassword("");
                                             setAccessModal(false);
                                             // iRef?.current?.blur();
-                                            setAccessPassword("");
                                         }
                                     }
                                 }
@@ -150,6 +147,7 @@ const ChatBanner = ({
                                 <Button
                                     className="h-8 w-auto md:w-20 !bg-inherit text-white text-xs rounded-full mt-2 mr-2"
                                     onClick={() => {
+                                        setAccessPassword("");
                                         setAccessModal(false);
                                         // iRef?.current?.blur();
                                     }}
@@ -158,10 +156,10 @@ const ChatBanner = ({
                                 </Button>
                                 <Button
                                     className="h-8 w-auto md:w-20 bg-primary-500 text-white text-xs rounded-full mt-2"
-                                    onClick={() => {
-                                        accessChannel()
-                                        setAccessModal(false);
+                                    onClick={ async() => {
+                                        await accessChannel()
                                         setAccessPassword("");
+                                        setAccessModal(false);
                                         // iRef?.current?.blur();
                                     }}
                                 >
@@ -175,14 +173,14 @@ const ChatBanner = ({
             {showModal && (
                 <Card
                     setShowModal={setshowModal}
-                    className="z-10 bg-secondary-800 border-none flex flex-col items-center justify-start shadow-lg shadow-secondary-500 gap-4 text-white min-w-[90%] lg:min-w-[40%] xl:min-w-[50%] animate-jump-in animate-ease-out animate-duration-400 max-w-[100%] w-full"
+                    className="z-10 bg-secondary-800 border-none flex flex-col !items-center !justify-center shadow-lg shadow-secondary-500 gap-4 text-white min-w-[90%] lg:min-w-[40%] xl:min-w-[50%] animate-jump-in animate-ease-out animate-duration-400 max-w-[100%] w-full"
                 >
                     <span className="text-md">This channel is protected</span>
                     <div className="flex flex-col justify-center items-center w-full">
                         <Input
                             label="Password"
-                            className="h-[40px] w-[80%] rounded-md border-2 border-primary-500 text-white text-xs bg-transparent md:mr-2"
-                            type="password"
+                            className="h-[40px] w-full rounded-md border-2 border-primary-500 text-white text-xs bg-transparent md:mr-2"
+                            htmlType="password"
                             placeholder="*****************"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
@@ -190,9 +188,9 @@ const ChatBanner = ({
                             onKeyDown={(e) => {
                                 if (e.key === "Enter") {
                                     socket?.emit("channel_join", { channelId: channel?.id, userId: user?.id, password: password });
-                                    socket?.emit('channel_member', { userId: user?.id, channelId: channel?.id });
                                     setshowModal(false);
-                                    // navigate(`/chat`);      
+                                    setPassword("");
+                                    router.push(`/chat`);     
                                 }
                             }
                             }
@@ -203,6 +201,7 @@ const ChatBanner = ({
                                 onClick={() => {
                                     setshowModal(false);
                                     inputRef?.current?.blur();
+                                    setPassword("");
                                 }}
                             >
                                 <span className="text-xs">Cancel</span>
@@ -211,9 +210,9 @@ const ChatBanner = ({
                                 className="h-8 w-auto md:w-20 bg-primary-500 text-white text-xs rounded-full mt-2 ml-3"
                                 onClick={() => {
                                     socket?.emit("channel_join", { channelId: channel?.id, userId: user?.id, password: password });
-                                    socket?.emit('channel_member', { userId: user?.id, channelId: channel?.id });
                                     setshowModal(false);
-                                    // navigate(`/chat`);      
+                                    setPassword("");
+                                    router.push(`/chat`);     
                                 }}
                             >
                                 <span className="text-xs">Join</span>

@@ -10,9 +10,10 @@ import { INotification } from "./socket.context";
 import IUser from "@/interfaces/user";
 import useSWR from "swr";
 import Link from "next/link";
+import { cookies } from "next/dist/client/components/headers";
 
 export interface IchatContext {
-    users: IUser[] | undefined;
+    // users: IUser[] | undefined;
     socket: Socket | null;
 }
 
@@ -63,7 +64,7 @@ export interface IchannelMember {
 
 export const ChatContext = createContext<IchatContext>({
     socket: null,
-    users: undefined,
+    // users: undefined,
 });
 
 export default function ChatProvider({
@@ -73,25 +74,11 @@ export default function ChatProvider({
 }) {
     const [socket, setSocket] = useState<Socket | null>(null);
     const { user } = useContext(AppContext);
-    // const [users, setUsers] = useState<IUser[]>([]);
-    const { data: users } = useSWR(`api/users/non-blocked-users/${user?.id}`, fetcher, {
-        refreshInterval: 5000,
-        revalidateOnMount: true,
-        revalidateOnFocus: true,
-        revalidateOnReconnect: true,
-        refreshWhenOffline: true,
-        refreshWhenHidden: true,
-        dedupingInterval: 60000,
-        // onSuccess: (newData) => setUsers(newData),
-    });
+
     useEffect(() => {
-        if (!user) return;
         const newSocket = io(`${process.env.NEXT_PUBLIC_BACK_END_URL}chat`, {
-            query: {
-                clientId: user?.id,
-            },
             auth: {
-                token: localStorage.getItem("access_token"),
+                token: document.cookie.split("=")[1],
             },
         });
 
@@ -120,7 +107,7 @@ export default function ChatProvider({
         });
         // add a toast like for error messages
 
-        newSocket.on("error", (data: any) => {
+        newSocket.on("error", (data: string) => {
             toast.error(
                 <div className="">
                     <h1 className="text-white">Error</h1>
@@ -133,12 +120,12 @@ export default function ChatProvider({
             newSocket.disconnect();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [user]);
+    }, []);
 
 
     const chatContextValue: IchatContext = {
         socket,
-        users,
+        // users,
     };
     return (
         <ChatContext.Provider value={chatContextValue}>

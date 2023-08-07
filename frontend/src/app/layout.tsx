@@ -25,7 +25,7 @@ export default function RootLayout({
     <html lang="en">
       <AppProvider>
         <SocketProvider>
-          {/* <ChatProvider> */}
+          <ChatProvider>
           <GameProvider>
             <body className={montserrat.className} suppressHydrationWarning>{children}</body>
             <ToastContainer
@@ -42,7 +42,7 @@ export default function RootLayout({
               transition={Slide}
             />
           </GameProvider>
-          {/* </ChatProvider> */}
+          </ChatProvider>
         </SocketProvider>
       </AppProvider>
     </html>

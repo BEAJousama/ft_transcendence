@@ -1,16 +1,18 @@
 "use client";
 
+import { useContext, useRef, useState } from "react";
+import { useClickAway } from "react-use";
+
+import { ChatContext } from "../../context/chat.context";
 
 import Avatar from "../avatar";
+import RightClickMenu, { RightClickMenuItem } from "../rightclickmenu";
+import { twMerge } from "tailwind-merge";
+
 import { BiVolumeMute } from "react-icons/bi";
 import { BsArchiveFill, BsPinAngleFill } from "react-icons/bs";
 import { RiMailUnreadFill } from "react-icons/ri";
 import { MdDelete } from "react-icons/md";
-import { useContext, useRef, useState } from "react";
-import RightClickMenu, { RightClickMenuItem } from "../rightclickmenu";
-import { useClickAway } from "react-use";
-import { ChatContext } from "../../context/chat.context";
-import { twMerge } from "tailwind-merge";
 
 interface ChannelProps {
   id: number | undefined;
@@ -165,7 +167,7 @@ const Channel: React.FC<ChannelProps> = ({
       ref={ref}
     >
       <div className="flex items-center gap-2">
-        <Avatar src={avatar!} alt="" status={userStatus} />
+        <Avatar src={avatar!} alt="" status={userStatus ? "ONLINE" : "OFFLINE"} />
         <div className="flex flex-col text-sm truncate">
           <span className="text-white">{name && name.length > 17 ? name.slice(0, 17) + "..." : name}</span>
           <span className="text-secondary-300">{description && description.length > 17 ? description.slice(0, 17) + "..." : description}</span>
