@@ -201,7 +201,7 @@ const CreateGameCard = ({
                                     }}
                                     htmlFor={"gamemode" + name}
                                     label="Select Game bet"
-                                    options={["50", "100", "150", "500", "1000", "5000"]}
+                                    options={["Classic Mode", "Ranked Mode", "Time Attack"]}
                                 />
                                 <RadioCheck
                                     value={gameOption}
