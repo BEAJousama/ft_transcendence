@@ -423,7 +423,6 @@ export class ChannelService {
   ): Promise<Channel> {
     let hashPassword;
     try {
-      console.log(channelData);
       const channelMember = await this.getChannelMemberByUserIdAndChannelId(
         userId,
         channelData.id,
@@ -447,7 +446,11 @@ export class ChannelService {
         return channel;
       }
       if (channelData.type === 'avatar') {
-        const channel = await this.prisma.channel.update({
+        let channel = await this.getChannelById(channelData.id);
+        if (channelData.avatar === '') throw new Error('Avatar is required');
+        if (channel.avatar === channelData.avatar)
+          throw new Error('Avatar is already set !');
+        channel = await this.prisma.channel.update({
           where: {
             id: channelData.id,
           },
@@ -459,12 +462,14 @@ export class ChannelService {
       }
       if (channelData.type === 'visibility') {
         const ch = await this.getChannelById(channelData.id);
+        if (ch.visiblity === Visiblity[channelData.visibility])
+          throw new Error('Please select another visibility option!');
         if (
           ch.visiblity !== Visiblity.PROTECTED &&
           channelData.visibility === Visiblity.PROTECTED &&
           (!channelData.password || channelData.password === '')
         )
-          throw new Error('Password is required for protected channel');
+          throw new Error('Password is required for protected channel !');
         else if (
           channelData.visibility === Visiblity.PROTECTED &&
           channelData.password
@@ -507,6 +512,9 @@ export class ChannelService {
         return channel;
       }
       if (channelData.type === 'members') {
+        const channel = await this.getChannelById(channelData.id);
+        if (channelData.members.length === 0)
+          throw new Error('Please select members to add !');
         const members = channelData.members;
         if (channelData.members) {
           const newMembers = [];
@@ -572,6 +580,8 @@ export class ChannelService {
       }
 
       if (channelData.type === 'access_pass') {
+        if (!channelData.access_pass || channelData.access_pass === '')
+          throw new Error('Please Enter a valid password !');
         hashPassword = await this.hashPassword(channelData.access_pass);
         const channel = await this.prisma.channel.update({
           where: {

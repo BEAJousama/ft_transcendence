@@ -1,5 +1,10 @@
 "use client";
 
+import { useState, useRef, useContext, useEffect, useCallback } from "react";
+import { useClickAway } from "react-use";
+import { AppContext } from "../../context/app.context";
+import { ChatContext, Ichannel, IchannelMember, Imessage } from "../../context/chat.context";
+
 import Button from "../button";
 import Input from "../input";
 import MessageBox from "./messagebox";
@@ -14,16 +19,12 @@ import { TbUserOff } from "react-icons/tb"
 import { FcMenu } from "react-icons/fc"
 
 import Avatar from "../avatar";
-import { useState, useRef, useContext, useEffect, useCallback } from "react";
-import { useClickAway } from "react-use";
 import Modal from "../modal";
 import data from "@emoji-mart/data";
 import Picker from "@emoji-mart/react";
 import Divider from "../divider";
 import ProfileBanner from "../profilebanner";
-import { AppContext } from "../../context/app.context";
 import UpdateAvatar from "../update-avatar";
-import { ChatContext, Ichannel, IchannelMember, Imessage } from "../../context/chat.context";
 
 import UpdateChannel from "./updateChannel";
 import RightClickMenu, { RightClickMenuItem } from "../rightclickmenu";
@@ -32,6 +33,7 @@ import { toast } from "react-toastify";
 import CustomSelect from "../select";
 import IUser from "../../interfaces/user";
 import { twMerge } from "tailwind-merge";
+import { set } from "lodash";
 
 interface ChannelProps {
   className?: string;
@@ -51,7 +53,7 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
   const [showPicker, setShowPicker] = useState<boolean>(false);
   const [showModal, setShowModal] = useState<boolean>(false);
   const [showEdit, setShowEdit] = useState<boolean>(false);
-  const [visibility, setVisibility] = useState<string | undefined>(currentChannel?.visiblity);
+  const [visibility, setVisibility] = useState<string >(currentChannel?.visiblity || "");
   const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
   const [previewImage, setPreviewImage] = useState<string>(currentChannel?.avatar || "");
   const [groupName, setGroupName] = useState<string>(currentChannel?.name || "");
@@ -70,11 +72,11 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
   const [showConfirm, setShowConfirm] = useState<boolean>(false);
   const [messageId, setMessageId] = useState<number | undefined>(0);
   const [chId, setChId] = useState<number | undefined>(0);
+  const [isBlockingOrUnblocking, setIsBlockingOrUnblocking] = useState(false);
   // const navigate = useNavigate();
   const { socket } = useContext(ChatContext);
   const { user } = useContext(AppContext);
   const refMessage = useRef(null);
-  const [isBlockingOrUnblocking, setIsBlockingOrUnblocking] = useState(false);
 
   useEffect(() => {
     setValue("");
@@ -85,7 +87,7 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
     const scroll = refMessage.current;
     if (scroll) {
       (scroll as HTMLElement).scrollIntoView({
-        behavior: 'smooth'
+        behavior: 'smooth',
       });
     }
   };
@@ -105,13 +107,10 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
   });
 
   useEffect(() => {
-    setVisibility(currentChannel?.visiblity);
+    setVisibility(currentChannel?.visiblity || "");
     setPreviewImage(currentChannel?.avatar || "");
     setGroupName(currentChannel?.name || "");
     setChId(currentChannel?.id);
-    if (currentChannel) {
-      autoScroll();
-    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentChannel]);
 
@@ -212,9 +211,7 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
         blockerId: user?.id, blockingId: userId
       },
       {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
+        withCredentials: true,
       })
     if (response) {
       setDmMenu(false);
@@ -227,9 +224,7 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
     const response = await axios.post(`${process.env.NEXT_PUBLIC_BACK_END_URL}api/users/unblock-user`,
       { blockerId: user?.id, blockingId: userId },
       {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
+        withCredentials: true,
       })
     if (response) {
       setDmMenu(false);
@@ -239,6 +234,9 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
 
   const handleRemovePassword = () => {
     socket?.emit("channel_update", { id: currentChannel?.id, type: "rm_access_pass" });
+    setAccessPassword("");
+    setChPassword(false);
+    setShowEdit(true);
   }
 
   const handleAddMembers = () => {
@@ -266,9 +264,9 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
           >
             <Avatar src={currentChannel?.type !== "CONVERSATION" ? currentChannel?.avatar :
               currentChannel?.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.avatar} alt=""
-              status={currentChannel?.type !== "CONVERSATION" ? false :
-                currentChannel?.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.status === "ONLINE" &&
-                !checkBlock(currentChannel?.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.id)}
+              status={currentChannel?.type !== "CONVERSATION" ? "OFFLINE" :
+                (currentChannel?.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.status === "ONLINE" &&
+                !checkBlock(currentChannel?.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.id) ? "ONLINE" : "OFFLINE")}
             />
             <div>{currentChannel?.type !== "CONVERSATION" ? (currentChannel?.name && currentChannel?.name.length > 50 ? currentChannel?.name.slice(0, 50) + " ..." : currentChannel?.name) : currentChannel?.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.username}</div>
           </div>
@@ -336,52 +334,52 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
 
       {
         // !spinner ?
-        <div className="mb-2 flex flex-col overflow-y-scroll scroll-smooth scrollbar-hide h-full first:space-y-4 gap-2 z-[0] px-[10px] ">
-          {
-            messages?.map((message, index) => {
-              return (
-                index !== messages.length - 1 ?
-                  (<div key={message.id} className={`first-of-type:mt-auto transition-all duration-500 transform  ${index > 0 ? 'translate-y-2' : ''}`}>
-                    {new Date(message.date).getDay() !== new Date(messages[messages.indexOf(message) - 1]?.date).getDay() && (
-                      <Divider center title={
-                        //check if date is less than 10, if so add a 0 in front of it
-                        `${new Date(message.date).getDate() < 10 ? '0' + new Date(message.date).getDate() :
-                          new Date(message.date).getDate()}-${new Date(message.date).getMonth() < 12 ? '0' + (new Date(message.date).getMonth() + 1) :
-                            new Date(message.date).getMonth() + 1}-${new Date(message.date).getFullYear()}`}
-                      />)}
-                    <MessageBox
-                      autoScroll={autoScroll}
-                      key={message.id}
-                      message={message}
-                      right={(message.senderId === user?.id)}
-                    />
-                  </div>)
-                  :
-                  (<div key={message.id} ref={refMessage} className={`first-of-type:mt-auto transition-all duration-500 transform  ${index > 0 ? 'translate-y-2' : ''}`}>
-                    {new Date(message.date).getDay() !== new Date(messages[messages.indexOf(message) - 1]?.date).getDay() && (
-                      <Divider center title={
-                        //check if date is less than 10, if so add a 0 in front of it
-                        `${new Date(message.date).getDate() < 10 ? '0' + new Date(message.date).getDate() :
-                          new Date(message.date).getDate()}-${new Date(message.date).getMonth() < 12 ? '0' + (new Date(message.date).getMonth() + 1) :
-                            new Date(message.date).getMonth() + 1}-${new Date(message.date).getFullYear()}`}
-                      />)}
-                    <MessageBox
-                      autoScroll={autoScroll}
-                      key={message.id}
-                      message={message}
-                      right={(message.senderId === user?.id)}
-                    />
-                  </div>)
-              )
-            })}
-          <div className="mt-20"></div>
-        </div>
-        // : 
-        // <div className="mb-2 flex h-full flex-col  justify-end gap-2 z-[0] px-[10px] ">
-        //   <div className="flex justify-center items-center h-full">
-        //     <Spinner/>
-        //   </div>
-        // </div>
+      <div className="mb-2 flex flex-col overflow-y-scroll scroll-smooth scrollbar-hide h-full first:space-y-4 gap-2 z-[0] px-[10px] ">
+        {
+          messages?.map((message, index) => {
+            return (
+              index !== messages.length - 1 ? 
+              (<div key={message.id} className={`first-of-type:mt-auto transition-all duration-500 transform  ${index > 0 ? 'translate-y-2' : ''}`}>
+                {new Date(message.date).getDay() !== new Date(messages[messages.indexOf(message) - 1]?.date).getDay() && (
+                <Divider center title={ 
+                  //check if date is less than 10, if so add a 0 in front of it
+                  `${  new Date(message.date).getDate() < 10 ? '0' + new Date(message.date).getDate() : 
+                    new Date(message.date).getDate()}-${ new Date(message.date).getMonth() < 12 ? '0' + (new Date(message.date).getMonth() + 1) : 
+                    new Date(message.date).getMonth() + 1}-${new Date(message.date).getFullYear()}`}
+                />)}
+                <MessageBox
+                autoScroll={autoScroll}
+                key={message.id}
+                message={message}
+                right={(message.senderId === user?.id)} 
+                />          
+            </div>)
+            :
+              (<div key={message.id} ref={refMessage} className={`first-of-type:mt-auto transition-all duration-500 transform  ${index > 0 ? 'translate-y-2' : ''}`}>
+                {new Date(message.date).getDay() !== new Date(messages[messages.indexOf(message) - 1]?.date).getDay() && (
+                <Divider center title={ 
+                  //check if date is less than 10, if so add a 0 in front of it
+                  `${  new Date(message.date).getDate() < 10 ? '0' + new Date(message.date).getDate() : 
+                    new Date(message.date).getDate()}-${ new Date(message.date).getMonth() < 12 ? '0' + (new Date(message.date).getMonth() + 1) : 
+                    new Date(message.date).getMonth() + 1}-${new Date(message.date).getFullYear()}`}
+                />)}
+                <MessageBox
+                autoScroll={autoScroll}
+                key={message.id}
+                message={message}
+                right={(message.senderId === user?.id)} 
+                />          
+            </div>)
+            ) 
+        })}
+        <div className="mt-5"></div>
+      </div>
+      // : 
+      // <div className="mb-2 flex h-full flex-col  justify-end gap-2 z-[0] px-[10px] ">
+      //   <div className="flex justify-center items-center h-full">
+      //     <Spinner/>
+      //   </div>
+      // </div>
       }
       <div className="flex w-full  items-center bg-secondary-700 sticky bottom-0 ">
         <Button
@@ -557,7 +555,7 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
               {
                 (currentChannel?.channelMembers?.filter((member: IchannelMember) => member.userId === user?.id)[0].role === "ADMIN" || currentChannel?.channelMembers?.filter((member: IchannelMember) => member.userId === user?.id)[0].role === "OWNER") ? (
                   <div
-                    className="!bg-inherit !text-white hover:bg-inherit ml-2">
+                    className="!bg-inherit !text-white font-bold hover:bg-inherit pl-2">
                     Edit Channel
                   </div>
                 ) :
@@ -634,7 +632,9 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
                         setShowEdit(false);
                       }}
                     >
-                      Edit access password
+                      {                   
+                        currentChannel?.isacessPassword ? "Edit access password" : "Add access password"
+                      }
                       <MdOutlinePassword />
                     </Button>
                   )}
@@ -662,7 +662,7 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
                 {
                   currentChannel?.channelMembers?.filter((member: IchannelMember) => member.userId === user?.id)[0].role === "OWNER" && (
                     <Button
-                      className="!bg-inherit !text-white hover:bg-inherit justify-between w-full !font-medium"
+                      className="!bg-inherit !text-red-400 hover:bg-inherit justify-between w-full !font-medium"
                       onClick={() => {
                         setDeleteChannel(true);
                         setShowEdit(false);
@@ -674,7 +674,7 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
                   )
                 }
                 <Button
-                  className="w-[50%] md:w-[30%] lg:w[50%] 2xl:w-[50%] justify-center self-center mt-4"
+                  className="w-full justify-center self-center mt-4"
                   onClick={() => {
                     leaveGroup();
                   }}
@@ -707,7 +707,7 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
                       );
                     })}
                     <Button
-                      className="w-[50%] md:w-[30%] lg:w[50%] 2xl:w-[50%] justify-center self-center mt-4"
+                      className="w-full justify-center self-center mt-4"
                       onClick={() => {
                         leaveGroup();
                       }}
@@ -726,6 +726,8 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
                 updateX={handleEditChannelName}
                 setShowEdit={setShowEdit}
                 setShowModal={setShowModal}
+                setValue={setGroupName}
+                defaultValue={currentChannel?.name}
               >
                 <Input
                   label="Name"
@@ -761,6 +763,8 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
                 updateX={handleEditChannelAvatar}
                 setShowModal={setShowModal}
                 setShowEdit={setShowEdit}
+                setValue={setPreviewImage}
+                defaultValue={currentChannel?.avatar}
               >
                 <UpdateAvatar previewImage={previewImage} setPreviewImage={setPreviewImage} />
               </UpdateChannel>
@@ -773,6 +777,8 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
                 updateX={handleEditChannelVisibility}
                 setShowEdit={setShowEdit}
                 setShowModal={setShowModal}
+                defaultValue={currentChannel?.visiblity}
+                setValue={setVisibility}
               >
                 <CustomSelect
                   className="mb-4"
@@ -781,11 +787,11 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
                 {
                   visibility === "PROTECTED" && (
                     <Input label="Password [required]" placeholder="*****************" htmlType="password"
-                      value={password}
+                      value={password.trim()}
                       onChange={
                         (event) => {
                           const { value } = event.target;
-                          setPassword(value);
+                          setPassword(value.trim());
                         }
                       }
                     />
@@ -851,32 +857,23 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
                 updateX={handleEditChannelPassword}
                 setShowEdit={setShowEdit}
                 setShowModal={setShowModal}
+                setValue={setAccessPassword}
+                remove={currentChannel?.isacessPassword}
+                handleRemovePassword={handleRemovePassword}
+                defaultValue=""
               >
                 <Input
                   label={currentChannel?.isacessPassword ? "Edit password" : "Set password"}
                   htmlType="password"
                   placeholder="*****************"
-                  value={accessPassword}
+                  value={accessPassword.trim()}
                   onChange={
                     (event) => {
                       const { value } = event.target;
-                      setAccessPassword(value);
+                      setAccessPassword(value.trim());
                     }
                   }
                 />
-                {
-                  currentChannel?.isacessPassword &&
-                  (
-                    <Button
-                      className="bg-red-400 !text-white hover:bg-inherit justify-between !w-[40%] !font-medium ml-1 mt-4"
-                      onClick={() => {
-                        handleRemovePassword();
-                      }}
-                    >
-                      Remove
-                    </Button>
-                  )
-                }
               </UpdateChannel>
             )
           }

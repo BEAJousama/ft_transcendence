@@ -6,12 +6,11 @@ import axios from "axios";
 import { AppContext } from "./../../context/app.context";
 import { useFormik } from "formik";
 import Link from "next/link";
-import { redirect, useRouter } from "next/navigation";
+import { redirect } from "next/navigation";
 
 
 
 const Login = () => {
-    const router = useRouter();
     const { authenticated, fetchUser } = useContext(AppContext);
     const [loading, setLaoding] = useState<boolean>(true);
     const [twoFactorAuth, setTwoFactorAuth] = useState<boolean>(false);

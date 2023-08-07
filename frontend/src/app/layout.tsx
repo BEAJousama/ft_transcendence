@@ -27,7 +27,7 @@ export default function RootLayout({
     <html lang="en">
       <AppProvider>
         <SocketProvider>
-          {/* <ChatProvider> */}
+          <ChatProvider>
           <GameProvider>
             <body className={montserrat.className}>
 
@@ -47,7 +47,7 @@ export default function RootLayout({
               />
             </body>
           </GameProvider>
-          {/* </ChatProvider> */}
+          </ChatProvider>
         </SocketProvider>
       </AppProvider>
 
