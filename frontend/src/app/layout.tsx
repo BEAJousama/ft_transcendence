@@ -6,7 +6,7 @@ import GameProvider from "@/context/socket.context";
 import SocketProvider from "@/context/game.context";
 import ChatProvider from "@/context/chat.context";
 import { ToastContainer, toast, Slide } from "react-toastify";
-import 'react-toastify/dist/ReactToastify.css';
+import "react-toastify/dist/ReactToastify.css";
 
 
 const montserrat = Montserrat({ subsets: ["latin"] });

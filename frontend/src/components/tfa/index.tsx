@@ -4,8 +4,6 @@ import { useContext, useEffect, useRef, useState } from "react";
 import { AppContext } from "../../context/app.context";
 import { redirect } from "next/navigation";
 
-
-
 const TwoFactorAuth = () => {
 	const { fetchUser, authenticated, setAuthenticated } = useContext(AppContext);
 	const [code, setCode] = useState("");
@@ -36,17 +34,14 @@ const TwoFactorAuth = () => {
 		}
 	};
 
-
 	return (
-		// <div className="flex h-screen w-screen flex-col items-center justify-center gap-5 bg-secondary-800 text-gray-200">
-		<div className="grid place-items-center w-full">
-
+		<div className="grid place-items-center justify-center w-full h-full">
 			<div
 				className="flex flex-col items-center justify-center w-full max-w-sm md:max-w-md lg:max-w-lg gap-4 px-16 py-12 text-white"
-			// onKeyDown={handleKeyPress}
+				// onKeyDown={handleKeyPress}
 			>
 				<div className="flex flex-col items-center gap-2 text-center">
-					<h1 className="text-2xl">Tow-Factor Authentication</h1>
+					<h1 className="text-2xl">Two-Factor Authentication</h1>
 					<p className=" text-tertiary-200">
 						Open the two-step verification app on your mobile device to get your
 						verification code
@@ -130,8 +125,7 @@ const TwoFactorAuth = () => {
 					className="w-full justify-center"
 					onClick={async () => {
 						try {
-							const accessToken =
-								window.localStorage?.getItem("2fa_access_token");
+							const accessToken = window.localStorage?.getItem("2fa_access_token");
 							const response = await axios.post(
 								`${process.env.NEXT_PUBLIC_BACK_END_URL}api/auth/2fa/verify`,
 								{ code },

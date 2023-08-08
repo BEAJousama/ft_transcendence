@@ -36,3 +36,4 @@ export { default as CompleteInfo } from "./completeinfo";
 export { default as FourOFour } from "./404";
 export { default as ScoreBoard } from "./score-board";
 export { default as PauseGame } from "./puase-game";
+export { default as Contributor } from "./contributor";

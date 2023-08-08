@@ -34,9 +34,9 @@ export const AppContext = React.createContext<IAppContext>({
 	user: undefined,
 	loading: true,
 	authenticated: false,
-	setAuthenticated: () => { },
-	fetchUser: async () => { },
-	updateUser: async () => { },
+	setAuthenticated: () => {},
+	fetchUser: async () => {},
+	updateUser: async () => {},
 });
 
 export const fetcher = async (url: string) => {
