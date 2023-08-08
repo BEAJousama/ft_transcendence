@@ -7,6 +7,8 @@ import { JwtService } from '@nestjs/jwt';
 import { ValidationPipe } from '@nestjs/common';
 import * as cookieParser from 'cookie-parser';
 
+// global-header.middleware.ts
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     cors: {
@@ -20,6 +22,7 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe());
   app.use(bodyParser.json({ limit: '10mb' }));
   app.use(cookieParser());
+
   app.setGlobalPrefix('/api');
 
   const reflector = app.get(Reflector);
@@ -36,7 +39,6 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('/', app, document);
   SwaggerModule.setup('api', app, document);
-
   await app.listen(3000);
 }
 bootstrap();

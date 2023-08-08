@@ -10,6 +10,7 @@ import { useFormik } from "formik";
 import { toFormikValidationSchema } from "zod-formik-adapter";
 import IUser from "@/interfaces/user";
 
+
 const commonWordsRegex = /^(?!.*(password|123456|qwerty|azerty|etc))$/i;
 
 const signUpFormSchema = z
@@ -61,29 +62,29 @@ const Inputs: {
 	label: string;
 	htmlType?: string;
 }[] = [
-	{
-		name: "fullname",
-		label: "Full Name",
-	},
-	{
-		name: "username",
-		label: "Username",
-	},
-	{
-		name: "email",
-		label: "Email",
-	},
-	{
-		name: "password",
-		label: "Password",
-		htmlType: "password",
-	},
-	{
-		name: "confirmPassword",
-		label: "Confirm Password",
-		htmlType: "password",
-	},
-];
+		{
+			name: "fullname",
+			label: "Full Name",
+		},
+		{
+			name: "username",
+			label: "Username",
+		},
+		{
+			name: "email",
+			label: "Email",
+		},
+		{
+			name: "password",
+			label: "Password",
+			htmlType: "password",
+		},
+		{
+			name: "confirmPassword",
+			label: "Confirm Password",
+			htmlType: "password",
+		},
+	];
 
 export default function SignUp({ goToCompleteInfo }: { goToCompleteInfo: () => void }) {
 	const router = useRouter();
@@ -105,7 +106,7 @@ export default function SignUp({ goToCompleteInfo }: { goToCompleteInfo: () => v
 		validationSchema: toFormikValidationSchema(signUpFormSchema),
 		validateOnBlur: submitCount !== 0,
 		validateOnChange: submitCount !== 0,
-		onSubmit: async (values) => {},
+		onSubmit: async (values) => { },
 	});
 
 	const handleSignUp = async () => {
@@ -131,8 +132,8 @@ export default function SignUp({ goToCompleteInfo }: { goToCompleteInfo: () => v
 			});
 			setSuccess(true);
 			if (res.data) {
-				await fetchUser();
-				goToCompleteInfo();
+				document.cookie = `${res.data.name}=${res.data.value}; Path=/;`;
+				router.push("/home")
 			}
 		} catch (_e) {
 			setError("An error occurred, please try again later");
@@ -148,8 +149,9 @@ export default function SignUp({ goToCompleteInfo }: { goToCompleteInfo: () => v
 					<h1 className="text-2xl">Let{"'"}s create your account</h1>
 					<p className=" text-tertiary-200">Please enter your details</p>
 				</div>
-				{Inputs.map((input) => (
+				{Inputs.map((input, i) => (
 					<Input
+						key={i}
 						required
 						name={input.name}
 						label={input.label}

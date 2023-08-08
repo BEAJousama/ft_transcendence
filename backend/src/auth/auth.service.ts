@@ -57,6 +57,43 @@ export class AuthService {
     }
   }
 
+  // async signIn(body: SignInDto, res) {
+  //   try {
+  //     const user = await this.usersService.findUserByLogin(body.username);
+  //     if (!user) {
+  //       throw new UnauthorizedException('Invalid credentials');
+  //     }
+  //     const isMatch = await this.verifyPassword(body.password, user.password);
+  //     if (!isMatch) {
+  //       throw new UnauthorizedException('Invalid credentials');
+  //     }
+
+  //     if (user.twoFactorAuth === true) {
+  //       const payload = { login: user.login, sub: user.id };
+  //       const access_token = this.jwtService.sign(payload, {
+  //         secret: process.env.TFA_JWT_SECRET,
+  //         expiresIn: '24h',
+  //       });
+
+  //       res.cookie('2fa_access_token', access_token);
+  //       // res.redirect(process.env.FRONTEND_URL);
+  //       res.end();
+  //       return;
+  //     }
+
+  //     const payload = { login: user.login, sub: user.id, email: user.email };
+  //     const access_token = this.jwtService.sign(payload, {
+  //       secret: process.env.JWT_SECRET,
+  //       expiresIn: '24h',
+  //     });
+  //     res.cookie('access_token', access_token);
+  //     // res.redirect(process.env.FRONTEND_URL);
+  //     res.end();
+  //   } catch (error) {
+  //     throw error;
+  //   }
+  // }
+
   async signIn(body: SignInDto) {
     try {
       const user = await this.usersService.findUserByLogin(body.username);
@@ -66,6 +103,18 @@ export class AuthService {
       const isMatch = await this.verifyPassword(body.password, user.password);
       if (!isMatch) {
         throw new UnauthorizedException('Invalid credentials');
+      }
+      if (user.twoFactorAuth === true) {
+        const payload = { login: user.login, sub: user.id };
+        const access_token = this.jwtService.sign(payload, {
+          secret: process.env.TFA_JWT_SECRET,
+          expiresIn: '24h',
+        });
+
+        return {
+          name: '2fa_access_token',
+          value: access_token,
+        };
       }
       const payload = { login: user.login, sub: user.id, email: user.email };
       const access_token = this.jwtService.sign(payload, {
@@ -91,15 +140,6 @@ export class AuthService {
       );
     }
   }
-
-  // async getAccessToken() {
-  //   const token = this.accessToken;
-  //   this.accessToken = {
-  //     name: '',
-  //     value: '',
-  //   };
-  //   return token;
-  // }
 
   async callback(req, res) {
     try {
@@ -165,6 +205,7 @@ export class AuthService {
           message: 'success',
         };
       }
+
       return {
         message: 'fail',
       };
@@ -206,22 +247,27 @@ export class AuthService {
     }
   }
 
-  async verify(req) {
+  async verify(req, res) {
     try {
       const user = await this.getprofile(req.user.login);
+
       const { code } = req.body;
+
       const isvalid = this.verifyTwoFactorAuthentication(code, user);
+
       if (isvalid === true) {
         const payload = { login: user.login, sub: user.id };
         const access_token = this.jwtService.sign(payload, {
           secret: process.env.JWT_SECRET,
           expiresIn: '7d',
         });
+
+        res.cookie('access_token', access_token);
         return {
-          access_token,
+          message: 'success',
         };
       }
-      return null;
+      throw new UnauthorizedException('Invalid credentials');
     } catch (error) {
       throw new UnauthorizedException('Invalid credentials');
     }
@@ -229,7 +275,8 @@ export class AuthService {
 
   verifyTwoFactorAuthentication(twoFactorAuthenticationCode: string, user) {
     try {
-      if (!user || twoFactorAuthenticationCode) return false;
+      if (!user || !user.tfaSecret || !twoFactorAuthenticationCode)
+        return false;
 
       return authenticator.verify({
         token: twoFactorAuthenticationCode,

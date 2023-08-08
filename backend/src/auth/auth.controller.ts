@@ -125,11 +125,8 @@ export class AuthController {
   @Post('2fa/verify')
   async verifyTwoFactorAuthentication(@Req() req, @Res() res) {
     try {
-      const value = await this.authService.verify(req);
-      if (value) {
-        res.cookie('access_token', value.access_token);
-      }
-      res.send(value);
+      const _res = await this.authService.verify(req, res);
+      res.end(_res.message);
     } catch (e) {
       throw e;
     }

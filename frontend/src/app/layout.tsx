@@ -9,6 +9,8 @@ import { ToastContainer, toast, Slide } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 
+
+
 const montserrat = Montserrat({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
@@ -29,6 +31,7 @@ export default function RootLayout({
         <ChatProvider>
           <SocketProvider>
             <GameProvider>
+
               <body className={montserrat.className}>
                 {children}
                 <ToastContainer

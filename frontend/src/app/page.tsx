@@ -22,7 +22,7 @@ import IUser from "@/interfaces/user";
 
 const LandingPage = () => {
 	const [slide, setSlide] = useState(1);
-	const { user, loading, authenticated } = useContext(AppContext);
+	const { user, loading, authenticated, fetchUser } = useContext(AppContext);
 
 	const getCookieItem = (key: string): string | undefined => {
 		const cookieString = document.cookie;
@@ -63,7 +63,7 @@ const LandingPage = () => {
 			</div>
 			<div className="grid w-full max-w-5xl h-fit grid-cols-1 place-items-center justify-center gap-8 md:gap-16 p-8 lg:grid-cols-2 z-10 backdrop-blur-sm backdrop-opacity-10">
 				<div className="flex w-full max-w-xs items-center justify-center lg:col-span-2 lg:max-w-xl py-16">
-					<Image src="/img/Logo.png" alt="Pong Materz" width={400} height={200} />
+					<Image src="/img/Logo.png" priority alt="Pong Materz" width={400} height={200} />
 				</div>
 				<div className="flex flex-col items-center justify-center w-full h-full">
 					{loading && (
