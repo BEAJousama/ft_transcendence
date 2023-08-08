@@ -1,10 +1,11 @@
 "use client";
 
 import axios from "axios";
-import React, { useCallback, useEffect, useState } from "react";
+import React from "react";
 import IUser from "@/interfaces/user";
-import { FourOFour, Spinner } from "@/components";
 import { redirect, usePathname } from "next/navigation";
+import useSwr from "swr"
+
 
 export interface IAppContext {
 	user: IUser | undefined;
@@ -14,6 +15,20 @@ export interface IAppContext {
 	fetchUser: () => Promise<void>;
 	updateUser: () => Promise<void>;
 }
+
+export const getCookieItem = (key: string): string | undefined => {
+	const cookieString = document.cookie;
+	const cookiesArray = cookieString.split("; ");
+
+	for (const cookie of cookiesArray) {
+		const [cookieKey, cookieValue] = cookie.split("=");
+		if (cookieKey === key) {
+			return decodeURIComponent(cookieValue);
+		}
+	}
+
+	return undefined;
+};
 
 export const AppContext = React.createContext<IAppContext>({
 	user: undefined,
@@ -25,86 +40,40 @@ export const AppContext = React.createContext<IAppContext>({
 });
 
 export const fetcher = async (url: string) => {
-	const response = await axios.get(`${process.env.NEXT_PUBLIC_BACK_END_URL}${url}`, {
-		withCredentials: true,
-	});
-	return response.data;
+	try {
+		const response = await axios.get(`${process.env.NEXT_PUBLIC_BACK_END_URL}${url}`, {
+			withCredentials: true,
+		});
+		return response.data;
+	}
+	catch (error) {
+		throw error;
+	}
 };
 
 const AppProvider = ({ children }: { children: React.ReactNode }) => {
-	const [data, setData] = useState<IUser | undefined>(undefined);
-	const [isLoading, setIsLoading] = useState<boolean>(true);
-	const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-	const getCookieItem = (key: string): string | undefined => {
-		const cookieString = document.cookie;
-		const cookiesArray = cookieString.split("; ");
+	const { data, isLoading, mutate } = useSwr('api/auth/42', fetcher, {
+		revalidateOnFocus: false,
+		revalidateOnReconnect: false,
+		refreshInterval: 0,
+		refreshWhenHidden: false,
+		refreshWhenOffline: false,
+		shouldRetryOnError: false,
+	})
+	const [isAuthenticated, setIsAuthenticated] = React.useState<boolean>(false);
 
-		for (const cookie of cookiesArray) {
-			const [cookieKey, cookieValue] = cookie.split("=");
-			if (cookieKey === key) {
-				return decodeURIComponent(cookieValue);
-			}
-		}
-
-		return undefined;
-	};
-
-	const fetchUser = useCallback(async () => {
-		if (isAuthenticated) return;
-		try {
-			setIsLoading(true);
-			const data = await fetcher("api/auth/42");
-			if (data) {
-				setData(data);
-				if (getCookieItem("access_token")) {
-					setIsAuthenticated(true);
-				}
-			}
-		} catch (error) {
-			setIsAuthenticated(false);
-		}
-		setIsLoading(false);
-	}, [isAuthenticated]);
-
-	const updateUser = useCallback(async () => {
-		try {
-			const user = await fetcher("api/auth/42");
-			if (data && data !== user) {
-				setData(data);
-				if (!isAuthenticated)
-					setIsAuthenticated(true);
-			}
-
-		} catch (error) {
-			setIsAuthenticated(false);
-		}
-	}, []);
-
-	useEffect(() => {
-		fetchUser();
-
-		const id = setInterval(async () => {
-			console.log("update user")
-			await updateUser();
-		}, 500);
-
-		return () => {
-			clearInterval(id);
-		};
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [fetchUser]);
 
 	const path = usePathname();
 
-	// console.log(path)
+	React.useEffect(() => {
+		if (data) {
+			setIsAuthenticated(true);
+		}
+	}, [data])
 
-	if (!isAuthenticated && path !== "/") redirect("/");
-
-	// if (isLoading && path !== "/")
-
-	//   return <Spinner />;
-
-	// if (isAuthenticated && path === "/")
+	if (!isAuthenticated && !isLoading && path !== "/")
+		redirect("/");
+	// else if (isAuthenticated && !isLoading && path === "/")
 	// 	redirect("/home");
 
 	const appContextValue: IAppContext = {
@@ -112,16 +81,9 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
 		loading: isLoading,
 		authenticated: isAuthenticated,
 		setAuthenticated: setIsAuthenticated,
-		fetchUser,
-		updateUser,
+		fetchUser: mutate,
+		updateUser: mutate,
 	};
-
-	// try {
-	// 	localStorage.getItem('access_token')
-	// }
-	// catch (e) {
-	// 	return <FourOFour show={false} />
-	// }
 
 	return <AppContext.Provider value={appContextValue}>{children}</AppContext.Provider>;
 };

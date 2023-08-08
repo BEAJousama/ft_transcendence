@@ -46,10 +46,7 @@ export class AuthController {
   @GoogleCallbackDoc()
   @UseGuards(GoogleGuard)
   async googleAuthRedirect(@Req() req, @Res() res) {
-    const accesToken = await this.authService.callback(req);
-    res.cookie(accesToken.name, accesToken.value);
-    res.redirect(process.env.FRONTEND_URL);
-    res.end();
+    await this.authService.callback(req, res);
   }
 
   @Public()
@@ -82,11 +79,7 @@ export class AuthController {
   @Get('42/callback')
   async fortyTwoLoginCallback(@Req() req, @Res() res: Response) {
     try {
-      const accesToken = await this.authService.callback(req);
-      res.cookie(accesToken.name, accesToken.value);
-      res.redirect(process.env.FRONTEND_URL);
-      res.end();
-      // return res.redirect(process.env.FRONTEND_URL);
+      await this.authService.callback(req, res);
     } catch (e) {
       throw e;
     }

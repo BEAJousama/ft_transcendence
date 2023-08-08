@@ -48,7 +48,7 @@ export default function CompleteInfo() {
 			// onKeyDown={handleKeyPress}
 			>
 				<div className="flex flex-col items-center gap-2 text-center">
-					<h1 className="text-2xl">Let's complete your profile</h1>
+					<h1 className="text-2xl">Let{"'"}s complete your profile</h1>
 				</div>
 				<div className="relative">
 					<Avatar

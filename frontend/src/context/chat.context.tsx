@@ -64,7 +64,6 @@ export interface IchannelMember {
 
 export const ChatContext = createContext<IchatContext>({
     socket: null,
-    // users: undefined,
 });
 
 export default function ChatProvider({
@@ -75,10 +74,26 @@ export default function ChatProvider({
     const [socket, setSocket] = useState<Socket | null>(null);
     const { user } = useContext(AppContext);
 
+    const getCookieItem = (key: string): string | undefined => {
+        const cookieString = document.cookie;
+        const cookiesArray = cookieString.split("; ");
+
+        for (const cookie of cookiesArray) {
+            const [cookieKey, cookieValue] = cookie.split("=");
+            if (cookieKey === key) {
+                return decodeURIComponent(cookieValue);
+            }
+        }
+
+        return undefined;
+    };
+
     useEffect(() => {
+        const token = getCookieItem("access_token");
+        if (!token) return;
         const newSocket = io(`${process.env.NEXT_PUBLIC_BACK_END_URL}chat`, {
             auth: {
-                token: document.cookie.split("=")[1],
+                token: token,
             },
         });
 
@@ -125,7 +140,6 @@ export default function ChatProvider({
 
     const chatContextValue: IchatContext = {
         socket,
-        // users,
     };
     return (
         <ChatContext.Provider value={chatContextValue}>

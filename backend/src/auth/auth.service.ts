@@ -101,7 +101,7 @@ export class AuthService {
   //   return token;
   // }
 
-  async callback(req) {
+  async callback(req, res) {
     try {
       if (!req.user) throw new UnauthorizedException();
       const data = req.user;
@@ -124,21 +124,22 @@ export class AuthService {
           secret: process.env.TFA_JWT_SECRET,
           expiresIn: '24h',
         });
-        return {
-          name: '2fa_access_token',
-          value: access_token,
-        };
+
+        res.cookie('2fa_access_token', access_token);
+        res.redirect(process.env.FRONTEND_URL);
+        res.end();
+        return;
       }
 
       const payload = { login: user.login, sub: user.id, email: user.email };
       const access_token = this.jwtService.sign(payload, {
         secret: process.env.JWT_SECRET,
-        expiresIn: '24h',
+        expiresIn: '7d',
       });
-      return {
-        name: 'access_token',
-        value: access_token,
-      };
+      res.cookie('access_token', access_token);
+      res.redirect(process.env.FRONTEND_URL);
+      res.end();
+      return;
     } catch (error: any) {
       throw new InternalServerErrorException(error.response.message);
     }

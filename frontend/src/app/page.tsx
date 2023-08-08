@@ -8,7 +8,7 @@ import { AppContext } from "@/context/app.context";
 import Link from "next/link";
 import { IoLogoGithub, IoLogoInstagram, IoLogoLinkedin } from "react-icons/io5";
 import { redirect } from "next/navigation";
-if (typeof window !== "undefined") require("@lottiefiles/lottie-player");
+import { Player } from '@lottiefiles/react-lottie-player';
 
 const LandingPage = () => {
 	const [slide, setSlide] = useState(1);
@@ -35,18 +35,15 @@ const LandingPage = () => {
 	}, [user]);
 
 	if (authenticated && user && user.createdAt !== user.updatedAt) {
-		console.log("to home");
 		redirect("/home");
 	}
 
 	return (
 		<div className="overflow-auto scrollbar-hide relative flex flex-col items-center w-screen h-screen bg-secondary-500">
 			<div className="absolute flex h-screen w-screen items-center justify-center">
-				<lottie-player
+				<Player
 					autoplay
 					loop
-					mode="normal"
-					intermission={3000}
 					src="/lottie/handJoystick.json"
 					style={{ width: 100 + "%", height: 100 + "%", opacity: 0.3 }}
 				/>

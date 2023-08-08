@@ -201,7 +201,7 @@ const CreateGameCard = ({
                                     }}
                                     htmlFor={"gamemode" + name}
                                     label="Select Game bet"
-                                    options={["50", "100", "150", "500", "1000", "5000"]}
+                                    options={["Classic Mode", "Ranked Mode", "Time Attack"]}
                                 />
                                 <RadioCheck
                                     value={gameOption}
@@ -263,7 +263,7 @@ export default function GameCards() {
         invite: boolean;
         join: boolean;
     }>();
-    const [gameMode, setGameMode] = useState<string>("50");
+    const [gameMode, setGameMode] = useState<string>("Classic Mode");
     const [gameOption, setGameOption] = useState<string>("Classic");
     const { socket } = useContext(GameContext);
     const { user } = useContext(AppContext);
@@ -339,7 +339,6 @@ export default function GameCards() {
                 showOptions
                 disabled={disabled?.join}
             />
-
         </Carousel>
     )
 }
