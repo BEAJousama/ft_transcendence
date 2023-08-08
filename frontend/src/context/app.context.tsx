@@ -19,9 +19,9 @@ export const AppContext = React.createContext<IAppContext>({
 	user: undefined,
 	loading: true,
 	authenticated: false,
-	setAuthenticated: () => { },
-	fetchUser: async () => { },
-	updateUser: async () => { },
+	setAuthenticated: () => {},
+	fetchUser: async () => {},
+	updateUser: async () => {},
 });
 
 export const fetcher = async (url: string) => {
@@ -71,10 +71,8 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
 			const user = await fetcher("api/auth/42");
 			if (data && data !== user) {
 				setData(data);
-				if (!isAuthenticated)
-					setIsAuthenticated(true);
+				if (!isAuthenticated) setIsAuthenticated(true);
 			}
-
 		} catch (error) {
 			setIsAuthenticated(false);
 		}
@@ -83,14 +81,14 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
 	useEffect(() => {
 		fetchUser();
 
-		const id = setInterval(async () => {
-			console.log("update user")
-			await updateUser();
-		}, 500);
+		// const id = setInterval(async () => {
+		// 	console.log("update user")
+		// 	await updateUser();
+		// }, 500);
 
-		return () => {
-			clearInterval(id);
-		};
+		// return () => {
+		// 	clearInterval(id);
+		// };
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [fetchUser]);
 

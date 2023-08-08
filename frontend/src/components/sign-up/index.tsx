@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { z } from "zod";
 import { useFormik } from "formik";
 import { toFormikValidationSchema } from "zod-formik-adapter";
+import IUser from "@/interfaces/user";
 
 const commonWordsRegex = /^(?!.*(password|123456|qwerty|azerty|etc))$/i;
 
@@ -55,9 +56,38 @@ const signUpFormSchema = z
 		path: ["confirmPassword"],
 	});
 
-export default function SignUp() {
+const Inputs: {
+	name: "email" | "username" | "fullname" | "password" | "confirmPassword";
+	label: string;
+	htmlType?: string;
+}[] = [
+	{
+		name: "fullname",
+		label: "Full Name",
+	},
+	{
+		name: "username",
+		label: "Username",
+	},
+	{
+		name: "email",
+		label: "Email",
+	},
+	{
+		name: "password",
+		label: "Password",
+		htmlType: "password",
+	},
+	{
+		name: "confirmPassword",
+		label: "Confirm Password",
+		htmlType: "password",
+	},
+];
+
+export default function SignUp({ goToCompleteInfo }: { goToCompleteInfo: () => void }) {
 	const router = useRouter();
-	const { fetchUser } = useContext(AppContext);
+	const { user, fetchUser } = useContext(AppContext);
 	const [error, setError] = useState("");
 	const [redirect, setRedirect] = useState<boolean>();
 	const [loading, setLoading] = useState<boolean>(false);
@@ -100,14 +130,16 @@ export default function SignUp() {
 				password: formik.values.password,
 			});
 			setSuccess(true);
+			if (res.data) {
+				await fetchUser();
+				goToCompleteInfo();
+			}
 		} catch (_e) {
-			setError("Incorrect username or password");
+			setError("An error occurred, please try again later");
 			setLoading(false);
 			console.log(_e);
 		}
 	};
-
-	if (redirect) router.push("/");
 
 	return (
 		<div className="grid place-items-center w-full">
@@ -116,64 +148,20 @@ export default function SignUp() {
 					<h1 className="text-2xl">Let's create your account</h1>
 					<p className=" text-tertiary-200">Please enter your details</p>
 				</div>
-				<Input
-					onBlur={formik.handleBlur}
-					required
-					onChange={formik.handleChange}
-					value={formik.values.fullname}
-					error={formik.errors.fullname}
-					isError={!!formik.errors.fullname}
-					name="fullname"
-					label="Full Name"
-					success={success}
-				/>
-				<Input
-					onBlur={formik.handleBlur}
-					required
-					onChange={formik.handleChange}
-					value={formik.values.username}
-					error={formik.errors.username}
-					isError={!!formik.errors.username}
-					name="username"
-					label="Username"
-					htmlType="email"
-					success={success}
-				/>
-				<Input
-					onBlur={formik.handleBlur}
-					required
-					onChange={formik.handleChange}
-					value={formik.values.email}
-					error={formik.errors.email}
-					isError={!!formik.errors.email}
-					name="email"
-					label="Email"
-					success={success}
-				/>
-				<Input
-					onBlur={formik.handleBlur}
-					required
-					onChange={formik.handleChange}
-					value={formik.values.password}
-					error={formik.errors.password}
-					isError={!!formik.errors.password}
-					name="password"
-					label="Password"
-					htmlType="password"
-					success={success}
-				/>
-				<Input
-					onBlur={formik.handleBlur}
-					required
-					onChange={formik.handleChange}
-					value={formik.values.confirmPassword}
-					error={formik.errors.confirmPassword}
-					isError={!!formik.errors.confirmPassword}
-					name="confirmPassword"
-					label="Confirm Password"
-					htmlType="password"
-					success={success}
-				/>
+				{Inputs.map((input) => (
+					<Input
+						required
+						name={input.name}
+						label={input.label}
+						value={formik.values[input.name]}
+						error={formik.errors[input.name]}
+						isError={!!formik.errors[input.name]}
+						onBlur={formik.handleBlur}
+						onChange={formik.handleChange}
+						success={success}
+						htmlType={input.htmlType}
+					/>
+				))}
 				{error && (
 					<p className="mt-2 text-xs text-red-600 dark:text-red-500">
 						<span className="font-medium">{error}</span>

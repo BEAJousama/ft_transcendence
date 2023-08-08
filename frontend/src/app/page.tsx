@@ -1,5 +1,5 @@
 "use client";
-import React, { useContext, useEffect, useState, KeyboardEvent } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import {
 	Carousel,
 	Login,
@@ -18,6 +18,7 @@ import { Player } from "@lottiefiles/react-lottie-player";
 import { BiLogoTypescript } from "react-icons/bi";
 import { SiNestjs, SiNextdotjs } from "react-icons/si";
 import { FaNode } from "react-icons/fa";
+import IUser from "@/interfaces/user";
 
 const LandingPage = () => {
 	const [slide, setSlide] = useState(1);
@@ -43,24 +44,15 @@ const LandingPage = () => {
 		if (user.createdAt === user.updatedAt) setSlide(3);
 	}, [user]);
 
+	const goToCompleteInfo = () => setSlide(3);
+
 	if (authenticated && user && user.createdAt !== user.updatedAt) {
 		console.log("to home");
 		redirect("/home");
 	}
 
-	const handleKeyPress = (event: KeyboardEvent<HTMLInputElement>) => {
-		if (event.key === "ArrowRight" && slide === 1) {
-			setSlide(2);
-		} else if (event.key === "ArrowLeft" && slide === 2) {
-			setSlide(1);
-		}
-	};
-
 	return (
-		<div
-			className="overflow-auto scrollbar-hide flex flex-col items-center w-screen h-screen bg-secondary-700"
-			onKeyDown={handleKeyPress}
-		>
+		<div className="overflow-auto scrollbar-hide flex flex-col items-center w-screen h-screen bg-secondary-700">
 			<div className="fixed inset-0 flex items-center justify-center">
 				<Player
 					autoplay
@@ -125,7 +117,7 @@ const LandingPage = () => {
 						>
 							<TwoFactorAuth />
 							<Login />
-							<SignUp />
+							<SignUp goToCompleteInfo={goToCompleteInfo} />
 							<CompleteInfo />
 						</Carousel>
 					</div>
