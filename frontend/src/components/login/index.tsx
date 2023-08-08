@@ -1,13 +1,30 @@
 "use client";
 
-import { useState, KeyboardEvent } from "react";
+import { useState } from "react";
 import { Button, Input, Spinner } from "@/components";
 import axios from "axios";
-import { useFormik } from "formik";
 import Link from "next/link";
+import { z } from "zod";
+import { useFormik } from "formik";
+import { toFormikValidationSchema } from "zod-formik-adapter";
+
+const loginFormSchema = z.object({
+	username: z
+		.string({
+			required_error: "Please enter your username",
+			invalid_type_error: "Please enter a valid username",
+		})
+		.min(3)
+		.max(20),
+	password: z.string({
+		required_error: "Please enter your password",
+	}),
+});
 
 const Login = () => {
 	const [loading, setLoading] = useState<boolean>(false);
+	const [success, setSuccess] = useState<boolean>(false);
+	const [submitCount, setSubmitCount] = useState<number>(0);
 	const [error, setError] = useState("");
 
 	const formik = useFormik({
@@ -15,29 +32,16 @@ const Login = () => {
 			username: "",
 			password: "",
 		},
-		validateOnChange: false,
-		validateOnBlur: true,
-		validate: (values) => {
-			const errors: {
-				username?: string;
-				password?: string;
-			} = {};
-
-			if (!values.username) {
-				errors.username = "Please enter your username";
-			}
-			if (!values.password) {
-				errors.password = "Please enter your password";
-			}
-
-			return errors;
-		},
+		validationSchema: toFormikValidationSchema(loginFormSchema),
+		validateOnBlur: submitCount !== 0,
+		validateOnChange: submitCount !== 0,
 		onSubmit: async (values) => {},
 	});
 
 	const handleLogin = async () => {
-		setLoading(true);
 		try {
+			setLoading(true);
+			setSubmitCount((prev) => prev + 1);
 			setError("");
 			formik.validateForm();
 
@@ -45,22 +49,19 @@ const Login = () => {
 				Object.keys(formik.errors).length > 0 ||
 				Object.keys(await formik.validateForm()).length > 0
 			) {
+				setError("Please enter a valid username and password");
+				setLoading(false);
 				return;
 			}
 			const res = await axios.post(`${process.env.NEXT_PUBLIC_BACK_END_URL}api/auth/signin`, {
 				username: formik.values.username,
 				password: formik.values.password,
 			});
+			setSuccess(true);
 		} catch (_e) {
 			setError("Incorrect username or password");
+			setLoading(false);
 			console.log(_e);
-		}
-		setLoading(false);
-	};
-
-	const handleKeyPress = (event: KeyboardEvent<HTMLInputElement>) => {
-		if (event.key === "Enter") {
-			handleLogin();
 		}
 	};
 
@@ -70,26 +71,28 @@ const Login = () => {
 				<h1 className="text-2xl">Welcome Back</h1>
 				<p className=" text-tertiary-200">Please enter your credentials</p>
 				<Input
+					name="username"
+					label="Username"
 					value={formik.values.username}
 					error={formik.errors.username}
 					isError={!!formik.errors.username}
 					onChange={formik.handleChange}
-					name="username"
-					label="Username"
 					onBlur={formik.handleBlur}
+					success={success}
 				/>
 				<Input
+					name="password"
+					label="Password"
+					htmlType="password"
 					value={formik.values.password}
 					error={formik.errors.password}
 					isError={!!formik.errors.password}
 					onChange={formik.handleChange}
-					name="password"
-					label="Password"
-					htmlType="password"
 					onBlur={formik.handleBlur}
+					success={success}
 				/>
 				{error && (
-					<p className="mt-2 text-xs text-red-600 dark:text-red-500">
+					<p className={"mt-2 text-xs text-red-600 dark:text-red-500 animate-[pulse_1s]"}>
 						<span className="font-medium">{error}</span>
 					</p>
 				)}
@@ -101,21 +104,25 @@ const Login = () => {
 						className="relative w-full"
 						onClick={handleLogin}
 						disabled={
-							loading || !formik.values.username || !formik.values.password || !!error
+							loading ||
+							success ||
+							Object.values(formik.values).some((value) => value === "") ||
+							Object.keys(formik.errors).length > 0
 						}
 					>
 						Sign in
 					</Button>
 				</div>
 				<div className="flex w-full items-center gap-2">
-					<hr className="w-[70%] border-gray-500" />
+					<hr className="w-[70%] border-gray-400" />
 					or
-					<hr className="w-[70%] border-gray-500" />
+					<hr className="w-[70%] border-gray-400" />
 				</div>
 				<div className="flex w-full justify-center gap-4 md:flex-col">
 					<Link href={`${process.env.NEXT_PUBLIC_BACK_END_URL}api/auth/42/callback`}>
 						<Button
 							type="secondary"
+							disabled={loading}
 							className="h-14 w-14 justify-center rounded-xl md:h-auto md:w-full text-sm backdrop-blur-sm"
 						>
 							<img src="/img/42Logo-light.svg" alt="logo" width={30} />
@@ -125,6 +132,7 @@ const Login = () => {
 					<Link href={`${process.env.NEXT_PUBLIC_BACK_END_URL}api/auth/google/login`}>
 						<Button
 							type="secondary"
+							disabled={loading}
 							className="h-14 w-14 justify-center rounded-xl md:h-auto md:w-full text-sm backdrop-blur-sm"
 						>
 							<img src="/img/google.svg" alt="logo" width={30} />

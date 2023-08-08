@@ -27,6 +27,7 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 	name?: string;
 	id?: string;
 	type?: string;
+	success?: boolean;
 }
 
 const Input = ({
@@ -49,6 +50,7 @@ const Input = ({
 	hidden,
 	disabled,
 	type = "text",
+	success = false,
 	required,
 }: InputProps) => {
 	return (
@@ -59,9 +61,12 @@ const Input = ({
 						type={htmlType}
 						className={twMerge(
 							`peer m-0 block h-14  w-full rounded border border-solid border-quaternary-200 bg-transparent bg-clip-padding px-3 py-4 text-lg font-semibold leading-tight text-quaternary-50 
-          transition duration-200 ease-linear placeholder:text-transparent focus:border-primary focus:pb-[0.625rem] focus:pt-[1.625rem] focus:outline-none 
-          focus:border-primary-500 focus:text-primary-500 focus:backdrop-blur-sm peer-focus:text-primary-500 [&:not(:placeholder-shown)]:pb-[0.625rem] [&:not(:placeholder-shown)]:pt-[1.625rem]`,
+          transition ease-linear placeholder:text-transparent focus:border-primary focus:outline-none
+          focus:border-primary-500 focus:text-primary-500 focus:backdrop-blur-sm peer-focus:text-primary-500`,
+							label &&
+								`focus:pb-[0.625rem] focus:pt-[1.625rem] [&:not(:placeholder-shown)]:pb-[0.625rem] [&:not(:placeholder-shown)]:pt-[1.625rem]`,
 							isError && `border-red-700 text-red-700`,
+							success && `border-green-700 text-green-700`,
 							value &&
 								`backdrop-blur-sm disabled:cursor-not-allowed disabled:border-primary-700 disabled:text-primary-700`,
 							!value &&
@@ -82,17 +87,20 @@ const Input = ({
 						ref={inputRef}
 						onBlur={onBlur}
 					/>
-					<label
-						htmlFor={id}
-						className={twMerge(
-							`pointer-events-none absolute left-0 top-0 origin-[0_0] border border-solid border-transparent px-3 py-4 transition-[opacity,_transform]
-        duration-200 ease-linear peer-focus:-translate-y-2 peer-focus:translate-x-[0.15rem] peer-focus:scale-[0.85] peer-focus:text-primary-500 peer-[:not(:placeholder-shown)]:-translate-y-2
+					{label && (
+						<label
+							htmlFor={id}
+							className={twMerge(
+								`pointer-events-none absolute left-0 top-0 origin-[0_0] border border-solid border-transparent px-3 py-4 transition-[opacity,_transform]
+     ease-linear peer-focus:-translate-y-2 peer-focus:translate-x-[0.15rem] peer-focus:scale-[0.85] peer-focus:text-primary-500 peer-[:not(:placeholder-shown)]:-translate-y-2
         peer-[:not(:placeholder-shown)]:translate-x-[0.15rem] peer-[:not(:placeholder-shown)]:scale-[0.85] motion-reduce:transition-none text-quaternary-200`,
-							isError && "text-red-700"
-						)}
-					>
-						{label}
-					</label>
+								isError && "text-red-700",
+								success && `text-green-700`
+							)}
+						>
+							{label}
+						</label>
+					)}
 					{error && (
 						<p className="mt-2 text-xs text-red-600">
 							<span className="font-medium">{error}</span>

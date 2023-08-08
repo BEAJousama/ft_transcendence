@@ -1,5 +1,5 @@
 "use client";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, KeyboardEvent } from "react";
 import {
 	Carousel,
 	Login,
@@ -9,12 +9,10 @@ import {
 	Spinner,
 	Contributor,
 } from "@/components";
-import { Button } from "@/components";
 import { twMerge } from "tailwind-merge";
 import Image from "next/image";
 import { AppContext } from "@/context/app.context";
 import Link from "next/link";
-import { IoLogoGithub } from "react-icons/io5";
 import { redirect } from "next/navigation";
 import { Player } from "@lottiefiles/react-lottie-player";
 import { BiLogoTypescript } from "react-icons/bi";
@@ -22,7 +20,7 @@ import { SiNestjs, SiNextdotjs } from "react-icons/si";
 import { FaNode } from "react-icons/fa";
 
 const LandingPage = () => {
-	const [slide, setSlide] = useState(0);
+	const [slide, setSlide] = useState(1);
 	const { user, loading, authenticated } = useContext(AppContext);
 
 	const getCookieItem = (key: string): string | undefined => {
@@ -50,22 +48,33 @@ const LandingPage = () => {
 		redirect("/home");
 	}
 
+	const handleKeyPress = (event: KeyboardEvent<HTMLInputElement>) => {
+		if (event.key === "ArrowRight" && slide === 1) {
+			setSlide(2);
+		} else if (event.key === "ArrowLeft" && slide === 2) {
+			setSlide(1);
+		}
+	};
+
 	return (
-		<div className="overflow-auto scrollbar-hide relative flex flex-col items-center w-screen h-screen bg-secondary-700">
-			<div className="absolute flex h-screen w-screen items-center justify-center">
+		<div
+			className="overflow-auto scrollbar-hide flex flex-col items-center w-screen h-screen bg-secondary-700"
+			onKeyDown={handleKeyPress}
+		>
+			<div className="fixed inset-0 flex items-center justify-center">
 				<Player
 					autoplay
 					loop
 					speed={0.4}
 					src="/lottie/handJoystick.json"
-					style={{ width: 100 + "%", height: 100 + "%", opacity: 0.3 }}
+					style={{ width: "100%", height: "100%", opacity: 0.3 }}
 				/>
 			</div>
 			<div className="grid w-full max-w-5xl h-fit grid-cols-1 place-items-center justify-center gap-8 md:gap-16 p-8 lg:grid-cols-2 z-10 backdrop-blur-sm backdrop-opacity-10">
 				<div className="flex w-full max-w-xs items-center justify-center lg:col-span-2 lg:max-w-xl py-16">
 					<Image src="/img/Logo.png" alt="Pong Materz" width={400} height={200} />
 				</div>
-				<div className="relative flex flex-col items-center justify-center w-full h-full">
+				<div className="flex flex-col items-center justify-center w-full h-full">
 					{loading && (
 						<Spinner className="absolute flex items-center justify-center w-full h-full transition duration-300 ease-out z-20" />
 					)}
@@ -137,9 +146,9 @@ const LandingPage = () => {
 				</div>
 			</div>
 			<div className="grid md:grid-cols-3 w-full max-w-5xl place-items-center justify-center px-8 pb-16 pt-4 gap-8">
-				<div className="relative flex flex-wrap justify-center text-justify col-span-3">
+				<div className="flex flex-wrap justify-center text-justify col-span-3 z-20">
 					<h1 className="text-primary-400 text-4xl font-bold mb-8">Meet the Team</h1>
-					<p className="text-primary-600 w-full text-lg font-light">
+					<p className="text-primary-600 w-full text-lg">
 						We are a vibrant group of talented students hailing from the prestigious{" "}
 						<Link
 							href={"https://1337.ma/"}
