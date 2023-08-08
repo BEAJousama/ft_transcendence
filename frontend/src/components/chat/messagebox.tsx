@@ -2,16 +2,19 @@
 
 
 import { useContext, useEffect, useRef, useState } from "react";
-import RightClickMenu, { RightClickMenuItem } from "../rightclickmenu";
-import { MdDelete } from "react-icons/md";
 import { useClickAway } from "react-use";
 import { IAppContext, fetcher } from "../../context/app.context";
 import { AppContext } from "../../context/app.context";
 import { ChatContext, IchatContext } from "../../context/chat.context";
+
+import RightClickMenu, { RightClickMenuItem } from "../rightclickmenu";
 import Spinner from "../spinner";
 import IUser from "../../interfaces/user";
 import { twMerge } from "tailwind-merge";
 import Image from "next/image";
+
+
+import { MdDelete } from "react-icons/md";
 
 
 const MessageBox = ({ message, right, autoScroll }: { message?: any; right?: boolean, autoScroll: any }) => {
@@ -67,10 +70,12 @@ const MessageBox = ({ message, right, autoScroll }: { message?: any; right?: boo
                   src={sender?.avatar}
                   alt={sender?.username}
                 />
-              </span>
-            </div>
-            :
-            <Spinner />
+            </span>
+          </div>
+          :
+          <div className="h-24">
+            <Spinner/>
+          </div>
         )}
         <div
           className={twMerge(

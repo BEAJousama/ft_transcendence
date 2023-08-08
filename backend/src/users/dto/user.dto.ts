@@ -98,3 +98,12 @@ export class UpdateUserDto {
   user: any;
   // user: UserDto;
 }
+
+export class FindOneParams {
+  @ApiProperty({
+    description: 'The id of the user',
+  })
+  @IsNotEmpty()
+  // @IsNumber()
+  id: number;
+}

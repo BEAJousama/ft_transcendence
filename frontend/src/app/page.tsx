@@ -47,7 +47,6 @@ const LandingPage = () => {
 	const goToCompleteInfo = () => setSlide(3);
 
 	if (authenticated && user && user.createdAt !== user.updatedAt) {
-		console.log("to home");
 		redirect("/home");
 	}
 

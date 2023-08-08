@@ -8,7 +8,7 @@ const Welcome = ({ className, setShowModal }: {
 }) => {
 
   return (
-    <div className={twMerge(" overflow-hidden col-span-10 flex h-screen  w-full items-center justify-center flex-col gap-4 bg-secondary-600 md:col-span-7 max-wd-md animate-fade-right border-l-[1px] border-secondary-500 ", className && className)}>
+    <div className={twMerge("relative overflow-hidden col-span-10 flex h-screen  w-full items-center justify-center flex-col gap-4 bg-secondary-50 md:col-span-7 max-wd-md animate-fade-right border-l-[1px] border-secondary-500 ", className && className )}>
       <div className="flex items-center justify-center p-1 h-full w-full relative" style={{ backgroundImage: `url('/img/3dchat.svg')`, backgroundRepeat: 'no-repeat', backgroundSize: 'contain', height: 600, width: 600 }}>
         <div className="flex justify-centerbg-opacity-50 backdrop-filter backdrop-blur-lg absolute top-0 left-0 right-0 bottom-0" >
         </div>

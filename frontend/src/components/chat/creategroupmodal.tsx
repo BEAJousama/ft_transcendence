@@ -1,19 +1,21 @@
 "use client";
 
 import React, { useContext, useState } from "react";
-import { Button, Divider, UpdateAvatar } from "../../components";
-import { MdGroupAdd } from "react-icons/md";
-import { BiArrowBack, BiRightArrowAlt } from "react-icons/bi";
-import Input from "../../components/input";
-import { RiCloseFill } from "react-icons/ri";
-import { FiSend } from "react-icons/fi";
-import ProfileBanner from "../../components/profilebanner";
-import CustomSelect from "../select";
 import { AppContext, IAppContext } from "../../context/app.context";
 import { ChatContext, IchatContext } from "../../context/chat.context";
+
+import CustomSelect from "../select";
+import Input from "../../components/input";
+import ProfileBanner from "../../components/profilebanner";
+import { Button, Divider, UpdateAvatar } from "../../components";
 import Modal from "../modal";
-import { BsSendPlus } from "react-icons/bs";
 import IUser from "../../interfaces/user";
+
+import { FiSend } from "react-icons/fi";
+import { RiCloseFill } from "react-icons/ri";
+import { MdGroupAdd } from "react-icons/md";
+import { BiArrowBack, BiRightArrowAlt } from "react-icons/bi";
+import { BsSendPlus } from "react-icons/bs";
 
 
 const CreateGroupModal = ({
@@ -34,12 +36,6 @@ const CreateGroupModal = ({
   const [accesspass, setaccesspass] = useState<string>("");
   const { user } = useContext<IAppContext>(AppContext);
   const [previewImage, setPreviewImage] = useState<string>("/img/group.jpg" || "");
-  // const {users} = useContext<IchatContext>(ChatContext);
-
-  // let { data: users } = useSWR('api/users', fetcher, {
-  //   errorRetryCount: 0,
-  //   timeout : 1000
-  // });
 
   const checkBlock = (userId: number) => {
     return (user?.blockers[0]?.blockingId === userId || user?.blocking[0]?.blockerId === userId)

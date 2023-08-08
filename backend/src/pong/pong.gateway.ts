@@ -4,13 +4,10 @@ import {
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
-  // WebSocketDisconnect,
-  OnGatewayDisconnect,
 } from '@nestjs/websockets';
-import { Invitation } from './interfaces/index';
+import { Invitation, UpdateDto } from './interfaces/index';
 import { Socket } from 'socket.io';
 import { PongService } from './pong.service';
-import { UsersService } from 'src/users/users.service';
 import { Inject } from '@nestjs/common';
 import { NotificationGateway } from 'src/notification/notification.gateway';
 
@@ -18,7 +15,6 @@ import { NotificationGateway } from 'src/notification/notification.gateway';
 export class PongGateway {
   constructor(
     private readonly pongService: PongService,
-    private usersService: UsersService,
     @Inject(NotificationGateway)
     private notificationGateway: NotificationGateway,
   ) {}
@@ -49,7 +45,7 @@ export class PongGateway {
       .emit('check-for-active-invitations', {
         inviterId: invitation.inviterId,
         invitedFriendId: invitation.invitedFriendId,
-        bit: invitation.bit,
+        gameMode: invitation.gameMode,
         powerUps: invitation.powerUps,
       });
   }
@@ -63,23 +59,29 @@ export class PongGateway {
   }
 
   @SubscribeMessage('puase-game')
-  pauseGame(@ConnectedSocket() client: Socket, @MessageBody() info) {
+  pauseGame(@ConnectedSocket() client: Socket, @MessageBody() info: UpdateDto) {
     this.pongService.pauseGame(client, info);
   }
 
   @SubscribeMessage('resume-game')
-  resumeGame(@ConnectedSocket() client: Socket, @MessageBody() info) {
+  resumeGame(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() info: UpdateDto,
+  ) {
     this.pongService.resumeGame(client, info);
   }
 
   @SubscribeMessage('is-already-in-game')
-  isAlreadyInGame(@ConnectedSocket() client: Socket, @MessageBody() info) {
+  isAlreadyInGame(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() info: UpdateDto,
+  ) {
     const isInGame = this.pongService.isAlreadyInGame(client, info);
     client.emit('is-already-in-game', isInGame);
   }
 
   @SubscribeMessage('leave-game')
-  leaveGame(@ConnectedSocket() client: Socket, @MessageBody() info) {
+  leaveGame(@ConnectedSocket() client: Socket, @MessageBody() info: UpdateDto) {
     this.pongService.leaveGame(client, info);
   }
 
@@ -101,7 +103,7 @@ export class PongGateway {
     @MessageBody()
     info: {
       userId: number;
-      bit: string;
+      gameMode: string;
       powerUps: string;
     },
   ) {

@@ -12,7 +12,7 @@ import { BiArchiveIn, BiArchiveOut } from "react-icons/bi";
 import { useClickAway } from "react-use";
 import { BsPersonAdd } from "react-icons/bs";
 
-import clsx from "clsx";
+import { twMerge } from "tailwind-merge";
 import Avatar from "../avatar";
 import Button from "../button";
 import { SlOptionsVertical } from "react-icons/sl";
@@ -106,14 +106,16 @@ const ProfileBanner = ({
 
   return (
     <div
-      className={clsx(
+      className={twMerge(
         `relative flex w-full items-center gap-4 ml-1`,
         className && className
       )}
     >
-      <Avatar src={avatar} alt="" status={description === "ONLINE"} />
+      <div className=" basis-[15%]">
+      <Avatar src={avatar} alt="" status={description === "ONLINE" ? "ONLINE" : "OFFLINE"} />
+      </div>
       <div
-        className={clsx(
+        className={twMerge(
           "flex w-full  flex-col truncate text-sm md:max-w-full ",
           showStatus && "max-w-[100%]"
         )}

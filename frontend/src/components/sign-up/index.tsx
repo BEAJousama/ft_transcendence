@@ -145,7 +145,7 @@ export default function SignUp({ goToCompleteInfo }: { goToCompleteInfo: () => v
 		<div className="grid place-items-center w-full">
 			<div className="flex flex-col items-center justify-center w-full max-w-sm md:max-w-md lg:max-w-lg gap-4 px-8 py-12 text-white">
 				<div className="flex flex-col items-center gap-2 text-center">
-					<h1 className="text-2xl">Let's create your account</h1>
+					<h1 className="text-2xl">Let{"'"}s create your account</h1>
 					<p className=" text-tertiary-200">Please enter your details</p>
 				</div>
 				{Inputs.map((input) => (

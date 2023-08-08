@@ -29,6 +29,9 @@ export default function Chat() {
 
   const fetchUsers = (async () => {
     try {
+      if (user === undefined) {
+        return;
+      }
       const res = await fetcher(`api/users/non-blocked-users/${user?.id}`);
       if (res === undefined) {
         return;
@@ -49,32 +52,38 @@ export default function Chat() {
 
   const getBlocking = useCallback(async () => {
     try {
+      if (user === undefined) {
+        return;
+      }
       const res = await fetcher(`api/users/${user?.id}/blocking-users`);
-      // map with blockerId
       if (res === undefined) {
         return;
       }
-      return res.map((blocking: any) => { return blocking.blockerId });
+      return res.map((blocking: any) => { return blocking?.blockerId });
     } catch (err) {
       throw new Error("Error while getting blocking users");
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id])
 
   const getBlocked = useCallback(async () => {
     try {
+      if (user === undefined) {
+        return;
+      }
       const res = await fetcher(`api/users/${user?.id}/blocked-users`);
       if (res === undefined) {
         return;
       }
-      // map with blockingId
       return res.map((blocker: any) => { return blocker.blockingId });
     } catch (err) {
       throw new Error("Error while getting blocked users");
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id])
 
   const checkBlock = (userId: number | undefined) => {
-    return (blocking.includes(userId) || blocked.includes(userId));
+    return (blocking?.includes(userId) || blocked?.includes(userId));
   }
 
   useEffect(() => {
@@ -124,15 +133,6 @@ export default function Chat() {
         setMessages(sortMessages(messages));
     });
 
-
-    // socket?.on('channel_member', (data: any) => {
-    //   if (data?.channelId === currentChannel?.id)
-    //   {
-    //     setChannelMember(data);
-    //     setIsMuted(data?.status === "MUTED");
-    //   }
-    // });
-
     socket?.on('channel_leave', (data: Ichannel) => {
       if (data?.id === currentChannel?.id) {
         setCurrentChannel({} as Ichannel);
@@ -147,13 +147,14 @@ export default function Chat() {
       }
     });
 
-    socket?.on('channel_join', (data: Ichannel) => {
-      setCurrentChannel(data);
-      socket?.emit("getChannelMessages", { channelId: data?.id });
+    socket?.on('channel_join', (data: {channel : Ichannel, messages : Imessage[]}) => {
+      setCurrentChannel(data.channel);
+      setMessages(sortMessages(data.messages));
     });
 
-    socket?.on("channel_remove", (data: Ichannel) => {
-      if (data?.id === currentChannel?.id) {
+    socket?.on("channel_remove", (data: {id: number}) => {
+      if (data?.id === currentChannel?.id)
+      {
         setCurrentChannel({} as Ichannel);
         setOpen(false);
       }
@@ -163,15 +164,12 @@ export default function Chat() {
       if (!isMatch)
         setOpen(true);
       setMessages([]);
-      socket?.emit("getChannelMessages", { channelId: currentChannel?.id });
-      // socket?.emit("getChannelMessages", {channelId: data?.id});
     });
 
     socket?.on("dm_create", () => {
       if (!isMatch)
         setOpen(true);
       setMessages([]);
-      socket?.emit("getChannelMessages", { channelId: currentChannel?.id });
     });
 
     socket?.on('current_ch_update', (data: Ichannel) => {
@@ -199,7 +197,7 @@ export default function Chat() {
   });
 
   return (
-    <Layout className="!py-0 !px-0 !overflow-y-hidden !bg-secondary-600">
+    <Layout className="!py-0 !px-0 !overflow-y-hidden">
       {
         !isMatch ?
           (
@@ -208,7 +206,6 @@ export default function Chat() {
                 <ChannelList
                   className="animate-fade-right"
                   setCurrentChannel={setCurrentChannel}
-                  // setChannelMember={setChannelMember}
                   setShowModal={setShowModal}
                   setOpen={setOpen}
                   setMessages={setMessages}
@@ -229,7 +226,6 @@ export default function Chat() {
               <ChannelList
                 className="animate-fade-right"
                 setCurrentChannel={setCurrentChannel}
-                // setChannelMember={setChannelMember}
                 setShowModal={setShowModal}
                 setOpen={setOpen}
                 setMessages={setMessages}

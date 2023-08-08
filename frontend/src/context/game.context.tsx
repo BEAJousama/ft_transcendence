@@ -96,41 +96,48 @@ export default function SocketProvider({
 	const keyState: { [key: string]: boolean } = {};
 
 	useEffect(() => {
-		if (!user) return
-		const newSocket = io(`${process.env.NEXT_PUBLIC_BACK_END_URL}pong`, {
-			query: {
-				clientId: user?.id,
-			},
-		});
-		console.log(newSocket);
-		newSocket.on("connect", () => {
-			console.log("Game Connected");
-		});
+		try {
 
-		newSocket.on("disconnect", () => {
-			console.log("Game Disconnected");
-		});
+			if (!user) return
+			const newSocket = io(`${process.env.NEXT_PUBLIC_BACK_END_URL}pong`, {
+				query: {
+					clientId: user?.id,
+				},
+			});
 
 
-		setSocket(newSocket);
+			console.log(user.id)
+			newSocket.on("connect", () => {
 
-		return () => {
-			newSocket.disconnect();
-		};
+			});
+
+			newSocket.on("disconnect", () => {
+
+			});
+
+
+			setSocket(newSocket);
+
+			return () => {
+				newSocket.disconnect();
+			};
+		} catch (error) {
+
+		}
 	}, [user]);
 
 	useEffect(() => {
 		const handleKeyDown = (event: KeyboardEvent) => {
 			const { key } = event;
 			if (Object.values(Keys).includes(key as Keys) && !keyState[key]) {
-				if (key === " " && !activatePowerUp.current) {
-					toast.info("Sorry, you cannot use the power-up right now. It is on cooldown for the next 10 seconds since you've recently used it");
-					return
-				}
-				else if (key === " ")
-					toast.success("Power-up activated! You can now use the power-up for the next 5 seconds");
+				// if (key === " " && !activatePowerUp.current) {
+				// 	toast.info("Sorry, you cannot use the power-up right now. It is on cooldown for the next 10 seconds since you've recently used it");
+				// 	return
+				// }
+				// else if (key === " ")
+				// 	toast.success("Power-up activated! You can now use the power-up for the next 5 seconds");
 				keyState[key] = true;
-				activatePowerUp.current = false;
+				// activatePowerUp.current = false;
 				const id = setTimeout(() => {
 					activatePowerUp.current = true;
 					clearTimeout(id);
@@ -143,7 +150,7 @@ export default function SocketProvider({
 			const { key } = event;
 			if (Object.values(Keys).includes(key as Keys)) {
 				keyState[key] = false;
-				// console.log(user?.id, "released", key);
+
 				// Emit the event for the specific key release
 				socket?.emit("keyReleased", { key, userId: user?.id });
 			}

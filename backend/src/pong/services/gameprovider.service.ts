@@ -9,13 +9,19 @@ class GameProvider {
   public intervalId: NodeJS.Timeout;
   public paused = false;
   public powerups: string;
-  public bet: string;
+  public gameMode: string;
   public old_ball_speed: number;
-  constructor(powerUps?: string, bet?: string) {
+  public startedAt: Date;
+  public endsAt: Date;
+  constructor(powerUps?: string, gameMode?: string) {
     this.powerups = powerUps;
-    this.bet = bet;
+    this.gameMode = gameMode;
     const id = setTimeout(() => {
       this.gameStarted = true;
+      this.startedAt = new Date();
+      this.endsAt = new Date(this.startedAt.getTime() + 2 * 60000);
+      console.log(this.startedAt, '|', this.endsAt);
+
       clearTimeout(id);
     }, 5000);
   }
@@ -164,7 +170,7 @@ class GameProvider {
       ball.speed = this.old_ball_speed;
     }
 
-    console.log('powerup', this.powerups);
+    // console.log('powerup', this.powerups);
     if (playerA.powerup && this.powerups === 'ShrinkingPaddle') {
       playerA.height = 200;
     }

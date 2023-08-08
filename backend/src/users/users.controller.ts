@@ -4,7 +4,9 @@ import {
   Delete,
   Get,
   InternalServerErrorException,
+  NotFoundException,
   Param,
+  ParseIntPipe,
   Post,
   Query,
   Req,
@@ -12,6 +14,7 @@ import {
 import {
   AddFriendsDto,
   BlockUserDto,
+  FindOneParams,
   UnblockUserDto,
   UpdateUserDto,
 } from './dto';
@@ -40,19 +43,9 @@ export class UsersController {
 
   @Get()
   @FindAllDoc()
-  async findAll(@Query('fullname') fullname: string) {
+  async findAll() {
     try {
-      return this.usersService.findAllUsers(fullname);
-    } catch (error) {
-      return null;
-    }
-  }
-
-  @Get('non-blocked-users/:userId')
-  @FindAllDoc()
-  async findAllNonBlockUsers(@Param('userId') userId: string) {
-    try {
-      return this.usersService.findAllNonBlockUsers(parseInt(userId));
+      return this.usersService.findAllUsers();
     } catch (error) {
       return null;
     }
@@ -70,56 +63,55 @@ export class UsersController {
 
   @Get(':id')
   @FindOneDoc()
-  async findOne(@Param('id') id: string) {
+  async findOne(@Param('id', ParseIntPipe) id: number) {
     try {
-      const user = await this.usersService.findUserById(parseInt(id));
-      if (!user) throw 'No Matches Found !!!!!';
+      const user = await this.usersService.findUserById(id);
+      if (!user) throw new NotFoundException('No Matches Found !!!!!');
       return user;
     } catch (error) {
-      return null;
+      throw error;
     }
   }
 
   @Get(':id/friends')
   @GetFriendsDoc()
-  async findFriends(@Req() req: Request, @Param('id') id: string) {
+  async findFriends(@Param('id', ParseIntPipe) id: number) {
     try {
-      const friends = await this.usersService.getFriends(parseInt(id));
-      if (!friends) throw 'No Matches Found !!!!!';
+      const friends = await this.usersService.getFriends(id);
+      if (!friends) throw new NotFoundException('No Matches Found !!!!!');
       return friends;
     } catch (error) {
-      return null;
+      throw error;
     }
   }
 
   @Get(':id/friend-requests')
   @FindFriendRequsetsDoc()
-  async findFriendRequests(@Param('id') id: string) {
+  async findFriendRequests(@Param('id', ParseIntPipe) id: number) {
     try {
-      const friends = await this.usersService.getFriendRequests(parseInt(id));
-      if (!friends) throw 'No Matches Found !!!!!';
+      const friends = await this.usersService.getFriendRequests(id);
+      if (!friends) throw new NotFoundException('No Matches Found !!!!!');
       return friends;
     } catch (error) {
-      return null;
+      throw error;
     }
   }
 
   @Get(':id/friend-request')
   @FindFriendReqDoc()
   async findFriendRequest(
-    @Query('senderId') senderId: number,
-    @Query('receiverId') receiverId: number,
+    @Query('senderId', ParseIntPipe) senderId: number,
+    @Query('receiverId', ParseIntPipe) receiverId: number,
   ) {
     try {
       const friend = await this.usersService.getFriendRequest({
         senderId,
         receiverId,
       });
-
-      if (!friend) throw 'No Matches Found !!!!!';
+      if (!friend) throw new NotFoundException('No Matches Found !!!!!');
       return friend;
     } catch (error) {
-      return null;
+      throw error;
     }
   }
 
@@ -148,53 +140,57 @@ export class UsersController {
     }
   }
 
+  @Get('non-blocked-users/:userId')
+  @FindAllDoc()
+  async findAllNonBlockUsers(@Param('userId', ParseIntPipe) userId: number) {
+    try {
+      return this.usersService.findAllNonBlockUsers(userId);
+    } catch (error) {
+      throw error;
+    }
+  }
+
   @Post('add-friend')
   @AddFriendsDoc()
   async addFriend(@Body() body: AddFriendsDto) {
     try {
       const friendRequest = await this.usersService.sendFriendRequest(body);
-      if (!friendRequest) throw 'No Matches Found !!!!!';
+      if (!friendRequest) throw new NotFoundException('No Matches Found !!!!!');
       return friendRequest;
     } catch (error) {
-      return null;
+      throw error;
     }
   }
 
   @Delete('remove-friend/:id')
   @RemoveFriendsDoc()
-  async removeFriend(@Param('id') id: string) {
+  async removeFriend(@Param('id', ParseIntPipe) id: number) {
     try {
-      const friendRequest = await this.usersService.declineFriendRequest(
-        parseInt(id),
-      );
-      if (!friendRequest) throw 'No Matches Found !!!!!';
+      const friendRequest = await this.usersService.declineFriendRequest(id);
+      if (!friendRequest) throw new NotFoundException('No Matches Found !!!!!');
       return friendRequest;
     } catch (error) {
-      return null;
+      throw error;
     }
   }
 
   @Get('accept-friend/:id')
   @AcceptFriendsDoc()
-  async acceptFriend(@Param('id') id: string) {
+  async acceptFriend(@Param('id', ParseIntPipe) id: number) {
     try {
-      const friendRequest = await this.usersService.acceptFriendRequest(
-        parseInt(id),
-      );
-      if (!friendRequest) throw 'No Matches Found !!!!!';
+      const friendRequest = await this.usersService.acceptFriendRequest(id);
+      if (!friendRequest) throw new NotFoundException('No Matches Found !!!!!');
       return friendRequest;
     } catch (error) {
-      return null;
+      throw error;
     }
   }
 
   @Get(':id/blocked-users')
   @GetBlockedUsersDoc()
-  async findBlockedUsers(@Param('id') id: string) {
+  async findBlockedUsers(@Param('id', ParseIntPipe) id: number) {
     try {
-      const blockedUsers = await this.usersService.getBlockedUsers(
-        parseInt(id),
-      );
+      const blockedUsers = await this.usersService.getBlockedUsers(id);
       if (!blockedUsers) throw 'No Matches Found !!!!!';
       return blockedUsers;
     } catch {
@@ -204,37 +200,36 @@ export class UsersController {
 
   @Get(':id/blocking-users')
   @GetBlockedUsersDoc()
-  async findBlockingUsers(@Param('id') id: string) {
+  async findBlockingUsers(@Param('id', ParseIntPipe) id: number) {
     try {
-      const blockingUsers = await this.usersService.getBlockingUsers(
-        parseInt(id),
-      );
-      if (!blockingUsers) throw 'No Matches Found !!!!!';
+      const blockingUsers = await this.usersService.getBlockingUsers(id);
+      if (!blockingUsers) throw new NotFoundException('No Matches Found !!!!!');
       return blockingUsers;
-    } catch {
-      return {
-        message: 'No Matches Found !!!!!',
-      };
+    } catch (error) {
+      throw error;
     }
   }
 
   @Post(':id')
   @UpdateDoc()
-  async updateOne(@Body() body: UpdateUserDto, @Param('id') id: string) {
+  async updateOne(
+    @Body() body: UpdateUserDto,
+    @Param('id', ParseIntPipe) id: number,
+  ) {
     try {
-      return this.usersService.updateUser(body, parseInt(id));
+      return this.usersService.updateUser(body, id);
     } catch (error) {
-      return error;
+      throw error;
     }
   }
 
   @Delete(':id')
   @DeleteDoc()
-  async deleteOne(@Param('id') id: string) {
+  async deleteOne(@Param('id', ParseIntPipe) id: number) {
     try {
-      return this.usersService.deleteUser(parseInt(id));
+      return this.usersService.deleteUser(id);
     } catch (error) {
-      throw new InternalServerErrorException();
+      throw error;
     }
   }
 }

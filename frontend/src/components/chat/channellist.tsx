@@ -1,21 +1,24 @@
 
 "use client";
 
+import React from "react";
 import { useContext, useEffect, useState } from "react";
+
 import Channel from "./channel";
 import { IAppContext, fetcher } from "../../context/app.context"
-import { AppContext } from "../../context/app.context";
-import { BsFillChatLeftTextFill } from "react-icons/bs";
-import { BiFilter } from "react-icons/bi";
-import { ChatContext, Ichannel, IchannelMember, IchatContext } from "../../context/chat.context";
+import { ChatContext, Ichannel, IchannelMember, IchatContext, Imessage } from "../../context/chat.context";
 import Modal from "../modal";
 import Input from "../input";
 import Button from "../button";
+
+import { AppContext } from "../../context/app.context";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { throttle } from "lodash";
-import React from "react";
+import { set, throttle } from "lodash";
 import { twMerge } from "tailwind-merge";
+
+import { BsFillChatLeftTextFill } from "react-icons/bs";
+import { BiFilter } from "react-icons/bi";
 
 interface ChannelListProps {
   className?: string;
@@ -43,19 +46,10 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
   const [isFocused, setIsFocused] = useState<boolean>(false);
   const iRef = React.useRef<HTMLInputElement>(null);
 
-  // const checkBlock = async (userId : number | undefined) =>
-  // {
-  //   const blockers = await fetcher(`api/users/${user?.id}/blocking-users`);
-  //   const blocking = await fetcher(`api/users/${user?.id}/blocked-users`);
-  //   return (blockers[0]?.blockingId === userId || blocking[0]?.blockerId === userId)
-  // }
-
   const loadMessages = async (channelId: number | undefined) => {
     const messages = fetcher(`api/messages/${channelId}/${user?.id}`)
     return messages;
   }
-
-
 
   const onClick = throttle(async (channel: Ichannel): Promise<void | undefined> => {
     socket?.emit('reset_mssg_count', { channelId: channel.id });
@@ -63,8 +57,6 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
       fetcher(`api/channels/member/${user?.id}/${channel.id}`),
       loadMessages(channel.id)
     ]);
-
-    socket?.emit("channel_member", { channelId: channel.id, userId: user?.id });
     if (channel.isacessPassword && member.role !== "OWNER") {
       if (selectedChannel && selectedChannel.id === channel.id) {
         setOpen(true);
@@ -90,7 +82,7 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
     const accesstoken = window.localStorage.getItem("access_token");
     const res = await axios.post(`${process.env.NEXT_PUBLIC_BACK_END_URL}api/channels/checkpass`,
       { password, channelId: tempChannel?.id },
-      { headers: { Authorization: `Bearer ${accesstoken}` } });
+      { withCredentials: true });
     if (res.data === true) {
       setOpen(true);
       setCurrentChannel(tempChannel);
@@ -142,12 +134,12 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
       setOpen(false);
     });
 
-    socket?.on('channel_access', (data: Ichannel) => {
-      setOpen(true);
-      setCurrentChannel(data);
-      setSelectedChannel(data);
-      socket?.emit('getChannelMessages', { channelId: data.id });
-      inputRef?.current?.focus();
+    socket?.on('channel_access', (data: {channel: Ichannel, messages : Imessage[]}) => {
+        setOpen(true);
+        setCurrentChannel(data?.channel);
+        setSelectedChannel(data?.channel);
+        setMessages(data?.messages);
+        // inputRef?.current?.focus();
     });
 
     socket?.on('channel_delete', () => {
@@ -162,15 +154,33 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
     return () => {
       socket?.off('channel_leave');
       socket?.off('channel_delete');
-      socket?.off('channel_remove');
-      socket?.off('getChannels');
-      socket?.off('getArchiveChannels');
-      socket?.off('channel_create');
-      socket?.off('dm_create');
-      socket?.off('channel_member');
+      // socket?.off('channel_remove');
+      // socket?.off('getChannels');
+      // socket?.off('getArchiveChannels');
+      // socket?.off('channel_create');
+      // socket?.off('dm_create');
+      // socket?.off('channel_access');
     }
     //eslint-disable-next-line
   });
+
+  const fetchChannels = async () => {
+    const channels = await fetcher(`api/channels/${user?.id}`);
+    channels.forEach((channel: Ichannel) => {
+      if (channel.type === "CONVERSATION") {
+        channel.name = channel.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.username;
+        channel.avatar = channel.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.avatar;
+      }
+    }
+    );
+    channels.sort((a: Ichannel, b: Ichannel) => {
+      if (a.updatedAt < b.updatedAt) return 1;
+      else return -1;
+    }
+    );
+    setChannels(channels);
+  }
+
 
   const getuserChannels = async () => {
     socket?.on('getChannels', (channels: Ichannel[]) => {
@@ -218,18 +228,19 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
 
   const onChange = (e: any) => {
     e.preventDefault();
-    setSearch(e.target.value)
-    if (search.trim() !== "") {
-      setChannels(channels.filter((item: Ichannel) => item.name.toLowerCase().includes(search.toLowerCase())));
+    const {value} = e.target
+    setSearch(value);
+    if (value.trim().length > 0) {
+      setChannels(channels.filter((item: Ichannel) => item.name.toLowerCase().includes(value.toLowerCase())));
     } else {
-      getuserChannels();
+      fetchChannels();
     }
   }
 
   return (
     <>
       <div className={twMerge("lg:col-span-3 relative col-span-10 flex flex-col justify-start gap-4 py-2 w-full h-screen overflow-y-scroll scrollbar-hide", className && className)}>
-        <div className=" sticky top-0 z-30 flex items-center gap-2 w-full pr-2 bg-secondary-600 py-2">
+        <div className=" sticky top-0 z-30 flex items-center gap-2 w-full pr-2 bg-secondary-50 py-2">
           <form className="pl-4 pr-1 w-full">
             <div className="relative">
               <svg
@@ -428,22 +439,22 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
           <Modal
             setShowModal={setModal}
             className="z-10 bg-secondary-800 
-        border-none flex flex-col items-center justify-start shadow-lg shadow-secondary-500 gap-4 text-white min-w-[90%]
-        lg:min-w-[40%] xl:min-w-[800px] animate-jump-in animate-ease-out animate-duration-400">
+                      border-none flex flex-col items-center justify-center shadow-lg shadow-secondary-500 gap-4 text-white min-w-[90%]
+                      lg:min-w-[40%] xl:min-w-[800px] animate-jump-in animate-ease-out animate-duration-400">
             <span className="text-md">This channel requires an access password ! </span>
             <div className="flex flex-col justify-center items-center w-full">
               <Input
                 label="Password"
-                className="h-[40px] w-[80%] rounded-md border-2 border-primary-500 text-white text-xs bg-transparent md:mr-2"
+                className="h-[40px] w-[80%] rounded-md border-2 border-primary-500 text-white text-xs bg-transparent md:mr-2 self-center"
                 htmlType="password"
                 placeholder="*****************"
                 value={password}
                 inputRef={iRef}
                 onChange={(e) => setPassword(e.target.value)}
                 onKeyDown={
-                  (e) => {
+                  async (e) => {
                     if (e.key === "Enter") {
-                      accessChannel();
+                      await accessChannel();
                       setModal(false);
                       iRef?.current?.blur();
                       setPassword("");
@@ -463,8 +474,8 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
                 </Button>
                 <Button
                   className="h-8 w-auto md:w-20 bg-primary-500 text-white text-xs rounded-full mt-2"
-                  onClick={() => {
-                    accessChannel()
+                  onClick={async() => {
+                    await accessChannel()
                     setModal(false);
                     setPassword("");
                     iRef?.current?.blur();

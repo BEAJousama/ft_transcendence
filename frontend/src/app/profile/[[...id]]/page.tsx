@@ -86,7 +86,8 @@ const Achievements = ({ user }: { user: IUser }) => {
 };
 
 export default function Profile() {
-	const { id } = useParams()
+	const prams = useParams()
+	const { id } = prams ? prams : { id: null };
 	const { user: currentUser } = useContext(AppContext);
 	const {
 		data: user,

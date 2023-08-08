@@ -82,7 +82,6 @@ const SidePanelItem = ({
   const { user } = useContext(AppContext);
   return (
     <Link href={to || ""} className="w-full" onClick={(e) => {
-      console.log(isInGame)
       if (isInGame.current) {
         e.preventDefault();
         setShow(true)
@@ -135,7 +134,7 @@ const Sidepanel = ({ className }: { className?: string }) => {
       )}
     >
       <Link href="/" onClick={(e) => {
-        console.log(isInGame)
+
         if (isInGame.current) {
           e.preventDefault();
           setShow(true)
