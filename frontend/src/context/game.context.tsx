@@ -96,27 +96,34 @@ export default function SocketProvider({
 	const keyState: { [key: string]: boolean } = {};
 
 	useEffect(() => {
-		if (!user) return
-		const newSocket = io(`${process.env.NEXT_PUBLIC_BACK_END_URL}pong`, {
-			query: {
-				clientId: user?.id,
-			},
-		});
+		try {
 
-		newSocket.on("connect", () => {
-
-		});
-
-		newSocket.on("disconnect", () => {
-
-		});
+			if (!user) return
+			const newSocket = io(`${process.env.NEXT_PUBLIC_BACK_END_URL}pong`, {
+				query: {
+					clientId: user?.id,
+				},
+			});
 
 
-		setSocket(newSocket);
+			console.log(user.id)
+			newSocket.on("connect", () => {
 
-		return () => {
-			newSocket.disconnect();
-		};
+			});
+
+			newSocket.on("disconnect", () => {
+
+			});
+
+
+			setSocket(newSocket);
+
+			return () => {
+				newSocket.disconnect();
+			};
+		} catch (error) {
+
+		}
 	}, [user]);
 
 	useEffect(() => {

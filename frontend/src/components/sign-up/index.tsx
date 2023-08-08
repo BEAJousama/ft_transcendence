@@ -164,7 +164,7 @@ export default function SignUp() {
 				onKeyDown={handleKeyPress}
 			>
 				<div className="flex flex-col items-center gap-2 text-center">
-					<h1 className="text-2xl">Let's create your account</h1>
+					<h1 className="text-2xl">Let{"'"}s create your account</h1>
 					<p className=" text-tertiary-200">Please enter your details</p>
 				</div>
 				<Input

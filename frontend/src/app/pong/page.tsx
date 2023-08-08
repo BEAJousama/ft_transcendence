@@ -271,6 +271,7 @@ export default function Pong() {
     socket.emit("is-already-in-game", {
       userId: user?.id,
     });
+
     socket.on("is-already-in-game", (data) => {
       setShowModal(data as boolean);
     });
@@ -279,12 +280,6 @@ export default function Pong() {
     socket.on("disconnect", () => {
       setShow(false);
     });
-
-    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-      event.preventDefault(); // This is required to show the custom message in some browsers
-      // set
-      // event.returnValue = "Are you sure you want to leave? Your progress will be lost.";
-    };
 
     const handleUnload = () => {
       // Perform any additional actions when the page is refreshed

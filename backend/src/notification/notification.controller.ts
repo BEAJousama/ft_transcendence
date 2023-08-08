@@ -1,5 +1,5 @@
 import NotificationService from './notification.service';
-import { Controller, Get, Param } from '@nestjs/common';
+import { BadRequestException, Controller, Get, Param } from '@nestjs/common';
 
 @Controller('notification')
 export class NotificationController {
@@ -8,8 +8,16 @@ export class NotificationController {
   @Get(':id')
   async getNotification(@Param('id') id: string) {
     try {
+      const parsedId = parseInt(id);
+
+      if (isNaN(parsedId) || parsedId < 0) {
+        throw new BadRequestException(
+          'Invalid ID. Please provide a positive integer.',
+        );
+      }
+
       const notifications = await this.notificationService.getAllNotifications(
-        parseInt(id),
+        parsedId,
       );
       return notifications;
     } catch (error) {

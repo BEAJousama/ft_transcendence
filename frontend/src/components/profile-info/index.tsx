@@ -59,7 +59,7 @@ const ProfileInfo = ({
         }
     );
     const [text, setText] = useState("");
-    const blocked = isBlocked(currentUser?.id || 0);
+    const blocked = isBlocked(currentUser?.id || 0, user);
 
     useEffect(() => {
         if (

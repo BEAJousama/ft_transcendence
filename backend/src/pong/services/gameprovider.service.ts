@@ -9,13 +9,13 @@ class GameProvider {
   public intervalId: NodeJS.Timeout;
   public paused = false;
   public powerups: string;
-  public bet: string;
+  public gameMode: string;
   public old_ball_speed: number;
   public startedAt: Date;
   public endsAt: Date;
-  constructor(powerUps?: string, bet?: string) {
+  constructor(powerUps?: string, gameMode?: string) {
     this.powerups = powerUps;
-    this.bet = bet;
+    this.gameMode = gameMode;
     const id = setTimeout(() => {
       this.gameStarted = true;
       this.startedAt = new Date();

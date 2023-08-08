@@ -262,7 +262,7 @@ export class UsersService {
     }
   }
 
-  async findAllUsers(username: string) {
+  async findAllUsers() {
     try {
       const users = await this.prisma.user.findMany({
         orderBy: {

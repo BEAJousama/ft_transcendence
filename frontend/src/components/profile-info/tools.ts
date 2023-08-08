@@ -1,7 +1,5 @@
-import { AppContext } from "@/context/app.context";
-import { IBlock } from "@/interfaces/user";
+import IUser, { IBlock } from "@/interfaces/user";
 import axios from "axios";
-import { useContext } from "react";
 import { toast } from "react-toastify";
 
 const addFriend = async (senderId: number, receiverId: number) => {
@@ -90,9 +88,8 @@ const UnBlockUser = async (blockerId: number, blockingId: number) => {
   }
 };
 
-const isBlocked = (id: number) => {
-  const { user } = useContext(AppContext);
-  if (user) {
+const isBlocked = (id: number, user: IUser) => {
+  if (user && user.blocking) {
     const { blocking } = user;
     const res = blocking.map((block: IBlock) => {
       if (block.blockingId === id) {

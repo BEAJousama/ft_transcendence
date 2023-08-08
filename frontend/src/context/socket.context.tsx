@@ -38,7 +38,6 @@ export default function GameProvider({
             query: {
                 clientId: user?.id,
             },
-
         });
 
         newSocket.on("connect", () => {
@@ -48,13 +47,13 @@ export default function GameProvider({
         newSocket.on("notification", (data: INotification) => {
 
             toast(
-                <Link href={data.url}>
-                    <Toast
-                        title={data.title}
-                        content={data.content}
-                        sender={data.sender.id === user?.id ? data.receiver : data.sender}
-                    />
-                </Link>,
+
+                <Toast
+                    title={data.title}
+                    content={data.content}
+                    sender={data.sender.id === user?.id ? data.receiver : data.sender}
+                />
+                ,
                 {
                     className: "md:w-[400px] md:right-[90px]",
                 }

@@ -11,7 +11,7 @@ import { UsersService } from 'src/users/users.service';
 type Game = {
   playerASocket: Socket;
   playerBSocket: Socket;
-  bit: string;
+  gameMode: string;
   powerUps: string;
 };
 
@@ -23,7 +23,6 @@ export class PongService {
     number,
     Invitation
   >(); // Map to store active invitations
-  use: any;
 
   constructor(
     private prisma: PrismaService,
@@ -31,235 +30,7 @@ export class PongService {
     private usersService: UsersService,
   ) {}
 
-  private isMatchingGameMode(game: Game, gameMode: string): boolean {
-    const playerGameMode = this.getClientGameMode(game); // Implement a function to get the player's game mode
-    return playerGameMode === gameMode;
-  }
-
-  // Checks if a player's play mode matches the requested play mode
-  private isMatchingPlayMode(game: Game, playMode: string): boolean {
-    const playerPlayMode = this.getClientPlayMode(game); // Implement a function to get the player's play mode
-    return playerPlayMode === playMode;
-  }
-
-  // Adds a player to the queue
-  async joinQueue(
-    client,
-    {
-      userId,
-      bit,
-      powerUps,
-    }: {
-      userId: number;
-      bit: string;
-      powerUps: string;
-    },
-  ) {
-    /*
-      userid,
-      gameMode,
-      playMode,
-      socket,
-    */
-    client.on('disconnect', () => {
-      this.leaveQueue(client);
-    });
-
-    // Check if the player is already in the queue
-    if (this.isInQueue(client)) {
-      console.log('Player is already in the queue.');
-      return;
-    }
-
-    console.log(
-      'Player joined the queue.',
-      this.getClientIdFromClient(client),
-      // clientquery,
-      ' !=== ',
-      userId,
-      powerUps,
-      bit,
-    );
-
-    const matchingPlayers = this.queue.filter(
-      (game) =>
-        this.isMatchingGameMode(game, bit) &&
-        this.isMatchingPlayMode(game, powerUps),
-    );
-
-    // Check if there is a matching player in the queue
-    if (matchingPlayers.length > 0) {
-      const playerA = await this.createPlayer(
-        matchingPlayers.shift().playerASocket,
-      );
-      const playerB = await this.createPlayer(client);
-      playerB.x = playerB.canvas.width - playerB.width;
-      this.createGameProvider(playerA, playerB, powerUps, bit);
-      playerA.socket.emit('init-game');
-      playerB.socket.emit('init-game');
-      return;
-    }
-
-    const game: Game = {
-      playerASocket: client,
-      playerBSocket: null,
-      bit: bit,
-      powerUps: powerUps,
-    };
-
-    this.queue.push(game);
-  }
-
-  // get player from game provider by id
-  getPlayerById(id: number) {
-    const gameProvider = this.getGameProviderByUserId(id);
-    if (!gameProvider) return null;
-    const { playerA, playerB } = gameProvider.game;
-    return playerA.id === id ? playerA : playerB;
-  }
-
-  isAlreadyInGame(client, info: { userId: number }) {
-    const gameProvider = this.getGameProviderByUserId(info.userId);
-    const player = this.getPlayerById(info.userId);
-    if (player) {
-      player.socket.off('disconnect', () => {});
-      player.socket = client;
-    }
-    return !!gameProvider;
-  }
-
-  leaveGame(
-    client: Socket,
-    info: {
-      userId: number;
-    },
-  ) {
-    const gameProvider = this.getGameProviderByUserId(info.userId);
-    if (!gameProvider) return;
-    const { playerA, playerB } = gameProvider.game;
-    playerA.score = playerA.id === info.userId ? 0 : 7;
-    playerB.score = playerB.id === info.userId ? 0 : 7;
-    this.gameOver(gameProvider);
-  }
-
-  inviteFriend(
-    { inviterId, invitedFriendId, bit, powerUps }: any,
-    client: Socket,
-  ) {
-    // Check if the invited friend is already in an active invitation
-    if (this.isInvited(invitedFriendId)) {
-      console.log('Invitation already sent to the friend.');
-      return;
-    }
-
-    // Create an invitation object
-    const invitation: Invitation = {
-      inviterId,
-      inviterSocket: client,
-      invitedFriendId,
-      timestamp: Date.now(),
-      bit,
-      powerUps,
-    };
-
-    // Add the invitation to the active invitations dictionary
-    this.activeInvitations.set(inviterId, invitation);
-    this.notificationService.sendNotification(
-      inviterId,
-      invitedFriendId,
-      'Game Invite',
-      '',
-      invitedFriendId,
-      '/pong',
-    );
-
-    // Start a timer to reset the invitation after 30 seconds
-    setTimeout(() => {
-      this.resetInvitation(inviterId);
-    }, 30000); // 30 seconds
-    return invitation;
-  }
-
-  async acceptInvitation(invitedFriendId: number, client: Socket) {
-    // Check if the invited friend has an active invitation
-    if (this.isInvited(invitedFriendId)) {
-      // Remove the invitation from the active invitations dictionary
-      const invitations = Array.from(this.activeInvitations.values());
-
-      const invitation = invitations.find(
-        (invitation) =>
-          invitation.invitedFriendId.toString() === invitedFriendId.toString(),
-      );
-      this.activeInvitations.delete(invitation.inviterId);
-      // invitation.values()[0].inviterSocket.emit('init-game');
-      // const invitation = this.activeInvitations.get(invitedFriendId);
-      // Proceed with joining the game or taking any other action
-      // to fulfill the invitation request
-      const playerA = await this.createPlayer(invitation.inviterSocket);
-      const playerB = await this.createPlayer(client);
-      playerB.x = playerB.canvas.width - playerB.width;
-      this.createGameProvider(
-        playerA,
-        playerB,
-        invitation.powerUps,
-        invitation.bit,
-      );
-      playerA.socket.emit('init-game');
-      playerB.socket.emit('init-game');
-      // return;
-      console.log('Invitation accepted. Joining the game...');
-    } else {
-      console.log('No active invitation found for the friend.');
-    }
-  }
-
-  resetInvitation(inviterId: number) {
-    // Check if the inviter has an active invitation
-    if (this.isInvited(inviterId)) {
-      // Remove the invitation from the active invitations dictionary
-      this.activeInvitations.delete(inviterId);
-
-      // Proceed with any necessary reset or clean-up actions
-      console.log('Invitation reset.');
-    }
-  }
-
-  isInvited(playerId: number): boolean {
-    const invitations = Array.from(this.activeInvitations.values());
-    if (!invitations || !playerId) return false;
-    const activeInvitations = invitations.filter(
-      (invitation) =>
-        invitation.invitedFriendId.toString() === playerId.toString(),
-    );
-    return activeInvitations.length > 0;
-  }
-
-  checkForActiveInvitations(client) {
-    const id = this.getClientIdFromClient(client);
-    const invitations = Array.from(this.activeInvitations.values());
-    const activeInvitations = invitations.filter(
-      (invitation) => invitation.invitedFriendId.toString() === id,
-    );
-    if (activeInvitations.length > 0)
-      client.emit('check-for-active-invitations', activeInvitations[0]);
-  }
-  // Fetches the list of ongoing games with player information
-  async getLiveGames() {
-    try {
-      const games = await this.prisma.game.findMany({
-        where: {
-          status: 'IN_PROGRESS',
-        },
-        include: {
-          player1: true,
-          player2: true,
-        },
-      });
-      return games;
-    } catch (error) {
-      console.log(error);
-    }
-  }
+  // -----------------------------------------Game History-----------------------------------------//
 
   // Fetches the match history of a specific user
   async getMatchHistory(userId: number) {
@@ -346,6 +117,7 @@ export class PongService {
   // Creates a game between two players
   async createGame(player1Id: number, player2Id: number) {
     try {
+      if (isNaN(player1Id) || isNaN(player2Id)) return;
       const game = await this.prisma.game.create({
         data: {
           player1: { connect: { id: player1Id } },
@@ -356,13 +128,237 @@ export class PongService {
       return game;
     } catch (error) {
       // Handle the error here
-      console.log(error);
+      throw error;
     }
   }
 
+  //-----------------------------------------Random Matching-----------------------------------------//
+
+  private isMatchingGameMode(game: Game, gameMode: string): boolean {
+    const playerGameMode = this.getClientGameMode(game); // Implement a function to get the player's game mode
+    return playerGameMode === gameMode;
+  }
+
+  // Checks if a player's play mode matches the requested play mode
+  private isMatchingPlayMode(game: Game, playMode: string): boolean {
+    const playerPlayMode = this.getClientPlayMode(game); // Implement a function to get the player's play mode
+    return playerPlayMode === playMode;
+  }
+
+  // Adds a player to the queue
+  async joinQueue(
+    client,
+    {
+      userId,
+      gameMode,
+      powerUps,
+    }: {
+      userId: number;
+      gameMode: string;
+      powerUps: string;
+    },
+  ) {
+    /*
+      userid,
+      gameMode,
+      playMode,
+      socket,
+    */
+    client.on('disconnect', () => {
+      this.leaveQueue(client);
+    });
+
+    // Check if the player is already in the queue
+    if (this.isInQueue(client)) {
+      console.log('Player is already in the queue.');
+      return;
+    }
+
+    console.log(
+      'Player joined the queue.',
+      this.getClientIdFromClient(client),
+      // clientquery,
+      ' !=== ',
+      userId,
+      powerUps,
+      gameMode,
+    );
+
+    const matchingPlayers = this.queue.filter(
+      (game) =>
+        this.isMatchingGameMode(game, gameMode) &&
+        this.isMatchingPlayMode(game, powerUps),
+    );
+
+    // Check if there is a matching player in the queue
+    if (matchingPlayers.length > 0) {
+      const playerA = await this.createPlayer(
+        matchingPlayers.shift().playerASocket,
+      );
+      const playerB = await this.createPlayer(client);
+      playerB.x = playerB.canvas.width - playerB.width;
+      this.createGameProvider(playerA, playerB, powerUps, gameMode);
+      playerA.socket.emit('init-game');
+      playerB.socket.emit('init-game');
+      return;
+    }
+
+    const game: Game = {
+      playerASocket: client,
+      playerBSocket: null,
+      gameMode: gameMode,
+      powerUps: powerUps,
+    };
+
+    this.queue.push(game);
+  }
+
+  //--------------------------------------------------------------------------------------------------//
+
+  // get player from game provider by id
+  getPlayerById(id: number) {
+    const gameProvider = this.getGameProviderByUserId(id);
+    if (!gameProvider) return null;
+    const { playerA, playerB } = gameProvider.game;
+    return playerA.id === id ? playerA : playerB;
+  }
+
+  isAlreadyInGame(client, info: { userId: number }) {
+    const gameProvider = this.getGameProviderByUserId(info.userId);
+    const player = this.getPlayerById(info.userId);
+    if (player) {
+      player.socket.off('disconnect', () => {});
+      player.socket = client;
+    }
+    return !!gameProvider;
+  }
+
+  leaveGame(
+    client: Socket,
+    info: {
+      userId: number;
+    },
+  ) {
+    const gameProvider = this.getGameProviderByUserId(info.userId);
+    if (!gameProvider) return;
+    const { playerA, playerB } = gameProvider.game;
+    playerA.score = playerA.id === info.userId ? 0 : 7;
+    playerB.score = playerB.id === info.userId ? 0 : 7;
+    this.gameOver(gameProvider);
+  }
+
+  //-------------------------------invite friend-----------------------------------//
+  inviteFriend(
+    { inviterId, invitedFriendId, gameMode, powerUps }: any,
+    client: Socket,
+  ) {
+    // Check if the invited friend is already in an active invitation
+    if (this.isInvited(invitedFriendId)) {
+      console.log('Invitation already sent to the friend.');
+      return;
+    }
+
+    // Create an invitation object
+    const invitation: Invitation = {
+      inviterId,
+      inviterSocket: client,
+      invitedFriendId,
+      timestamp: Date.now(),
+      gameMode,
+      powerUps,
+    };
+
+    // Add the invitation to the active invitations dictionary
+    this.activeInvitations.set(inviterId, invitation);
+    this.notificationService.sendNotification(
+      inviterId,
+      invitedFriendId,
+      'Game Invite',
+      '',
+      invitedFriendId,
+      '/pong',
+    );
+
+    // Start a timer to reset the invitation after 30 seconds
+    setTimeout(() => {
+      this.resetInvitation(inviterId);
+    }, 30000); // 30 seconds
+    return invitation;
+  }
+
+  async acceptInvitation(invitedFriendId: number, client: Socket) {
+    // Check if the invited friend has an active invitation
+    if (this.isInvited(invitedFriendId)) {
+      // Remove the invitation from the active invitations dictionary
+      const invitations = Array.from(this.activeInvitations.values());
+
+      const invitation = invitations.find(
+        (invitation) =>
+          invitation.invitedFriendId.toString() === invitedFriendId.toString(),
+      );
+      this.activeInvitations.delete(invitation.inviterId);
+      // invitation.values()[0].inviterSocket.emit('init-game');
+      // const invitation = this.activeInvitations.get(invitedFriendId);
+      // Proceed with joining the game or taking any other action
+      // to fulfill the invitation request
+      const playerA = await this.createPlayer(invitation.inviterSocket);
+      const playerB = await this.createPlayer(client);
+      playerB.x = playerB.canvas.width - playerB.width;
+      this.createGameProvider(
+        playerA,
+        playerB,
+        invitation.powerUps,
+        invitation.gameMode,
+      );
+      playerA.socket.emit('init-game');
+      playerB.socket.emit('init-game');
+      // return;
+      console.log('Invitation accepted. Joining the game...');
+    } else {
+      console.log('No active invitation found for the friend.');
+    }
+  }
+
+  resetInvitation(inviterId: number) {
+    // Check if the inviter has an active invitation
+    if (this.isInvited(inviterId)) {
+      // Remove the invitation from the active invitations dictionary
+      this.activeInvitations.delete(inviterId);
+
+      // Proceed with any necessary reset or clean-up actions
+      console.log('Invitation reset.');
+    }
+  }
+
+  isInvited(playerId: number): boolean {
+    const invitations = Array.from(this.activeInvitations.values());
+    if (!invitations || !playerId) return false;
+    const activeInvitations = invitations.filter(
+      (invitation) =>
+        invitation.invitedFriendId.toString() === playerId.toString(),
+    );
+    return activeInvitations.length > 0;
+  }
+
+  checkForActiveInvitations(client) {
+    const id = this.getClientIdFromClient(client);
+    const invitations = Array.from(this.activeInvitations.values());
+    const activeInvitations = invitations.filter(
+      (invitation) => invitation.invitedFriendId.toString() === id,
+    );
+    if (activeInvitations.length > 0)
+      client.emit('check-for-active-invitations', activeInvitations[0]);
+  }
+
+  //--------------------------------------------------------------------------------//
+  // Fetches the list of ongoing games with player information
+
   // Retrieves the client ID from the socket client
   private getClientIdFromClient(client: Socket): string {
+    // console.log(client.handshake.query.clientId);
+    // if (client.handshake.query.clientId)
     return client.handshake.query.clientId.toString();
+    // return '1';
   }
 
   // Handles client disconnection
@@ -386,7 +382,7 @@ export class PongService {
   }
 
   getClientGameMode(game: Game) {
-    return game.bit;
+    return game.gameMode;
   }
 
   getClientPlayMode(game: Game) {
@@ -409,8 +405,6 @@ export class PongService {
       console.log(error);
     }
   }
-
-  // Checks if a player's game mode matches the requested game mode
 
   // Plays the game with an AI player
   async playWithAI(client: Socket) {
@@ -452,10 +446,12 @@ export class PongService {
     playerA: Player,
     playerB: Player,
     powerUps?: string,
-    bit?: string,
+    gameMode?: string,
   ) {
-    const gameProvider = new GameProvider(powerUps, bit);
+    if (!playerA && !playerB) return;
+    const gameProvider = new GameProvider(powerUps, gameMode);
     const game = await this.createGame(playerA.id, playerB.id);
+    if (!game) return null;
     gameProvider.id = game.id;
     gameProvider.init(playerA, playerB);
     this.gameProviders.push(gameProvider);
@@ -565,7 +561,7 @@ export class PongService {
       playerA,
       playerBUser,
     );
-    if (gameProvider.bet === 'Ranked Mode') {
+    if (gameProvider.gameMode === 'Ranked Mode') {
       await this.adjustPlayerRating(winner.id, loser.id);
     }
 
@@ -629,7 +625,7 @@ export class PongService {
       playerA.id,
       playerB.id,
     );
-    if (gameProvider.bet !== 'Time Attack') {
+    if (gameProvider.gameMode !== 'Time Attack') {
       if (playerA.score >= 7 || playerB.score >= 7) {
         this.gameOver(gameProvider);
         this.removeGameProvider(gameProvider);
@@ -641,7 +637,7 @@ export class PongService {
     let differenceInMinutes =
       (gameProvider.endsAt.getTime() - Date.now()) / 60000;
 
-    if (differenceInMinutes < 0 && gameProvider.bet === 'Time Attack') {
+    if (differenceInMinutes < 0 && gameProvider.gameMode === 'Time Attack') {
       this.gameOver(gameProvider);
       this.removeGameProvider(gameProvider);
     }
@@ -716,22 +712,34 @@ export class PongService {
       loser.rating = loser.rating < 0 ? 0 : loser.rating;
       loser.ladder = this.adjustLadderLevel(loser.rating) as Ladder;
 
-      const { sentRequests, receivedRequests, achievements, ...winnerData } =
-        winner;
-      const {
-        sentRequests: _,
-        receivedRequests: __,
-        achievements: ___,
-        ...loserData
-      } = loser;
-      await this.usersService.updateUser({ user: winnerData }, winnerId);
-      await this.usersService.updateUser({ user: loserData }, loserId);
+      await this.usersService.updateUser(
+        {
+          user: {
+            rating: winner.rating,
+            ladder: winner.ladder,
+            winStreak: winner.winStreak,
+            totalGames: winner.totalGames,
+            wins: winner.wins,
+          },
+        },
+        winnerId,
+      );
+      await this.usersService.updateUser(
+        {
+          user: {
+            rating: loser.rating,
+            ladder: loser.ladder,
+            winStreak: loser.winStreak,
+            totalGames: loser.totalGames,
+            losses: loser.losses,
+          },
+        },
+        loserId,
+      );
     } catch (e) {
-      console.log(e);
       throw new InternalServerErrorException(
         'Could not update user rating and ladder',
       );
-      // Handle any errors that occur during the adjustment process
     }
   }
 }
