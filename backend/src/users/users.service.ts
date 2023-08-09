@@ -63,6 +63,31 @@ export class UsersService {
     }
   }
 
+  async findStats() {
+    try {
+      const users = await this.prisma.user.findMany({
+        orderBy: {
+          rating: 'desc',
+        },
+      });
+      const games = await this.prisma.game.findMany({});
+
+      return {
+        users: users.length,
+        games: games.length,
+        user: {
+          username: users[0].username,
+          rating: users[0].rating,
+          wins: users[0].wins,
+          losses: users[0].losses,
+          totalGames: users[0].totalGames,
+          winStreak: users[0].winStreak,
+          avatar: users[0].avatar,
+        },
+      };
+    } catch (_) {}
+  }
+
   async findOrCreateUser(data: {
     login: string;
     avatar: string;
