@@ -7,8 +7,7 @@ import { z } from "zod";
 import { useFormik } from "formik";
 import { toFormikValidationSchema } from "zod-formik-adapter";
 import { redirect, useRouter } from "next/navigation";
-import { setCookie } from 'cookies-next';
-
+import Link from "next/link";
 
 const loginFormSchema = z.object({
 	username: z
@@ -60,12 +59,13 @@ const Login = () => {
 				username: formik.values.username,
 				password: formik.values.password,
 			});
-			console.log(res);
-			// document.cookie = `${res.data.name}=${res.data.value}; Path=/;`;
-			setCookie(res.data.name, res.data.value, { httpOnly: false })
 			setSuccess(true);
-			router.push("/home");
-			// }
+			if (res.data) {
+				document.cookie = `${res.data.name}=${res.data.value}; Path=/;`;
+				setTimeout(() => {
+					router.push("/home");
+				}, 1000);
+			}
 		} catch (_e) {
 			setError("Incorrect username or password");
 			setLoading(false);
@@ -127,7 +127,7 @@ const Login = () => {
 					<hr className="w-[70%] border-gray-400" />
 				</div>
 				<div className="flex w-full justify-center gap-4 md:flex-col">
-					<a href={`${process.env.NEXT_PUBLIC_BACK_END_URL}api/auth/42/callback`}>
+					<Link href={`${process.env.NEXT_PUBLIC_BACK_END_URL}api/auth/42/callback`}>
 						<Button
 							type="secondary"
 							disabled={loading}
@@ -136,8 +136,8 @@ const Login = () => {
 							<img src="/img/42Logo-light.svg" alt="logo" width={30} />
 							<p className="hidden md:block">Continue with Intra</p>
 						</Button>
-					</a>
-					<a href={`${process.env.NEXT_PUBLIC_BACK_END_URL}api/auth/google/login`}>
+					</Link>
+					<Link href={`${process.env.NEXT_PUBLIC_BACK_END_URL}api/auth/google/login`}>
 						<Button
 							type="secondary"
 							disabled={loading}
@@ -146,7 +146,7 @@ const Login = () => {
 							<img src="/img/google.svg" alt="logo" width={30} />
 							<p className="hidden md:block">Continue with Google</p>
 						</Button>
-					</a>
+					</Link>
 				</div>
 			</div>
 		</div>

@@ -10,7 +10,6 @@ import { useFormik } from "formik";
 import { toFormikValidationSchema } from "zod-formik-adapter";
 import IUser from "@/interfaces/user";
 
-
 const commonWordsRegex = /^(?!.*(password|123456|qwerty|azerty|etc))$/i;
 
 const signUpFormSchema = z
@@ -62,35 +61,33 @@ const Inputs: {
 	label: string;
 	htmlType?: string;
 }[] = [
-		{
-			name: "fullname",
-			label: "Full Name",
-		},
-		{
-			name: "username",
-			label: "Username",
-		},
-		{
-			name: "email",
-			label: "Email",
-		},
-		{
-			name: "password",
-			label: "Password",
-			htmlType: "password",
-		},
-		{
-			name: "confirmPassword",
-			label: "Confirm Password",
-			htmlType: "password",
-		},
-	];
+	{
+		name: "fullname",
+		label: "Full Name",
+	},
+	{
+		name: "username",
+		label: "Username",
+	},
+	{
+		name: "email",
+		label: "Email",
+	},
+	{
+		name: "password",
+		label: "Password",
+		htmlType: "password",
+	},
+	{
+		name: "confirmPassword",
+		label: "Confirm Password",
+		htmlType: "password",
+	},
+];
 
-export default function SignUp({ goToCompleteInfo }: { goToCompleteInfo: () => void }) {
+export default function SignUp() {
 	const router = useRouter();
-	const { user, fetchUser } = useContext(AppContext);
 	const [error, setError] = useState("");
-	const [redirect, setRedirect] = useState<boolean>();
 	const [loading, setLoading] = useState<boolean>(false);
 	const [success, setSuccess] = useState<boolean>(false);
 	const [submitCount, setSubmitCount] = useState<number>(0);
@@ -106,7 +103,7 @@ export default function SignUp({ goToCompleteInfo }: { goToCompleteInfo: () => v
 		validationSchema: toFormikValidationSchema(signUpFormSchema),
 		validateOnBlur: submitCount !== 0,
 		validateOnChange: submitCount !== 0,
-		onSubmit: async (values) => { },
+		onSubmit: async (values) => {},
 	});
 
 	const handleSignUp = async () => {
@@ -133,7 +130,10 @@ export default function SignUp({ goToCompleteInfo }: { goToCompleteInfo: () => v
 			setSuccess(true);
 			if (res.data) {
 				document.cookie = `${res.data.name}=${res.data.value}; Path=/;`;
-				router.push("/home")
+				setTimeout(() => {
+					console.log("redirecting to home");
+					router.push("/");
+				}, 1000);
 			}
 		} catch (_e) {
 			setError("An error occurred, please try again later");
