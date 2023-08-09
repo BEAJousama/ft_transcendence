@@ -18,11 +18,16 @@ import { Player } from "@lottiefiles/react-lottie-player";
 import { BiLogoTypescript } from "react-icons/bi";
 import { SiNestjs, SiNextdotjs } from "react-icons/si";
 import { FaNode } from "react-icons/fa";
-import IUser from "@/interfaces/user";
+import { DiGithubFull } from "react-icons/di";
+import axios from "axios";
+import CountUp from "react-countup";
 
 const LandingPage = () => {
 	const [slide, setSlide] = useState(1);
 	const { user, loading, authenticated, fetchUser } = useContext(AppContext);
+	const [selectable, setSelectable] = useState(true);
+	const [numUsers, setNumUsers] = useState(0);
+	const [numGames, setNumGames] = useState(0);
 
 	const getCookieItem = (key: string): string | undefined => {
 		const cookieString = document.cookie;
@@ -39,12 +44,23 @@ const LandingPage = () => {
 	};
 
 	useEffect(() => {
-		if (getCookieItem("2fa_access_token") && !getCookieItem("access_token")) setSlide(0);
+		const fetchStats = async () => {
+			const res = await axios.get(`${process.env.NEXT_PUBLIC_BACK_END_URL}api/users/stats`);
+			setNumUsers(res.data.numUsers);
+			setNumGames(res.data.numGames);
+		};
+		fetchStats();
+	}, []);
+
+	useEffect(() => {
+		if (getCookieItem("2fa_access_token") && !getCookieItem("access_token")) {
+			setSlide(0);
+			setSelectable(false);
+		}
 		if (!user) return;
 		if (user.createdAt === user.updatedAt) setSlide(3);
+		setSelectable(false);
 	}, [user]);
-
-	const goToCompleteInfo = () => setSlide(3);
 
 	if (authenticated && user && user.createdAt !== user.updatedAt) {
 		redirect("/home");
@@ -63,7 +79,13 @@ const LandingPage = () => {
 			</div>
 			<div className="grid w-full max-w-5xl h-fit grid-cols-1 place-items-center justify-center gap-8 md:gap-16 p-8 lg:grid-cols-2 z-10 backdrop-blur-sm backdrop-opacity-10">
 				<div className="flex w-full max-w-xs items-center justify-center lg:col-span-2 lg:max-w-xl py-16">
-					<Image src="/img/Logo.png" priority alt="Pong Materz" width={400} height={200} />
+					<Image
+						src="/img/Logo.png"
+						priority
+						alt="Pong Materz"
+						width={400}
+						height={200}
+					/>
 				</div>
 				<div className="flex flex-col items-center justify-center w-full h-full">
 					{loading && (
@@ -89,7 +111,7 @@ const LandingPage = () => {
 										? "font-semibold text-secondary-700"
 										: "text-secondary-100 before:ease before:absolute before:right-0 before:top-0 before:h-12 before:w-6 before:translate-x-12 before:rotate-6 before:bg-white before:opacity-10 before:duration-700 hover:before:-translate-x-40"
 								)}
-								disabled={slide <= 1}
+								disabled={slide <= 1 || !selectable}
 								onClick={() => setSlide(1)}
 							>
 								Login
@@ -101,7 +123,7 @@ const LandingPage = () => {
 										? "font-semibold text-secondary-700"
 										: "text-secondary-100 before:ease before:absolute before:right-0 before:top-0 before:h-12 before:w-6 before:translate-x-12 before:rotate-6 before:bg-white before:opacity-10 before:duration-700 hover:before:-translate-x-40"
 								)}
-								disabled={slide > 1}
+								disabled={slide > 1 || !selectable}
 								onClick={() => setSlide(2)}
 							>
 								Register
@@ -116,19 +138,54 @@ const LandingPage = () => {
 						>
 							<TwoFactorAuth />
 							<Login />
-							<SignUp goToCompleteInfo={goToCompleteInfo} />
+							<SignUp />
 							<CompleteInfo />
 						</Carousel>
 					</div>
 				</div>
 
 				<div className="flex flex-col items-center justify-center w-full h-fit">
-					<p className="text-justify text-lg text-primary-500">
-						Our user-friendly interface and integrated chat feature ensure a seamless
-						gaming experience. Get ready to paddle up, score points, and rise to the top
-						as you participate in the ultimate Pong challenge. May the best player win!
+					<div className="flex w-full items-end gap-4 px-4 py-2 text-right">
+						<CountUp end={numUsers} duration={4} className="w-1/2">
+							{({ countUpRef }) => (
+								<div className="w-full">
+									<span
+										ref={countUpRef}
+										className="text-6xl font-semibold text-primary-400"
+									/>
+									<span className="text-base text-primary-600"> Users</span>
+								</div>
+							)}
+						</CountUp>
+						<CountUp end={numGames} duration={6} className="w-1/2">
+							{({ countUpRef }) => (
+								<div className="w-full">
+									<span
+										ref={countUpRef}
+										className="text-6xl font-semibold text-primary-400"
+									/>
+									<span className="text-base text-primary-600"> Games</span>
+								</div>
+							)}
+						</CountUp>
+					</div>
+					<p className="text-primary-500 w-full text-lg">
+						Pong Maters is a multiplayer online game that allows you to play Pong with
+						your friends and other players around the world. Our platform is designed to
+						provide you with a fun and competitive gaming experience. Our user-friendly
+						interface and integrated chat feature ensure a seamless gaming experience.
+						Get ready to paddle up, score points, and rise to the top as you participate
+						in the ultimate Pong challenge. May the best player win!
 					</p>
-					<div className="flex items-center justify-center gap-4 py-4">
+					<Link
+						href="https://github.com/Hicham-BelHoucin/ft_transcendence"
+						className="text-gray-200 hover:text-primary-700 transition"
+						target="_blank"
+						rel="noopener noreferrer"
+					>
+						<DiGithubFull size={"60px"} />
+					</Link>
+					<div className="flex items-center justify-center gap-4 pb-4">
 						<BiLogoTypescript size={"34px"} className="text-gray-400" />
 						<SiNestjs size={"34px"} className="text-gray-400" />
 						<SiNextdotjs size={"34px"} className="text-gray-400" />
