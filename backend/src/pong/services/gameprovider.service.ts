@@ -1,5 +1,4 @@
 import { Canvas, Game, Player } from '../classes';
-
 class GameProvider {
   public id: number;
   public game: Game;
@@ -19,9 +18,8 @@ class GameProvider {
     const id = setTimeout(() => {
       this.gameStarted = true;
       this.startedAt = new Date();
-      this.endsAt = new Date(this.startedAt.getTime() + 2 * 60000);
-      console.log(this.startedAt, '|', this.endsAt);
-
+      if (this.gameMode === 'Time Attack')
+        this.endsAt = new Date(this.startedAt.getTime() + 2 * 60000);
       clearTimeout(id);
     }, 5000);
   }

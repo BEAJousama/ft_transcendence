@@ -85,7 +85,9 @@ export class UsersService {
           avatar: users[0].avatar,
         },
       };
-    } catch (_) {}
+    } catch (_) {
+      return null;
+    }
   }
 
   async findOrCreateUser(data: {

@@ -169,7 +169,7 @@ const LandingPage = () => {
 				</div>
 				<Contributor
 					name="Hicham Bel Houcin"
-					role="Developer"
+					role="Full Stack Developer"
 					image="/img/hbel-hou.jpg"
 					linkedin="hicham-bel-houcin"
 					github="Hicham-BelHoucin"

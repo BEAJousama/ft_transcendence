@@ -76,8 +76,6 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
 
 	if (!isAuthenticated && !isLoading && path !== "/")
 		redirect("/");
-	// else if (isAuthenticated && !isLoading && path === "/")
-	// 	redirect("/home");
 
 	const appContextValue: IAppContext = {
 		user: data,

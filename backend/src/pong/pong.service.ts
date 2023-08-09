@@ -1,5 +1,9 @@
 import NotificationService from 'src/notification/notification.service';
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { GameStatus, Ladder } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Socket } from 'socket.io';
@@ -7,6 +11,8 @@ import { AIPlayer, Ball, Canvas, Player } from './classes';
 import { Invitation } from './interfaces/index';
 import { GameProvider } from './services/gameprovider.service';
 import { UsersService } from 'src/users/users.service';
+import { JwtService } from '@nestjs/jwt';
+import { WsException } from '@nestjs/websockets';
 
 type Game = {
   playerASocket: Socket;
@@ -28,6 +34,7 @@ export class PongService {
     private prisma: PrismaService,
     private notificationService: NotificationService,
     private usersService: UsersService,
+    @Inject(JwtService) private readonly jwtService,
   ) {}
 
   // -----------------------------------------Game History-----------------------------------------//
@@ -158,12 +165,6 @@ export class PongService {
       powerUps: string;
     },
   ) {
-    /*
-      userid,
-      gameMode,
-      playMode,
-      socket,
-    */
     client.on('disconnect', () => {
       this.leaveQueue(client);
     });
@@ -173,16 +174,6 @@ export class PongService {
       console.log('Player is already in the queue.');
       return;
     }
-
-    console.log(
-      'Player joined the queue.',
-      this.getClientIdFromClient(client),
-      // clientquery,
-      ' !=== ',
-      userId,
-      powerUps,
-      gameMode,
-    );
 
     const matchingPlayers = this.queue.filter(
       (game) =>
@@ -340,25 +331,46 @@ export class PongService {
     return activeInvitations.length > 0;
   }
 
-  checkForActiveInvitations(client) {
-    const id = this.getClientIdFromClient(client);
+  async checkForActiveInvitations(client) {
+    const id = await this.getClientIdFromClient(client);
     const invitations = Array.from(this.activeInvitations.values());
     const activeInvitations = invitations.filter(
       (invitation) => invitation.invitedFriendId.toString() === id,
     );
-    if (activeInvitations.length > 0)
-      client.emit('check-for-active-invitations', activeInvitations[0]);
+    if (activeInvitations.length > 0) {
+      client.emit('check-for-active-invitations', {
+        inviterId: activeInvitations[0]?.inviterId,
+        invitedFriendId: activeInvitations[0]?.invitedFriendId,
+        gameMode: activeInvitations[0]?.gameMode,
+        powerUps: activeInvitations[0]?.powerUps,
+      });
+    }
   }
 
   //--------------------------------------------------------------------------------//
   // Fetches the list of ongoing games with player information
 
+  private async verifyClient(client) {
+    let token: string = client.handshake.auth.token as string;
+    if (token.search('Bearer') !== -1) token = token.split(' ')[1];
+    try {
+      const data = await this.jwtService.verifyAsync(token, {
+        secret: process.env.JWT_SECRET,
+      });
+      client.data = data;
+      return data;
+    } catch (err) {
+      throw new WsException({
+        error: 'Authentication failed',
+        message: err.message,
+      });
+    }
+  }
   // Retrieves the client ID from the socket client
-  private getClientIdFromClient(client: Socket): string {
-    // console.log(client.handshake.query.clientId);
+  private async getClientIdFromClient(client: Socket) {
     // if (client.handshake.query.clientId)
-    return client.handshake.query.clientId.toString();
-    // return '1';
+
+    return (await this.verifyClient(client)).sub.toString();
   }
 
   // Handles client disconnection
@@ -368,16 +380,7 @@ export class PongService {
       if (!game || !playerA || !playerB) return;
       game?.playerA?.id === winnerId ? 7 : 0;
       game?.playerB?.id === winnerId ? 7 : 0;
-      // Update the score and remove the game provider
       this.gameOver(game);
-      // this.updateScore(
-      //   game.id,
-      // playerA.id === winnerId ? 7 : 0,
-      // playerB.id === winnerId ? 7 : 0,
-      //   playerA.id,
-      //   playerB.id,
-      // );
-      // this.removeGameProvider(game);
     });
   }
 
@@ -414,7 +417,7 @@ export class PongService {
       playerA,
       playerB,
       'Classic',
-      'Time Attack',
+      'Ranked Mode',
     );
     playerB.ball = game.game.ball;
     client.on('disconnect', () => {
@@ -434,7 +437,7 @@ export class PongService {
 
   // Creates a player instance from a client socket
   private async createPlayer(client: Socket): Promise<Player> {
-    const userId = this.getClientIdFromClient(client); // Implement a function to get the user ID from the client
+    const userId = await this.getClientIdFromClient(client); // Implement a function to get the user ID from the client
     const playerCanvas = new Canvas(); // Replace canvasWidth and canvasHeight with actual values
     const achievements = await this.getPlayerAchievements(parseInt(userId));
 
@@ -517,7 +520,6 @@ export class PongService {
         gameProvider.game.playerB.id === userId,
     );
   }
-
   // Checks if a client is in the queue
   private isInQueue(client: Socket): boolean {
     return this.queue
@@ -631,16 +633,17 @@ export class PongService {
         this.removeGameProvider(gameProvider);
         return;
       }
+    } else {
+      let differenceInMinutes =
+        (gameProvider.endsAt.getTime() - Date.now()) / 60000;
+
+      if (differenceInMinutes < 0) {
+        this.gameOver(gameProvider);
+        this.removeGameProvider(gameProvider);
+      }
     }
 
     // Calculate the difference between 'endsAt' and 'startedAt' in minutes
-    let differenceInMinutes =
-      (gameProvider.endsAt.getTime() - Date.now()) / 60000;
-
-    if (differenceInMinutes < 0 && gameProvider.gameMode === 'Time Attack') {
-      this.gameOver(gameProvider);
-      this.removeGameProvider(gameProvider);
-    }
 
     this.emitUpdate(game, playerA.socket, gameProvider.endsAt);
     this.emitUpdate(game, playerB.socket, gameProvider.endsAt);

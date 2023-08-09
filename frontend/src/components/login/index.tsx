@@ -7,6 +7,8 @@ import { z } from "zod";
 import { useFormik } from "formik";
 import { toFormikValidationSchema } from "zod-formik-adapter";
 import { redirect, useRouter } from "next/navigation";
+import { setCookie } from 'cookies-next';
+
 
 const loginFormSchema = z.object({
 	username: z
@@ -59,8 +61,8 @@ const Login = () => {
 				password: formik.values.password,
 			});
 			console.log(res);
-			// if (res.data.name) {
-			document.cookie = `${res.data.name}=${res.data.value}; Path=/;`;
+			// document.cookie = `${res.data.name}=${res.data.value}; Path=/;`;
+			setCookie(res.data.name, res.data.value, { httpOnly: false })
 			setSuccess(true);
 			router.push("/home");
 			// }

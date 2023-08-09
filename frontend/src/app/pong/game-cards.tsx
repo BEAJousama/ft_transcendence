@@ -175,7 +175,7 @@ const CreateGameCard = ({
                                 socket?.emit("invite-friend", {
                                     inviterId: user?.id,
                                     invitedFriendId: selectedUser?.id,
-                                    bit: gameMode,
+                                    gameMode: gameMode,
                                     powerUps: gameOption,
                                 });
                                 toast.success("Invitation sent successfully");
@@ -327,7 +327,7 @@ export default function GameCards() {
                 onClick={() => {
                     socket?.emit("join-queue", {
                         userId: user?.id,
-                        bit: gameMode,
+                        gameMode: gameMode,
                         powerUps: gameOption,
                     });
                     setDisabled({

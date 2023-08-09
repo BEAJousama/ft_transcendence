@@ -17,6 +17,7 @@
 		"autoprefixer": "10.4.14",
 		"axios": "^1.4.0",
 		"bufferutil": "^4.0.7",
+		"cookies-next": "^2.1.2",
 		"emoji-mart": "^5.5.2",
 		"eslint": "8.46.0",
 		"eslint-config-next": "13.4.12",

@@ -64,20 +64,20 @@ const Input = ({
           transition ease-linear placeholder:text-transparent focus:border-primary focus:outline-none
           focus:border-primary-500 focus:text-primary-500 focus:backdrop-blur-sm peer-focus:text-primary-500`,
 							label &&
-								`focus:pb-[0.625rem] focus:pt-[1.625rem] [&:not(:placeholder-shown)]:pb-[0.625rem] [&:not(:placeholder-shown)]:pt-[1.625rem]`,
+							`focus:pb-[0.625rem] focus:pt-[1.625rem] [&:not(:placeholder-shown)]:pb-[0.625rem] [&:not(:placeholder-shown)]:pt-[1.625rem]`,
 							isError && `border-red-700 text-red-700`,
 							success && `border-green-700 text-green-700`,
 							value &&
-								`backdrop-blur-sm disabled:cursor-not-allowed disabled:border-primary-700 disabled:text-primary-700`,
+							`backdrop-blur-sm disabled:cursor-not-allowed disabled:border-primary-700 disabled:text-primary-700`,
 							!value &&
-								`disabled:cursor-not-allowed disabled:border-gray-500 disabled:text-gray-500`,
+							`disabled:cursor-not-allowed disabled:border-gray-500 disabled:text-gray-500`,
 							className
 						)}
 						id={id}
 						name={name}
 						required={required}
 						disabled={disabled}
-						placeholder={""}
+						placeholder={placeholder}
 						value={value}
 						onChange={onChange}
 						onKeyDown={onKeyDown}

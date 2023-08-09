@@ -5,6 +5,8 @@ import io, { Socket } from "socket.io-client";
 import { AppContext } from "./app.context";
 import { Ball, Player } from "@/interfaces/game";
 import { toast } from "react-toastify";
+import { setCookie, getCookie } from 'cookies-next';
+
 
 enum Keys {
 	ArrowUp = "ArrowUp",
@@ -98,15 +100,15 @@ export default function SocketProvider({
 	useEffect(() => {
 		try {
 
-			if (!user) return
+			const token = getCookie("access_token");
+			if (!token) return;
+
 			const newSocket = io(`${process.env.NEXT_PUBLIC_BACK_END_URL}pong`, {
-				query: {
-					clientId: user?.id,
-				},
+				auth: {
+					token,
+				}
 			});
 
-
-			console.log(user.id)
 			newSocket.on("connect", () => {
 
 			});
@@ -124,7 +126,7 @@ export default function SocketProvider({
 		} catch (error) {
 
 		}
-	}, [user]);
+	}, []);
 
 	useEffect(() => {
 		const handleKeyDown = (event: KeyboardEvent) => {
