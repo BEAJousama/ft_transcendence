@@ -3,6 +3,7 @@ import { Button, Card, Input } from "..";
 import { useContext, useEffect, useRef, useState } from "react";
 import { AppContext } from "../../context/app.context";
 import { redirect } from "next/navigation";
+import { toast } from "react-toastify";
 
 const TwoFactorAuth = () => {
 	const { fetchUser, authenticated, setAuthenticated } = useContext(AppContext);
@@ -38,7 +39,7 @@ const TwoFactorAuth = () => {
 		<div className="grid place-items-center justify-center w-full h-full">
 			<div
 				className="flex flex-col items-center justify-center w-full max-w-sm md:max-w-md lg:max-w-lg gap-4 px-16 py-12 text-white"
-				// onKeyDown={handleKeyPress}
+			// onKeyDown={handleKeyPress}
 			>
 				<div className="flex flex-col items-center gap-2 text-center">
 					<h1 className="text-2xl">Two-Factor Authentication</h1>
@@ -116,37 +117,24 @@ const TwoFactorAuth = () => {
 						value={code[5] || ""}
 					/>
 				</div>
-				{error && (
-					<p className="w-full pl-4 text-left text-xs font-medium text-red-600 dark:text-red-500">
-						{error}
-					</p>
-				)}
 				<Button
 					className="w-full justify-center"
 					onClick={async () => {
 						try {
-							const accessToken = window.localStorage?.getItem("2fa_access_token");
-							const response = await axios.post(
+
+							await axios.post(
 								`${process.env.NEXT_PUBLIC_BACK_END_URL}api/auth/2fa/verify`,
 								{ code },
 								{
 									withCredentials: true,
 								}
 							);
-
-							if (response.data) {
-								// window.localStorage?.setItem(
-								// 	"access_token",
-								// 	response.data.access_token
-								// );
-								// await fetchUser();
-								setAuthenticated(true);
-								redirect("/home");
-							}
-
-							setError("Invalid Code");
+							await fetchUser();
+							setAuthenticated(true);
+							redirect("/home");
 						} catch (error) {
-							setError("Invalid Code");
+							console.log(error);
+							toast.error("Invalid Code");
 						}
 					}}
 				>

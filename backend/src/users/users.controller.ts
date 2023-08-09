@@ -36,6 +36,7 @@ import {
 import { UsersService } from './users.service';
 import { assignAchievementsDto } from './dto/achievements.dto';
 import { Request } from 'express';
+import { Public } from 'src/public.decorator';
 
 @Controller('users')
 export class UsersController {
@@ -46,6 +47,17 @@ export class UsersController {
   async findAll() {
     try {
       return this.usersService.findAllUsers();
+    } catch (error) {
+      return null;
+    }
+  }
+
+  @Get('/stats')
+  @Public()
+  // @FindAllDoc()
+  async findStats() {
+    try {
+      return this.usersService.findStats();
     } catch (error) {
       return null;
     }
