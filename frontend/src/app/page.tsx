@@ -14,11 +14,6 @@ import Image from "next/image";
 import { AppContext } from "@/context/app.context";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Player } from "@lottiefiles/react-lottie-player";
-import { BiLogoTypescript } from "react-icons/bi";
-import { SiNestjs, SiNextdotjs } from "react-icons/si";
-import { FaNode } from "react-icons/fa";
-import { DiGithubFull } from "react-icons/di";
 import axios from "axios";
 import CountUp from "react-countup";
 
@@ -46,8 +41,8 @@ const LandingPage = () => {
 	useEffect(() => {
 		const fetchStats = async () => {
 			const res = await axios.get(`${process.env.NEXT_PUBLIC_BACK_END_URL}api/users/stats`);
-			setNumUsers(res.data.numUsers);
-			setNumGames(res.data.numGames);
+			setNumUsers(res.data.users);
+			setNumGames(res.data.games);
 		};
 		fetchStats();
 	}, []);
@@ -68,19 +63,10 @@ const LandingPage = () => {
 
 	return (
 		<div className="overflow-auto scrollbar-hide flex flex-col items-center w-screen h-screen bg-secondary-700">
-			<div className="fixed inset-0 flex items-center justify-center">
-				<Player
-					autoplay
-					loop
-					speed={0.4}
-					src="/lottie/handJoystick.json"
-					style={{ width: "100%", height: "100%", opacity: 0.3 }}
-				/>
-			</div>
 			<div className="grid w-full max-w-5xl h-fit grid-cols-1 place-items-center justify-center gap-8 md:gap-16 p-8 lg:grid-cols-2 z-10 backdrop-blur-sm backdrop-opacity-10">
 				<div className="flex w-full max-w-xs items-center justify-center lg:col-span-2 lg:max-w-xl py-16">
 					<Image
-						src="/img/Logo.png"
+						src="/img/logo.png"
 						priority
 						alt="Pong Materz"
 						width={400}
@@ -143,7 +129,6 @@ const LandingPage = () => {
 						</Carousel>
 					</div>
 				</div>
-
 				<div className="flex flex-col items-center justify-center w-full h-fit">
 					<div className="flex w-full items-end gap-4 px-4 py-2 text-right">
 						<CountUp end={numUsers} duration={4} className="w-1/2">
@@ -177,20 +162,20 @@ const LandingPage = () => {
 						Get ready to paddle up, score points, and rise to the top as you participate
 						in the ultimate Pong challenge. May the best player win!
 					</p>
-					<Link
+					{/* <Link
 						href="https://github.com/Hicham-BelHoucin/ft_transcendence"
 						className="text-gray-200 hover:text-primary-700 transition"
 						target="_blank"
 						rel="noopener noreferrer"
 					>
-						<DiGithubFull size={"60px"} />
+						<Github size={"40px"} />
 					</Link>
 					<div className="flex items-center justify-center gap-4 pb-4">
 						<BiLogoTypescript size={"34px"} className="text-gray-400" />
 						<SiNestjs size={"34px"} className="text-gray-400" />
 						<SiNextdotjs size={"34px"} className="text-gray-400" />
 						<FaNode size={"40px"} className="text-gray-400" />
-					</div>
+					</div> */}
 				</div>
 			</div>
 			<div className="grid md:grid-cols-3 w-full max-w-5xl place-items-center justify-center px-8 pb-16 pt-4 gap-8">
@@ -226,7 +211,7 @@ const LandingPage = () => {
 				</div>
 				<Contributor
 					name="Hicham Bel Houcin"
-					role="Developer"
+					role="Full Stack Developer"
 					image="/img/hbel-hou.jpg"
 					linkedin="hicham-bel-houcin"
 					github="Hicham-BelHoucin"
@@ -249,26 +234,7 @@ const LandingPage = () => {
 					instagram="soufiane.elmarsi"
 				/>
 			</div>
-			<div className="flex items-center justify-center h-16">
-				<p className="text-gray-200 text-lg font-medium z-10">Crafted with</p>
-				<div className="-mx-12">
-					<Player
-						autoplay
-						loop
-						src="/lottie/heart.json"
-						style={{ width: "140px", height: "140px" }}
-					/>
-				</div>
-				<p className="text-gray-200 text-lg font-medium z-10">from</p>
-				<div className="px-2">
-					<Player
-						autoplay
-						loop
-						src="/lottie/moroccanFlag.json"
-						style={{ width: "24px", height: "24px" }}
-					/>
-				</div>
-			</div>
+
 		</div>
 	);
 };

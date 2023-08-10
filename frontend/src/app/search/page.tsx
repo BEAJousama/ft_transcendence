@@ -2,10 +2,10 @@
 import { ChatBanner, Input, Spinner, UserBanner } from "../../components";
 import useSWR from "swr";
 import { fetcher } from "../../context/app.context";
-import Layout from "../layout/index";
-import { useEffect, useState } from "react";
+import Layout from "../layout/index";;
 import IUser from "../../interfaces/user";
 import Link from "next/link";
+import * as React from "react";
 
 const options = [
   { value: "api/users", label: "users" },
@@ -15,15 +15,15 @@ const options = [
 
 export default function Search() {
 
-  const [value, setValue] = useState<string>("");
-  const [selected, setSelected] = useState<string>("api/users");
-  const [filtred, setFiltred] = useState<IUser[]>();
+  const [value, setValue] = React.useState<string>("");
+  const [selected, setSelected] = React.useState<string>("api/users");
+  const [filtred, setFiltred] = React.useState<IUser[]>();
   let { data: users, isLoading } = useSWR(selected, fetcher, {
     errorRetryCount: 0,
     timeout: 1000
   });
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (users && (filtred || !value)) {
       if (selected === "api/users")
         setFiltred(users.filter((item: IUser) => item.fullname.toLowerCase().includes(value.toLowerCase())))

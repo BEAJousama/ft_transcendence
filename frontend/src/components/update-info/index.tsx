@@ -1,6 +1,5 @@
 "use client"
 
-
 import { useContext } from "react";
 import { AppContext } from "../../context/app.context";
 import { useFormik } from "formik";
@@ -8,7 +7,7 @@ import Input from "../input";
 import Button from "../button";
 import axios from "axios";
 import Divider from "../divider";
-import { MdDelete } from "react-icons/md";
+import { Trash } from 'lucide-react';
 import { toast } from "react-toastify";
 
 
@@ -134,7 +133,7 @@ const UpdateInfo = ({
                     setShowmodal(true);
                 }}
             >
-                <MdDelete />
+                <Trash />
                 Remove account
             </Button>
         </>

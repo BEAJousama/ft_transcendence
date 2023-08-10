@@ -1,50 +1,47 @@
 "use client"
-
-
-import { BsFillChatDotsFill } from "react-icons/bs";
-import { AiFillHome } from "react-icons/ai";
-import { TbDeviceGamepad2 } from "react-icons/tb";
-import { CgProfile } from "react-icons/cg";
-import { RiListSettingsFill } from "react-icons/ri";
-import { RiLogoutBoxRLine } from "react-icons/ri";
+import { MessageCircle } from 'lucide-react';
+import { Home } from 'lucide-react';
+import { Gamepad2 } from 'lucide-react';
+import { User } from 'lucide-react';
+import { Settings } from 'lucide-react';
+import { LogOut } from 'lucide-react';
+import { Search } from 'lucide-react';
 import Image from "next/image";
-import { BiSearch } from "react-icons/bi";
 import { twMerge } from "tailwind-merge";
 import { useContext } from "react";
-import { GameContext } from "../../context/game.context";
-import { AppContext } from "../../context/app.context";
+import { GameContext } from "@/context/game.context";
+import { AppContext } from "@/context/app.context";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { cookies } from "next/dist/client/components/headers";
 
 const sidePanelItems = [
   {
-    icon: <AiFillHome size={18} />,
+    icon: <Home size={18} />,
     text: "Home",
     path: "/home",
   },
   {
-    icon: <BsFillChatDotsFill size={18} />,
+    icon: <MessageCircle size={18} />,
     text: "Chat",
     path: "/chat",
   },
   {
-    icon: <BiSearch size={18} />,
+    icon: <Search size={18} />,
     text: "Search",
     path: "/search",
   },
   {
-    icon: <TbDeviceGamepad2 size={18} />,
+    icon: <Gamepad2 size={18} />,
     text: "Pong Game",
     path: "/pong",
   },
   {
-    icon: <CgProfile size={18} />,
+    icon: <User size={18} />,
     text: "Profile",
     path: "/profile",
   },
   {
-    icon: <RiListSettingsFill size={18} />,
+    icon: <Settings size={18} />,
     text: "Settings",
 
     path: "/settings",
@@ -174,7 +171,7 @@ const Sidepanel = ({ className }: { className?: string }) => {
             window.location.reload();
           }}
         >
-          <RiLogoutBoxRLine size={18} />
+          <LogOut size={18} />
           <span className="hidden text-left md:block">Log Out</span>
         </SidePanelItem>
       </div>

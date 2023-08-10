@@ -4,7 +4,7 @@ import React, { useContext, useState } from "react";
 import { AppContext, IAppContext } from "../../context/app.context";
 import { ChatContext, IchatContext } from "../../context/chat.context";
 
-import CustomSelect from "../select";
+
 import Input from "../../components/input";
 import ProfileBanner from "../../components/profilebanner";
 import { Button, Divider, UpdateAvatar } from "../../components";
@@ -123,7 +123,23 @@ const CreateGroupModal = ({
                 if (value !== "") setShowSubmit(true);
               }}
             />
-            <CustomSelect label="Visibility" setX={setVisibility} options={["PUBLIC", "PRIVATE", "PROTECTED"]} />
+
+            <Input type="select" label="Visibility" onChange={(e) => {
+              setVisibility(e.target.value)
+            }} options={[
+              {
+                label: "PUBLIC",
+                value: "PUBLIC",
+              },
+              {
+                label: "PRIVATE",
+                value: "PRIVATE",
+              },
+              {
+                label: "PROTECTED",
+                value: "PROTECTED",
+              },
+            ]} />
             {
               (visibility === "PROTECTED") && (
                 <>

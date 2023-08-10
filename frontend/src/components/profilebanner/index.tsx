@@ -11,20 +11,20 @@ import {
 import { BiArchiveIn, BiArchiveOut } from "react-icons/bi";
 import { useClickAway } from "react-use";
 import { BsPersonAdd } from "react-icons/bs";
-
-import { twMerge } from "tailwind-merge";
-import Avatar from "../avatar";
-import Button from "../button";
 import { SlOptionsVertical } from "react-icons/sl";
 import { TbBan } from "react-icons/tb";
 import { IoPersonRemoveOutline } from "react-icons/io5";
 import RightClickMenu, { RightClickMenuItem } from "../rightclickmenu";
 import { BiVolumeMute } from "react-icons/bi";
 import { ChatContext, IchannelMember } from "../../context/chat.context";
+
+import { twMerge } from "tailwind-merge";
+import Avatar from "../avatar";
+import Button from "../button";
 // import { useNavigate } from "react-router-dom";
 import Modal from "../modal"
 import Input from "../input";
-import Select from "../select";
+
 
 interface ProfileBannerProps {
   channelMember?: IchannelMember;
@@ -112,7 +112,7 @@ const ProfileBanner = ({
       )}
     >
       <div className=" basis-[15%]">
-      <Avatar src={avatar} alt="" status={description === "ONLINE" ? "ONLINE" : "OFFLINE"} />
+        <Avatar src={avatar} alt="" status={description === "ONLINE" ? "ONLINE" : "OFFLINE"} />
       </div>
       <div
         className={twMerge(
@@ -302,10 +302,25 @@ const ProfileBanner = ({
                     }
                   />
                 </div>
-                <Select
+                <Input
+                  type="select"
                   className="col-span-2 "
-                  options={["s", "m", "h"]}
-                  setX={setUnit}
+                  options={[
+                    {
+                      label: "s",
+                      value: "s"
+                    },
+                    {
+                      label: "m",
+                      value: "m"
+                    },
+                    {
+                      label: "h",
+                      value: "h"
+                    }]}
+                  onChange={(e) => {
+                    setUnit(e.target.value);
+                  }}
                 />
               </div>
               <div className="flex justify-around flex-auto">

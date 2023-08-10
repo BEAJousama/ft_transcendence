@@ -38,12 +38,10 @@ class AchievementsWatcher {
   // private player: Player;
 
   constructor(player: Player, achievedAchievements: Set<Achievements>) {
-    // this.player = player;
     this.achievedAchievements = new Set(achievedAchievements);
     this.toWatchAchievements = new Set<Achievements>(
       Object.values(Achievements),
     );
-    // console.log(this.toWatchAchievements);
     this.toAssignAchievements = new Set<Achievements>();
     for (const achievement of this.achievedAchievements) {
       this.toWatchAchievements.delete(achievement);
@@ -122,7 +120,7 @@ class AchievementsWatcher {
     }
   }
 
-  checkAchievementsWhenPlayerScores(player: Player, game: Game) {
+  async checkAchievementsWhenPlayerScores(player: Player, game: Game) {
     if (game.ball.speed >= 8) {
       this.achieveAchievement(Achievements.POWER_SERVE);
     }

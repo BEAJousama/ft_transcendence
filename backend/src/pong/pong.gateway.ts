@@ -4,12 +4,14 @@ import {
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
+  WsException,
 } from '@nestjs/websockets';
 import { Invitation, UpdateDto } from './interfaces/index';
 import { Socket } from 'socket.io';
 import { PongService } from './pong.service';
 import { Inject } from '@nestjs/common';
 import { NotificationGateway } from 'src/notification/notification.gateway';
+import { JwtService } from '@nestjs/jwt';
 
 @WebSocketGateway({ namespace: 'pong', cors: true, origins: '*' })
 export class PongGateway {
@@ -21,8 +23,8 @@ export class PongGateway {
   @WebSocketServer() server;
 
   @SubscribeMessage('check-for-active-invitations')
-  checkForActiveInvitations(@ConnectedSocket() client: Socket) {
-    this.pongService.checkForActiveInvitations(client);
+  async checkForActiveInvitations(@ConnectedSocket() client: Socket) {
+    await this.pongService.checkForActiveInvitations(client);
   }
 
   @SubscribeMessage('reject-invitation')
@@ -36,18 +38,20 @@ export class PongGateway {
     @ConnectedSocket() client: Socket,
     @MessageBody() info: Invitation,
   ) {
-    const invitation = this.pongService.inviteFriend(info, client);
+    const invitation: Invitation = this.pongService.inviteFriend(info, client);
     const id = this.notificationGateway.clients_map.get(
       info.invitedFriendId.toString(),
     );
-    this.notificationGateway.server
-      .to(id)
-      .emit('check-for-active-invitations', {
-        inviterId: invitation.inviterId,
-        invitedFriendId: invitation.invitedFriendId,
-        gameMode: invitation.gameMode,
-        powerUps: invitation.powerUps,
-      });
+    if (invitation && invitation.inviterId && invitation.invitedFriendId) {
+      this.notificationGateway.server
+        .to(id)
+        .emit('check-for-active-invitations', {
+          inviterId: invitation.inviterId,
+          invitedFriendId: invitation.invitedFriendId,
+          gameMode: invitation.gameMode,
+          powerUps: invitation.powerUps,
+        });
+    }
   }
 
   @SubscribeMessage('accept-invitation')

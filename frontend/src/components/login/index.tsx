@@ -37,7 +37,7 @@ const Login = () => {
 		validationSchema: toFormikValidationSchema(loginFormSchema),
 		validateOnBlur: submitCount !== 0,
 		validateOnChange: submitCount !== 0,
-		onSubmit: async (values) => {},
+		onSubmit: async (values) => { },
 	});
 
 	const handleLogin = async () => {
