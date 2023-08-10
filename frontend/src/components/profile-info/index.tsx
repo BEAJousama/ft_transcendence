@@ -17,8 +17,7 @@ import Image from "next/image";
 import { Spinner, Avatar, Button } from "@/components";
 import { ChatContext } from "@/context/chat.context";
 import { useRouter } from "next/navigation";
-import { BiBlock } from "react-icons/bi";
-import { CgUnblock } from "react-icons/cg";
+
 
 const status = {
     ONLINE: { status: "online", color: "text-green-500" },
@@ -144,7 +143,7 @@ const ProfileInfo = ({
 
                                             }}
                                         >
-                                            {blocked ? <CgUnblock /> : <BiBlock />}
+                                            {blocked ? "Block" : "Unblock"}
                                         </Button>
                                     </div>
                                 </div>

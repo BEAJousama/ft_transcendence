@@ -24,7 +24,7 @@ import { GameContext } from "../../context/game.context";
 import Layout from "../layout/index";
 import { AppContext, fetcher } from "../../context/app.context";
 import Modal from "../../components/modal";
-import { AiFillWarning } from "react-icons/ai";
+import { AlertTriangle } from 'lucide-react';
 import { Player, Ball } from "../../interfaces/game";
 import useSWR from "swr";
 import IUser from "../../interfaces/user";
@@ -180,7 +180,7 @@ const PongGame = ({
       {show && (
         <PauseGame
           title="Are you sure you want to leave the game ?"
-          icon={<AiFillWarning size={100} />}
+          icon={<AlertTriangle size={100} />}
           setShowModal={setShowModal}
           timer={timer}
           intervalId={intervalId}
@@ -370,7 +370,7 @@ export default function Pong() {
       )}
       {showModal && (
         <ConfirmationModal
-          icon={<AiFillWarning size={100} />}
+          icon={<AlertTriangle size={100} />}
           title="You are already in a game"
           accept="Ok"
           onAccept={() => {

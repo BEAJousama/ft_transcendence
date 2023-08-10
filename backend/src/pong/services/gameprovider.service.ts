@@ -53,17 +53,13 @@ class GameProvider {
 
   update(info: { userId: number; playerCanvas: Canvas }) {
     if (!this.gameStarted) return;
-    const { userId, playerCanvas } = info;
+    const { playerCanvas } = info;
     const playerA = this.game.playerA;
     const playerB = this.game.playerB;
     const ball = this.game.ball;
     const { width, height } = playerCanvas;
 
     if (!this.game || !playerB) return;
-
-    // this.game.acheivementsWatcher.checkAchievementsWhenPlayerScores(playerA);
-
-    const player = userId === playerA.id ? playerA : playerB;
 
     if (playerA.keyState['ArrowUp'] && playerA.y > 5) {
       playerA.y -= 5;
@@ -123,7 +119,6 @@ class GameProvider {
       playerA.powerup = true;
       const timeoutId = setTimeout(() => {
         playerA.powerup = false;
-        console.log('deactivate powerup');
         clearTimeout(timeoutId);
       }, 5000);
     }
@@ -168,7 +163,6 @@ class GameProvider {
       ball.speed = this.old_ball_speed;
     }
 
-    // console.log('powerup', this.powerups);
     if (playerA.powerup && this.powerups === 'ShrinkingPaddle') {
       playerA.height = 200;
     }
@@ -221,7 +215,7 @@ class GameProvider {
         ? this.game.playerA
         : this.game.playerB;
     player.keyState[info.key] = true;
-    console.log(player.keyState);
+
     return this.game;
   }
 

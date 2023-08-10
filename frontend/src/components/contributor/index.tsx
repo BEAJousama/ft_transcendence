@@ -1,7 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
-import { IoLogoGithub, IoLogoInstagram, IoLogoLinkedin } from "react-icons/io5";
-
+import { Github } from 'lucide-react';
+import { Linkedin } from 'lucide-react';
+import { Instagram } from 'lucide-react';
 interface ContributorProps {
 	name: string;
 	role: string;
@@ -36,7 +37,7 @@ export default function Contributor({
 							target="_blank"
 							rel="noopener noreferrer"
 						>
-							<IoLogoLinkedin size={"20px"} />
+							<Linkedin size={"20px"} />
 						</Link>
 					)}
 					{github && (
@@ -46,7 +47,7 @@ export default function Contributor({
 							target="_blank"
 							rel="noopener noreferrer"
 						>
-							<IoLogoGithub size={"20px"} />
+							<Github size={"20px"} />
 						</Link>
 					)}
 					{instagram && (
@@ -56,7 +57,7 @@ export default function Contributor({
 							target="_blank"
 							rel="noopener noreferrer"
 						>
-							<IoLogoInstagram size={"20px"} />
+							<Instagram size={"20px"} />
 						</Link>
 					)}
 				</div>

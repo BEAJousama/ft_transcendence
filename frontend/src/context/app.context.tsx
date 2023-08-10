@@ -4,8 +4,7 @@ import axios from "axios";
 import React from "react";
 import IUser from "@/interfaces/user";
 import { redirect, usePathname } from "next/navigation";
-import useSwr from "swr"
-
+import useSwr from "swr";
 
 export interface IAppContext {
 	user: IUser | undefined;
@@ -41,41 +40,57 @@ export const AppContext = React.createContext<IAppContext>({
 
 export const fetcher = async (url: string) => {
 	try {
-		const response = await axios.get(`${process.env.NEXT_PUBLIC_BACK_END_URL}${url}`, {
-			withCredentials: true,
-		});
+		const response = await axios.get(
+			`${process.env.NEXT_PUBLIC_BACK_END_URL}${url}`,
+			{
+				withCredentials: true,
+			}
+		);
 		return response.data;
-	}
-	catch (error) {
+	} catch (error) {
 		throw error;
 	}
 };
 
 const AppProvider = ({ children }: { children: React.ReactNode }) => {
-	const { data, isLoading, mutate } = useSwr('api/auth/42', fetcher, {
+	const {
+		data,
+		isLoading: loading,
+		mutate,
+	} = useSwr("api/auth/42", fetcher, {
 		revalidateOnFocus: false,
 		revalidateOnReconnect: false,
 		refreshInterval: 0,
 		refreshWhenHidden: false,
 		refreshWhenOffline: false,
 		shouldRetryOnError: false,
-	})
+	});
 	const [isAuthenticated, setIsAuthenticated] = React.useState<boolean>(false);
-
+	const [isLoading, setIsLoading] = React.useState<boolean>(true);
 
 	const path = usePathname();
 
 	React.useEffect(() => {
+		if (loading) return;
 		if (data) {
 			setIsAuthenticated(true);
-		}
-		else {
+		} else {
 			setIsAuthenticated(false);
 		}
-	}, [data])
+		setIsLoading(false);
+	}, [data, loading]);
 
-	if (!isAuthenticated && !isLoading && path !== "/")
-		redirect("/");
+	if (isLoading) return <div></div>;
+
+	if (!isAuthenticated && !isLoading && path !== "/") redirect("/");
+
+	if (
+		isAuthenticated &&
+		!isLoading &&
+		path === "/" &&
+		data.updatedAt !== data.createdAt
+	)
+		redirect("/home");
 
 	const appContextValue: IAppContext = {
 		user: data,
@@ -86,7 +101,11 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
 		updateUser: mutate,
 	};
 
-	return <AppContext.Provider value={appContextValue}>{children}</AppContext.Provider>;
+	return (
+		<AppContext.Provider value={appContextValue}>
+			{children}
+		</AppContext.Provider>
+	);
 };
 
 export default AppProvider;

@@ -1,6 +1,6 @@
 "use client"
 
-import { CgClose } from "react-icons/cg"
+import { X } from 'lucide-react';
 import Button from "../button"
 import Avatar from "../avatar"
 import React from "react";
@@ -43,7 +43,7 @@ const Toast = ({
             <Button variant="text" onClick={() => {
                 toast.dismiss(toastId.current?.id)
             }}>
-                <CgClose />
+                <X />
             </Button>
         </div>
     )

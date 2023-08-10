@@ -8,8 +8,8 @@ import {
 	LadderProgressBar,
 	FourOFour
 } from "@/components";
-import { CgProfile } from "react-icons/cg";
-import { useCallback, useContext } from "react";
+import { UserCircle } from 'lucide-react';
+import { useContext } from "react";
 import { AppContext, fetcher } from "../../../context/app.context";
 import IAchievement from "../../../interfaces/achievement";
 import useSWR from "swr";
@@ -23,16 +23,13 @@ const Achievements = ({ user }: { user: IUser }) => {
 		fetcher
 	);
 
-	const isDisabled = useCallback(
-		(name: string) => {
-			const achievements = user?.achievements;
-			if (!achievements) return true;
-			return !achievements.find(
-				(item: IAchievement) => item.name === name
-			);
-		},
-		[user?.achievements]
-	);
+	const isDisabled = (name: string) => {
+		const achievements = user?.achievements;
+		if (!achievements) return true;
+		return !achievements.find(
+			(item: IAchievement) => item.name === name
+		);
+	}
 
 	return (
 		<>
@@ -109,7 +106,7 @@ export default function Profile() {
 			) : (
 				<>
 					<div className="flex w-full max-w-[1024px] items-center gap-2 p-2 text-lg font-bold text-white md:gap-4  md:text-2xl">
-						<CgProfile />
+						<UserCircle size={40} />
 						Profile
 					</div>
 					<ProfileInfo

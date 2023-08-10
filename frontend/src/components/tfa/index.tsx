@@ -1,13 +1,15 @@
+"use client";
 import axios from "axios";
 import { Button, Card, Input } from "..";
 import { useContext, useEffect, useRef, useState } from "react";
 import { AppContext } from "../../context/app.context";
-import { redirect } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 
 const TwoFactorAuth = () => {
-	const { fetchUser, authenticated, setAuthenticated } = useContext(AppContext);
+	const { fetchUser, setAuthenticated } = useContext(AppContext);
 	const [code, setCode] = useState("");
+	const router = useRouter();
 	const [error, setError] = useState("");
 
 	const inputsRef = [
@@ -131,7 +133,7 @@ const TwoFactorAuth = () => {
 							);
 							await fetchUser();
 							setAuthenticated(true);
-							redirect("/home");
+							router.push("/home");
 						} catch (error) {
 							console.log(error);
 							toast.error("Invalid Code");

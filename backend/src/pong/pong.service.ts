@@ -102,8 +102,6 @@ export class PongService {
     gameId: number,
     player1score: number,
     player2score: number,
-    player1Id: number,
-    player2Id: number,
   ) {
     try {
       await this.prisma.game.update({
@@ -117,7 +115,7 @@ export class PongService {
       });
     } catch (error) {
       // Handle the error here
-      console.log(error);
+      // console.log(error);
     }
   }
 
@@ -499,10 +497,7 @@ export class PongService {
   resumeGame(client: Socket, info: { userId: number }) {
     const gameProvider = this.getGameProviderByUserId(info.userId);
     if (!gameProvider) return;
-    const { playerA, playerB } = gameProvider.game;
     gameProvider.paused = false;
-    // playerA.socket.emit('game-paused');
-    // playerB.socket.emit('game-paused');
   }
 
   // Removes a game provider from the list
@@ -551,6 +546,7 @@ export class PongService {
 
     const winner = playerA.score > playerB.score ? playerA : playerB;
     const loser = playerA.score < playerB.score ? playerA : playerB;
+    this.updateScore(gameProvider.id, playerA.score, playerB.score);
     const playerAUser = await this.usersService.findUserById(playerA.id);
     playerA.acheivementsWatcher.checkAchievementsWhenGameIDone(
       playerA,
@@ -618,15 +614,7 @@ export class PongService {
     if (gameProvider.paused || !gameProvider.gameStarted) return;
     const game = gameProvider.update(info);
     const { playerA, playerB } = game;
-    this.assingAchievements(playerA);
-    this.assingAchievements(playerB);
-    this.updateScore(
-      gameProvider.id,
-      playerA.score,
-      playerB.score,
-      playerA.id,
-      playerB.id,
-    );
+
     if (gameProvider.gameMode !== 'Time Attack') {
       if (playerA.score >= 7 || playerB.score >= 7) {
         this.gameOver(gameProvider);
@@ -643,11 +631,8 @@ export class PongService {
       }
     }
 
-    // Calculate the difference between 'endsAt' and 'startedAt' in minutes
-
     this.emitUpdate(game, playerA.socket, gameProvider.endsAt);
     this.emitUpdate(game, playerB.socket, gameProvider.endsAt);
-    // console.log(gameProvider.startedAt.toLocaleString());
     return game;
   }
 

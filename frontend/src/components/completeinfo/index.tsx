@@ -2,7 +2,7 @@
 
 import { Avatar, Card, Button, Input } from "../../components";
 import { useContext, useEffect, useState } from "react";
-import { MdOutlineModeEdit } from "react-icons/md";
+import { Pencil } from 'lucide-react';
 import { useRef } from "react";
 import { useFormik } from "formik";
 import { AppContext } from "../../context/app.context";
@@ -18,7 +18,7 @@ export default function CompleteInfo() {
 			phone: user?.phone,
 			fullname: user?.fullname,
 		},
-		onSubmit: (values) => {},
+		onSubmit: (values) => { },
 	});
 	const ref = useRef<HTMLInputElement>(null);
 	const [file, setFile] = useState<Blob>();
@@ -55,7 +55,7 @@ export default function CompleteInfo() {
 								ref.current?.click();
 							}}
 						>
-							<MdOutlineModeEdit />
+							<Pencil />
 							<input
 								type="file"
 								hidden

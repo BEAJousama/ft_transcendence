@@ -2,10 +2,10 @@
 
 import React, { createContext, useContext, useEffect, useRef, useState } from "react";
 import io, { Socket } from "socket.io-client";
-import { AppContext } from "./app.context";
+import { AppContext, getCookieItem } from "./app.context";
 import { Ball, Player } from "@/interfaces/game";
 import { toast } from "react-toastify";
-import { setCookie, getCookie } from 'cookies-next';
+
 
 
 enum Keys {
@@ -100,7 +100,7 @@ export default function SocketProvider({
 	useEffect(() => {
 		try {
 
-			const token = getCookie("access_token");
+			const token = getCookieItem("access_token");
 			if (!token) return;
 
 			const newSocket = io(`${process.env.NEXT_PUBLIC_BACK_END_URL}pong`, {

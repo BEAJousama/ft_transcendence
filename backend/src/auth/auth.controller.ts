@@ -52,7 +52,7 @@ export class AuthController {
   @Public()
   @Post('signin')
   @SignInDoc()
-  async signIn(@Body() body: SignInDto, @Res() res: Response) {
+  async signIn(@Body() body: SignInDto) {
     return await this.authService.signIn(body);
   }
 

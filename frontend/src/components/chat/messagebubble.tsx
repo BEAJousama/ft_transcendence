@@ -20,8 +20,6 @@ import { FcMenu } from "react-icons/fc"
 
 import Avatar from "../avatar";
 import Modal from "../modal";
-import data from "@emoji-mart/data";
-import Picker from "@emoji-mart/react";
 import Divider from "../divider";
 import ProfileBanner from "../profilebanner";
 import UpdateAvatar from "../update-avatar";
@@ -30,10 +28,9 @@ import UpdateChannel from "./updateChannel";
 import RightClickMenu, { RightClickMenuItem } from "../rightclickmenu";
 import axios from "axios";
 import { toast } from "react-toastify";
-import CustomSelect from "../select";
+
 import IUser from "../../interfaces/user";
 import { twMerge } from "tailwind-merge";
-import { set } from "lodash";
 
 interface ChannelProps {
   className?: string;
@@ -53,7 +50,7 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
   const [showPicker, setShowPicker] = useState<boolean>(false);
   const [showModal, setShowModal] = useState<boolean>(false);
   const [showEdit, setShowEdit] = useState<boolean>(false);
-  const [visibility, setVisibility] = useState<string >(currentChannel?.visiblity || "");
+  const [visibility, setVisibility] = useState<string>(currentChannel?.visiblity || "");
   const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
   const [previewImage, setPreviewImage] = useState<string>(currentChannel?.avatar || "");
   const [groupName, setGroupName] = useState<string>(currentChannel?.name || "");
@@ -120,12 +117,11 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
   useClickAway(ref, () => {
     setShowPicker(false);
   });
+
   useClickAway(ref1, () => {
     setDmMenu(false);
   });
-  const handleEmojiSelect = (emoji: string) => {
-    setValue((prevMessage) => prevMessage + emoji);
-  };
+
 
   const closeAll = () => {
     setShowEdit(false);
@@ -266,7 +262,7 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
               currentChannel?.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.avatar} alt=""
               status={currentChannel?.type !== "CONVERSATION" ? "OFFLINE" :
                 (currentChannel?.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.status === "ONLINE" &&
-                !checkBlock(currentChannel?.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.id) ? "ONLINE" : "OFFLINE")}
+                  !checkBlock(currentChannel?.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.id) ? "ONLINE" : "OFFLINE")}
             />
             <div>{currentChannel?.type !== "CONVERSATION" ? (currentChannel?.name && currentChannel?.name.length > 50 ? currentChannel?.name.slice(0, 50) + " ..." : currentChannel?.name) : currentChannel?.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.username}</div>
           </div>
@@ -334,52 +330,52 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
 
       {
         // !spinner ?
-      <div className="mb-2 flex flex-col overflow-y-scroll scroll-smooth scrollbar-hide h-full first:space-y-4 gap-2 z-[0] px-[10px] ">
-        {
-          messages?.map((message, index) => {
-            return (
-              index !== messages.length - 1 ? 
-              (<div key={message.id} className={`first-of-type:mt-auto transition-all duration-500 transform  ${index > 0 ? 'translate-y-2' : ''}`}>
-                {new Date(message.date).getDay() !== new Date(messages[messages.indexOf(message) - 1]?.date).getDay() && (
-                <Divider center title={ 
-                  //check if date is less than 10, if so add a 0 in front of it
-                  `${  new Date(message.date).getDate() < 10 ? '0' + new Date(message.date).getDate() : 
-                    new Date(message.date).getDate()}-${ new Date(message.date).getMonth() < 12 ? '0' + (new Date(message.date).getMonth() + 1) : 
-                    new Date(message.date).getMonth() + 1}-${new Date(message.date).getFullYear()}`}
-                />)}
-                <MessageBox
-                autoScroll={autoScroll}
-                key={message.id}
-                message={message}
-                right={(message.senderId === user?.id)} 
-                />          
-            </div>)
-            :
-              (<div key={message.id} ref={refMessage} className={`first-of-type:mt-auto transition-all duration-500 transform  ${index > 0 ? 'translate-y-2' : ''}`}>
-                {new Date(message.date).getDay() !== new Date(messages[messages.indexOf(message) - 1]?.date).getDay() && (
-                <Divider center title={ 
-                  //check if date is less than 10, if so add a 0 in front of it
-                  `${  new Date(message.date).getDate() < 10 ? '0' + new Date(message.date).getDate() : 
-                    new Date(message.date).getDate()}-${ new Date(message.date).getMonth() < 12 ? '0' + (new Date(message.date).getMonth() + 1) : 
-                    new Date(message.date).getMonth() + 1}-${new Date(message.date).getFullYear()}`}
-                />)}
-                <MessageBox
-                autoScroll={autoScroll}
-                key={message.id}
-                message={message}
-                right={(message.senderId === user?.id)} 
-                />          
-            </div>)
-            ) 
-        })}
-        <div className="mt-5"></div>
-      </div>
-      // : 
-      // <div className="mb-2 flex h-full flex-col  justify-end gap-2 z-[0] px-[10px] ">
-      //   <div className="flex justify-center items-center h-full">
-      //     <Spinner/>
-      //   </div>
-      // </div>
+        <div className="mb-2 flex flex-col overflow-y-scroll scroll-smooth scrollbar-hide h-full first:space-y-4 gap-2 z-[0] px-[10px] ">
+          {
+            messages?.map((message, index) => {
+              return (
+                index !== messages.length - 1 ?
+                  (<div key={message.id} className={`first-of-type:mt-auto transition-all duration-500 transform  ${index > 0 ? 'translate-y-2' : ''}`}>
+                    {new Date(message.date).getDay() !== new Date(messages[messages.indexOf(message) - 1]?.date).getDay() && (
+                      <Divider center title={
+                        //check if date is less than 10, if so add a 0 in front of it
+                        `${new Date(message.date).getDate() < 10 ? '0' + new Date(message.date).getDate() :
+                          new Date(message.date).getDate()}-${new Date(message.date).getMonth() < 12 ? '0' + (new Date(message.date).getMonth() + 1) :
+                            new Date(message.date).getMonth() + 1}-${new Date(message.date).getFullYear()}`}
+                      />)}
+                    <MessageBox
+                      autoScroll={autoScroll}
+                      key={message.id}
+                      message={message}
+                      right={(message.senderId === user?.id)}
+                    />
+                  </div>)
+                  :
+                  (<div key={message.id} ref={refMessage} className={`first-of-type:mt-auto transition-all duration-500 transform  ${index > 0 ? 'translate-y-2' : ''}`}>
+                    {new Date(message.date).getDay() !== new Date(messages[messages.indexOf(message) - 1]?.date).getDay() && (
+                      <Divider center title={
+                        //check if date is less than 10, if so add a 0 in front of it
+                        `${new Date(message.date).getDate() < 10 ? '0' + new Date(message.date).getDate() :
+                          new Date(message.date).getDate()}-${new Date(message.date).getMonth() < 12 ? '0' + (new Date(message.date).getMonth() + 1) :
+                            new Date(message.date).getMonth() + 1}-${new Date(message.date).getFullYear()}`}
+                      />)}
+                    <MessageBox
+                      autoScroll={autoScroll}
+                      key={message.id}
+                      message={message}
+                      right={(message.senderId === user?.id)}
+                    />
+                  </div>)
+              )
+            })}
+          <div className="mt-5"></div>
+        </div>
+        // : 
+        // <div className="mb-2 flex h-full flex-col  justify-end gap-2 z-[0] px-[10px] ">
+        //   <div className="flex justify-center items-center h-full">
+        //     <Spinner/>
+        //   </div>
+        // </div>
       }
       <div className="flex w-full  items-center bg-secondary-700 sticky bottom-0 ">
         <Button
@@ -419,16 +415,6 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
           <BsSendFill />
         </Button>
       </div>
-      {showPicker && (
-        <div ref={ref} className="h-50 absolute bottom-14 w-1">
-          <Picker
-            data={data}
-            onEmojiSelect={(e: any) => {
-              handleEmojiSelect(e.native);
-            }}
-          />
-        </div>
-      )}
       {
         Setowner && (
           <Modal
@@ -632,7 +618,7 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
                         setShowEdit(false);
                       }}
                     >
-                      {                   
+                      {
                         currentChannel?.isacessPassword ? "Edit access password" : "Add access password"
                       }
                       <MdOutlinePassword />
@@ -780,10 +766,22 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
                 defaultValue={currentChannel?.visiblity}
                 setValue={setVisibility}
               >
-                <CustomSelect
-                  className="mb-4"
-                  label="Visibility" setX={setVisibility} options={["PUBLIC", "PRIVATE", "PROTECTED"]} value={currentChannel?.visiblity}
-                />
+                <Input type="select" label="Visibility" onChange={(e) => {
+                  setVisibility(e.target.value)
+                }} options={[
+                  {
+                    label: "PUBLIC",
+                    value: "PUBLIC",
+                  },
+                  {
+                    label: "PRIVATE",
+                    value: "PRIVATE",
+                  },
+                  {
+                    label: "PROTECTED",
+                    value: "PROTECTED",
+                  },
+                ]} />
                 {
                   visibility === "PROTECTED" && (
                     <Input label="Password [required]" placeholder="*****************" htmlType="password"

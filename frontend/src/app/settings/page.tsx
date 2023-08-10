@@ -2,9 +2,8 @@
 import Image from "next/image";
 import { toast } from "react-toastify";
 
-import { MdSettings } from "react-icons/md";
+import { Settings } from 'lucide-react';
 import {
-  Avatar,
   Spinner,
   ConfirmationModal,
   UpdateAvatar,
@@ -16,7 +15,7 @@ import { AppContext } from "../../context/app.context";
 import axios from "axios";
 import Layout from "../layout/index";
 
-export default function Settings() {
+export default function SettingsPage() {
   const { user } = useContext(AppContext);
   const [previewImage, setPreviewImage] = useState<string>(user?.avatar || "");
   const [showmodal, setShowmodal] = useState<boolean>(false);
@@ -30,7 +29,7 @@ export default function Settings() {
         ) : (
           <>
             <div className="flex w-full items-center gap-2 p-2 text-lg text-white md:gap-4 md:text-2xl">
-              <MdSettings />
+              <Settings />
               Account Settings
             </div>
             <UpdateAvatar

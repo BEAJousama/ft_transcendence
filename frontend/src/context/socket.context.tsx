@@ -5,9 +5,9 @@ import io, { Socket } from "socket.io-client";
 import { toast } from "react-toastify";
 import { Toast } from "@/components";
 import IUser from "@/interfaces/user";
-import { AppContext } from "./app.context";
+import { AppContext, getCookieItem } from "./app.context";
 import Link from "next/link";
-import { getCookie } from "cookies-next";
+
 
 
 export const SocketContext = createContext<Socket | null>(null);
@@ -34,7 +34,7 @@ export default function GameProvider({
     // notification
 
     useEffect(() => {
-        const token = getCookie("access_token");
+        const token = getCookieItem("access_token");
         if (!token) return;
 
         const newSocket = io(`${process.env.NEXT_PUBLIC_BACK_END_URL}notification`, {

@@ -3,7 +3,8 @@
 import { useRef } from "react";
 import Avatar from "../avatar";
 import Button from "../button";
-import { MdOutlineModeEdit } from "react-icons/md";
+import { Pencil } from 'lucide-react';
+
 
 const UpdateAvatar = ({
     previewImage,
@@ -28,7 +29,7 @@ const UpdateAvatar = ({
                         ref.current?.click();
                     }}
                 >
-                    <MdOutlineModeEdit />
+                    <Pencil />
                     <input
                         type="file"
                         hidden

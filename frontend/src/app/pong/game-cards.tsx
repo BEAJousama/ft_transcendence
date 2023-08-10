@@ -95,13 +95,20 @@ const CreateGameCard = ({
     const { user } = useContext(AppContext);
 
     useEffect(() => {
+        // if (users && (filtred || !value))
+        //     setFiltred(
+        //         users.filter((item: IUser) =>
+        //             item.fullname.toLowerCase().includes(value.toLowerCase()) && item.status === "ONLINE" && item.id !== user?.id
+        //         )
+        //     );
+        // else setFiltred(users?.filter((item: IUser) => item.status === "ONLINE" && item.id !== user?.id));
         if (users && (filtred || !value))
             setFiltred(
                 users.filter((item: IUser) =>
-                    item.fullname.toLowerCase().includes(value.toLowerCase()) && item.status === "ONLINE" && item.id !== user?.id
+                    item.fullname.toLowerCase().includes(value.toLowerCase()) && item.id !== user?.id
                 )
             );
-        else setFiltred(users?.filter((item: IUser) => item.status === "ONLINE" && item.id !== user?.id));
+        else setFiltred(users?.filter((item: IUser) => item.id !== user?.id));
     }, [value, users]);
 
     return (
@@ -123,11 +130,10 @@ const CreateGameCard = ({
                             setValue(value);
                         }}
                     />
-
                     {isLoading ? (
                         <Spinner />
                     ) : filtred?.length ? (
-                        <div className="flex h-full max-h-[500px] w-full flex-col">
+                        <div className="flex h-full max-h-[500px] overflow-auto scrollbar-hide w-full flex-col">
                             {filtred.map((item: IUser) => {
                                 return (
                                     <Button
@@ -164,6 +170,7 @@ const CreateGameCard = ({
                     )}
                     <div className="flex w-full items-center justify-center gap-4">
                         <Button
+                            disabled={!!!selectedUser}
                             onClick={() => {
                                 setShowModal(false);
                             }}

@@ -10,13 +10,11 @@ import { ChatContext, Ichannel, IchannelMember, IchatContext, Imessage } from ".
 import Modal from "../modal";
 import Input from "../input";
 import Button from "../button";
-
 import { AppContext } from "../../context/app.context";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { set, throttle } from "lodash";
+import throttle from "lodash/throttle";
 import { twMerge } from "tailwind-merge";
-
 import { BsFillChatLeftTextFill } from "react-icons/bs";
 import { BiFilter } from "react-icons/bi";
 
@@ -134,12 +132,12 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
       setOpen(false);
     });
 
-    socket?.on('channel_access', (data: {channel: Ichannel, messages : Imessage[]}) => {
-        setOpen(true);
-        setCurrentChannel(data?.channel);
-        setSelectedChannel(data?.channel);
-        setMessages(data?.messages);
-        // inputRef?.current?.focus();
+    socket?.on('channel_access', (data: { channel: Ichannel, messages: Imessage[] }) => {
+      setOpen(true);
+      setCurrentChannel(data?.channel);
+      setSelectedChannel(data?.channel);
+      setMessages(data?.messages);
+      // inputRef?.current?.focus();
     });
 
     socket?.on('channel_delete', () => {
@@ -228,7 +226,7 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
 
   const onChange = (e: any) => {
     e.preventDefault();
-    const {value} = e.target
+    const { value } = e.target
     setSearch(value);
     if (value.trim().length > 0) {
       setChannels(channels.filter((item: Ichannel) => item.name.toLowerCase().includes(value.toLowerCase())));
@@ -474,7 +472,7 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
                 </Button>
                 <Button
                   className="h-8 w-auto md:w-20 bg-primary-500 text-white text-xs rounded-full mt-2"
-                  onClick={async() => {
+                  onClick={async () => {
                     await accessChannel()
                     setModal(false);
                     setPassword("");
