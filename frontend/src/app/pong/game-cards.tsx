@@ -287,7 +287,7 @@ export default function GameCards() {
                 gameOption={gameOption}
                 setGameOption={setGameOption}
                 disabled={disabled?.invite}
-                onCancel={() => {
+                on={() => {
                     socket?.emit("cancel-invite", {
                         inviterId: user?.id,
                     });

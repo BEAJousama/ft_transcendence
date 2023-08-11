@@ -176,7 +176,7 @@ model Channel {
   createAt           DateTime        @default(now())
   updatedAt          DateTime        @updatedAt
   messages           Message[]       @relation("receive")
-  lastestMessageDate DateTime?       @default(now())
+  lastMessage        String?         @default("") 
   newMessagesCount   Int?            @default(0)
 }
 
@@ -214,9 +214,6 @@ model Message {
   receiverId Int
   sender     User     @relation("send", fields: [senderId], references: [id])
   senderId   Int
-  pinned     Boolean? @default(false)
-  pinner     User?    @relation("pinner", fields: [pinnerId], references: [id])
-  pinnerId   Int?
   date       DateTime @default(now())
 }
 

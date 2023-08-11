@@ -53,6 +53,7 @@ const CreateGroupModal = ({
   }
 
   const handleCreateDm = (id: number) => {
+    if(!user?.id || !id) return;
     socket?.emit("dm_create", { senderId: user?.id, receiverId: id });
     setShowModal(false);
   }
@@ -183,41 +184,44 @@ const CreateGroupModal = ({
         {
           show && (
             <div className="w-full h[100px] flex items-center justify-center flex-col align-middle gap-2 pt-2 overflow-y-scroll scrollbar-hide">
-              <span className="w-full mb-2 text-sm font-medium text-gray-900 dark:text-white">Select users: </span>
-              {
-                users?.length ?
-                  (users?.filter((u: any) => {
-                    return u.id !== user?.id && !checkBlock(u.id);
-                  }).map((u: any) => {
-                    return (
-                      <div key={u.id} className="flex flex-row items-center justify-between w-full">
-                        <ProfileBanner
-                          key={u.id}
-                          avatar={u.avatar}
-                          name={u.username}
-                          description={u.status}
-                        />
-                        <div className="w-8">
-                          <input
-                            id="purple-checkbox"
-                            type="checkbox"
-                            className="w-4 h-4 bg-tertiary-600 focus:border-primary-500 rounded focus:ring-primary-500 focus:text-tertiary-700"
-                            onClick={() => {
-                            }}
-                            onChange={() => {
-                              !selectedUsers.includes(u.id) ?
-                                setSelectedUsers([...selectedUsers, u.id]) :
-                                setSelectedUsers(selectedUsers?.filter((id) => id !== u.id));
-                            }}
-                          />
-                        </div>
-                      </div>
-                    );
-                  })) : (
+              <span className="w-full mb-2 text-sm font-bold text-white">Select Members: </span>
+              <div className=" max-h-10 md:max-h-32 lg:max-h-64 w-full overflow-y-auto bg-scroll-secondary-300"> {/* Adjust max-h value as needed */}
+                  {users?.length ? (
+                    users
+                      ?.filter((u: any) => {
+                        return u.id !== user?.id && !checkBlock(u.id);
+                      })
+                      .map((u: any) => {
+                        return (
+                          <div key={u.id} className="flex flex-row items-center justify-between w-full">
+                            <ProfileBanner
+                              key={u.id}
+                              avatar={u.avatar}
+                              name={u.username}
+                              description={u.status}
+                            />
+                            <div className="w-8">
+                              <input
+                                id="purple-checkbox"
+                                type="checkbox"
+                                className="w-4 h-4 bg-tertiary-600 focus:border-primary-500 rounded focus:ring-primary-500 focus:text-tertiary-700"
+                                onClick={() => {}}
+                                onChange={() => {
+                                  !selectedUsers.includes(u.id)
+                                    ? setSelectedUsers([...selectedUsers, u.id])
+                                    : setSelectedUsers(selectedUsers?.filter((id) => id !== u.id));
+                                }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })
+                  ) : (
                     <div className="flex flex-col items-center justify-center w-full">
                       <p className="text-gray-500 text-lg">No users found</p>
                     </div>
                   )}
+              </div>
             </div>
           )}
 

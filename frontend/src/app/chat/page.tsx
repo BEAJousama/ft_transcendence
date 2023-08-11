@@ -125,6 +125,13 @@ export default function Chat() {
         setMessages(sortMessages(messages));
     });
 
+    socket?.on('message', (data: Imessage) => {
+      if(data?.receiverId === currentChannel?.id)
+        setMessages([...messages, data]);
+    }
+    );
+
+
     socket?.on("get_client_messages", (mssg: Imessage[]) => {
       if (mssg[0]?.receiverId === currentChannel?.id) {
         setMessages(sortMessages(mssg));

@@ -33,7 +33,9 @@ import { toast } from "react-toastify";
 import CustomSelect from "../select";
 import IUser from "../../interfaces/user";
 import { twMerge } from "tailwind-merge";
+import { useRouter } from "next/navigation";
 import { set } from "lodash";
+import { GameContext } from "@/context/game.context";
 
 interface ChannelProps {
   className?: string;
@@ -75,8 +77,10 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
   const [isBlockingOrUnblocking, setIsBlockingOrUnblocking] = useState(false);
   // const navigate = useNavigate();
   const { socket } = useContext(ChatContext);
+  const { socket: gamesocket } = useContext(GameContext);
   const { user } = useContext(AppContext);
   const refMessage = useRef(null);
+  const router = useRouter();
 
   useEffect(() => {
     setValue("");
@@ -205,7 +209,7 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
   };
 
   const handleBlockUser = async (userId: number | undefined) => {
-    const accessToken = window.localStorage.getItem("access_token");
+
     const response = await axios.post(`${process.env.NEXT_PUBLIC_BACK_END_URL}api/users/block-user`,
       {
         blockerId: user?.id, blockingId: userId
@@ -220,7 +224,7 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
   }
 
   const handleUnblockUser = async (userId: number | undefined) => {
-    const accessToken = window.localStorage.getItem("access_token");
+
     const response = await axios.post(`${process.env.NEXT_PUBLIC_BACK_END_URL}api/users/unblock-user`,
       { blockerId: user?.id, blockingId: userId },
       {
@@ -291,14 +295,20 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
                   <>
                     <RightClickMenuItem
                       onClick={() => {
-
+                        gamesocket?.emit("invite-friend", {
+                          inviterId: user?.id,
+                          invitedFriendId: currentChannel?.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.id,
+                          gameMode: "Classic Mode",
+                          powerUps: "Classic",
+                      });
+                      
                       }}
                     >
                       Invite to play
                     </RightClickMenuItem>
                     <RightClickMenuItem
                       onClick={() => {
-                        // navigate(`/profile/${currentChannel?.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.id}`);
+                        router.push(`/profile/${currentChannel?.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.id}`);
                       }}
                     >
                       Go to profile
@@ -474,12 +484,13 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
                 );
               })}
               <div className="flex flex-row items-center justify-center self-center pt-3">
-                <Button
-                  className="!bg-inherit !text-white hover:bg-inherit justify-between w-full !font-medium mr-3"
-                  onClick={() => {
-                    setSetowner(false);
-                  }}
-                >
+
+              <Button
+                className="!bg-inherit !text-white hover:bg-inherit justify-between w-full !font-medium mr-3"
+                onClick={() => {
+                  setSetowner(false);
+                }}
+                  >
                   Cancel
                 </Button>
                 <Button
@@ -809,8 +820,7 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
                 setShowEdit={setShowEdit}
                 setShowModal={setShowModal}
               >
-                <div className="w-full h[100px] flex items-center justify-center flex-col align-middle gap-2 pt-2 overflow-y-scroll scrollbar-hide">
-
+                <div className="w-full max-h-24 md:max-h-32 lg:max-h-64 overflow-y-auto bg-scroll-secondary-300 flex items-center justify-center flex-col align-middle gap-2 pt-2">
                   {users?.filter((u: any) => {
                     return u.id !== user?.id && !checkBlock(u.id) && ((currentChannel?.channelMembers.find((cm: IchannelMember) => cm.userId === u.id) === undefined
                       || currentChannel?.channelMembers.find((cm: IchannelMember) => cm.userId === u.id)?.status === "LEFT"));
@@ -888,7 +898,7 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
                 setShowEdit={setShowEdit}
                 setShowModal={setShowModal}
               >
-                <div className=" h-max w-full pt-2">
+                <div className=" w-full pt-2">
                   {currentChannel?.channelMembers?.filter((member: IchannelMember) => member.status === "BANNED" && !checkBlock(member.userId)).length ?
                     (
                       currentChannel?.channelMembers?.filter((member: IchannelMember) => member.status === "BANNED" && !checkBlock(member.userId)).map((member: IchannelMember) => {

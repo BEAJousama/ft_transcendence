@@ -20,7 +20,6 @@ import { ChannelType, MemberStatus, Visiblity } from '@prisma/client';
 import { UsersService } from 'src/users/users.service';
 import { ArrayMultimap } from '@teppeis/multimaps';
 import * as EVENT from './utils/';
-import { randomInt } from 'crypto';
 import NotificationService from 'src/notification/notification.service';
 import { CommunDto } from './dto/member.dto';
 
@@ -43,6 +42,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   async handleConnection(@ConnectedSocket() client: Socket) {
     try {
+      // console.log('connected socket chat : ' + client.id);
       // console.log(client.handshake.auth.token);
       await this.verifyClient(client);
       // console.log('verified');
@@ -63,9 +63,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   async handleDisconnect(client: Socket) {
-    if (client.data.sub) {
+    // console.log('disconnected socket chat : ' + client.id);
+    this.connectedClient.deleteEntry(client.data.sub, client);
+    if (this.getConnectedUsers(client.data.sub).length === 0) {
       await this.userService.updateStatus('OFFLINE', client.data.sub);
-      this.connectedClient.delete(client.data.sub);
     }
   }
 
@@ -84,6 +85,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         receiverId: payload.receiverId,
         content: payload.content,
       };
+      if (payload.content.length > 1024)
+        throw new WsException({
+          error: EVENT.ERROR,
+          message: 'Message content is too long',
+        });
+
       const message = await this.messageService.makeMessage(dto);
       if (!message) {
         throw new WsException({
@@ -120,8 +127,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       if (!sockets || sockets.length === 0) return;
       sockets.forEach((s) => {
         s.join(dm.id.toString());
-        this.server.to(s.id).emit(EVENT.DM_CREATE, channelTosend);
       });
+      client.emit(EVENT.DM_CREATE, channelTosend);
     } catch (err) {
       throw new WsException({
         error: EVENT.ERROR,
@@ -290,8 +297,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const sockets = this.getConnectedUsers(client.data.sub);
       sockets.forEach((s) => {
         s.join(channel.id.toString());
-        this.server.to(s.id).emit(EVENT.CHANNEL_CREATE, channelTosend);
       });
+      client.emit(EVENT.CHANNEL_CREATE, channelTosend);
       await this.sendChannelsToChannelMembers(channel.id);
       await this.sendMessagesToMembers(channel.id);
     } catch (error) {
@@ -508,7 +515,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       );
 
       const data = {
-        id: randomInt(1, 9999999),
+        id: 1,
         title: blocker.username,
         content:
           blocker.username +
@@ -1205,7 +1212,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         //   url: '/chat',
         // };
         // if (!channel.mutedFor.map((u) => u.id).includes(member.userId))
-        this.server.to(socket.id).emit(EVENT.GET_CH_MSSGS, messages);
+        // this.server.to(socket.id).emit(EVENT.GET_CH_MSSGS, messages);
       });
     });
   }
@@ -1246,7 +1253,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         if (await this.chatService.isBlocked(userId, user2Id)) return;
         const user2 = await this.userService.findUserById(user2Id);
         data = {
-          id: randomInt(1, 9999999),
+          id: 1,
           title: channel.name,
           content: user.username + event + user2?.username,
           createdAt: new Date(),
@@ -1258,7 +1265,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         };
       } else {
         data = {
-          id: randomInt(1, 9999999),
+          id: 1,
           title: channel.name,
           content: user.username + event,
           createdAt: new Date(),
@@ -1273,7 +1280,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         .filter(
           (member) =>
             member.status !== MemberStatus.BANNED &&
-            member.status !== MemberStatus.LEFT,
+            member.status !== MemberStatus.LEFT &&
+            member.userId !== userId,
         )
         .forEach(async (member) => {
           if (
@@ -1309,7 +1317,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (channel.mutedFor.map((u) => u.id).includes(user2Id)) return;
     if (await this.chatService.isBlocked(userId, user2Id)) return;
     const data = {
-      id: randomInt(1, 9999999),
+      id: 1,
       title: channel.name,
       content: user.username + event,
       createdAt: new Date(),
@@ -1319,18 +1327,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       receiver: userId,
       url: '/chat',
     };
-    this.notificationService.sendNotification(
-      userId,
-      user2Id,
-      data.title,
-      data.content,
-      user2Id,
-      data.url,
-    );
-    // const sockets: Socket[] = this.getConnectedUsers(user2Id);
-    // for (const socket of sockets) {
-    //   this.server.to(socket.id).emit(EVENT.NOTIFICATION, data);
-    // }
+    const sockets: Socket[] = this.getConnectedUsers(user2Id);
+    for (const socket of sockets) {
+      this.server.to(socket.id).emit(EVENT.NOTIFICATION, data);
+    }
   }
 
   private async sendMessagesToMembers(channelId: number) {

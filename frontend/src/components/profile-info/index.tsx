@@ -12,7 +12,7 @@ import {
     Spinner, Avatar, Button
 } from "@/components";
 import { ChatContext } from "@/context/chat.context";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 
 
 const status = {

@@ -83,14 +83,14 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
 	useEffect(() => {
 		fetchUser();
 
-		const id = setInterval(async () => {
-			console.log("update user")
-			await updateUser();
-		}, 500);
+		// const id = setInterval(async () => {
+		// 	console.log("update user")
+		// 	await updateUser();
+		// }, 500);
 
-		return () => {
-			clearInterval(id);
-		};
+		// return () => {
+		// 	clearInterval(id);
+		// };
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [fetchUser]);
 

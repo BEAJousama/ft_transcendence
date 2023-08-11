@@ -14,7 +14,7 @@ import Button from "../button";
 import { AppContext } from "../../context/app.context";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { set, throttle } from "lodash";
+import { throttle } from "lodash";
 import { twMerge } from "tailwind-merge";
 
 import { BsFillChatLeftTextFill } from "react-icons/bs";
@@ -47,11 +47,15 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
   const iRef = React.useRef<HTMLInputElement>(null);
 
   const loadMessages = async (channelId: number | undefined) => {
+    if (!user)
+      return;
     const messages = fetcher(`api/messages/${channelId}/${user?.id}`)
     return messages;
   }
 
   const onClick = throttle(async (channel: Ichannel): Promise<void | undefined> => {
+    if (!user || !channel)
+      return; 
     socket?.emit('reset_mssg_count', { channelId: channel.id });
     const [member, messages] = await Promise.all([
       fetcher(`api/channels/member/${user?.id}/${channel.id}`),
@@ -79,7 +83,6 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
   }, 1000);
 
   const accessChannel = async () => {
-    const accesstoken = window.localStorage.getItem("access_token");
     const res = await axios.post(`${process.env.NEXT_PUBLIC_BACK_END_URL}api/channels/checkpass`,
       { password, channelId: tempChannel?.id },
       { withCredentials: true });
@@ -97,6 +100,8 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
   }
 
   useEffect(() => {
+    if (!user)
+      return;
     fetcher(`api/channels/${user?.id}`)
       .then((channels) => {
         channels.forEach((channel: Ichannel) => {
@@ -120,6 +125,7 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
         });
         setArchiveChannels(channels);
       });
+      //eslint-disable-next-line
   }, [socket, user?.id]);
 
   useEffect(() => {
@@ -148,9 +154,6 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
       setOpen(false);
     });
 
-    socket?.on('block-user', () => {
-
-    });
     return () => {
       socket?.off('channel_leave');
       socket?.off('channel_delete');
@@ -216,13 +219,11 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
       setCurrentChannel(channel);
       setSelectedChannel(channel);
       inputRef?.current?.focus();
-
     });
     socket?.on('dm_create', (channel: Ichannel) => {
       setCurrentChannel(channel);
       setSelectedChannel(channel);
       inputRef?.current?.focus();
-
     });
   }
 
@@ -441,11 +442,11 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
             className="z-10 bg-secondary-800 
                       border-none flex flex-col items-center justify-center shadow-lg shadow-secondary-500 gap-4 text-white min-w-[90%]
                       lg:min-w-[40%] xl:min-w-[800px] animate-jump-in animate-ease-out animate-duration-400">
-            <span className="text-md">This channel requires an access password ! </span>
+            <span className="text-md md:text-lg font-semibold pb-4">This channel requires an access password ! </span>
             <div className="flex flex-col justify-center items-center w-full">
               <Input
                 label="Password"
-                className="h-[40px] w-[80%] rounded-md border-2 border-primary-500 text-white text-xs bg-transparent md:mr-2 self-center"
+                className="w-full rounded-md border-2 border-primary-500 text-white text-xs bg-transparent md:mr-2"
                 htmlType="password"
                 placeholder="*****************"
                 value={password}
@@ -462,9 +463,9 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
                   }
                 }
               />
-              <div className="flex flex-row">
+              <div className="flex flex-row pt-4">
                 <Button
-                  className="h-8 w-auto md:w-20 !bg-inherit text-white text-xs rounded-full mt-2 mr-2"
+                  className="h-10 w-20 md:w-30 !bg-inherit text-white text-xs rounded-full mt-2 mr-2"
                   onClick={() => {
                     setModal(false);
                     iRef?.current?.blur();
@@ -473,7 +474,7 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
                   <span className="text-xs">Cancel</span>
                 </Button>
                 <Button
-                  className="h-8 w-auto md:w-20 bg-primary-500 text-white text-xs rounded-full mt-2"
+                  className="h-10 w-20 md:w-30 bg-primary-500 text-white text-xs rounded-full mt-2"
                   onClick={async() => {
                     await accessChannel()
                     setModal(false);

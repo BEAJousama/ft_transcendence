@@ -122,11 +122,11 @@ const ChatBanner = ({
                         className="z-10 bg-secondary-800 
                                     border-none flex flex-col !items-center !justify-center shadow-lg shadow-secondary-500 gap-4 text-white min-w-[90%]
                                     lg:min-w-[40%] xl:min-w-[800px] animate-jump-in animate-ease-out animate-duration-400">
-                        <span className="text-md">This channel requires an access password ! </span>
+                        <span className="text-md md:text-lg font-semibold pb-4">This channel requires an access password ! </span>
                         <div className="flex flex-col justify-center items-center w-full">
                             <Input
                                 label="Password"
-                                className="h-[40px] w-full rounded-md border-2 border-primary-500 text-white text-xs bg-transparent md:mr-2"
+                                className="w-full rounded-md border-2 border-primary-500 text-white text-xs bg-transparent md:mr-2"
                                 htmlType="password"
                                 placeholder="*****************"
                                 value={accessPassword}
@@ -143,9 +143,9 @@ const ChatBanner = ({
                                     }
                                 }
                             />
-                            <div className="flex flex-row">
+                            <div className="flex flex-row p-4">
                                 <Button
-                                    className="h-8 w-auto md:w-20 !bg-inherit text-white text-xs rounded-full mt-2 mr-2"
+                                    className="h-10 w-20 md:w-30 !bg-inherit text-white text-xs rounded-full mt-2 mr-2"
                                     onClick={() => {
                                         setAccessPassword("");
                                         setAccessModal(false);
@@ -155,7 +155,7 @@ const ChatBanner = ({
                                     <span className="text-xs">Cancel</span>
                                 </Button>
                                 <Button
-                                    className="h-8 w-auto md:w-20 bg-primary-500 text-white text-xs rounded-full mt-2"
+                                    className="h-10 w-20 md:w-30 bg-primary-500 text-white text-xs rounded-full mt-2"
                                     onClick={ async() => {
                                         await accessChannel()
                                         setAccessPassword("");
