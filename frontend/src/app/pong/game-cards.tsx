@@ -1,6 +1,5 @@
 "use client"
 import { Button, Card, Carousel, Input, Spinner, UserBanner } from "@/components";
-import Modal from "@/components/modal";
 import useSwr from "swr";
 import { AppContext, fetcher } from "@/context/app.context";
 import { GameContext } from "@/context/game.context";
@@ -8,6 +7,8 @@ import IUser from "@/interfaces/user";
 import { useContext, useEffect, useState } from "react";
 
 import { toast } from "react-toastify";
+import Image from "next/image";
+import { SocketContext } from "@/context/socket.context";
 
 
 const RadioCheck = ({
@@ -37,7 +38,7 @@ const RadioCheck = ({
                                 onChange={onChange}
                                 value={option}
                                 name={htmlFor}
-                                className="border-gray-300ring-offset-gray-800 h-4 w-4 bg-gray-100 text-blue-600 focus:ring-2 "
+                                className="border-gray-300 ring-offset-gray-800 h-4 w-4 bg-gray-100 text-blue-600 focus:ring-2 "
                             />
                             <label htmlFor={htmlFor} className="ml-2 text-sm font-medium ">
                                 {option}
@@ -85,6 +86,7 @@ const CreateGameCard = ({
 }) => {
     const { data: users, isLoading } = useSwr("api/users", fetcher, {
         errorRetryCount: 0,
+        refreshInterval: 1000,
     });
     const [value, setValue] = useState<string>("");
     const [show, setShow] = useState<boolean>(false);
@@ -92,24 +94,26 @@ const CreateGameCard = ({
     const [selectedUser, setSelectedUser] = useState<IUser>();
     const [filtred, setFiltred] = useState<IUser[]>();
     const { socket } = useContext(GameContext);
+    const notificationSocket = useContext(SocketContext);
     const { user } = useContext(AppContext);
 
     useEffect(() => {
-        // if (users && (filtred || !value))
-        //     setFiltred(
-        //         users.filter((item: IUser) =>
-        //             item.fullname.toLowerCase().includes(value.toLowerCase()) && item.status === "ONLINE" && item.id !== user?.id
-        //         )
-        //     );
-        // else setFiltred(users?.filter((item: IUser) => item.status === "ONLINE" && item.id !== user?.id));
         if (users && (filtred || !value))
             setFiltred(
                 users.filter((item: IUser) =>
-                    item.fullname.toLowerCase().includes(value.toLowerCase()) && item.id !== user?.id
+                    item.fullname.toLowerCase().includes(value.toLowerCase()) && item.status === "ONLINE" && item.id !== user?.id
                 )
             );
-        else setFiltred(users?.filter((item: IUser) => item.id !== user?.id));
+        else setFiltred(users?.filter((item: IUser) => item.status === "ONLINE" && item.id !== user?.id));
     }, [value, users]);
+
+    useEffect(() => {
+        notificationSocket?.on("invitation-canceled", () => {
+            setShow(false);
+        })
+        return () => { }
+
+    }, [socket])
 
     return (
         <Card
@@ -133,7 +137,7 @@ const CreateGameCard = ({
                     {isLoading ? (
                         <Spinner />
                     ) : filtred?.length ? (
-                        <div className="flex h-full max-h-[500px] overflow-auto scrollbar-hide w-full flex-col">
+                        <div className="flex h-full max-h-[350px] md:max-h-[500px] overflow-auto scrollbar-hide w-full flex-col">
                             {filtred.map((item: IUser) => {
                                 return (
                                     <Button
@@ -170,7 +174,6 @@ const CreateGameCard = ({
                     )}
                     <div className="flex w-full items-center justify-center gap-4">
                         <Button
-                            disabled={!!!selectedUser}
                             onClick={() => {
                                 setShowModal(false);
                             }}
@@ -178,6 +181,7 @@ const CreateGameCard = ({
                             Cancel
                         </Button>
                         <Button
+                            disabled={!!!selectedUser}
                             onClick={() => {
                                 socket?.emit("invite-friend", {
                                     inviterId: user?.id,
@@ -222,7 +226,7 @@ const CreateGameCard = ({
                             </>
                         ) : (
                             <>
-                                <img src="/img/3839218-removebg-preview.png" alt="" width={200} />
+                                <Image src="/img/3839218-removebg-preview.png" alt="" width={200} height={200} />
                             </>
                         )}
                         <Button
@@ -273,9 +277,22 @@ export default function GameCards() {
     const [gameMode, setGameMode] = useState<string>("Classic Mode");
     const [gameOption, setGameOption] = useState<string>("Classic");
     const { socket } = useContext(GameContext);
+    const notificationSocket = useContext(SocketContext);
     const { user } = useContext(AppContext);
+    let timeoutId: NodeJS.Timeout | null = null;
+
+    useEffect(() => {
+        notificationSocket?.on("invitation-canceled", () => {
+            setDisabled({
+                invite: false,
+                join: false,
+            });
+        })
+        return () => { }
+    }, [socket]);
+
     return (
-        <Carousel className="w-full" indicators={false} chevrons={true}>
+        <Carousel className="w-full" indicators={false} chevrons={!disabled?.invite && !disabled?.join} swipeable={false}>
             <CreateGameCard
                 invite
                 title="Invite Your Friends to Play"
@@ -286,6 +303,12 @@ export default function GameCards() {
                         invite: false,
                         join: true,
                     });
+                    timeoutId = setTimeout(() => {
+                        setDisabled({
+                            invite: false,
+                            join: false,
+                        });
+                    }, 30000)
                 }}
                 showOptions
                 showLoading
@@ -302,6 +325,7 @@ export default function GameCards() {
                         invite: false,
                         join: false,
                     });
+                    timeoutId && clearTimeout(timeoutId);
                 }}
             />
             <CreateGameCard

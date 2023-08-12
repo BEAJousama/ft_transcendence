@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsNumber } from 'class-validator';
+import { MatchesUserId } from './validate-user';
 
 export class BlockUserDto {
   @ApiProperty({
@@ -7,6 +8,7 @@ export class BlockUserDto {
   })
   @IsNotEmpty()
   @IsNumber()
+  @MatchesUserId()
   blockerId: number;
   @ApiProperty({
     description: 'The id of the user who is being blocked by another user',
@@ -22,6 +24,7 @@ export class UnblockUserDto {
   })
   @IsNotEmpty()
   @IsNumber()
+  @MatchesUserId()
   blockerId: number;
   @ApiProperty({
     description: 'The id of the user who is being blocked by another user',
@@ -37,5 +40,6 @@ export class GetBlockedUsersDto {
   })
   @IsNotEmpty()
   @IsNumber()
+  @MatchesUserId()
   blockerId: number;
 }

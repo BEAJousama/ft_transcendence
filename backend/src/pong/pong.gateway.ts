@@ -9,11 +9,13 @@ import {
 import { Invitation, UpdateDto } from './interfaces/index';
 import { Socket } from 'socket.io';
 import { PongService } from './pong.service';
-import { Inject } from '@nestjs/common';
+import { Inject, UseGuards } from '@nestjs/common';
 import { NotificationGateway } from 'src/notification/notification.gateway';
 import { JwtService } from '@nestjs/jwt';
+import { AuthGuard } from '@nestjs/passport';
 
 @WebSocketGateway({ namespace: 'pong', cors: true, origins: '*' })
+// @UseGuards(SocketAuthGuard) // Apply the guard to the entire gateway
 export class PongGateway {
   constructor(
     private readonly pongService: PongService,
@@ -21,6 +23,14 @@ export class PongGateway {
     private notificationGateway: NotificationGateway,
   ) {}
   @WebSocketServer() server;
+
+  async handleConnection(@ConnectedSocket() client: Socket) {
+    try {
+      await this.pongService.verifyClient(client);
+    } catch (error) {
+      client.disconnect();
+    }
+  }
 
   @SubscribeMessage('check-for-active-invitations')
   async checkForActiveInvitations(@ConnectedSocket() client: Socket) {

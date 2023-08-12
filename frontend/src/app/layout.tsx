@@ -31,7 +31,6 @@ export default function RootLayout({
         <ChatProvider>
           <SocketProvider>
             <GameProvider>
-
               <body className={montserrat.className}>
                 {children}
                 <ToastContainer

@@ -51,15 +51,16 @@ export default function GameProvider({
         newSocket.on("notification", (data: INotification) => {
 
             toast(
-
-                <Toast
-                    title={data.title}
-                    content={data.content}
-                    sender={data.sender.id === user?.id ? data.receiver : data.sender}
-                />
+                <Link href={data.url}>
+                    <Toast
+                        title={data.title}
+                        content={data.content}
+                        sender={data.sender.id === user?.id ? data.receiver : data.sender}
+                    />
+                </Link>
                 ,
                 {
-                    className: "md:w-[400px] md:right-[90px]",
+                    className: "md:w-[500px] md:right-[90px]",
                 }
             );
         });

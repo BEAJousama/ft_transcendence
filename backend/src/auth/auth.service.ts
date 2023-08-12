@@ -193,14 +193,12 @@ export class AuthService {
         user,
       );
       if (isvalid && user) {
-        await this.usersService.updateUser(
-          {
-            user: {
-              twoFactorAuth: true,
-            },
+        await this.usersService.updateUser({
+          user: {
+            twoFactorAuth: true,
           },
-          user.id,
-        );
+          id: user.id,
+        });
         return {
           message: 'success',
         };
@@ -224,14 +222,12 @@ export class AuthService {
         user,
       );
       if (isvalid && user) {
-        await this.usersService.updateUser(
-          {
-            user: {
-              twoFactorAuth: false,
-            },
+        await this.usersService.updateUser({
+          user: {
+            twoFactorAuth: false,
           },
-          user.id,
-        );
+          id: user.id,
+        });
         return {
           message: 'success',
         };
@@ -240,7 +236,6 @@ export class AuthService {
         message: 'fail',
       };
     } catch (error) {
-      
       throw new InternalServerErrorException(
         'An internal server error occurred.',
       );
