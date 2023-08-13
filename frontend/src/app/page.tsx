@@ -17,6 +17,8 @@ import { redirect } from "next/navigation";
 import axios from "axios";
 import CountUp from "react-countup";
 
+
+
 const LandingPage = () => {
 	const [slide, setSlide] = useState(1);
 	const { user, loading, authenticated, fetchUser } = useContext(AppContext);

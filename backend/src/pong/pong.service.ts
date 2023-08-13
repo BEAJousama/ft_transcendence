@@ -13,6 +13,7 @@ import { GameProvider } from './services/gameprovider.service';
 import { UsersService } from 'src/users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { WsException } from '@nestjs/websockets';
+import { NotificationGateway } from 'src/notification/notification.gateway';
 
 type Game = {
   playerASocket: Socket;
@@ -35,6 +36,8 @@ export class PongService {
     private notificationService: NotificationService,
     private usersService: UsersService,
     @Inject(JwtService) private readonly jwtService,
+    @Inject(NotificationGateway)
+    private notificationGateway: NotificationGateway,
   ) {}
 
   // -----------------------------------------Game History-----------------------------------------//
@@ -215,7 +218,7 @@ export class PongService {
   isAlreadyInGame(client, info: { userId: number }) {
     const gameProvider = this.getGameProviderByUserId(info.userId);
     const player = this.getPlayerById(info.userId);
-    if (player) {
+    if (player && client) {
       player.socket.off('disconnect', () => {});
       player.socket = client;
     }
@@ -242,7 +245,11 @@ export class PongService {
     client: Socket,
   ) {
     // Check if the invited friend is already in an active invitation
-    if (this.isInvited(invitedFriendId)) {
+    if (
+      this.isInvited(invitedFriendId) ||
+      this.isAlreadyInGame(null, { userId: inviterId }) ||
+      this.isAlreadyInGame(null, { userId: invitedFriendId })
+    ) {
       console.log('Invitation already sent to the friend.');
       return;
     }
@@ -310,12 +317,30 @@ export class PongService {
 
   resetInvitation(inviterId: number) {
     // Check if the inviter has an active invitation
+    const inv: Invitation = this.activeInvitations.get(inviterId);
+    // console.log('Invitation reset.');
     if (this.isInvited(inviterId)) {
       // Remove the invitation from the active invitations dictionary
+
       this.activeInvitations.delete(inviterId);
 
       // Proceed with any necessary reset or clean-up actions
-      console.log('Invitation reset.');
+    } else if (inv) {
+      if (inv && inv.inviterSocket) {
+        const id = this.notificationGateway.clients_map.get(
+          inv.inviterId.toString(),
+        );
+        this.notificationGateway.server.to(id).emit('invitation-canceled');
+        this.activeInvitations.delete(inviterId);
+        this.notificationService.sendNotification(
+          inv.inviterId,
+          inv.invitedFriendId,
+          'Game Invite Rejected',
+          '',
+          inv.inviterId,
+          '/pong',
+        );
+      }
     }
   }
 
@@ -348,7 +373,7 @@ export class PongService {
   //--------------------------------------------------------------------------------//
   // Fetches the list of ongoing games with player information
 
-  private async verifyClient(client) {
+  async verifyClient(client) {
     let token: string = client.handshake.auth.token as string;
     if (token.search('Bearer') !== -1) token = token.split(' ')[1];
     try {
@@ -700,30 +725,26 @@ export class PongService {
       loser.rating = loser.rating < 0 ? 0 : loser.rating;
       loser.ladder = this.adjustLadderLevel(loser.rating) as Ladder;
 
-      await this.usersService.updateUser(
-        {
-          user: {
-            rating: winner.rating,
-            ladder: winner.ladder,
-            winStreak: winner.winStreak,
-            totalGames: winner.totalGames,
-            wins: winner.wins,
-          },
+      await this.usersService.updateUser({
+        user: {
+          rating: winner.rating,
+          ladder: winner.ladder,
+          winStreak: winner.winStreak,
+          totalGames: winner.totalGames,
+          wins: winner.wins,
         },
-        winnerId,
-      );
-      await this.usersService.updateUser(
-        {
-          user: {
-            rating: loser.rating,
-            ladder: loser.ladder,
-            winStreak: loser.winStreak,
-            totalGames: loser.totalGames,
-            losses: loser.losses,
-          },
+        id: winnerId,
+      });
+      await this.usersService.updateUser({
+        user: {
+          rating: loser.rating,
+          ladder: loser.ladder,
+          winStreak: loser.winStreak,
+          totalGames: loser.totalGames,
+          losses: loser.losses,
         },
-        loserId,
-      );
+        id: loserId,
+      });
     } catch (e) {
       throw new InternalServerErrorException(
         'Could not update user rating and ladder',

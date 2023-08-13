@@ -17,11 +17,11 @@ import { GlobalExceptionFilter } from './global-exception.filter';
     PongModule,
     ChatModule,
   ],
-  providers: [
-    {
-      provide: APP_FILTER,
-      useClass: GlobalExceptionFilter,
-    },
-  ],
+  // providers: [
+  //   {
+  //     provide: APP_FILTER,
+  //     useClass: GlobalExceptionFilter,
+  //   },
+  // ],
 })
 export class AppModule {}

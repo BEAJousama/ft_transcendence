@@ -11,10 +11,12 @@ const QrCode = () => {
   return (
     <>
       {!isLoading ? (
-        <img
+        <Image
           src={qrcode || ""}
           alt="qrcode"
           className="w-full max-w-[400px] border-4 border-secondary-400 rounded-xl  grid-cols-10 "
+          width={400}
+          height={400}
         />
       ) : (
         <Spinner />

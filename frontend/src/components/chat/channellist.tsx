@@ -15,8 +15,8 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import throttle from "lodash/throttle";
 import { twMerge } from "tailwind-merge";
-import { BsFillChatLeftTextFill } from "react-icons/bs";
-import { BiFilter } from "react-icons/bi";
+
+import { ListFilter, MessageSquarePlus } from "lucide-react";
 
 interface ChannelListProps {
   className?: string;
@@ -272,14 +272,15 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
               />
             </div>
           </form>
-          <BsFillChatLeftTextFill style={{ color: "#727587", fontSize: "30px", cursor: "pointer" }}
+          <MessageSquarePlus size={35} style={{ color: "#727587", fontSize: "30px", cursor: "pointer" }}
             onClick={
               () => {
                 setShowModal(true);
               }
             } />
-          <BiFilter
-            style={{ color: isFocused ? "#E5AC7C" : "#727587", fontSize: "40px", cursor: "pointer" }}
+          <ListFilter
+            size={35}
+            style={{ color: isFocused ? "#E5AC7C" : "#727587", fontSize: "60px", cursor: "pointer" }}
             onClick={
               () => {
                 setIsFocused(!isFocused);

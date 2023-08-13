@@ -127,7 +127,7 @@ const Login = () => {
 					<hr className="w-[70%] border-gray-400" />
 				</div>
 				<div className="flex w-full justify-center gap-4 md:flex-col">
-					<Link href={`${process.env.NEXT_PUBLIC_BACK_END_URL}api/auth/42/callback`}>
+					<a href={`${process.env.NEXT_PUBLIC_BACK_END_URL}api/auth/42/callback`}>
 						<Button
 							type="secondary"
 							disabled={loading}
@@ -136,8 +136,8 @@ const Login = () => {
 							<img src="/img/42Logo-light.svg" alt="logo" width={30} />
 							<p className="hidden md:block">Continue with Intra</p>
 						</Button>
-					</Link>
-					<Link href={`${process.env.NEXT_PUBLIC_BACK_END_URL}api/auth/google/login`}>
+					</a>
+					<a href={`${process.env.NEXT_PUBLIC_BACK_END_URL}api/auth/google/login`}>
 						<Button
 							type="secondary"
 							disabled={loading}
@@ -146,7 +146,7 @@ const Login = () => {
 							<img src="/img/google.svg" alt="logo" width={30} />
 							<p className="hidden md:block">Continue with Google</p>
 						</Button>
-					</Link>
+					</a>
 				</div>
 			</div>
 		</div>
