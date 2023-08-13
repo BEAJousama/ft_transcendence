@@ -2,33 +2,19 @@
 
 
 import React, { useContext, useState, useRef, Fragment } from "react";
-
-import { VolumeX, Archive, Pin, Trash, BellDot } from 'lucide-react';
-
-import { BsPersonAdd } from "react-icons/bs";
-
-import {
-  MdAddBox,
-  MdOutlineAddModerator,
-  MdOutlineAdminPanelSettings,
-} from "react-icons/md";
-import { BiArchiveIn, BiArchiveOut } from "react-icons/bi";
-import { useClickAway } from "react-use";
-import { SlOptionsVertical } from "react-icons/sl";
-import { TbBan } from "react-icons/tb";
-import { IoPersonRemoveOutline } from "react-icons/io5";
 import RightClickMenu, { RightClickMenuItem } from "../rightclickmenu";
-import { BiVolumeMute } from "react-icons/bi";
 import { ChatContext, IchannelMember } from "../../context/chat.context";
-
 import { twMerge } from "tailwind-merge";
 import Avatar from "../avatar";
 import Button from "../button";
-// import { useNavigate } from "react-router-dom";
 import Modal from "../modal"
 import Input from "../input";
 import { GameContext } from "@/context/game.context";
 import { useRouter } from "next/navigation";
+import { useClickAway } from "react-use";
+import { VolumeX, Archive, ArchiveRestore, Pin, Trash, BellDot, UserMinus, MoreVertical, Ban, ShieldAlert, PlusCircle, UserPlus } from 'lucide-react';
+
+
 
 
 interface ProfileBannerProps {
@@ -72,7 +58,6 @@ const ProfileBanner = ({
   const ref = useRef(null);
   const { socket } = useContext(ChatContext);
   const { socket: gamesocket } = useContext(GameContext);
-  // const navigate = useNavigate();
   const [muteModal, setmuteModal] = useState(false);
   const [duration, setDuration] = useState<number>(0);
   const [unit, setUnit] = useState("s");
@@ -138,7 +123,7 @@ const ProfileBanner = ({
             }}
           >
             {
-              showArchive ? <BiArchiveOut /> : <BiArchiveIn />
+              showArchive ? <Archive /> : <ArchiveRestore />
             }
           </Button>
           <Button
@@ -148,7 +133,7 @@ const ProfileBanner = ({
 
             }}
           >
-            <MdAddBox />
+            <UserPlus />
           </Button>
         </div>
       )}
@@ -168,7 +153,7 @@ const ProfileBanner = ({
               }}
               variant="text"
             >
-              <SlOptionsVertical />
+              <MoreVertical />
             </Button>
           }
         </div>
@@ -193,7 +178,7 @@ const ProfileBanner = ({
                       router.push("/pong")
                     }}
                   >
-                    <BsPersonAdd />
+                    <UserPlus />
                     Invite To Play
                   </RightClickMenuItem>
                   <RightClickMenuItem
@@ -202,7 +187,7 @@ const ProfileBanner = ({
                       setShowMenu(false);
                     }}
                   >
-                    <BsPersonAdd />
+                    <UserPlus />
                     Go to profile
                   </RightClickMenuItem>
                   {((channelMember?.role === "ADMIN" || channelMember?.role === "OWNER") && role !== "OWNER") &&
@@ -216,7 +201,7 @@ const ProfileBanner = ({
                               setShowMenu(false);
                             }}
                           >
-                            <MdOutlineAdminPanelSettings />
+                            <ShieldAlert />
                             {role === "ADMIN" ? "Remove Admin" : "Set As Admin"}
                           </RightClickMenuItem>
                           <RightClickMenuItem
@@ -225,7 +210,7 @@ const ProfileBanner = ({
                               setShowMenu(false);
                             }}
                           >
-                            <MdOutlineAddModerator />
+                            <PlusCircle />
                             {role === "OWNER" ? "Remove Owner" : "Set As Owner"}
                           </RightClickMenuItem>
                         </>
@@ -236,7 +221,7 @@ const ProfileBanner = ({
                           setShowMenu(false);
                         }}
                       >
-                        <BiVolumeMute />
+                        <VolumeX />
                         {status === "MUTED" ? "Unmute" : "Mute"}
                       </RightClickMenuItem>
                       <RightClickMenuItem
@@ -246,7 +231,7 @@ const ProfileBanner = ({
                             setShowMenu(false);
                           }}
                       >
-                        <TbBan />
+                        <Ban />
                         {
                           status === "BANNED" ? "Unban" : "Ban"
                         }
@@ -258,7 +243,7 @@ const ProfileBanner = ({
                             setShowMenu(false);
                           }}
                       >
-                        <IoPersonRemoveOutline />
+                        <UserMinus />
                         {"Kick"}
                       </RightClickMenuItem>
                     </Fragment>
@@ -275,7 +260,7 @@ const ProfileBanner = ({
                         setShowMenu(false);
                       }}
                   >
-                    <TbBan />
+                    <Ban />
                     {
                       status === "BANNED" ? "Unban" : "Ban"
                     }

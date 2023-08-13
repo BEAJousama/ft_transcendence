@@ -1,6 +1,6 @@
 "use client";
 
-import React, {useRef} from "react";
+import React, { useRef } from "react";
 import { useContext, useState } from "react";
 import { AppContext, fetcher } from "../../context/app.context";
 import { ChatContext } from "../../context/chat.context";
@@ -13,8 +13,7 @@ import Card from "../card";
 import Modal from "../modal";
 import axios from "axios";
 import { toast } from "react-toastify";
-
-import { BsKeyFill, BsFillPeopleFill } from "react-icons/bs";
+import { Key, Users2 } from "lucide-react";
 
 const ChatBanner = ({
     channel,
@@ -33,7 +32,7 @@ const ChatBanner = ({
     const channelMembers = channel?.channelMembers?.filter((member: any) => {
         return member.status === "ACTIVE";
     });
-    
+
     const handleJoin = () => {
         if (channel?.visiblity === "PROTECTED") {
             setshowModal(true);
@@ -76,9 +75,9 @@ const ChatBanner = ({
             else {
                 toast.error("Wrong access password !");
             }
-            
+
         } catch (error) {
-            
+
         }
     }
 
@@ -92,8 +91,8 @@ const ChatBanner = ({
                         <div className="flex items-center text-sm text-tertiary-200 justify-between w-full sm:justify-start sm:gap-4">
                             <div>{channelMembers?.length} Members</div>
                             <div className="flex items-center gap-2">
-                                {channel?.visiblity === "PROTECTED" && <BsKeyFill />}
-                                <BsFillPeopleFill /> {channel?.visiblity}
+                                {channel?.visiblity === "PROTECTED" && <Key />}
+                                <Users2 /> {channel?.visiblity}
                             </div>
                         </div>
                     </div>
@@ -156,7 +155,7 @@ const ChatBanner = ({
                                 </Button>
                                 <Button
                                     className="h-10 w-20 md:w-30 bg-primary-500 text-white text-xs rounded-full mt-2"
-                                    onClick={ async() => {
+                                    onClick={async () => {
                                         await accessChannel()
                                         setAccessPassword("");
                                         setAccessModal(false);
@@ -190,7 +189,7 @@ const ChatBanner = ({
                                     socket?.emit("channel_join", { channelId: channel?.id, userId: user?.id, password: password });
                                     setshowModal(false);
                                     setPassword("");
-                                    router.push(`/chat`);     
+                                    router.push(`/chat`);
                                 }
                             }
                             }
@@ -212,7 +211,7 @@ const ChatBanner = ({
                                     socket?.emit("channel_join", { channelId: channel?.id, userId: user?.id, password: password });
                                     setshowModal(false);
                                     setPassword("");
-                                    router.push(`/chat`);     
+                                    router.push(`/chat`);
                                 }}
                             >
                                 <span className="text-xs">Join</span>

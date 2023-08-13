@@ -1,21 +1,13 @@
 "use client";
-
 import React, { useContext, useState } from "react";
 import { AppContext, IAppContext } from "../../context/app.context";
 import { ChatContext, IchatContext } from "../../context/chat.context";
-
-
 import Input from "../../components/input";
 import ProfileBanner from "../../components/profilebanner";
 import { Button, Divider, UpdateAvatar } from "../../components";
 import Modal from "../modal";
 import IUser from "../../interfaces/user";
-
-import { FiSend } from "react-icons/fi";
-import { RiCloseFill } from "react-icons/ri";
-import { MdGroupAdd } from "react-icons/md";
-import { BiArrowBack, BiRightArrowAlt } from "react-icons/bi";
-import { BsSendPlus } from "react-icons/bs";
+import { Send, X, UserPlus, ChevronFirst, ChevronLast, SendHorizonal } from "lucide-react"
 
 
 const CreateGroupModal = ({
@@ -80,7 +72,7 @@ const CreateGroupModal = ({
                   setGroupName("");
                 }}
               >
-                <BiArrowBack />
+                <ChevronLast />
               </Button>
               <span className="text-lg">New Group Chat</span>
             </>
@@ -94,7 +86,7 @@ const CreateGroupModal = ({
                   setShowDm(false);
                 }}
               >
-                <BiArrowBack />
+                <ChevronLast />
               </Button>
               <span className="text-lg">Send Message</span>
             </>
@@ -106,7 +98,7 @@ const CreateGroupModal = ({
               setShowModal(false);
             }}
           >
-            <RiCloseFill />
+            <X />
           </Button>
         </div>
         <Divider />
@@ -179,9 +171,9 @@ const CreateGroupModal = ({
                   setShow(true);
                 }}
               >
-                <MdGroupAdd />
+                <UserPlus />
                 Group Chat
-                <BiRightArrowAlt />
+                <ChevronFirst />
               </Button>
               <Button
                 variant="text"
@@ -190,9 +182,9 @@ const CreateGroupModal = ({
                   setShowDm(true);
                 }}
               >
-                <BsSendPlus />
+                <Send />
                 Direct Message
-                <BiRightArrowAlt />
+                <ChevronFirst />
               </Button>
             </>
           )
@@ -263,7 +255,7 @@ const CreateGroupModal = ({
                             handleCreateDm(u.id);
                           }}
                         >
-                          <FiSend />
+                          <SendHorizonal />
                         </Button>
                       </div>
                     </div>
