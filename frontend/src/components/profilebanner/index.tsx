@@ -27,6 +27,8 @@ import Button from "../button";
 // import { useNavigate } from "react-router-dom";
 import Modal from "../modal"
 import Input from "../input";
+import { GameContext } from "@/context/game.context";
+import { useRouter } from "next/navigation";
 
 
 interface ProfileBannerProps {

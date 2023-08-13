@@ -16,6 +16,7 @@ export interface IAppContext {
 }
 
 export const getCookieItem = (key: string): string | undefined => {
+	if (typeof document === "undefined") return undefined;
 	const cookieString = document.cookie;
 	const cookiesArray = cookieString.split("; ");
 

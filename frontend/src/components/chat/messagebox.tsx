@@ -3,17 +3,14 @@
 
 import { useContext, useEffect, useRef, useState } from "react";
 import { useClickAway } from "react-use";
-import { IAppContext, fetcher } from "../../context/app.context";
+import { IAppContext } from "../../context/app.context";
 import { AppContext } from "../../context/app.context";
 import { ChatContext, IchatContext, Imessage } from "../../context/chat.context";
 
 import RightClickMenu, { RightClickMenuItem } from "../rightclickmenu";
 import Spinner from "../spinner";
-import IUser from "../../interfaces/user";
 import { twMerge } from "tailwind-merge";
-
-
-import { MdDelete } from "react-icons/md";
+import { Trash } from "lucide-react";
 
 
 const MessageBox = ({ message, right, autoScroll }: { message: Imessage; right?: boolean, autoScroll: any }) => {
