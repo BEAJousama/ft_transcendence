@@ -1,14 +1,13 @@
 "use client";
 
-import React, { MouseEvent, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button, Input } from "@/components";
 import axios from "axios";
 import { useFormik } from "formik";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import dynamic from "next/dynamic";
 import Image from "next/image";
-import { setCookieItem } from "@/context/app.context";
+import { getCookieItem, setCookieItem } from "@/context/app.context";
 
 const Spinner = dynamic(() => import("@/components/").then((mod) => mod.Spinner), { ssr: false });
 
@@ -20,33 +19,32 @@ const Login = () => {
 
 	const [externalPopup, setExternalPopup] = useState<Window | null>(null);
 
-	const connectClick = (e: any) => {
+	const connectClick = (e: any, url: string) => {
 		const width = 500;
-		const height = 400;
+		const height = 700;
 		const left = window.screenX + (window.outerWidth - width) / 2;
 		const top = window.screenY + (window.outerHeight - height) / 2.5;
-		const title = "WINDOW TITLE";
-		// const url = `localhost`;
-		const url = `${process.env.NEXT_PUBLIC_BACK_END_URL}api/auth/42/callback`;
+		const title = "Sign In - Pong Masters";
 		const popup = window.open(
 			url,
 			title,
-			`popup=true,noopener,noreferrer,toolbar=0,scrollbars=1,status=1,resizable=1,location=1,menuBar=0,
+			`popup=true,toolbar=0,scrollbars=1,status=1,resizable=1,location=1,menuBar=0,
 			width=${width},height=${height},left=${left},top=${top}`
 		);
 		setExternalPopup(popup);
 	};
 
 	useEffect(() => {
-		console.log("useEffect");
 		if (!externalPopup || externalPopup.closed) return;
 		const checkPopup = setInterval(() => {
-			console.log("checking popup");
-			if (externalPopup.window.location.href.includes(`e2r2p11.1337.ma:5000`)) {
-				console.log("success, closing popup");
+			if (externalPopup.window.location.href.includes(`e2r2p11.1337.ma:5000/`)) {
 				clearInterval(checkPopup);
 				externalPopup.close();
-				router.push("/home");
+				setTimeout(() => {
+					if (!getCookieItem("access_token")) return;
+					setSuccess(true);
+					router.push("/home");
+				}, 2000);
 			}
 		}, 500);
 	}, [externalPopup]);
@@ -68,7 +66,7 @@ const Login = () => {
 		},
 		validateOnBlur: true,
 		validateOnChange: true,
-		onSubmit: async (values) => { },
+		onSubmit: async (values) => {},
 	});
 
 	const handleLogin = async () => {
@@ -156,28 +154,34 @@ const Login = () => {
 					<hr className="w-[70%] border-gray-400" />
 				</div>
 				<div className="flex w-full justify-center gap-4 md:flex-col">
-					<Link href={`${process.env.NEXT_PUBLIC_BACK_END_URL}api/auth/42/callback`}>
-						<Button
-							// onClick={connectClick}
-							type="secondary"
-							disabled={loading}
-							className="h-14 w-14 justify-center rounded-xl md:h-auto md:w-full text-sm backdrop-blur-sm"
-						>
-							<Image src="/img/42Logo-light.svg" alt="logo" width={30} height={30} />
-							<p className="hidden md:block">Continue with Intra</p>
-						</Button>
-					</Link>
-					<Link href={`${process.env.NEXT_PUBLIC_BACK_END_URL}api/auth/google/login`}>
-						<Button
-							// onClick={connectClick}
-							type="secondary"
-							disabled={loading}
-							className="h-14 w-14 justify-center rounded-xl md:h-auto md:w-full text-sm backdrop-blur-sm"
-						>
-							<Image src="/img/google.svg" alt="logo" width={30} height={30} />
-							<p className="hidden md:block">Continue with Google</p>
-						</Button>
-					</Link>
+					<Button
+						onClick={(e) =>
+							connectClick(
+								e,
+								`${process.env.NEXT_PUBLIC_BACK_END_URL}api/auth/42/callback`
+							)
+						}
+						type="secondary"
+						disabled={loading || success}
+						className="h-14 w-14 justify-center rounded-xl md:h-auto md:w-full text-sm backdrop-blur-sm"
+					>
+						<Image src="/img/42Logo-light.svg" alt="logo" width={30} height={30} />
+						<p className="hidden md:block">Continue with Intra</p>
+					</Button>
+					<Button
+						onClick={(e) =>
+							connectClick(
+								e,
+								`${process.env.NEXT_PUBLIC_BACK_END_URL}api/auth/google/login`
+							)
+						}
+						type="secondary"
+						disabled={loading || success}
+						className="h-14 w-14 justify-center rounded-xl md:h-auto md:w-full text-sm backdrop-blur-sm"
+					>
+						<Image src="/img/google.svg" alt="logo" width={30} height={30} />
+						<p className="hidden md:block">Continue with Google</p>
+					</Button>
 				</div>
 			</div>
 		</div>

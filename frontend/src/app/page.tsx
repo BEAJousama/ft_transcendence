@@ -47,8 +47,6 @@ const Contributors = [
 	},
 ];
 
-
-
 const LandingPage = () => {
 	const [slide, setSlide] = useState(0);
 	const { user, loading, authenticated, fetchUser } = useContext(AppContext);
