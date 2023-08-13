@@ -106,7 +106,10 @@ export class AuthService {
 
   async callback(req, res) {
     try {
-      if (!req.user) throw new UnauthorizedException();
+      if (!req.user) {
+        res.redirect(process.env.FRONTEND_URL);
+        res.end();
+      }
       const data = req.user;
       let user: User = await this.usersService.findUserByLogin(data.login);
       if (!user) {
