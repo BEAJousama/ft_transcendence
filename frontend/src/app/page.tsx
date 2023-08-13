@@ -53,7 +53,7 @@ const LandingPage = () => {
 	const [selectable, setSelectable] = useState(true);
 	const [numUsers, setNumUsers] = useState(0);
 	const [numGames, setNumGames] = useState(0);
-	const [state, setState] = useState<"login" | "register" | "other">("login");
+	const [state, setState] = useState<"login" | "register" | "2fa" | "complete">("login");
 
 	useEffect(() => {
 		const fetchStats = async () => {
@@ -65,13 +65,13 @@ const LandingPage = () => {
 	}, []);
 
 	useEffect(() => {
-		if (state === "other") {
-			setSelectable(false);
+		if (state === "login") setSlide(0);
+		else if (state === "register") setSlide(1);
+		else {
 			setTimeout(() => {
 				setSlide(2);
-			}, 100);
-		} else if (state === "login") setSlide(0);
-		else if (state === "register") setSlide(1);
+			}, 1000);
+		}
 	}, [state]);
 
 	if (authenticated && user && user.createdAt !== user.updatedAt) {
@@ -110,11 +110,10 @@ const LandingPage = () => {
 							slide={slide}
 							className="w-full h-full"
 						>
-							<Login />
+							<Login setSelectable={setSelectable} needs2fa={() => setState("2fa")} />
 							<Register />
-							{getCookieItem("2fa_access_token") &&
-								!getCookieItem("access_token") && <Tfa />}
-							{user && user.createdAt === user.updatedAt && <CompleteInfo />}
+							{state === "2fa" && <Tfa />}
+							{state === "complete" && <CompleteInfo />}
 						</Carousel>
 					</div>
 				</div>

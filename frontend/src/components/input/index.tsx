@@ -1,5 +1,6 @@
 "use client";
 
+import { Eye, EyeOff } from "lucide-react";
 import { InputHTMLAttributes, RefObject, useState, ComponentProps } from "react";
 import { twMerge } from "tailwind-merge";
 
@@ -53,24 +54,32 @@ const Input = ({
 	success = false,
 	required,
 }: InputProps) => {
+	const [showPassword, setShowPassword] = useState(false);
 	return (
 		<>
 			{type !== "select" && (
 				<div className={twMerge("relative w-full")}>
 					<input
-						type={htmlType}
+						type={
+							htmlType === "password"
+								? showPassword
+									? "text"
+									: "password"
+								: htmlType
+						}
 						className={twMerge(
 							`peer m-0 block h-14  w-full rounded border border-solid border-quaternary-200 bg-transparent bg-clip-padding px-3 py-4 text-lg font-semibold leading-tight text-quaternary-50 
           transition ease-linear placeholder:text-transparent focus:border-primary focus:outline-none
           focus:border-primary-500 focus:text-primary-500 focus:backdrop-blur-sm peer-focus:text-primary-500`,
 							label &&
-							`focus:pb-[0.625rem] focus:pt-[1.625rem] [&:not(:placeholder-shown)]:pb-[0.625rem] [&:not(:placeholder-shown)]:pt-[1.625rem]`,
-							isError && `border-red-700 text-red-700`,
-							success && `border-green-700 text-green-700`,
+								`focus:pb-[0.625rem] focus:pt-[1.625rem] [&:not(:placeholder-shown)]:pb-[0.625rem] [&:not(:placeholder-shown)]:pt-[1.625rem]`,
+							isError && `border-red-700 text-red-700 animate-[pulse_1s]`,
 							value &&
-							`backdrop-blur-sm disabled:cursor-not-allowed disabled:border-primary-700 disabled:text-primary-700`,
+								`backdrop-blur-sm disabled:cursor-not-allowed disabled:border-primary-700 disabled:text-primary-700`,
 							!value &&
-							`disabled:cursor-not-allowed disabled:border-gray-500 disabled:text-gray-500`,
+								`disabled:cursor-not-allowed disabled:border-gray-500 disabled:text-gray-500`,
+							success &&
+								`border-green-700 text-green-700 disabled:border-green-700 disabled:text-green-700`,
 							className
 						)}
 						id={id}
@@ -87,6 +96,17 @@ const Input = ({
 						ref={inputRef}
 						onBlur={onBlur}
 					/>
+					{htmlType === "password" && (
+						<div
+							className="absolute right-0 top-0 h-full flex items-center justify-center pr-3 cursor-pointer"
+							onClick={() => setShowPassword(!showPassword)}
+						>
+							{!showPassword && (
+								<EyeOff className="w-6 h-6 text-quaternary-50 opacity-50" />
+							)}
+							{showPassword && <Eye className="w-6 h-6 text-primary-500" />}
+						</div>
+					)}
 					{label && (
 						<label
 							htmlFor={id}
