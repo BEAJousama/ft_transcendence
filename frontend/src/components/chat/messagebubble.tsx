@@ -34,19 +34,18 @@ import CustomSelect from "../select";
 import IUser from "../../interfaces/user";
 import { twMerge } from "tailwind-merge";
 import { useRouter } from "next/navigation";
-import { set } from "lodash";
 import { GameContext } from "@/context/game.context";
 
 interface ChannelProps {
   className?: string;
-  setOpen: any;
-  setCurrentChannel: any;
+  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setCurrentChannel: React.Dispatch<React.SetStateAction<Ichannel | undefined>>;
   currentChannel?: Ichannel;
   messages: Imessage[];
-  inputRef: any;
+  inputRef:  React.RefObject<HTMLInputElement>;
   isBlocked: boolean;
   isBlocking: boolean;
-  checkBlock: any;
+  checkBlock: (id: number | undefined) => boolean;
   users?: IUser[];
 };
 
@@ -75,6 +74,8 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
   const [messageId, setMessageId] = useState<number | undefined>(0);
   const [chId, setChId] = useState<number | undefined>(0);
   const [isBlockingOrUnblocking, setIsBlockingOrUnblocking] = useState(false);
+  const [coolDown, setCoolDown] = useState(false);
+
   // const navigate = useNavigate();
   const { socket } = useContext(ChatContext);
   const { socket: gamesocket } = useContext(GameContext);
@@ -141,14 +142,22 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
     setChVisibility(false);
     setManageBans(false);
     setManageMembers(false);
+    setDeleteChannel(false);
   };
 
   const handleSendMessage = (value: string) => {
-    if (value.trim() === "")
+    if (value.trim() === "" || coolDown)
       return;
     if (value) {
-      socket?.emit('message', { senderId: user?.id, receiverId: currentChannel?.id, content: value });
+      const message = { senderId: user?.id, receiverId: currentChannel?.id, content: value };
+      socket?.emit('message', message);
       setValue("");
+      setCoolDown(true);
+      inputRef.current?.blur();
+      setTimeout(() => {
+        setCoolDown(false);
+        inputRef.current?.focus();
+      }, 700);
     }
   };
 
@@ -158,7 +167,7 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
         socket?.emit("channel_remove", { channelId: currentChannel?.id, userId: user?.id });
         setShowModal(false);
         setSetowner(false);
-        setCurrentChannel(null);
+        setCurrentChannel({} as Ichannel);
         inputRef.current?.blur();
         setOpen(false);
         return;
@@ -185,7 +194,7 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
 
   const handleDeleteChannel = () => {
     socket?.emit("channel_remove", { channelId: currentChannel?.id });
-    setCurrentChannel(null);
+    setCurrentChannel({} as Ichannel);
     inputRef.current?.blur();
     setOpen(false);
   };
@@ -257,7 +266,7 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
             onClick={() => {
               setOpen(false);
               inputRef.current?.blur();
-              setCurrentChannel("");
+              setCurrentChannel({} as Ichannel);
               setDmMenu(false)
             }}
           >
@@ -301,7 +310,7 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
                           gameMode: "Classic Mode",
                           powerUps: "Classic",
                       });
-                      
+                      router.push("/pong")
                       }}
                     >
                       Invite to play
@@ -408,14 +417,19 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
             : isBlocked ? "You blocked this user!" : isBlocking ? "You are blocked by this user!" : "type something")}
           value={value}
           inputRef={inputRef}
-          onKeyDown={(event) => {
+          onKeyDown={
+            (event : any) => {
             if (event.key === "Enter")
+            {
               handleSendMessage(value);
-          }}
+            }
+          }
+        }
           onChange={(event) => {
             const { value } = event.target;
             setValue(value);
-          }}
+          }
+        }
         />
 
         <Button
@@ -424,7 +438,8 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
           disabled={currentChannel?.channelMembers?.filter((member: IchannelMember) => member.userId === user?.id)[0].status !== "ACTIVE" || isBlocked || isBlocking}
           onClick={() => {
             handleSendMessage(value);
-          }}
+          }
+        }
         >
           <BsSendFill />
         </Button>
@@ -433,7 +448,7 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
         <div ref={ref} className="h-50 absolute bottom-14 w-1">
           <Picker
             data={data}
-            onEmojiSelect={(e: any) => {
+            onEmojiSelect={(e: any ) => {
               handleEmojiSelect(e.native);
             }}
           />
@@ -559,7 +574,7 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
         <Modal
           className="z-10 bg-secondary-800 
         border-none flex flex-col items-center justify-start shadow-lg shadow-secondary-500 gap-4 text-white min-w-[90%]
-        lg:min-w-[40%] xl:min-w-[800px] animate-jump-in animate-ease-out animate-duration-400"
+        lg:min-w-[40%] xl:min-w-[800px] animate-jump-in animate-ease-out animate-duration-400 max-h-screen overflow-y-scroll"
         >
           <div className="flex flex-col w-full">
             <div className="flex w-full items-center justify-between">
@@ -820,15 +835,14 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
                 setShowEdit={setShowEdit}
                 setShowModal={setShowModal}
               >
-                <div className="w-full max-h-24 md:max-h-32 lg:max-h-64 overflow-y-auto bg-scroll-secondary-300 flex items-center justify-center flex-col align-middle gap-2 pt-2">
-                  {users?.filter((u: any) => {
+                  {users?.filter((u: IUser) => {
                     return u.id !== user?.id && !checkBlock(u.id) && ((currentChannel?.channelMembers.find((cm: IchannelMember) => cm.userId === u.id) === undefined
                       || currentChannel?.channelMembers.find((cm: IchannelMember) => cm.userId === u.id)?.status === "LEFT"));
                   }).length ?
-                    (users?.filter((u: any) => {
+                    (users?.filter((u: IUser) => {
                       return u.id !== user?.id && !checkBlock(u.id) && ((currentChannel?.channelMembers.find((cm: IchannelMember) => cm.userId === u.id) === undefined
                         || currentChannel?.channelMembers.find((cm: IchannelMember) => cm.userId === u.id)?.status === "LEFT"));
-                    }).map((u: any) => {
+                    }).map((u: IUser) => {
                       return (
                         <div key={u.id} className="flex flex-row items-center justify-between w-full">
                           <ProfileBanner
@@ -855,7 +869,6 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
                         <p className="text-gray-500 text-lg">No users found</p>
                       </div>
                     )}
-                </div>
               </UpdateChannel>
             )
           }

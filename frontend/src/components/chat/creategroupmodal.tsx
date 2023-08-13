@@ -64,7 +64,7 @@ const CreateGroupModal = ({
       <Modal
         className="z-10 bg-secondary-800 
         border-none flex flex-col items-center justify-start shadow-lg shadow-secondary-500 gap-4 text-white min-w-[90%]
-        lg:min-w-[40%] xl:min-w-[800px] animate-jump-in animate-ease-out animate-duration-400"
+        lg:min-w-[40%] xl:min-w-[800px] animate-jump-in animate-ease-out animate-duration-400 max-h-screen overflow-y-scroll"
         setShowModal={setShowModal!}
       >
         <div className="flex items-center justify-between w-full">
@@ -183,9 +183,8 @@ const CreateGroupModal = ({
         )}
         {
           show && (
-            <div className="w-full h[100px] flex items-center justify-center flex-col align-middle gap-2 pt-2 overflow-y-scroll scrollbar-hide">
+            <div className="w-full flex items-center justify-center flex-col align-middle gap-2 pt-2">
               <span className="w-full mb-2 text-sm font-bold text-white">Select Members: </span>
-              <div className=" max-h-10 md:max-h-32 lg:max-h-64 w-full overflow-y-auto bg-scroll-secondary-300"> {/* Adjust max-h value as needed */}
                   {users?.length ? (
                     users
                       ?.filter((u: any) => {
@@ -222,13 +221,12 @@ const CreateGroupModal = ({
                     </div>
                   )}
               </div>
-            </div>
           )}
 
         {
           showDm && (
 
-            <div className="w-full h[100px] flex items-center justify-center flex-col align-middle gap-2 pt-2 overflow-y-scroll scrollbar-hide">
+            <div className="w-full flex items-center justify-center flex-col align-middle gap-2 pt-2">
               {users?.length ? (
                 users?.filter((u: any) => {
                   return u.id !== user?.id && !checkBlock(u.id);

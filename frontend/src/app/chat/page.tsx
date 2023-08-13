@@ -13,7 +13,7 @@ export default function Chat() {
   const [open, setOpen] = useState<boolean>(false);
   const [showModal, setShowModal] = useState<boolean>(false);
   const isMatch = useMedia("(min-width:1024px)", false);
-  const [currentChannel, setCurrentChannel] = useState<Ichannel>({} as Ichannel);
+  const [currentChannel, setCurrentChannel] = useState<Ichannel | undefined>({} as Ichannel);
   const { socket } = useContext<IchatContext>(ChatContext);
   const [messages, setMessages] = useState<Imessage[]>([]);
   const [channelId, setChannelId] = useState<number | undefined>(0);
@@ -100,13 +100,6 @@ export default function Chat() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentChannel]);
 
-
-  const sortMessages = (messages: Imessage[]) => {
-    return messages.sort((a, b) => {
-      return new Date(a.date).getTime() - new Date(b.date).getTime();
-    });
-  };
-
   const handleSocketEvent = async () => {
     const [blockingUsers, blockedUsers] = await Promise.all([getBlocking(), getBlocked()]);
     setBlocking(blockingUsers || []);
@@ -119,10 +112,10 @@ export default function Chat() {
     socket?.emit('reset_mssg_count', { channelId: currentChannel?.id });
     socket?.on("getChannelMessages", (mssg: Imessage[]) => {
       if (mssg[0]?.receiverId === currentChannel?.id) {
-        setMessages(sortMessages(mssg));
+        setMessages(mssg);
       }
       else
-        setMessages(sortMessages(messages));
+        setMessages(messages);
     });
 
     socket?.on('message', (data: Imessage) => {
@@ -134,10 +127,10 @@ export default function Chat() {
 
     socket?.on("get_client_messages", (mssg: Imessage[]) => {
       if (mssg[0]?.receiverId === currentChannel?.id) {
-        setMessages(sortMessages(mssg));
+        setMessages(mssg);
       }
       else
-        setMessages(sortMessages(messages));
+        setMessages(messages);
     });
 
     socket?.on('channel_leave', (data: Ichannel) => {
@@ -156,7 +149,7 @@ export default function Chat() {
 
     socket?.on('channel_join', (data: {channel : Ichannel, messages : Imessage[]}) => {
       setCurrentChannel(data.channel);
-      setMessages(sortMessages(data.messages));
+      setMessages(data.messages);
     });
 
     socket?.on("channel_remove", (data: {id: number}) => {

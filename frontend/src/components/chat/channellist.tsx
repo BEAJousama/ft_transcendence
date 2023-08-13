@@ -1,7 +1,7 @@
 
 "use client";
 
-import React from "react";
+import React, { use } from "react";
 import { useContext, useEffect, useState } from "react";
 
 import Channel from "./channel";
@@ -14,7 +14,6 @@ import Button from "../button";
 import { AppContext } from "../../context/app.context";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { throttle } from "lodash";
 import { twMerge } from "tailwind-merge";
 
 import { BsFillChatLeftTextFill } from "react-icons/bs";
@@ -23,11 +22,11 @@ import { BiFilter } from "react-icons/bi";
 interface ChannelListProps {
   className?: string;
   setShowModal: React.Dispatch<React.SetStateAction<boolean>>;
-  setCurrentChannel: any;
+  setCurrentChannel: React.Dispatch<React.SetStateAction<Ichannel | undefined>>;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  setMessages: any;
-  inputRef?: any;
-  checkBlock: any;
+  setMessages: React.Dispatch<React.SetStateAction<Imessage[]>>;
+  inputRef?:  React.RefObject<HTMLInputElement>;
+  checkBlock: (id: number) => boolean;
 }
 
 
@@ -53,7 +52,7 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
     return messages;
   }
 
-  const onClick = throttle(async (channel: Ichannel): Promise<void | undefined> => {
+  const onClick = async (channel: Ichannel): Promise<void | undefined> => {
     if (!user || !channel)
       return; 
     socket?.emit('reset_mssg_count', { channelId: channel.id });
@@ -80,7 +79,17 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
       inputRef?.current?.focus();
     }
     //eslint-disable-next-line
-  }, 1000);
+  }
+
+  function debounce(callback : any, delay : number) {
+    let timeoutId : any;
+    return function() {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(callback, delay);
+    }
+  }
+
+  // const onClick = (channel: Ichannel) => debounce(handleClick(channel), 100);
 
   const accessChannel = async () => {
     const res = await axios.post(`${process.env.NEXT_PUBLIC_BACK_END_URL}api/channels/checkpass`,
@@ -103,26 +112,18 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
     if (!user)
       return;
     fetcher(`api/channels/${user?.id}`)
-      .then((channels) => {
+      .then((channels : Ichannel[]) => {
         channels.forEach((channel: Ichannel) => {
           if (channel.type === "CONVERSATION") {
             channel.name = channel.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.username;
             channel.avatar = channel.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.avatar;
           }
         });
-        channels.sort((a: Ichannel, b: Ichannel) => {
-          if (a.updatedAt < b.updatedAt) return 1;
-          else return -1;
-        });
         setChannels(channels);
       });
 
     fetcher(`api/channels/archived/${user?.id}`)
       .then((channels) => {
-        channels.sort((a: Ichannel, b: Ichannel) => {
-          if (a.updatedAt < b.updatedAt) return 1;
-          else return -1;
-        });
         setArchiveChannels(channels);
       });
       //eslint-disable-next-line
@@ -135,7 +136,7 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
       getArchiveChannels();
     }
     socket?.on('channel_leave', () => {
-      setCurrentChannel();
+      setCurrentChannel({} as Ichannel);
       inputRef?.current?.blur();
       setOpen(false);
     });
@@ -149,7 +150,7 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
     });
 
     socket?.on('channel_delete', () => {
-      setCurrentChannel();
+      setCurrentChannel({} as Ichannel);
       inputRef?.current?.blur();
       setOpen(false);
     });
@@ -176,11 +177,6 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
       }
     }
     );
-    channels.sort((a: Ichannel, b: Ichannel) => {
-      if (a.updatedAt < b.updatedAt) return 1;
-      else return -1;
-    }
-    );
     setChannels(channels);
   }
 
@@ -194,10 +190,6 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
           channel.avatar = channel.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.avatar;
         }
       });
-      channels?.sort((a: Ichannel, b: Ichannel) => {
-        if (a.updatedAt < b.updatedAt) return 1;
-        else return -1;
-      });
       setChannels(channels);
     });
   }
@@ -205,10 +197,6 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
   const getArchiveChannels = async () => {
     socket?.on('getArchiveChannels', (channels: Ichannel[]) => {
       if (!channels) return;
-      channels?.sort((a: Ichannel, b: Ichannel) => {
-        if (a.updatedAt < b.updatedAt) return 1;
-        else return -1;
-      });
       setArchiveChannels(channels);
     });
   }
@@ -318,12 +306,12 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
                     unread={channel.unreadFor?.map((user: any) => user.id).includes(user?.id)}
                     avatar={channel.type !== "CONVERSATION" ? channel.avatar :
                       channel.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.avatar}
-                    description={(channel.messages && !(channel.bannedUsers?.map((user: any) => user.id).includes(user?.id)) && !(channel.kickedUsers?.map((user: any) => user.id).includes(user?.id))) ? channel.messages[channel.messages.length - 1]?.content : ""}
+                    description={(channel.messages && !(channel.bannedUsers?.map((user: any) => user.id).includes(user?.id)) && !(channel.kickedUsers?.map((user: any) => user.id).includes(user?.id))) ? channel.messages[0]?.content : ""}
                     updatedAt={
                       channel.messages &&
                         !channel.bannedUsers?.map((user: any) => user.id).includes(user?.id) &&
                         !channel.kickedUsers?.map((user: any) => user.id).includes(user?.id)
-                        ? channel.messages[channel.messages.length - 1]?.date || channel.updatedAt || ""
+                        ? channel.messages[0]?.date || channel.updatedAt || ""
                         : channel.createAt || ""
                     }
                     newMessages={channel.channelMembers?.filter((member: IchannelMember) => member.userId === user?.id)[0].newMessagesCount}
@@ -352,12 +340,12 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
                       avatar={channel.type !== "CONVERSATION" ? channel.avatar :
                         channel.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.avatar
                       }
-                      description={(channel.messages && !(channel.bannedUsers?.map((user: any) => user.id).includes(user?.id)) && !(channel.kickedUsers?.map((user: any) => user.id).includes(user?.id))) ? channel.messages[channel.messages.length - 1]?.content : ""}
+                      description={(channel.messages && !(channel.bannedUsers?.map((user: any) => user.id).includes(user?.id)) && !(channel.kickedUsers?.map((user: any) => user.id).includes(user?.id))) ? channel.messages[0]?.content : ""}
                       updatedAt={
                         channel.messages &&
                           !channel.bannedUsers?.map((user: any) => user.id).includes(user?.id) &&
                           !channel.kickedUsers?.map((user: any) => user.id).includes(user?.id)
-                          ? channel.messages[channel.messages.length - 1]?.date || channel.updatedAt || ""
+                          ? channel.messages[0]?.date || channel.updatedAt || ""
                           : channel.createAt || ""
                       }
                       newMessages={channel.channelMembers?.filter((member: IchannelMember) => member.userId === user?.id)[0].newMessagesCount}
@@ -386,12 +374,12 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
                     avatar={channel.type !== "CONVERSATION" ? channel.avatar :
                       channel.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.avatar
                     }
-                    description={(channel.messages && !(channel.bannedUsers?.map((user: any) => user.id).includes(user?.id)) && !(channel.kickedUsers?.map((user: any) => user.id).includes(user?.id))) ? channel.messages[channel.messages.length - 1]?.content : ""}
+                    description={(channel.messages && !(channel.bannedUsers?.map((user: any) => user.id).includes(user?.id)) && !(channel.kickedUsers?.map((user: any) => user.id).includes(user?.id))) ? channel.messages[0]?.content : ""}
                     updatedAt={
                       channel.messages &&
                         !channel.bannedUsers?.map((user: any) => user.id).includes(user?.id) &&
                         !channel.kickedUsers?.map((user: any) => user.id).includes(user?.id)
-                        ? channel.messages[channel.messages.length - 1]?.date || channel.updatedAt || ""
+                        ? channel.messages[0]?.date || channel.updatedAt || ""
                         : channel.createAt || ""
                     }
                     newMessages={channel.channelMembers?.filter((member: IchannelMember) => member.userId === user?.id)[0].newMessagesCount}
@@ -417,12 +405,12 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
                       avatar={channel.type !== "CONVERSATION" ? channel.avatar :
                         channel.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.avatar
                       }
-                      description={(channel.messages && !(channel.bannedUsers?.map((user: any) => user.id).includes(user?.id)) && !(channel.kickedUsers?.map((user: any) => user.id).includes(user?.id))) ? channel.messages[channel.messages.length - 1]?.content : ""}
+                      description={(channel.messages && !(channel.bannedUsers?.map((user: any) => user.id).includes(user?.id)) && !(channel.kickedUsers?.map((user: any) => user.id).includes(user?.id))) ? channel.messages[0]?.content : ""}
                       updatedAt={
                         channel.messages &&
                           !channel.bannedUsers?.map((user: any) => user.id).includes(user?.id) &&
                           !channel.kickedUsers?.map((user: any) => user.id).includes(user?.id)
-                          ? channel.messages[channel.messages.length - 1]?.date || channel.updatedAt || ""
+                          ? channel.messages[0]?.date || channel.updatedAt || ""
                           : channel.createAt || ""
                       }
                       newMessages={channel.channelMembers?.filter((member: IchannelMember) => member.userId === user?.id)[0].newMessagesCount}

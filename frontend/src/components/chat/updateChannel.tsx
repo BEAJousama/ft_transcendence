@@ -59,6 +59,7 @@ const UpdateChannel = ({
                             updateX();
                             setShowEdit(true);
                             verify && setShowModal(false);
+                            defaultValue && setValue && setValue(defaultValue);
                         }}
                     >
                         {verify ? "Delete" : "Update"}

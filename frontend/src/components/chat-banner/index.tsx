@@ -171,15 +171,15 @@ const ChatBanner = ({
                 )
             }
             {showModal && (
-                <Card
+                <Modal
                     setShowModal={setshowModal}
                     className="z-10 bg-secondary-800 border-none flex flex-col !items-center !justify-center shadow-lg shadow-secondary-500 gap-4 text-white min-w-[90%] lg:min-w-[40%] xl:min-w-[50%] animate-jump-in animate-ease-out animate-duration-400 max-w-[100%] w-full"
                 >
-                    <span className="text-md">This channel is protected</span>
+                    <span className="text-md md:text-lg font-semibold pb-4">This channel is protected</span>
                     <div className="flex flex-col justify-center items-center w-full">
                         <Input
                             label="Password"
-                            className="h-[40px] w-full rounded-md border-2 border-primary-500 text-white text-xs bg-transparent md:mr-2"
+                            className="w-full rounded-md border-2 border-primary-500 text-white text-xs bg-transparent md:mr-2"
                             htmlType="password"
                             placeholder="*****************"
                             value={password}
@@ -197,7 +197,7 @@ const ChatBanner = ({
                         />
                         <div className="flex flex-row">
                             <Button
-                                className="h-8 w-auto md:w-20 !bg-inherit text-white text-xs rounded-full mt-2"
+                                className="h-10 w-20 md:w-30 !bg-inherit text-white text-xs rounded-full mt-2 mr-2"
                                 onClick={() => {
                                     setshowModal(false);
                                     inputRef?.current?.blur();
@@ -207,7 +207,7 @@ const ChatBanner = ({
                                 <span className="text-xs">Cancel</span>
                             </Button>
                             <Button
-                                className="h-8 w-auto md:w-20 bg-primary-500 text-white text-xs rounded-full mt-2 ml-3"
+                                className="h-10 w-20 md:w-30 bg-primary-500 text-white text-xs rounded-full mt-2"
                                 onClick={() => {
                                     socket?.emit("channel_join", { channelId: channel?.id, userId: user?.id, password: password });
                                     setshowModal(false);
@@ -219,7 +219,7 @@ const ChatBanner = ({
                             </Button>
                         </div>
                     </div>
-                </Card>
+                </Modal>
             )
             }
         </>

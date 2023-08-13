@@ -187,6 +187,7 @@ const ProfileBanner = ({
                         gameMode: "Classic Mode",
                         powerUps: "Classic",
                     });
+                    router.push("/pong")
                     }}
                   >
                     <BsPersonAdd />

@@ -44,8 +44,8 @@ export interface Imessage {
     senderId: number;
     receiverId: number;
     date: string;
-    sender: IUser;
-    receiver: IUser;
+    sender: IUser | undefined;
+    receiver: IUser | undefined;
 };
 
 export interface IchannelMember {

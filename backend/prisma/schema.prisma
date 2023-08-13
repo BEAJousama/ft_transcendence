@@ -96,7 +96,6 @@ model User {
   achievements          Achievement[]   @relation("AchievementPlayers")
   memberInChannels      ChannelMember[] @relation("memberInChannels1")
   sentMessages          Message[]       @relation("send")
-  pineedMessages        Message[]       @relation("pinner")
   sentRequests          Friend[]        @relation("SentRequest")
   receivedRequests      Friend[]        @relation("ReceivedRequest")
   gamesWon              Game[]          @relation("winner")
