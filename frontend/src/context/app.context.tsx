@@ -29,23 +29,34 @@ export const getCookieItem = (key: string): string | undefined => {
 	return undefined;
 };
 
+export const setCookieItem = (
+	key: string,
+	value: string,
+	expiration: number | Date = 1,
+	path = "/"
+) => {
+	if (typeof expiration === "number") {
+		expiration = new Date(new Date().getTime() + expiration * 1000 * 60 * 60 * 24);
+	}
+	document.cookie = `${key}=${encodeURIComponent(
+		value
+	)};expires=${expiration.toUTCString()};path=${path}`;
+};
+
 export const AppContext = React.createContext<IAppContext>({
 	user: undefined,
 	loading: true,
 	authenticated: false,
-	setAuthenticated: () => { },
-	fetchUser: async () => { },
-	updateUser: async () => { },
+	setAuthenticated: () => {},
+	fetchUser: async () => {},
+	updateUser: async () => {},
 });
 
 export const fetcher = async (url: string) => {
 	try {
-		const response = await axios.get(
-			`${process.env.NEXT_PUBLIC_BACK_END_URL}${url}`,
-			{
-				withCredentials: true,
-			}
-		);
+		const response = await axios.get(`${process.env.NEXT_PUBLIC_BACK_END_URL}${url}`, {
+			withCredentials: true,
+		});
 		return response.data;
 	} catch (error) {
 		throw error;
@@ -98,26 +109,25 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
 	}, [isLoading]);
 
 	if (isLoading) {
-		return (<AppContext.Provider value={
-			{
-				user: undefined,
-				loading: false,
-				authenticated: false,
-				setAuthenticated: () => { },
-				fetchUser: async () => { },
-				updateUser: async () => { },
-			}
-		}><body /></AppContext.Provider>);
+		return (
+			<AppContext.Provider
+				value={{
+					user: undefined,
+					loading: false,
+					authenticated: false,
+					setAuthenticated: () => {},
+					fetchUser: async () => {},
+					updateUser: async () => {},
+				}}
+			>
+				<body />
+			</AppContext.Provider>
+		);
 	}
 
-	if ((!isAuthenticated && !isLoading && path !== "/")) redirect("/");
+	if (!isAuthenticated && !isLoading && path !== "/") redirect("/");
 
-	if (
-		isAuthenticated &&
-		!isLoading &&
-		path === "/" &&
-		data.updatedAt !== data.createdAt
-	) {
+	if (isAuthenticated && !isLoading && path === "/" && data.updatedAt !== data.createdAt) {
 		redirect("/home");
 	}
 
@@ -130,11 +140,7 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
 		updateUser: mutate,
 	};
 
-	return (
-		<AppContext.Provider value={appContextValue}>
-			{children}
-		</AppContext.Provider>
-	);
+	return <AppContext.Provider value={appContextValue}>{children}</AppContext.Provider>;
 };
 
 export default AppProvider;

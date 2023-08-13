@@ -1,44 +1,61 @@
 "use client";
 import React, { useContext, useEffect, useState } from "react";
-import {
-	Carousel,
-	Login,
-	SignUp,
-	CompleteInfo,
-	TwoFactorAuth,
-	Spinner,
-	Contributor,
-} from "@/components";
-import { twMerge } from "tailwind-merge";
-import Image from "next/image";
-import { AppContext } from "@/context/app.context";
+import dynamic from "next/dynamic";
 import Link from "next/link";
+import Image from "next/image";
 import { redirect } from "next/navigation";
-import axios from "axios";
+import { AppContext, getCookieItem } from "@/context/app.context";
+import { twMerge } from "tailwind-merge";
 import CountUp from "react-countup";
+import axios from "axios";
+
+import { Carousel, Login, Register } from "@/components";
+import LandingPageSelector from "@/components/landing-page-selector";
+const Contributor = dynamic(() => import("@/components/contributor"), { ssr: false });
+const Tfa = dynamic(() => import("@/components/tfa"), { ssr: false });
+const CompleteInfo = dynamic(() => import("@/components/complete-info"), { ssr: false });
+
+const LottiePlayer = dynamic(
+	() => import("@lottiefiles/react-lottie-player").then((mod) => mod.Player),
+	{ ssr: false }
+);
+
+const Contributors = [
+	{
+		name: "Hicham Bel Houcin",
+		role: "Full Stack Developer",
+		image: "/img/hbel-hou.jpg",
+		linkedin: "hicham-bel-houcin",
+		github: "Hicham-BelHoucin",
+		instagram: "hicham_belhoucin",
+	},
+	{
+		name: "Oussama Beaj",
+		role: "Developer",
+		image: "/img/obeaj.jpg",
+		linkedin: "ousama-b-a8a84a247",
+		github: "BEAJousama",
+		instagram: "obeaj29",
+	},
+	{
+		name: "Soufiane El Marsi",
+		role: "Developer",
+		image: "/img/sel-mars.jpg",
+		linkedin: "soufiane-el-marsi",
+		github: "soofiane262",
+		instagram: "soufiane.elmarsi",
+	},
+];
 
 
 
 const LandingPage = () => {
-	const [slide, setSlide] = useState(1);
+	const [slide, setSlide] = useState(0);
 	const { user, loading, authenticated, fetchUser } = useContext(AppContext);
 	const [selectable, setSelectable] = useState(true);
 	const [numUsers, setNumUsers] = useState(0);
 	const [numGames, setNumGames] = useState(0);
-
-	const getCookieItem = (key: string): string | undefined => {
-		const cookieString = document.cookie;
-		const cookiesArray = cookieString.split("; ");
-
-		for (const cookie of cookiesArray) {
-			const [cookieKey, cookieValue] = cookie.split("=");
-			if (cookieKey === key) {
-				return decodeURIComponent(cookieValue);
-			}
-		}
-
-		return undefined;
-	};
+	const [state, setState] = useState<"login" | "register" | "other">("login");
 
 	useEffect(() => {
 		const fetchStats = async () => {
@@ -50,14 +67,14 @@ const LandingPage = () => {
 	}, []);
 
 	useEffect(() => {
-		if (getCookieItem("2fa_access_token") && !getCookieItem("access_token")) {
-			setSlide(0);
+		if (state === "other") {
 			setSelectable(false);
-		}
-		if (!user) return;
-		if (user.createdAt === user.updatedAt) setSlide(3);
-		setSelectable(false);
-	}, [user]);
+			setTimeout(() => {
+				setSlide(2);
+			}, 100);
+		} else if (state === "login") setSlide(0);
+		else if (state === "register") setSlide(1);
+	}, [state]);
 
 	if (authenticated && user && user.createdAt !== user.updatedAt) {
 		redirect("/home");
@@ -65,73 +82,45 @@ const LandingPage = () => {
 
 	return (
 		<div className="overflow-auto scrollbar-hide flex flex-col items-center w-screen h-screen bg-secondary-700">
+			<div className="fixed inset-0 flex items-center justify-center opacity-30">
+				<LottiePlayer
+					loop
+					autoplay
+					src="/anim/handJoystick.json"
+					style={{ width: 100 + "%", height: 100 + "%", opacity: 0.3 }}
+				/>
+			</div>
 			<div className="grid w-full max-w-5xl h-fit grid-cols-1 place-items-center justify-center gap-8 md:gap-16 p-8 lg:grid-cols-2 z-10 backdrop-blur-sm backdrop-opacity-10">
 				<div className="flex w-full max-w-xs items-center justify-center lg:col-span-2 lg:max-w-xl py-16">
-					<Image
-						src="/img/logo.png"
-						priority
-						alt="Pong Materz"
-						width={400}
-						height={200}
-					/>
+					<Image src="/img/logo.png" priority alt="Pong Maters" width={400} height={45} />
 				</div>
 				<div className="flex flex-col items-center justify-center w-full h-full">
-					{loading && (
-						<Spinner className="absolute flex items-center justify-center w-full h-full transition duration-300 ease-out z-20" />
-					)}
 					<div
 						className={twMerge(
 							"flex flex-col items-center justify-center w-full h-full transition duration-500 ease-out",
 							loading && "animate-pulse blur-sm"
 						)}
 					>
-						<div className="overflow-hidden group relative h-fit w-fit rounded-xl shadow-lg shadow-secondary-700 transition-all duration-200 ease-out bg-secondary-500">
-							<div
-								className={twMerge(
-									"absolute h-10 bg-primary-600 transition-all duration-500 ease-out",
-									slide <= 1 ? "left-0 w-24" : "left-24 w-28"
-								)}
-							></div>
-							<button
-								className={twMerge(
-									"relative overflow-hidden h-10 w-24 transition-all duration-500 ease-out",
-									slide <= 1
-										? "font-semibold text-secondary-700"
-										: "text-secondary-100 before:ease before:absolute before:right-0 before:top-0 before:h-12 before:w-6 before:translate-x-12 before:rotate-6 before:bg-white before:opacity-10 before:duration-700 hover:before:-translate-x-40"
-								)}
-								disabled={slide <= 1 || !selectable}
-								onClick={() => setSlide(1)}
-							>
-								Login
-							</button>
-							<button
-								className={twMerge(
-									"relative overflow-hidden h-10 w-28 transition-all duration-500 ease-out",
-									slide > 1
-										? "font-semibold text-secondary-700"
-										: "text-secondary-100 before:ease before:absolute before:right-0 before:top-0 before:h-12 before:w-6 before:translate-x-12 before:rotate-6 before:bg-white before:opacity-10 before:duration-700 hover:before:-translate-x-40"
-								)}
-								disabled={slide > 1 || !selectable}
-								onClick={() => setSlide(2)}
-							>
-								Register
-							</button>
-						</div>
+						<LandingPageSelector
+							state={state}
+							setState={setState}
+							selectable={selectable}
+						/>
 						<Carousel
 							swipeable={false}
 							chevrons={false}
-							indicators={false}
 							slide={slide}
 							className="w-full h-full"
 						>
-							<TwoFactorAuth />
 							<Login />
-							<SignUp />
-							<CompleteInfo />
+							<Register />
+							{getCookieItem("2fa_access_token") &&
+								!getCookieItem("access_token") && <Tfa />}
+							{user && user.createdAt === user.updatedAt && <CompleteInfo />}
 						</Carousel>
 					</div>
 				</div>
-				<div className="flex flex-col items-center justify-center w-full h-fit">
+				<div className="flex flex-col items-center justify-between w-full h-fit">
 					<div className="flex w-full items-end gap-4 px-4 py-2 text-right">
 						<CountUp end={numUsers} duration={4} className="w-1/2">
 							{({ countUpRef }) => (
@@ -211,32 +200,30 @@ const LandingPage = () => {
 						future of technology.
 					</p>
 				</div>
-				<Contributor
-					name="Hicham Bel Houcin"
-					role="Full Stack Developer"
-					image="/img/hbel-hou.jpg"
-					linkedin="hicham-bel-houcin"
-					github="Hicham-BelHoucin"
-					instagram="hicham_belhoucin"
-				/>
-				<Contributor
-					name="Oussama Beaj"
-					role="Developer"
-					image="/img/obeaj.jpg"
-					linkedin="ousama-b-a8a84a247"
-					github="BEAJousama"
-					instagram="obeaj29"
-				/>
-				<Contributor
-					name="Soufiane El Marsi"
-					role="Developer"
-					image="/img/sel-mars.jpg"
-					linkedin="soufiane-el-marsi"
-					github="soofiane262"
-					instagram="soufiane.elmarsi"
-				/>
+				{Contributors.map((contributor, index) => (
+					<Contributor key={index} {...contributor} />
+				))}
 			</div>
-
+			<div className="flex items-center justify-center h-16">
+				<p className="text-gray-200 text-lg font-medium z-10">Crafted with</p>
+				<div className="-mx-12">
+					<LottiePlayer
+						autoplay
+						loop
+						src="/anim/heart.json"
+						style={{ width: "140px", height: "140px" }}
+					/>
+				</div>
+				<p className="text-gray-200 text-lg font-medium z-10">from</p>
+				<div className="px-2">
+					<LottiePlayer
+						autoplay
+						loop
+						src="/anim/moroccanFlag.json"
+						style={{ width: "24px", height: "24px" }}
+					/>
+				</div>
+			</div>
 		</div>
 	);
 };

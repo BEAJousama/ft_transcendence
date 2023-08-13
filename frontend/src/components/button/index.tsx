@@ -91,7 +91,8 @@ const Button = ({
 							"transition disabled:opacity-80 disabled:grayscale-[20%] disabled:cursor-not-allowed",
 							`flex items-center gap-4 rounded bg-green-500 px-4 py-2 font-bold text-white enabled:hover:bg-green-700`,
 							className,
-							disabled && "opacity-80 grayscale-[30%] cursor-not-allowed"
+							disabled && "opacity-80 grayscale-[30%] cursor-not-allowed",
+							array?.length === 1 && "justify-center"
 						)}
 						disabled={disabled}
 						onClick={onClick}
@@ -108,7 +109,8 @@ const Button = ({
 							"transition disabled:opacity-80 disabled:grayscale-[20%] disabled:cursor-not-allowed",
 							`flex items-center gap-4 rounded bg-red-500 px-4 py-2 font-bold text-white enabled:hover:bg-red-700`,
 							className,
-							disabled && "opacity-80 grayscale-[30%] cursor-not-allowed"
+							disabled && "opacity-80 grayscale-[30%] cursor-not-allowed",
+							array?.length === 1 && "justify-center"
 						)}
 						disabled={disabled}
 						onClick={onClick}
@@ -125,7 +127,8 @@ const Button = ({
 							"transition disabled:opacity-80 disabled:grayscale-[20%] disabled:cursor-not-allowed",
 							`flex items-center gap-4 rounded bg-yellow-500 px-4 py-2 font-bold text-white enabled:hover:bg-yellow-700`,
 							className,
-							disabled && "opacity-80 grayscale-[30%] cursor-not-allowed"
+							disabled && "opacity-80 grayscale-[30%] cursor-not-allowed",
+							array?.length === 1 && "justify-center"
 						)}
 						disabled={disabled}
 						onClick={onClick}

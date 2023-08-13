@@ -1,10 +1,10 @@
 "use client";
+import { useContext, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { AppContext } from "@/context/app.context";
 import axios from "axios";
-import { Button, Card, Input } from "..";
-import { useContext, useEffect, useRef, useState } from "react";
-import { AppContext } from "../../context/app.context";
-import { redirect, useRouter } from "next/navigation";
 import { toast } from "react-toastify";
+import { Button, Input } from "@/components";
 
 const TwoFactorAuth = () => {
 	const { fetchUser, setAuthenticated } = useContext(AppContext);
@@ -46,10 +46,7 @@ const TwoFactorAuth = () => {
 
 	return (
 		<div className="grid place-items-center justify-center w-full h-full">
-			<div
-				className="flex flex-col items-center justify-center w-full max-w-sm md:max-w-md lg:max-w-lg gap-4 px-16 py-12 text-white"
-			// onKeyDown={handleKeyPress}
-			>
+			<div className="flex flex-col items-center justify-center w-full max-w-sm md:max-w-md lg:max-w-lg gap-4 px-16 py-12 text-white">
 				<div className="flex flex-col items-center gap-2 text-center">
 					<h1 className="text-2xl">Two-Factor Authentication</h1>
 					<p className=" text-tertiary-200">
@@ -65,66 +62,19 @@ const TwoFactorAuth = () => {
 						setCode(pastedData);
 					}}
 				>
-					<Input
-						isError={error ? true : false}
-						className="text-center"
-						MaxLength={1}
-						inputRef={inputsRef[0]}
-						onChange={(e) => {
-							handleInputChange(0, e.target.value);
-						}}
-						value={code[0] || ""}
-					/>
-					<Input
-						isError={error ? true : false}
-						className="text-center"
-						MaxLength={1}
-						inputRef={inputsRef[1]}
-						onChange={(e) => {
-							handleInputChange(1, e.target.value);
-						}}
-						value={code[1] || ""}
-					/>
-					<Input
-						isError={error ? true : false}
-						className="text-center"
-						MaxLength={1}
-						inputRef={inputsRef[2]}
-						onChange={(e) => {
-							handleInputChange(2, e.target.value);
-						}}
-						value={code[2] || ""}
-					/>
-					<Input
-						isError={error ? true : false}
-						className="text-center"
-						MaxLength={1}
-						inputRef={inputsRef[3]}
-						onChange={(e) => {
-							handleInputChange(3, e.target.value);
-						}}
-						value={code[3] || ""}
-					/>
-					<Input
-						isError={error ? true : false}
-						className="text-center"
-						MaxLength={1}
-						inputRef={inputsRef[4]}
-						onChange={(e) => {
-							handleInputChange(4, e.target.value);
-						}}
-						value={code[4] || ""}
-					/>
-					<Input
-						isError={error ? true : false}
-						className="text-center"
-						MaxLength={1}
-						inputRef={inputsRef[5]}
-						onChange={(e) => {
-							handleInputChange(5, e.target.value);
-						}}
-						value={code[5] || ""}
-					/>
+					{[...Array(6)].map((_, i) => (
+						<Input
+							key={i}
+							isError={error ? true : false}
+							className="text-center"
+							MaxLength={1}
+							inputRef={inputsRef[i]}
+							onChange={(e) => {
+								handleInputChange(i, e.target.value);
+							}}
+							value={code[i] || ""}
+						/>
+					))}
 				</div>
 				<Button
 					className="w-full justify-center"
@@ -148,7 +98,6 @@ const TwoFactorAuth = () => {
 				>
 					Authenticate
 				</Button>
-
 				<Button
 					variant="text"
 					className="w-full justify-center"
