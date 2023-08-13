@@ -96,7 +96,6 @@ model User {
   achievements          Achievement[]   @relation("AchievementPlayers")
   memberInChannels      ChannelMember[] @relation("memberInChannels1")
   sentMessages          Message[]       @relation("send")
-  pineedMessages        Message[]       @relation("pinner")
   sentRequests          Friend[]        @relation("SentRequest")
   receivedRequests      Friend[]        @relation("ReceivedRequest")
   gamesWon              Game[]          @relation("winner")
@@ -176,7 +175,7 @@ model Channel {
   createAt           DateTime        @default(now())
   updatedAt          DateTime        @updatedAt
   messages           Message[]       @relation("receive")
-  lastestMessageDate DateTime?       @default(now())
+  lastMessage        String?         @default("") 
   newMessagesCount   Int?            @default(0)
 }
 
@@ -214,9 +213,6 @@ model Message {
   receiverId Int
   sender     User     @relation("send", fields: [senderId], references: [id])
   senderId   Int
-  pinned     Boolean? @default(false)
-  pinner     User?    @relation("pinner", fields: [pinnerId], references: [id])
-  pinnerId   Int?
   date       DateTime @default(now())
 }
 

@@ -264,7 +264,7 @@ export default function GameCards() {
 	const { socket } = useContext(GameContext);
 	const { user } = useContext(AppContext);
 	return (
-		<Carousel className="w-full" indicators={false} chevrons={true}>
+		<Carousel className="w-full" chevrons={true}>
 			<CreateGameCard
 				invite
 				title="Invite Your Friends to Play"
@@ -296,7 +296,7 @@ export default function GameCards() {
 			<CreateGameCard
 				title="Train Against Ai"
 				content="Play Now"
-				onCancel={() => {}}
+				onCancel={() => { }}
 				onClick={() => {
 					socket?.emit("play-with-ai", {
 						userId: user?.id,

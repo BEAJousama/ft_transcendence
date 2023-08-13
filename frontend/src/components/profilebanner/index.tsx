@@ -69,11 +69,12 @@ const ProfileBanner = ({
   const [showMenu, setShowMenu] = useState(false);
   const ref = useRef(null);
   const { socket } = useContext(ChatContext);
+  const { socket: gamesocket } = useContext(GameContext);
   // const navigate = useNavigate();
   const [muteModal, setmuteModal] = useState(false);
   const [duration, setDuration] = useState<number>(0);
   const [unit, setUnit] = useState("s");
-
+  const router = useRouter();
 
   const setAsAdmin = () => {
     socket?.emit("set_admin", { userId, channelId });
@@ -181,6 +182,13 @@ const ProfileBanner = ({
                 <RightClickMenu className="w-full !bg-secondary-400 max-h-50">
                   <RightClickMenuItem
                     onClick={() => {
+                      gamesocket?.emit("invite-friend", {
+                        inviterId: user,
+                        invitedFriendId: userId,
+                        gameMode: "Classic Mode",
+                        powerUps: "Classic",
+                      });
+                      router.push("/pong")
                     }}
                   >
                     <BsPersonAdd />
@@ -188,7 +196,7 @@ const ProfileBanner = ({
                   </RightClickMenuItem>
                   <RightClickMenuItem
                     onClick={() => {
-                      // navigate(`/profile/${userId}`);
+                      router.push(`/profile/${userId}`);
                       setShowMenu(false);
                     }}
                   >
@@ -281,15 +289,16 @@ const ProfileBanner = ({
         muteModal &&
         (
           <Modal
-            className="z-10 bg-secondary-800 
-          border-none flex flex-col items-center justify-start shadow-lg shadow-secondary-500 gap-4 text-white min-w-[90%]
-          lg:min-w-[40%] xl:min-w-[800px] animate-jump-in animate-ease-out animate-duration-400"
+            className="z-10 bg-secondary-800 w-full 
+                        border-none flex flex-col items-center justify-start shadow-lg shadow-secondary-500 gap-4 text-white min-w-[90%]
+                        lg:min-w-[40%] xl:min-w-[800px] animate-jump-in animate-ease-out animate-duration-400"
           >
             <div className="grid grid-rows w-full">
               <div className="grid grid-cols-10 justify-center items-center m-5">
                 <div className="col-span-8 gap-4 mr-3">
                   <Input
-                    type="text"
+                    htmlType="number"
+                    pattern="[0-9]*"
                     placeholder="mute duration"
                     value={duration.toString()}
                     onChange={(e) => {
@@ -336,7 +345,7 @@ const ProfileBanner = ({
                   Cancel
                 </Button>
                 <Button
-                  className="bg-primary !font-medium mr-1 basis-4/12 "
+                  className="bg-primary-500 !font-medium mr-1 basis-4/12 "
                   onClick={() => {
                     muteUser();
                     setmuteModal(false);
@@ -349,7 +358,6 @@ const ProfileBanner = ({
           </Modal>
         )
       }
-
     </div>
   );
 };

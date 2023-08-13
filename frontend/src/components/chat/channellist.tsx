@@ -1,7 +1,7 @@
 
 "use client";
 
-import React from "react";
+import React, { use } from "react";
 import { useContext, useEffect, useState } from "react";
 
 import Channel from "./channel";
@@ -13,7 +13,6 @@ import Button from "../button";
 import { AppContext } from "../../context/app.context";
 import axios from "axios";
 import { toast } from "react-toastify";
-import throttle from "lodash/throttle";
 import { twMerge } from "tailwind-merge";
 
 import { ListFilter, MessageSquarePlus } from "lucide-react";
@@ -21,11 +20,11 @@ import { ListFilter, MessageSquarePlus } from "lucide-react";
 interface ChannelListProps {
   className?: string;
   setShowModal: React.Dispatch<React.SetStateAction<boolean>>;
-  setCurrentChannel: any;
+  setCurrentChannel: React.Dispatch<React.SetStateAction<Ichannel | undefined>>;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  setMessages: any;
-  inputRef?: any;
-  checkBlock: any;
+  setMessages: React.Dispatch<React.SetStateAction<Imessage[]>>;
+  inputRef?: React.RefObject<HTMLInputElement>;
+  checkBlock: (id: number) => boolean;
 }
 
 
@@ -45,11 +44,15 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
   const iRef = React.useRef<HTMLInputElement>(null);
 
   const loadMessages = async (channelId: number | undefined) => {
+    if (!user)
+      return;
     const messages = fetcher(`api/messages/${channelId}/${user?.id}`)
     return messages;
   }
 
-  const onClick = throttle(async (channel: Ichannel): Promise<void | undefined> => {
+  const onClick = async (channel: Ichannel): Promise<void | undefined> => {
+    if (!user || !channel)
+      return;
     socket?.emit('reset_mssg_count', { channelId: channel.id });
     const [member, messages] = await Promise.all([
       fetcher(`api/channels/member/${user?.id}/${channel.id}`),
@@ -74,10 +77,19 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
       inputRef?.current?.focus();
     }
     //eslint-disable-next-line
-  }, 1000);
+  }
+
+  function debounce(callback: any, delay: number) {
+    let timeoutId: any;
+    return function () {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(callback, delay);
+    }
+  }
+
+  // const onClick = (channel: Ichannel) => debounce(handleClick(channel), 100);
 
   const accessChannel = async () => {
-    const accesstoken = window.localStorage.getItem("access_token");
     const res = await axios.post(`${process.env.NEXT_PUBLIC_BACK_END_URL}api/channels/checkpass`,
       { password, channelId: tempChannel?.id },
       { withCredentials: true });
@@ -95,29 +107,24 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
   }
 
   useEffect(() => {
+    if (!user)
+      return;
     fetcher(`api/channels/${user?.id}`)
-      .then((channels) => {
+      .then((channels: Ichannel[]) => {
         channels.forEach((channel: Ichannel) => {
           if (channel.type === "CONVERSATION") {
             channel.name = channel.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.username;
             channel.avatar = channel.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.avatar;
           }
         });
-        channels.sort((a: Ichannel, b: Ichannel) => {
-          if (a.updatedAt < b.updatedAt) return 1;
-          else return -1;
-        });
         setChannels(channels);
       });
 
     fetcher(`api/channels/archived/${user?.id}`)
       .then((channels) => {
-        channels.sort((a: Ichannel, b: Ichannel) => {
-          if (a.updatedAt < b.updatedAt) return 1;
-          else return -1;
-        });
         setArchiveChannels(channels);
       });
+    //eslint-disable-next-line
   }, [socket, user?.id]);
 
   useEffect(() => {
@@ -127,7 +134,7 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
       getArchiveChannels();
     }
     socket?.on('channel_leave', () => {
-      setCurrentChannel();
+      setCurrentChannel({} as Ichannel);
       inputRef?.current?.blur();
       setOpen(false);
     });
@@ -141,14 +148,11 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
     });
 
     socket?.on('channel_delete', () => {
-      setCurrentChannel();
+      setCurrentChannel({} as Ichannel);
       inputRef?.current?.blur();
       setOpen(false);
     });
 
-    socket?.on('block-user', () => {
-
-    });
     return () => {
       socket?.off('channel_leave');
       socket?.off('channel_delete');
@@ -171,11 +175,6 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
       }
     }
     );
-    channels.sort((a: Ichannel, b: Ichannel) => {
-      if (a.updatedAt < b.updatedAt) return 1;
-      else return -1;
-    }
-    );
     setChannels(channels);
   }
 
@@ -189,10 +188,6 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
           channel.avatar = channel.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.avatar;
         }
       });
-      channels?.sort((a: Ichannel, b: Ichannel) => {
-        if (a.updatedAt < b.updatedAt) return 1;
-        else return -1;
-      });
       setChannels(channels);
     });
   }
@@ -200,10 +195,6 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
   const getArchiveChannels = async () => {
     socket?.on('getArchiveChannels', (channels: Ichannel[]) => {
       if (!channels) return;
-      channels?.sort((a: Ichannel, b: Ichannel) => {
-        if (a.updatedAt < b.updatedAt) return 1;
-        else return -1;
-      });
       setArchiveChannels(channels);
     });
   }
@@ -214,13 +205,11 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
       setCurrentChannel(channel);
       setSelectedChannel(channel);
       inputRef?.current?.focus();
-
     });
     socket?.on('dm_create', (channel: Ichannel) => {
       setCurrentChannel(channel);
       setSelectedChannel(channel);
       inputRef?.current?.focus();
-
     });
   }
 
@@ -316,12 +305,12 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
                     unread={channel.unreadFor?.map((user: any) => user.id).includes(user?.id)}
                     avatar={channel.type !== "CONVERSATION" ? channel.avatar :
                       channel.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.avatar}
-                    description={(channel.messages && !(channel.bannedUsers?.map((user: any) => user.id).includes(user?.id)) && !(channel.kickedUsers?.map((user: any) => user.id).includes(user?.id))) ? channel.messages[channel.messages.length - 1]?.content : ""}
+                    description={(channel.messages && !(channel.bannedUsers?.map((user: any) => user.id).includes(user?.id)) && !(channel.kickedUsers?.map((user: any) => user.id).includes(user?.id))) ? channel.messages[0]?.content : ""}
                     updatedAt={
                       channel.messages &&
                         !channel.bannedUsers?.map((user: any) => user.id).includes(user?.id) &&
                         !channel.kickedUsers?.map((user: any) => user.id).includes(user?.id)
-                        ? channel.messages[channel.messages.length - 1]?.date || channel.updatedAt || ""
+                        ? channel.messages[0]?.date || channel.updatedAt || ""
                         : channel.createAt || ""
                     }
                     newMessages={channel.channelMembers?.filter((member: IchannelMember) => member.userId === user?.id)[0].newMessagesCount}
@@ -350,12 +339,12 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
                       avatar={channel.type !== "CONVERSATION" ? channel.avatar :
                         channel.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.avatar
                       }
-                      description={(channel.messages && !(channel.bannedUsers?.map((user: any) => user.id).includes(user?.id)) && !(channel.kickedUsers?.map((user: any) => user.id).includes(user?.id))) ? channel.messages[channel.messages.length - 1]?.content : ""}
+                      description={(channel.messages && !(channel.bannedUsers?.map((user: any) => user.id).includes(user?.id)) && !(channel.kickedUsers?.map((user: any) => user.id).includes(user?.id))) ? channel.messages[0]?.content : ""}
                       updatedAt={
                         channel.messages &&
                           !channel.bannedUsers?.map((user: any) => user.id).includes(user?.id) &&
                           !channel.kickedUsers?.map((user: any) => user.id).includes(user?.id)
-                          ? channel.messages[channel.messages.length - 1]?.date || channel.updatedAt || ""
+                          ? channel.messages[0]?.date || channel.updatedAt || ""
                           : channel.createAt || ""
                       }
                       newMessages={channel.channelMembers?.filter((member: IchannelMember) => member.userId === user?.id)[0].newMessagesCount}
@@ -384,12 +373,12 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
                     avatar={channel.type !== "CONVERSATION" ? channel.avatar :
                       channel.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.avatar
                     }
-                    description={(channel.messages && !(channel.bannedUsers?.map((user: any) => user.id).includes(user?.id)) && !(channel.kickedUsers?.map((user: any) => user.id).includes(user?.id))) ? channel.messages[channel.messages.length - 1]?.content : ""}
+                    description={(channel.messages && !(channel.bannedUsers?.map((user: any) => user.id).includes(user?.id)) && !(channel.kickedUsers?.map((user: any) => user.id).includes(user?.id))) ? channel.messages[0]?.content : ""}
                     updatedAt={
                       channel.messages &&
                         !channel.bannedUsers?.map((user: any) => user.id).includes(user?.id) &&
                         !channel.kickedUsers?.map((user: any) => user.id).includes(user?.id)
-                        ? channel.messages[channel.messages.length - 1]?.date || channel.updatedAt || ""
+                        ? channel.messages[0]?.date || channel.updatedAt || ""
                         : channel.createAt || ""
                     }
                     newMessages={channel.channelMembers?.filter((member: IchannelMember) => member.userId === user?.id)[0].newMessagesCount}
@@ -415,12 +404,12 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
                       avatar={channel.type !== "CONVERSATION" ? channel.avatar :
                         channel.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.avatar
                       }
-                      description={(channel.messages && !(channel.bannedUsers?.map((user: any) => user.id).includes(user?.id)) && !(channel.kickedUsers?.map((user: any) => user.id).includes(user?.id))) ? channel.messages[channel.messages.length - 1]?.content : ""}
+                      description={(channel.messages && !(channel.bannedUsers?.map((user: any) => user.id).includes(user?.id)) && !(channel.kickedUsers?.map((user: any) => user.id).includes(user?.id))) ? channel.messages[0]?.content : ""}
                       updatedAt={
                         channel.messages &&
                           !channel.bannedUsers?.map((user: any) => user.id).includes(user?.id) &&
                           !channel.kickedUsers?.map((user: any) => user.id).includes(user?.id)
-                          ? channel.messages[channel.messages.length - 1]?.date || channel.updatedAt || ""
+                          ? channel.messages[0]?.date || channel.updatedAt || ""
                           : channel.createAt || ""
                       }
                       newMessages={channel.channelMembers?.filter((member: IchannelMember) => member.userId === user?.id)[0].newMessagesCount}
@@ -440,11 +429,11 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
             className="z-10 bg-secondary-800 
                       border-none flex flex-col items-center justify-center shadow-lg shadow-secondary-500 gap-4 text-white min-w-[90%]
                       lg:min-w-[40%] xl:min-w-[800px] animate-jump-in animate-ease-out animate-duration-400">
-            <span className="text-md">This channel requires an access password ! </span>
+            <span className="text-md md:text-lg font-semibold pb-4">This channel requires an access password ! </span>
             <div className="flex flex-col justify-center items-center w-full">
               <Input
                 label="Password"
-                className="h-[40px] w-[80%] rounded-md border-2 border-primary-500 text-white text-xs bg-transparent md:mr-2 self-center"
+                className="w-full rounded-md border-2 border-primary-500 text-white text-xs bg-transparent md:mr-2"
                 htmlType="password"
                 placeholder="*****************"
                 value={password}
@@ -461,9 +450,9 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
                   }
                 }
               />
-              <div className="flex flex-row">
+              <div className="flex flex-row pt-4">
                 <Button
-                  className="h-8 w-auto md:w-20 !bg-inherit text-white text-xs rounded-full mt-2 mr-2"
+                  className="h-10 w-20 md:w-30 !bg-inherit text-white text-xs rounded-full mt-2 mr-2"
                   onClick={() => {
                     setModal(false);
                     iRef?.current?.blur();
@@ -472,7 +461,7 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
                   <span className="text-xs">Cancel</span>
                 </Button>
                 <Button
-                  className="h-8 w-auto md:w-20 bg-primary-500 text-white text-xs rounded-full mt-2"
+                  className="h-10 w-20 md:w-30 bg-primary-500 text-white text-xs rounded-full mt-2"
                   onClick={async () => {
                     await accessChannel()
                     setModal(false);

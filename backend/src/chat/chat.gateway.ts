@@ -15,12 +15,11 @@ import { ChatService } from './services/chat/chat.service';
 import { DmService } from './services/dm/dm.service';
 import { ChannelService } from './services/channel/channel.service';
 import { MessageService } from './services/message/message.service';
-import { ChannelDto, DmDto, MessageDto } from './dto';
+import { ChannelDto, DmDto, MessageDto, mDto } from './dto';
 import { ChannelType, MemberStatus, Visiblity } from '@prisma/client';
 import { UsersService } from 'src/users/users.service';
 import { ArrayMultimap } from '@teppeis/multimaps';
 import * as EVENT from './utils/';
-import { randomInt } from 'crypto';
 import NotificationService from 'src/notification/notification.service';
 import { CommunDto } from './dto/member.dto';
 
@@ -40,17 +39,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {}
 
   /* -------------------------------------- Handle Server Connection -------------------------------------*/
-
   async handleConnection(@ConnectedSocket() client: Socket) {
     try {
-      // console.log(client.handshake.auth.token);
       await this.verifyClient(client);
-      // console.log('verified');
       this.connectedClient.put(client.data.sub, client);
       await this.joinChannels(client);
       await this.sendChannelsToClient(client);
-      // await this.sendChannelsToChannelMembers(client.data.sub); // send all channels to all channel members
-      // console.log('connected');
       if (client.data.sub)
         await this.userService.updateStatus('ONLINE', client.data.sub);
     } catch (error) {
@@ -63,9 +57,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   async handleDisconnect(client: Socket) {
-    if (client.data.sub) {
+    this.connectedClient.deleteEntry(client.data.sub, client);
+    if (this.getConnectedUsers(client.data.sub).length === 0) {
       await this.userService.updateStatus('OFFLINE', client.data.sub);
-      this.connectedClient.delete(client.data.sub);
     }
   }
 
@@ -77,24 +71,25 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   /* -------------------------------------- WEBSOCKET EVENTS HANDLERS -------------------------------------*/
 
   @SubscribeMessage(EVENT.MESSAGE)
-  async sendMessage(client: Socket, payload: any) {
+  async sendMessage(client: Socket, payload: MessageDto) {
     try {
-      const dto: MessageDto = {
-        senderId: payload.senderId,
-        receiverId: payload.receiverId,
-        content: payload.content,
-      };
-      const message = await this.messageService.makeMessage(dto);
+      if (payload.content.length > 1024)
+        throw new WsException({
+          error: EVENT.ERROR,
+          message: 'Message content is too long',
+        });
+
+      const message = await this.messageService.makeMessage(payload);
       if (!message) {
         throw new WsException({
           error: EVENT.ERROR,
           message: 'Cannot send message',
         });
       }
-      await this.sendChannelsToChannelMembers(dto.receiverId);
+      await this.sendChannelsToChannelMembers(payload.receiverId);
       await this.sendMessageToChannelMembers(
-        dto.senderId,
-        dto.receiverId,
+        payload.senderId,
+        payload.receiverId,
         message,
       );
     } catch (error) {
@@ -105,7 +100,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage(EVENT.DM_CREATE)
   async createDm(client: Socket, payload: DmDto) {
     try {
-      //create a dm send channels to user
       const dm = await this.dmService.makeDm(payload);
       if (!dm) {
         throw new WsException({
@@ -120,8 +114,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       if (!sockets || sockets.length === 0) return;
       sockets.forEach((s) => {
         s.join(dm.id.toString());
-        this.server.to(s.id).emit(EVENT.DM_CREATE, channelTosend);
       });
+      client.emit(EVENT.DM_CREATE, channelTosend);
     } catch (err) {
       throw new WsException({
         error: EVENT.ERROR,
@@ -257,7 +251,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         parseInt(payload.channelId),
       );
       await this.sendChannelsToChannelMembers(parseInt(payload.channelId));
-      // await this.updateCurrentChannel(parseInt(payload.channelId), client);
     } catch (err) {
       throw new WsException({
         error: EVENT.ERROR,
@@ -290,8 +283,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const sockets = this.getConnectedUsers(client.data.sub);
       sockets.forEach((s) => {
         s.join(channel.id.toString());
-        this.server.to(s.id).emit(EVENT.CHANNEL_CREATE, channelTosend);
       });
+      client.emit(EVENT.CHANNEL_CREATE, channelTosend);
       await this.sendChannelsToChannelMembers(channel.id);
       await this.sendMessagesToMembers(channel.id);
     } catch (error) {
@@ -305,7 +298,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage(EVENT.CHANNEL_UPDATE)
   async updateChannel(client: Socket, payload: ChannelDto) {
-    // this.validatePayload(payload);
     try {
       const channel = await this.channelService.updateChannel(
         client.data.sub,
@@ -508,7 +500,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       );
 
       const data = {
-        id: randomInt(1, 9999999),
+        id: 1,
         title: blocker.username,
         content:
           blocker.username +
@@ -543,8 +535,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       for (const socket of sockets2) {
         this.server.to(socket.id).emit(EVENT.BLOCK_USER);
       }
-      // await this.sendChannels(parseInt(payload.blockedId));
-      // await this.sendChannels(parseInt(payload.blockerId));
     } catch (err) {
       throw new WsException({
         error: EVENT.BLOCK_USER,
@@ -1009,7 +999,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage(EVENT.MESSAGE_DELETE)
-  async deleteMessage(client: Socket, payload: any) {
+  async deleteMessage(client: Socket, payload: mDto) {
     try {
       await this.messageService.deleteMessage(
         parseInt(client.data.sub),
@@ -1026,7 +1016,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage(EVENT.MARK_UNREAD)
-  async markUnread(client: Socket, payload: any) {
+  async markUnread(client: Socket, payload: mDto) {
     try {
       await this.channelService.markUnread(
         parseInt(client.data.sub),
@@ -1180,10 +1170,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     await this.channelService.getChannelById(channelId);
     let sockets;
     members.forEach(async (member) => {
-      const messages = await this.messageService.getMessagesByChannelId(
-        channelId,
-        member.userId,
-      );
+      // const messages = await this.messageService.getMessagesByChannelId(
+      //   channelId,
+      //   member.userId,
+      // );
       if (
         member.status === MemberStatus.BANNED ||
         member.status === MemberStatus.LEFT ||
@@ -1205,7 +1195,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         //   url: '/chat',
         // };
         // if (!channel.mutedFor.map((u) => u.id).includes(member.userId))
-        this.server.to(socket.id).emit(EVENT.GET_CH_MSSGS, messages);
+        // this.server.to(socket.id).emit(EVENT.GET_CH_MSSGS, messages);
       });
     });
   }
@@ -1246,7 +1236,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         if (await this.chatService.isBlocked(userId, user2Id)) return;
         const user2 = await this.userService.findUserById(user2Id);
         data = {
-          id: randomInt(1, 9999999),
+          id: 1,
           title: channel.name,
           content: user.username + event + user2?.username,
           createdAt: new Date(),
@@ -1258,7 +1248,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         };
       } else {
         data = {
-          id: randomInt(1, 9999999),
+          id: 1,
           title: channel.name,
           content: user.username + event,
           createdAt: new Date(),
@@ -1273,7 +1263,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         .filter(
           (member) =>
             member.status !== MemberStatus.BANNED &&
-            member.status !== MemberStatus.LEFT,
+            member.status !== MemberStatus.LEFT &&
+            member.userId !== userId,
         )
         .forEach(async (member) => {
           if (
@@ -1309,7 +1300,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (channel.mutedFor.map((u) => u.id).includes(user2Id)) return;
     if (await this.chatService.isBlocked(userId, user2Id)) return;
     const data = {
-      id: randomInt(1, 9999999),
+      id: 1,
       title: channel.name,
       content: user.username + event,
       createdAt: new Date(),
@@ -1319,18 +1310,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       receiver: userId,
       url: '/chat',
     };
-    this.notificationService.sendNotification(
-      userId,
-      user2Id,
-      data.title,
-      data.content,
-      user2Id,
-      data.url,
-    );
-    // const sockets: Socket[] = this.getConnectedUsers(user2Id);
-    // for (const socket of sockets) {
-    //   this.server.to(socket.id).emit(EVENT.NOTIFICATION, data);
-    // }
+    const sockets: Socket[] = this.getConnectedUsers(user2Id);
+    for (const socket of sockets) {
+      this.server.to(socket.id).emit(EVENT.NOTIFICATION, data);
+    }
   }
 
   private async sendMessagesToMembers(channelId: number) {

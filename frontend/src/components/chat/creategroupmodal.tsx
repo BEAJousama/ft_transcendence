@@ -53,6 +53,7 @@ const CreateGroupModal = ({
   }
 
   const handleCreateDm = (id: number) => {
+    if (!user?.id || !id) return;
     socket?.emit("dm_create", { senderId: user?.id, receiverId: id });
     setShowModal(false);
   }
@@ -63,7 +64,7 @@ const CreateGroupModal = ({
       <Modal
         className="z-10 bg-secondary-800 
         border-none flex flex-col items-center justify-start shadow-lg shadow-secondary-500 gap-4 text-white min-w-[90%]
-        lg:min-w-[40%] xl:min-w-[800px] animate-jump-in animate-ease-out animate-duration-400"
+        lg:min-w-[40%] xl:min-w-[800px] animate-jump-in animate-ease-out animate-duration-400 max-h-screen overflow-y-scroll"
         setShowModal={setShowModal!}
       >
         <div className="flex items-center justify-between w-full">
@@ -198,15 +199,16 @@ const CreateGroupModal = ({
         )}
         {
           show && (
-            <div className="w-full h[100px] flex items-center justify-center flex-col align-middle gap-2 pt-2 overflow-y-scroll scrollbar-hide">
-              <span className="w-full mb-2 text-sm font-medium text-gray-900 dark:text-white">Select users: </span>
-              {
-                users?.length ?
-                  (users?.filter((u: any) => {
+            <div className="w-full flex items-center justify-center flex-col align-middle gap-2 pt-2">
+              <span className="w-full mb-2 text-sm font-bold text-white">Select Members: </span>
+              {users?.length ? (
+                users
+                  ?.filter((u: any) => {
                     return u.id !== user?.id && !checkBlock(u.id);
-                  }).map((u: any) => {
+                  })
+                  .map((u: any) => {
                     return (
-                      <div key={u.id} className="flex flex-row items-center max-h-[350px] h-full justify-between w-full">
+                      <div key={u.id} className="flex flex-row items-center justify-between w-full">
                         <ProfileBanner
                           key={u.id}
                           avatar={u.avatar}
@@ -218,29 +220,29 @@ const CreateGroupModal = ({
                             id="purple-checkbox"
                             type="checkbox"
                             className="w-4 h-4 bg-tertiary-600 focus:border-primary-500 rounded focus:ring-primary-500 focus:text-tertiary-700"
-                            onClick={() => {
-                            }}
+                            onClick={() => { }}
                             onChange={() => {
-                              !selectedUsers.includes(u.id) ?
-                                setSelectedUsers([...selectedUsers, u.id]) :
-                                setSelectedUsers(selectedUsers?.filter((id) => id !== u.id));
+                              !selectedUsers.includes(u.id)
+                                ? setSelectedUsers([...selectedUsers, u.id])
+                                : setSelectedUsers(selectedUsers?.filter((id) => id !== u.id));
                             }}
                           />
                         </div>
                       </div>
                     );
-                  })) : (
-                    <div className="flex flex-col items-center justify-center w-full">
-                      <p className="text-gray-500 text-lg">No users found</p>
-                    </div>
-                  )}
+                  })
+              ) : (
+                <div className="flex flex-col items-center justify-center w-full">
+                  <p className="text-gray-500 text-lg">No users found</p>
+                </div>
+              )}
             </div>
           )}
 
         {
           showDm && (
 
-            <div className="w-full h[100px] flex items-center justify-center flex-col align-middle gap-2 pt-2 overflow-y-scroll scrollbar-hide">
+            <div className="w-full flex items-center justify-center flex-col align-middle gap-2 pt-2">
               {users?.length ? (
                 users?.filter((u: any) => {
                   return u.id !== user?.id && !checkBlock(u.id);

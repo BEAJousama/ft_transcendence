@@ -83,7 +83,6 @@ export class MessageService {
                     id: member.userId,
                   },
                 },
-                lastestMessageDate: message.date,
                 updatedAt: message.date,
               },
             });
@@ -231,6 +230,9 @@ export class MessageService {
         filteredMessages.push(message);
       }
     }
+    filteredMessages.sort((a, b) => {
+      return a.date.getTime() - b.date.getTime();
+    });
     return filteredMessages;
   }
 }

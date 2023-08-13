@@ -14,7 +14,21 @@ export class DmService {
   async makeDm(data: DmDto): Promise<Channel | null> {
     try {
       let dm = await this.getDmByUserIds(data.senderId, data.receiverId);
-      if (dm) return dm;
+      if (dm) {
+        await this.prisma.channel.update({
+          where: {
+            id: dm.id,
+          },
+          data: {
+            deletedFor: {
+              disconnect: {
+                id: data.senderId,
+              },
+            },
+          },
+        });
+        return dm;
+      }
       if (await this.chatService.isBlocked(data.senderId, data.receiverId))
         throw new NotFoundException('Cannot send message to this user !');
       dm = await this.prisma.channel.create({

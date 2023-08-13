@@ -47,7 +47,6 @@ export class ChannelService {
           type: true,
           avatar: true,
           userId: true,
-          lastestMessageDate: true,
           visiblity: true,
           createAt: true,
           updatedAt: true,
@@ -86,6 +85,10 @@ export class ChannelService {
                 },
               },
             },
+            orderBy: {
+              date: 'desc',
+            },
+            take: 1,
           },
           isacessPassword: true,
         },
@@ -100,7 +103,10 @@ export class ChannelService {
           channels.splice(channels.indexOf(channel), 1);
         }
       });
-
+      // sort channels by updatedAt
+      channels.sort((a, b) => {
+        return b.updatedAt.getTime() - a.updatedAt.getTime();
+      });
       return channels;
     } catch (error) {
       throw new Error(error.message);
@@ -127,7 +133,6 @@ export class ChannelService {
           type: true,
           avatar: true,
           userId: true,
-          lastestMessageDate: true,
           visiblity: true,
           createAt: true,
           updatedAt: true,
@@ -188,7 +193,6 @@ export class ChannelService {
           type: true,
           avatar: true,
           userId: true,
-          lastestMessageDate: true,
           visiblity: true,
           createAt: true,
           updatedAt: true,
@@ -224,6 +228,10 @@ export class ChannelService {
           isacessPassword: true,
         },
       });
+      // sort channels by updatedAt
+      channels.sort((a, b) => {
+        return b.updatedAt.getTime() - a.updatedAt.getTime();
+      });
       return channels;
     } catch (error) {
       throw new Error(error.message);
@@ -252,7 +260,6 @@ export class ChannelService {
         type: true,
         avatar: true,
         userId: true,
-        lastestMessageDate: true,
         visiblity: true,
         createAt: true,
         updatedAt: true,
