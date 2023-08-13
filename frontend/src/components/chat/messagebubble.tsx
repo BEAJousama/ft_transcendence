@@ -440,16 +440,6 @@ const MessageBubble: React.FC<ChannelProps> = ({ className, setOpen, setCurrentC
           <BsSendFill />
         </Button>
       </div>
-      {showPicker && (
-        <div ref={ref} className="h-50 absolute bottom-14 w-1">
-          <Picker
-            data={data}
-            onEmojiSelect={(e: any) => {
-              handleEmojiSelect(e.native);
-            }}
-          />
-        </div>
-      )}
       {
         Setowner && (
           <Modal

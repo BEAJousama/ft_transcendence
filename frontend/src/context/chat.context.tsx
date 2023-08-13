@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import io, { Socket } from "socket.io-client";
-import { AppContext, fetcher } from "./app.context";
+import { AppContext, fetcher, getCookieItem } from "./app.context";
 import { toast } from "react-toastify";
 import { Toast } from "../components";
 
@@ -73,20 +73,6 @@ export default function ChatProvider({
 }) {
     const [socket, setSocket] = useState<Socket | null>(null);
     const { user } = useContext(AppContext);
-
-    const getCookieItem = (key: string): string | undefined => {
-        const cookieString = document.cookie;
-        const cookiesArray = cookieString.split("; ");
-
-        for (const cookie of cookiesArray) {
-            const [cookieKey, cookieValue] = cookie.split("=");
-            if (cookieKey === key) {
-                return decodeURIComponent(cookieValue);
-            }
-        }
-
-        return undefined;
-    };
 
     useEffect(() => {
         const token = getCookieItem("access_token");
