@@ -68,7 +68,7 @@ const Login = () => {
 		},
 		validateOnBlur: true,
 		validateOnChange: true,
-		onSubmit: async (values) => {},
+		onSubmit: async (values) => { },
 	});
 
 	const handleLogin = async () => {
@@ -156,28 +156,28 @@ const Login = () => {
 					<hr className="w-[70%] border-gray-400" />
 				</div>
 				<div className="flex w-full justify-center gap-4 md:flex-col">
-					{/* <Link href={`${process.env.NEXT_PUBLIC_BACK_END_URL}api/auth/42/callback`}> */}
-					<Button
-						onClick={connectClick}
-						type="secondary"
-						disabled={loading}
-						className="h-14 w-14 justify-center rounded-xl md:h-auto md:w-full text-sm backdrop-blur-sm"
-					>
-						<Image src="/img/42Logo-light.svg" alt="logo" width={30} height={30} />
-						<p className="hidden md:block">Continue with Intra</p>
-					</Button>
-					{/* </Link> */}
-					{/* <Link href={`${process.env.NEXT_PUBLIC_BACK_END_URL}api/auth/google/login`}> */}
-					<Button
-						onClick={connectClick}
-						type="secondary"
-						disabled={loading}
-						className="h-14 w-14 justify-center rounded-xl md:h-auto md:w-full text-sm backdrop-blur-sm"
-					>
-						<Image src="/img/google.svg" alt="logo" width={30} height={30} />
-						<p className="hidden md:block">Continue with Google</p>
-					</Button>
-					{/* </Link> */}
+					<Link href={`${process.env.NEXT_PUBLIC_BACK_END_URL}api/auth/42/callback`}>
+						<Button
+							// onClick={connectClick}
+							type="secondary"
+							disabled={loading}
+							className="h-14 w-14 justify-center rounded-xl md:h-auto md:w-full text-sm backdrop-blur-sm"
+						>
+							<Image src="/img/42Logo-light.svg" alt="logo" width={30} height={30} />
+							<p className="hidden md:block">Continue with Intra</p>
+						</Button>
+					</Link>
+					<Link href={`${process.env.NEXT_PUBLIC_BACK_END_URL}api/auth/google/login`}>
+						<Button
+							// onClick={connectClick}
+							type="secondary"
+							disabled={loading}
+							className="h-14 w-14 justify-center rounded-xl md:h-auto md:w-full text-sm backdrop-blur-sm"
+						>
+							<Image src="/img/google.svg" alt="logo" width={30} height={30} />
+							<p className="hidden md:block">Continue with Google</p>
+						</Button>
+					</Link>
 				</div>
 			</div>
 		</div>
