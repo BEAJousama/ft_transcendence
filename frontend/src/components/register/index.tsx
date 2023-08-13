@@ -1,60 +1,15 @@
 "use client";
 
-import { Card, Button, Input, Spinner } from "../../components";
 import { useContext, useState, KeyboardEvent, useEffect } from "react";
-import { AppContext } from "../../context/app.context";
+import dynamic from "next/dynamic";
+import { Button, Input } from "@/components";
+import { AppContext } from "@/context/app.context";
 import axios from "axios";
 import { useRouter } from "next/navigation";
-import { z } from "zod";
 import { useFormik } from "formik";
-import { toFormikValidationSchema } from "zod-formik-adapter";
-import IUser from "@/interfaces/user";
+import { twMerge } from "tailwind-merge";
 
-const commonWordsRegex = /^(?!.*(password|123456|qwerty|azerty|etc))$/i;
-
-const signUpFormSchema = z
-	.object({
-		fullname: z
-			.string({
-				required_error: "Please enter your full name",
-				invalid_type_error: "Please enter a valid full name",
-			})
-			.min(3)
-			.max(20),
-		username: z
-			.string({
-				required_error: "Please enter your username",
-				invalid_type_error: "Please enter a valid username",
-			})
-			.min(3)
-			.max(20),
-		email: z
-			.string({
-				required_error: "Please enter your email",
-				invalid_type_error: "Please enter a valid email",
-			})
-			.email(),
-		password: z
-			.string({
-				required_error: "Please enter a password",
-			})
-			.min(8, "Password must be at least 8 characters")
-			.refine((value) => {
-				const hasUppercase = /[A-Z]/.test(value);
-				const hasLowercase = /[a-z]/.test(value);
-				const hasNumber = /\d/.test(value);
-				const hasSymbol = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/.test(value);
-				const isCommon = !commonWordsRegex.test(value);
-				return hasUppercase && hasLowercase && hasNumber && hasSymbol && isCommon;
-			}, "Password does not meet complexity requirements"),
-		confirmPassword: z.string({
-			required_error: "Please confirm your password",
-		}),
-	})
-	.refine((data) => data.password === data.confirmPassword, {
-		message: "Passwords don't match",
-		path: ["confirmPassword"],
-	});
+const Spinner = dynamic(() => import("@/components/").then((mod) => mod.Spinner), { ssr: false });
 
 const Inputs: {
 	name: "email" | "username" | "fullname" | "password" | "confirmPassword";
@@ -85,7 +40,21 @@ const Inputs: {
 	},
 ];
 
-export default function SignUp() {
+const isValidEmail = (email: string) => {
+	return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+};
+
+const commonWordsRegex = /^(?!.*(password|123456|qwerty|azerty|etc))$/i;
+const meetsComplexityRequirements = (password: string) => {
+	const hasUppercase = /[A-Z]/.test(password);
+	const hasLowercase = /[a-z]/.test(password);
+	const hasNumber = /\d/.test(password);
+	const hasSymbol = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/.test(password);
+	const isCommon = !commonWordsRegex.test(password);
+	return hasUppercase && hasLowercase && hasNumber && hasSymbol && isCommon;
+};
+
+export default function Register() {
 	const router = useRouter();
 	const [error, setError] = useState("");
 	const [loading, setLoading] = useState<boolean>(false);
@@ -100,7 +69,32 @@ export default function SignUp() {
 			password: "",
 			confirmPassword: "",
 		},
-		validationSchema: toFormikValidationSchema(signUpFormSchema),
+		validate: (values) => {
+			const errors = {
+				email: "",
+				username: "",
+				fullname: "",
+				password: "",
+				confirmPassword: "",
+			};
+			if (!values.fullname) errors.fullname = "Please enter your full name";
+			else if (values.fullname.length < 3 || values.fullname.length > 20)
+				errors.fullname = "Full name must be between 3 and 20 characters";
+			if (!values.username) errors.username = "Please enter your username";
+			else if (values.username.length < 3 || values.username.length > 20)
+				errors.username = "Username must be between 3 and 20 characters";
+			if (!values.email) errors.email = "Please enter your email";
+			else if (!isValidEmail(values.email)) errors.email = "Please enter a valid email";
+			if (!values.password) errors.password = "Please enter a password";
+			else if (values.password.length < 8)
+				errors.password = "Password must be at least 8 characters";
+			else if (!meetsComplexityRequirements(values.password))
+				errors.password = "Password does not meet complexity requirements";
+			if (!values.confirmPassword) errors.confirmPassword = "Please confirm your password";
+			else if (values.confirmPassword !== values.password)
+				errors.confirmPassword = "Passwords don't match";
+			return errors;
+		},
 		validateOnBlur: submitCount !== 0,
 		validateOnChange: submitCount !== 0,
 		onSubmit: async (values) => {},
@@ -114,9 +108,10 @@ export default function SignUp() {
 			formik.validateForm();
 
 			if (
-				Object.keys(formik.errors).length > 0 ||
-				Object.keys(await formik.validateForm()).length > 0
+				Object.values(formik.values).some((value) => value === "") ||
+				Object.values(formik.errors).some((value) => value !== "")
 			) {
+				console.log("invalid");
 				setError("Please enter valid details");
 				setLoading(false);
 				return;
@@ -131,8 +126,8 @@ export default function SignUp() {
 			if (res.data) {
 				document.cookie = `${res.data.name}=${res.data.value}; Path=/;`;
 				setTimeout(() => {
-					console.log("redirecting to home");
-					router.push("/");
+					console.log("ok", res.data);
+					// router.push("/");
 				}, 1000);
 			}
 		} catch (_e) {
@@ -171,16 +166,17 @@ export default function SignUp() {
 				)}
 				<div className="relative flex w-full">
 					{loading && (
-						<Spinner className="absolute flex items-center justify-center w-1/3 h-full transition duration-300 ease-out z-10 backdrop-blur-[2px] inset-x-1/3" />
+						<Spinner className="absolute flex items-center justify-center w-1/3 h-full transition duration-300 ease-out z-10 inset-x-1/3 cursor-not-allowed" />
 					)}
 					<Button
-						className="relative w-full"
+						className={twMerge("relative w-full", loading && " blur-[2px]")}
 						onClick={handleSignUp}
+						type={success ? "success" : "primary"}
 						disabled={
 							loading ||
 							success ||
 							Object.values(formik.values).some((value) => value === "") ||
-							Object.keys(formik.errors).length > 0
+							Object.values(formik.errors).some((value) => value !== "")
 						}
 					>
 						Sign Up

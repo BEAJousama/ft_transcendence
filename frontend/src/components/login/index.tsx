@@ -1,55 +1,85 @@
 "use client";
 
-import { useState } from "react";
-import { Button, Input, Spinner } from "@/components";
+import React, { MouseEvent, useEffect, useState } from "react";
+import { Button, Input } from "@/components";
 import axios from "axios";
-import { z } from "zod";
 import { useFormik } from "formik";
-import { toFormikValidationSchema } from "zod-formik-adapter";
-import { redirect, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
+import dynamic from "next/dynamic";
+import Image from "next/image";
+import { setCookieItem } from "@/context/app.context";
 
-const loginFormSchema = z.object({
-	username: z
-		.string({
-			required_error: "Please enter your username",
-			invalid_type_error: "Please enter a valid username",
-		})
-		.min(3)
-		.max(20),
-	password: z.string({
-		required_error: "Please enter your password",
-	}),
-});
+const Spinner = dynamic(() => import("@/components/").then((mod) => mod.Spinner), { ssr: false });
 
 const Login = () => {
 	const [loading, setLoading] = useState<boolean>(false);
 	const [success, setSuccess] = useState<boolean>(false);
-	const [submitCount, setSubmitCount] = useState<number>(0);
 	const [error, setError] = useState("");
 	const router = useRouter();
+
+	const [externalPopup, setExternalPopup] = useState<Window | null>(null);
+
+	const connectClick = (e: any) => {
+		const width = 500;
+		const height = 400;
+		const left = window.screenX + (window.outerWidth - width) / 2;
+		const top = window.screenY + (window.outerHeight - height) / 2.5;
+		const title = "WINDOW TITLE";
+		// const url = `localhost`;
+		const url = `${process.env.NEXT_PUBLIC_BACK_END_URL}api/auth/42/callback`;
+		const popup = window.open(
+			url,
+			title,
+			`popup=true,noopener,noreferrer,toolbar=0,scrollbars=1,status=1,resizable=1,location=1,menuBar=0,
+			width=${width},height=${height},left=${left},top=${top}`
+		);
+		setExternalPopup(popup);
+	};
+
+	useEffect(() => {
+		console.log("useEffect");
+		if (!externalPopup || externalPopup.closed) return;
+		const checkPopup = setInterval(() => {
+			console.log("checking popup");
+			if (externalPopup.window.location.href.includes(`e2r2p11.1337.ma:5000`)) {
+				console.log("success, closing popup");
+				clearInterval(checkPopup);
+				externalPopup.close();
+				router.push("/home");
+			}
+		}, 500);
+	}, [externalPopup]);
 
 	const formik = useFormik({
 		initialValues: {
 			username: "",
 			password: "",
 		},
-		validationSchema: toFormikValidationSchema(loginFormSchema),
-		validateOnBlur: submitCount !== 0,
-		validateOnChange: submitCount !== 0,
-		onSubmit: async (values) => { },
+		validate: (values) => {
+			const errors = {
+				username: "",
+				password: "",
+			};
+			if (!values.username || values.username.length < 3 || values.username.length > 20)
+				errors.username = "error";
+			if (!values.password || values.password.length < 8) errors.password = "error";
+			return errors;
+		},
+		validateOnBlur: true,
+		validateOnChange: true,
+		onSubmit: async (values) => {},
 	});
 
 	const handleLogin = async () => {
 		try {
 			setLoading(true);
-			setSubmitCount((prev) => prev + 1);
 			setError("");
 			formik.validateForm();
 
 			if (
-				Object.keys(formik.errors).length > 0 ||
-				Object.keys(await formik.validateForm()).length > 0
+				Object.values(formik.values).some((value) => value === "") ||
+				Object.values(formik.errors).some((value) => value !== "")
 			) {
 				setError("Please enter a valid username and password");
 				setLoading(false);
@@ -59,12 +89,15 @@ const Login = () => {
 				username: formik.values.username,
 				password: formik.values.password,
 			});
+			if (res.data.error) {
+				setError("Incorrect username or password");
+				setLoading(false);
+				return;
+			}
 			setSuccess(true);
 			if (res.data) {
-				document.cookie = `${res.data.name}=${res.data.value}; Path=/;`;
-				setTimeout(() => {
-					router.push("/home");
-				}, 1000);
+				setCookieItem("access_token", res.data.access_token);
+				// updateUser();
 			}
 		} catch (_e) {
 			setError("Incorrect username or password");
@@ -74,7 +107,7 @@ const Login = () => {
 	};
 
 	return (
-		<div className="grid place-items-center w-full">
+		<div className="grid place-items-center w-full h-full">
 			<div className="flex flex-col items-center justify-center w-full max-w-sm md:max-w-md lg:max-w-lg gap-4 px-8 py-12 text-white">
 				<h1 className="text-2xl">Welcome Back</h1>
 				<p className=" text-tertiary-200">Please enter your credentials</p>
@@ -82,8 +115,6 @@ const Login = () => {
 					name="username"
 					label="Username"
 					value={formik.values.username}
-					error={formik.errors.username}
-					isError={!!formik.errors.username}
 					onChange={formik.handleChange}
 					onBlur={formik.handleBlur}
 					success={success}
@@ -93,8 +124,6 @@ const Login = () => {
 					label="Password"
 					htmlType="password"
 					value={formik.values.password}
-					error={formik.errors.password}
-					isError={!!formik.errors.password}
 					onChange={formik.handleChange}
 					onBlur={formik.handleBlur}
 					success={success}
@@ -115,7 +144,7 @@ const Login = () => {
 							loading ||
 							success ||
 							Object.values(formik.values).some((value) => value === "") ||
-							Object.keys(formik.errors).length > 0
+							Object.values(formik.errors).some((value) => value !== "")
 						}
 					>
 						Sign in
@@ -127,26 +156,28 @@ const Login = () => {
 					<hr className="w-[70%] border-gray-400" />
 				</div>
 				<div className="flex w-full justify-center gap-4 md:flex-col">
-					<Link href={`${process.env.NEXT_PUBLIC_BACK_END_URL}api/auth/42/callback`}>
-						<Button
-							type="secondary"
-							disabled={loading}
-							className="h-14 w-14 justify-center rounded-xl md:h-auto md:w-full text-sm backdrop-blur-sm"
-						>
-							<img src="/img/42Logo-light.svg" alt="logo" width={30} />
-							<p className="hidden md:block">Continue with Intra</p>
-						</Button>
-					</Link>
-					<Link href={`${process.env.NEXT_PUBLIC_BACK_END_URL}api/auth/google/login`}>
-						<Button
-							type="secondary"
-							disabled={loading}
-							className="h-14 w-14 justify-center rounded-xl md:h-auto md:w-full text-sm backdrop-blur-sm"
-						>
-							<img src="/img/google.svg" alt="logo" width={30} />
-							<p className="hidden md:block">Continue with Google</p>
-						</Button>
-					</Link>
+					{/* <Link href={`${process.env.NEXT_PUBLIC_BACK_END_URL}api/auth/42/callback`}> */}
+					<Button
+						onClick={connectClick}
+						type="secondary"
+						disabled={loading}
+						className="h-14 w-14 justify-center rounded-xl md:h-auto md:w-full text-sm backdrop-blur-sm"
+					>
+						<Image src="/img/42Logo-light.svg" alt="logo" width={30} height={30} />
+						<p className="hidden md:block">Continue with Intra</p>
+					</Button>
+					{/* </Link> */}
+					{/* <Link href={`${process.env.NEXT_PUBLIC_BACK_END_URL}api/auth/google/login`}> */}
+					<Button
+						onClick={connectClick}
+						type="secondary"
+						disabled={loading}
+						className="h-14 w-14 justify-center rounded-xl md:h-auto md:w-full text-sm backdrop-blur-sm"
+					>
+						<Image src="/img/google.svg" alt="logo" width={30} height={30} />
+						<p className="hidden md:block">Continue with Google</p>
+					</Button>
+					{/* </Link> */}
 				</div>
 			</div>
 		</div>

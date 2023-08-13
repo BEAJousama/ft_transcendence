@@ -1,8 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Github } from 'lucide-react';
-import { Linkedin } from 'lucide-react';
-import { Instagram } from 'lucide-react';
+import { Github } from "lucide-react";
+import { Linkedin } from "lucide-react";
+import { Instagram } from "lucide-react";
 interface ContributorProps {
 	name: string;
 	role: string;
@@ -22,7 +22,14 @@ export default function Contributor({
 }: ContributorProps) {
 	return (
 		<div className="flex flex-col drop-shadow-md hover:drop-shadow-xl transition-all ease-in-out">
-			<Image src={image} alt={name} width={400} height={400} className="rounded-2xl" />
+			<Image
+				src={image}
+				alt={name}
+				width={400}
+				height={400}
+				className="rounded-2xl"
+				loading="lazy"
+			/>
 			<div className="flex flex-col items-center justify-center text-center py-4 gap-1">
 				<h1 className="text-gray-100 text-xl font-bold">{name}</h1>
 				<p className="text-gray-300 font-light">{role}</p>

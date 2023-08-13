@@ -1,8 +1,8 @@
 "use client";
 
-import { Avatar, Card, Button, Input } from "../../components";
+import { Avatar, Card, Button, Input } from "..";
 import { useContext, useEffect, useState } from "react";
-import { Pencil } from 'lucide-react';
+import { Pencil } from "lucide-react";
 import { useRef } from "react";
 import { useFormik } from "formik";
 import { AppContext } from "../../context/app.context";
@@ -18,7 +18,7 @@ export default function CompleteInfo() {
 			phone: user?.phone,
 			fullname: user?.fullname,
 		},
-		onSubmit: (values) => { },
+		onSubmit: (values) => {},
 	});
 	const ref = useRef<HTMLInputElement>(null);
 	const [file, setFile] = useState<Blob>();
