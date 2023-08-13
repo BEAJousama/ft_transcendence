@@ -27,7 +27,6 @@ const PongGame = ({
     setPlayerA,
     playerB,
     setPlayerB,
-    ball,
     setBall,
     setShow,
     setWinnerId,

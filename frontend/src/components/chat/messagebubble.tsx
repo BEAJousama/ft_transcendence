@@ -38,9 +38,9 @@ import {
   LogOut,
   Trash2,
   FileEdit,
-  ChevronLast,
   Smile,
   SendHorizonal,
+  ChevronFirst,
 } from "lucide-react";
 
 interface ChannelProps {
@@ -363,7 +363,7 @@ const MessageBubble: React.FC<ChannelProps> = ({
               setDmMenu(false);
             }}
           >
-            <ChevronLast />
+            <ChevronFirst />
           </Button>
           <div className="flex items-center gap-2 col-span-8 lg:col-span-11 text-white lg:order-first px-2 py-3 font-semi-bold self-center">
             <Avatar
@@ -784,7 +784,7 @@ const MessageBubble: React.FC<ChannelProps> = ({
         <Modal
           className="z-10 bg-secondary-800 
         border-none flex flex-col items-center justify-start shadow-lg shadow-secondary-500 gap-4 text-white min-w-[90%]
-        lg:min-w-[40%] xl:min-w-[800px] animate-jump-in animate-ease-out animate-duration-400 max-h-screen overflow-y-scroll"
+        lg:min-w-[40%] xl:min-w-[800px] animate-jump-in animate-ease-out animate-duration-400 max-h-screen overflow-y-scroll scrollbar-hide"
         >
           <div className="flex flex-col w-full">
             <div className="flex w-full items-center justify-between">
@@ -892,7 +892,7 @@ const MessageBubble: React.FC<ChannelProps> = ({
               </Button>
 
               <Button
-                className="!bg-inherit !text-white hover:bg-inherit justify-between w-full !font-medium"
+                className="!bg-inherit !text-white hover:bg-inherit justify-between w-full !font-medium hover:shadow-none"
                 onClick={() => {
                   setManageBans(true);
                   setShowEdit(false);

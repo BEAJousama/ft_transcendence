@@ -3,6 +3,7 @@ import {
   Catch,
   ArgumentsHost,
   HttpException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { Response } from 'express';
 
@@ -12,12 +13,19 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
 
-    let statusCode = 500;
-    let message = 'Internal server error from filter';
+    let statusCode = 401;
+    let message = 'Unauthorized';
 
     if (exception instanceof HttpException) {
       statusCode = exception.getStatus();
       message = exception.message;
+    }
+
+    if (exception instanceof InternalServerErrorException) {
+      response.status(statusCode).json({
+        statusCode,
+        message,
+      });
     }
 
     response.status(statusCode).json({

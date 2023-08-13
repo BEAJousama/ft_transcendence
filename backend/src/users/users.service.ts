@@ -313,6 +313,11 @@ export class UsersService {
           id: {
             not: userId,
           },
+          NOT: {
+            username: {
+              contains: 'PongMaster',
+            },
+          },
           blockers: {
             none: {
               blockingId: userId,

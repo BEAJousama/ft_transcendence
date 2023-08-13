@@ -8,10 +8,10 @@ import {
 	FourOFour
 } from "@/components";
 import { UserCircle } from 'lucide-react';
-import { useContext } from "react";
+import { useContext, useMemo } from "react";
 import { AppContext, fetcher } from "../../../context/app.context";
 import IAchievement from "../../../interfaces/achievement";
-import useSWR from "swr";
+import useSwr from "swr";
 import Layout from "../../layout/index";
 import IUser from "@/interfaces/user";
 import { useParams } from "next/navigation";
@@ -21,14 +21,14 @@ const Achievement = dynamic(() => import("@/components/achievement/index"), {
 	ssr: false,
 });
 
-const Achievements = ({ user }: { user: IUser }) => {
-	const { data: achievements, isLoading } = useSWR(
+const Achievements = ({ userAchievements }: { userAchievements: IAchievement[] }) => {
+	const { data: achievements, isLoading } = useSwr(
 		"api/users/achievements",
 		fetcher
 	);
 
 	const isDisabled = (name: string) => {
-		const achievements = user?.achievements;
+		const achievements = userAchievements;
 		if (!achievements) return true;
 		return !achievements.find(
 			(item: IAchievement) => item.name === name
@@ -43,7 +43,7 @@ const Achievements = ({ user }: { user: IUser }) => {
 					<>
 						<span className="text-primary-500">
 							{" "}
-							{user.achievements?.length || 0}
+							{userAchievements?.length || 0}
 						</span>
 						/{` ${achievements?.length}`}
 					</>
@@ -91,21 +91,24 @@ export default function Profile() {
 	const { id } = prams ? prams : { id: null };
 	const { user: currentUser } = useContext(AppContext);
 	const {
-		data: user,
+		data,
 		isLoading,
-	}: {
-		data: IUser;
-		isLoading: boolean;
-	} = useSWR(`api/users/${id || currentUser?.id}`, fetcher, {
+	} = useSwr(`api/users/${id || currentUser?.id}`, fetcher, {
 		refreshInterval: 0,
-		revalidateOnFocus: true,
-		revalidateOnReconnect: true,
-		refreshWhenHidden: true,
 	});
+
+	const user = useMemo(() => {
+		return data as IUser;
+	}, [data]);
 
 	if (!isLoading && !user) {
 		return <FourOFour />;
 	}
+
+	const achievements = useMemo(() => {
+		return user?.achievements || undefined;
+	}, [user?.achievements]);
+
 	return (
 		<Layout className="flex flex-col items-center gap-4 md:gap-8">
 			{isLoading ? (
@@ -118,11 +121,11 @@ export default function Profile() {
 					</div>
 					<ProfileInfo
 						user={user}
-						currentUser={currentUser}
+						currentUserId={currentUser?.id || 0}
 					/>
-					<LadderProgressBar user={user} />
+					<LadderProgressBar rating={user?.rating} />
 					<Divider />
-					<Achievements user={user} />
+					<Achievements userAchievements={achievements} />
 				</>
 			)}
 		</Layout>

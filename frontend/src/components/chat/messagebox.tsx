@@ -1,12 +1,9 @@
 "use client";
-
-
 import { useContext, useEffect, useRef, useState } from "react";
 import { useClickAway } from "react-use";
 import { IAppContext } from "../../context/app.context";
 import { AppContext } from "../../context/app.context";
 import { ChatContext, IchatContext, Imessage } from "../../context/chat.context";
-
 import RightClickMenu, { RightClickMenuItem } from "../rightclickmenu";
 import Spinner from "../spinner";
 import { twMerge } from "tailwind-merge";

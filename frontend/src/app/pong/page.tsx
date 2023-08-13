@@ -45,6 +45,10 @@ export default function Pong() {
       userId: user?.id,
     });
 
+    socket.on("error", (data: string) => {
+      toast.error(data);
+    });
+
     socket.on("check-for-active-invitations", (data) => {
       console.log("data", data);
       setShowInvitaionModal(!!data);

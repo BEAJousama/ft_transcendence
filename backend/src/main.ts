@@ -7,15 +7,13 @@ import { JwtService } from '@nestjs/jwt';
 import { ValidationPipe } from '@nestjs/common';
 import * as cookieParser from 'cookie-parser';
 import { ContextInterceptor } from './context-interceptor';
+import { GlobalExceptionFilter } from './global-exception.filter';
 
 // global-header.middleware.ts
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     cors: {
-      // origin: 'http://localhost:5000',
-      // origin: '*',
-      // origin: 'http://10.12.3.14:5000',
       origin: true,
       credentials: true,
     },
@@ -25,6 +23,7 @@ async function bootstrap() {
   app.use(cookieParser());
   app.useGlobalInterceptors(new ContextInterceptor());
   app.setGlobalPrefix('/api');
+  // app.useGlobalFilters(new GlobalExceptionFilter());
 
   const reflector = app.get(Reflector);
   const jwt = app.get(JwtService);
@@ -35,7 +34,6 @@ async function bootstrap() {
     .setVersion('1.0')
     .addTag('api')
     .addBearerAuth()
-    // .addBearerAuth('Authorization', 'header', 'basic')
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('/', app, document);

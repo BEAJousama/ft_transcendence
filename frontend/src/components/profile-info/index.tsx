@@ -27,10 +27,10 @@ const status = {
 
 const ProfileInfo = ({
     user,
-    currentUser,
+    currentUserId,
 }: {
     user: IUser;
-    currentUser?: IUser;
+    currentUserId: number;
 }) => {
     const router = useRouter();
     const { socket } = useContext(ChatContext);
@@ -41,39 +41,45 @@ const ProfileInfo = ({
     } = useSWR(
         `api/users/${user?.id}/friend-request`,
         async (url) => {
-            const response = await axios.get(
-                `${process.env.NEXT_PUBLIC_BACK_END_URL}${url}`,
-                {
-                    withCredentials: true,
-                    params: {
-                        senderId: currentUser?.id,
-                        receiverId: user?.id,
-                    },
-                }
-            );
-            return response.data;
+            try {
+
+                const response = await axios.get(
+                    `${process.env.NEXT_PUBLIC_BACK_END_URL}${url}`,
+                    {
+                        withCredentials: true,
+                        params: {
+                            senderId: currentUserId,
+                            receiverId: user?.id,
+                        },
+                    }
+                );
+                return response.data;
+            }
+            catch (_) {
+                return null;
+            }
         },
         {
             refreshInterval: 1,
         }
     );
     const [text, setText] = useState("");
-    const blocked = isBlocked(currentUser?.id || 0, user);
+    const blocked = isBlocked(currentUserId || 0, user);
 
     useEffect(() => {
         if (
             friendRequest?.status === "PENDING" &&
-            friendRequest?.senderId === currentUser?.id
+            friendRequest?.senderId === currentUserId
         )
             setText("Cancel Request");
         else if (
             friendRequest?.status === "PENDING" &&
-            friendRequest?.senderId !== currentUser?.id
+            friendRequest?.senderId !== currentUserId
         )
             setText("Accept");
         else if (friendRequest?.status === "ACCEPTED") setText("Remove Friend");
         else setText("Add Friend");
-    }, [friendRequest, isLoading, currentUser?.id]);
+    }, [friendRequest, isLoading, currentUserId]);
 
     if (isLoading) return <Spinner />;
 
@@ -106,11 +112,11 @@ const ProfileInfo = ({
                                     </div>
                                     <div className="flex w-full gap-4">
                                         <Button
-                                            disabled={user?.id === currentUser?.id}
+                                            disabled={user?.id === currentUserId}
                                             className="w-full !text-xs"
                                             onClick={async () => {
                                                 if (text === "Add Friend")
-                                                    await addFriend(currentUser?.id || 0, user.id);
+                                                    await addFriend(currentUserId || 0, user.id);
                                                 else if (text === "Accept")
                                                     await acceptFriend(friendRequest.id);
                                                 else await cancelFriend(friendRequest.id);
@@ -121,11 +127,11 @@ const ProfileInfo = ({
                                             {text}
                                         </Button>
                                         <Button
-                                            disabled={user?.id === currentUser?.id}
+                                            disabled={user?.id === currentUserId}
                                             className="w-full !text-xs"
                                             onClick={() => {
                                                 socket?.emit("dm_create", {
-                                                    senderId: currentUser?.id,
+                                                    senderId: currentUserId,
                                                     receiverId: user?.id,
                                                 });
                                                 router.push(`/chat`);
@@ -134,12 +140,12 @@ const ProfileInfo = ({
                                             Message
                                         </Button>
                                         <Button
-                                            disabled={user?.id === currentUser?.id}
+                                            disabled={user?.id === currentUserId}
                                             type={blocked ? "success" : "danger"}
                                             onClick={async () => {
                                                 blocked
-                                                    ? UnBlockUser(currentUser?.id || 0, user.id)
-                                                    : BlockUser(currentUser?.id || 0, user.id);
+                                                    ? UnBlockUser(currentUserId || 0, user.id)
+                                                    : BlockUser(currentUserId || 0, user.id);
                                                 await mutate();
                                             }}
                                         >

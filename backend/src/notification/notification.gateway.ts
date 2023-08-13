@@ -37,13 +37,17 @@ export class NotificationGateway {
 
   onModuleInit() {
     this.server.on('connect', async (socket) => {
-      const clientId = (await this.verifyClient(socket)).sub.toString();
-      this.clients_map.delete(clientId);
-      this.clients_map.set(clientId, socket.id);
+      try {
+        const clientId = (await this.verifyClient(socket)).sub.toString();
+        this.clients_map.delete(clientId);
+        this.clients_map.set(clientId, socket.id);
+      } catch (error) {}
     });
     this.server.on('disconnect', async (socket) => {
-      const clientId = (await this.verifyClient(socket)).sub.toString();
-      this.clients_map.delete(clientId);
+      try {
+        const clientId = (await this.verifyClient(socket)).sub.toString();
+        this.clients_map.delete(clientId);
+      } catch (error) {}
     });
   }
 }
