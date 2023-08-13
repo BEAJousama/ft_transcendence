@@ -3,7 +3,7 @@
 import axios from "axios";
 import React from "react";
 import IUser from "@/interfaces/user";
-import { redirect, usePathname } from "next/navigation";
+import { redirect, usePathname, useRouter } from "next/navigation";
 import useSwr from "swr";
 
 export interface IAppContext {
@@ -78,12 +78,16 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
 	});
 	const [isAuthenticated, setIsAuthenticated] = React.useState<boolean>(false);
 	const [isLoading, setIsLoading] = React.useState<boolean>(true);
+	const [prevAccessToken, setPrevAccessToken] = React.useState<string | undefined>(undefined);
+	const router = useRouter();
 
 	const path = usePathname();
 
 	React.useEffect(() => {
 		if (loading) return;
 		if (data) {
+			const accessToken = getCookieItem("access_token");
+			setPrevAccessToken(accessToken);
 			setIsAuthenticated(true);
 		} else {
 			setIsAuthenticated(false);
@@ -91,26 +95,41 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
 		setIsLoading(false);
 	}, [data, loading]);
 
-	if (isLoading)
+	React.useEffect(() => {
+		if (isLoading) return;
+		const id = setInterval(async () => {
+			const accessToken = getCookieItem("access_token");
+			if (accessToken !== prevAccessToken && isAuthenticated) {
+				setPrevAccessToken(accessToken);
+				setIsAuthenticated(false);
+				router.push("/");
+			}
+		}, 500);
+		return () => clearInterval(id);
+	}, [isLoading]);
+
+	if (isLoading) {
 		return (
 			<AppContext.Provider
 				value={{
 					user: undefined,
-					loading: true,
+					loading: false,
 					authenticated: false,
-					setAuthenticated: setIsAuthenticated,
-					fetchUser: mutate,
-					updateUser: mutate,
+					setAuthenticated: () => {},
+					fetchUser: async () => {},
+					updateUser: async () => {},
 				}}
 			>
 				<body />
 			</AppContext.Provider>
 		);
+	}
 
 	if (!isAuthenticated && !isLoading && path !== "/") redirect("/");
 
-	if (isAuthenticated && !isLoading && path === "/" && data.updatedAt !== data.createdAt)
+	if (isAuthenticated && !isLoading && path === "/" && data.updatedAt !== data.createdAt) {
 		redirect("/home");
+	}
 
 	const appContextValue: IAppContext = {
 		user: data,

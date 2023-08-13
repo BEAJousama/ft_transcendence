@@ -1,36 +1,37 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsNumber } from 'class-validator';
+import { MatchesUserId } from './validate-user';
 
 export class UserDto {
   @ApiProperty({
     description: 'The id of the user',
   })
-  id: number;
+  id?: number;
   @ApiProperty({
     description: 'The login of the user',
   })
-  login: string;
+  login?: string;
   @ApiProperty({
     description: 'The username of the user',
   })
-  username: string;
+  username?: string;
   @ApiProperty({
     description: 'The avatar of the user',
   })
-  avatar: string;
+  avatar?: string;
   @ApiProperty({
     description: 'true if tfa activated otherwise false',
   })
-  twoFactorAuth: boolean;
+  twoFactorAuth?: boolean;
   @ApiProperty({
     description: 'The tfa secret',
   })
-  tfaSecret: string;
+  tfaSecret?: string;
   @ApiProperty({
     enum: ['ONLINE', 'INGAME', 'OFFLINE'],
     description: 'The status of the user',
   })
-  status: string;
+  status?: string;
   @ApiProperty({
     enum: [
       'BEGINNER',
@@ -42,43 +43,45 @@ export class UserDto {
     ],
     description: 'The ladder of the user',
   })
-  ladder: string;
+  ladder?: string;
   @ApiProperty({
     description: 'The rating of the user',
   })
-  rating: number;
+  rating?: number;
   @ApiProperty({})
-  createdAt: Date;
+  createdAt?: Date;
   @ApiProperty({})
-  updatedAt: Date;
+  updatedAt?: Date;
   @ApiProperty({
     description: 'number of wins',
   })
-  wins: number;
+  wins?: number;
   @ApiProperty({
     description: 'number of losses',
   })
-  losses: number;
+  losses?: number;
 
   @ApiProperty({
     description: 'email of the user',
   })
-  email: string;
+  email?: string;
 
   @ApiProperty({
     description: 'fullname of the user',
   })
-  fullname: string;
+  fullname?: string;
 
   @ApiProperty({
     description: 'country of the user',
   })
-  country: string;
+  country?: string;
 
   @ApiProperty({
     description: 'phone of the user',
   })
-  phone: string;
+  phone?: string;
+  winStreak?: number;
+  totalGames?: number;
 }
 
 export class DeleteUserDto {
@@ -95,15 +98,7 @@ export class UpdateUserDto {
   @ApiProperty({
     description: 'The user object to update',
   })
-  user: any;
-  // user: UserDto;
-}
-
-export class FindOneParams {
-  @ApiProperty({
-    description: 'The id of the user',
-  })
-  @IsNotEmpty()
-  // @IsNumber()
+  user: UserDto;
+  @MatchesUserId()
   id: number;
 }

@@ -11,6 +11,13 @@ const TwoFactorAuth = () => {
 	const [code, setCode] = useState("");
 	const router = useRouter();
 	const [error, setError] = useState("");
+	const [shouldRedirect, setShouldRedirect] = useState<boolean>();
+
+	useEffect(() => {
+		if (shouldRedirect) {
+			router.push("/app");
+		}
+	}, [shouldRedirect]);
 
 	const inputsRef = [
 		useRef<HTMLInputElement>(null),
@@ -82,7 +89,7 @@ const TwoFactorAuth = () => {
 							);
 							await fetchUser();
 							setAuthenticated(true);
-							router.push("/home");
+							setShouldRedirect(true);
 						} catch (error) {
 							console.log(error);
 							toast.error("Invalid Code");

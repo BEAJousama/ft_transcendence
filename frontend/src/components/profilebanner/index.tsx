@@ -3,6 +3,10 @@
 
 import React, { useContext, useState, useRef, Fragment } from "react";
 
+import { VolumeX, Archive, Pin, Trash, BellDot } from 'lucide-react';
+
+import { BsPersonAdd } from "react-icons/bs";
+
 import {
   MdAddBox,
   MdOutlineAddModerator,
@@ -10,7 +14,6 @@ import {
 } from "react-icons/md";
 import { BiArchiveIn, BiArchiveOut } from "react-icons/bi";
 import { useClickAway } from "react-use";
-import { BsPersonAdd } from "react-icons/bs";
 import { SlOptionsVertical } from "react-icons/sl";
 import { TbBan } from "react-icons/tb";
 import { IoPersonRemoveOutline } from "react-icons/io5";

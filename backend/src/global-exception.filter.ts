@@ -13,7 +13,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
 
     let statusCode = 500;
-    let message = 'Internal server error';
+    let message = 'Internal server error from filter';
 
     if (exception instanceof HttpException) {
       statusCode = exception.getStatus();

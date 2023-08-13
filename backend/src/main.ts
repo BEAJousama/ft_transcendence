@@ -6,6 +6,7 @@ import { AuthGuard } from './auth/guards/auth.guard';
 import { JwtService } from '@nestjs/jwt';
 import { ValidationPipe } from '@nestjs/common';
 import * as cookieParser from 'cookie-parser';
+import { ContextInterceptor } from './context-interceptor';
 
 // global-header.middleware.ts
 
@@ -22,7 +23,7 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe());
   app.use(bodyParser.json({ limit: '10mb' }));
   app.use(cookieParser());
-
+  app.useGlobalInterceptors(new ContextInterceptor());
   app.setGlobalPrefix('/api');
 
   const reflector = app.get(Reflector);

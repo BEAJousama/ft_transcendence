@@ -134,13 +134,13 @@ const ProfileInfo = ({
                                             Message
                                         </Button>
                                         <Button
+                                            disabled={user?.id === currentUser?.id}
                                             type={blocked ? "success" : "danger"}
                                             onClick={async () => {
                                                 blocked
                                                     ? UnBlockUser(currentUser?.id || 0, user.id)
                                                     : BlockUser(currentUser?.id || 0, user.id);
                                                 await mutate();
-
                                             }}
                                         >
                                             {blocked ? "Block" : "Unblock"}

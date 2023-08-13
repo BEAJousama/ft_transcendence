@@ -206,7 +206,7 @@ const CreateGroupModal = ({
                     return u.id !== user?.id && !checkBlock(u.id);
                   }).map((u: any) => {
                     return (
-                      <div key={u.id} className="flex flex-row items-center justify-between w-full">
+                      <div key={u.id} className="flex flex-row items-center max-h-[350px] h-full justify-between w-full">
                         <ProfileBanner
                           key={u.id}
                           avatar={u.avatar}

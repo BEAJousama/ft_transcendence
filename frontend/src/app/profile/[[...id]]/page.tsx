@@ -3,7 +3,6 @@
 import {
 	Divider,
 	Spinner,
-	Achievement,
 	ProfileInfo,
 	LadderProgressBar,
 	FourOFour
@@ -16,6 +15,11 @@ import useSWR from "swr";
 import Layout from "../../layout/index";
 import IUser from "@/interfaces/user";
 import { useParams } from "next/navigation";
+import dynamic from "next/dynamic";
+
+const Achievement = dynamic(() => import("@/components/achievement/index"), {
+	ssr: false,
+});
 
 const Achievements = ({ user }: { user: IUser }) => {
 	const { data: achievements, isLoading } = useSWR(
@@ -93,7 +97,10 @@ export default function Profile() {
 		data: IUser;
 		isLoading: boolean;
 	} = useSWR(`api/users/${id || currentUser?.id}`, fetcher, {
-		refreshInterval: 1,
+		refreshInterval: 0,
+		revalidateOnFocus: true,
+		revalidateOnReconnect: true,
+		refreshWhenHidden: true,
 	});
 
 	if (!isLoading && !user) {
@@ -112,7 +119,6 @@ export default function Profile() {
 					<ProfileInfo
 						user={user}
 						currentUser={currentUser}
-
 					/>
 					<LadderProgressBar user={user} />
 					<Divider />

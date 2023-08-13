@@ -3,18 +3,16 @@ import {
   Controller,
   Delete,
   Get,
-  InternalServerErrorException,
   NotFoundException,
   Param,
   ParseIntPipe,
   Post,
   Query,
-  Req,
 } from '@nestjs/common';
 import {
   AddFriendsDto,
   BlockUserDto,
-  FindOneParams,
+  IdDto,
   UnblockUserDto,
   UpdateUserDto,
 } from './dto';
@@ -34,8 +32,6 @@ import {
   UpdateDoc,
 } from './users.decorator';
 import { UsersService } from './users.service';
-import { assignAchievementsDto } from './dto/achievements.dto';
-import { Request } from 'express';
 import { Public } from 'src/public.decorator';
 
 @Controller('users')
@@ -143,7 +139,6 @@ export class UsersController {
   @UnblockUserDoc()
   async unblockUsers(@Body() body: UnblockUserDto) {
     try {
-      console.log(body);
       const blockedUser = await this.usersService.unblockUser(body);
       if (!blockedUser) throw 'No Matches Found !!!!!';
       return blockedUser;
@@ -222,22 +217,19 @@ export class UsersController {
     }
   }
 
-  @Post(':id')
+  @Post()
   @UpdateDoc()
-  async updateOne(
-    @Body() body: UpdateUserDto,
-    @Param('id', ParseIntPipe) id: number,
-  ) {
+  async updateOne(@Body() { user, id }: UpdateUserDto) {
     try {
-      return this.usersService.updateUser(body, id);
+      return this.usersService.updateUser({ user, id });
     } catch (error) {
       throw error;
     }
   }
 
-  @Delete(':id')
+  @Delete()
   @DeleteDoc()
-  async deleteOne(@Param('id', ParseIntPipe) id: number) {
+  async deleteOne(@Body() { id }: IdDto) {
     try {
       return this.usersService.deleteUser(id);
     } catch (error) {

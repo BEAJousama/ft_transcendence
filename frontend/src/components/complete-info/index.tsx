@@ -107,7 +107,7 @@ export default function CompleteInfo() {
 						onClick={async () => {
 							try {
 								await axios.post(
-									`${process.env.NEXT_PUBLIC_BACK_END_URL}api/users/${user?.id}`,
+									`${process.env.NEXT_PUBLIC_BACK_END_URL}api/users/`,
 									{
 										user: {
 											username: formik.values.username,
@@ -115,6 +115,7 @@ export default function CompleteInfo() {
 											phone: formik.values.phone,
 											avatar: previewImage,
 										},
+										id: user.id,
 									},
 									{
 										withCredentials: true,

@@ -3,7 +3,10 @@ import { Game, Player } from '../classes';
 import { Inject, Injectable } from '@nestjs/common';
 import { UsersService } from 'src/users/users.service';
 
-type UpdatedUser = Omit<User, 'password' | 'tfaSecret'>;
+type UpdatedUser = Omit<
+  User,
+  'password' | 'tfaSecret' | 'createdAt' | 'updatedAt'
+>;
 
 enum Achievements {
   PERFECT_GAME = 'PERFECT_GAME',

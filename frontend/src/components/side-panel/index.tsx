@@ -78,7 +78,7 @@ const SidePanelItem = ({
   const { socket, isInGame, setShow } = useContext(GameContext);
   const { user } = useContext(AppContext);
   return (
-    <Link href={to || ""} className="w-full" onClick={(e) => {
+    <Link href={to || ""} className="w-full" prefetch={false} onClick={(e) => {
       if (isInGame.current) {
         e.preventDefault();
         setShow(true)
@@ -130,7 +130,7 @@ const Sidepanel = ({ className }: { className?: string }) => {
         className
       )}
     >
-      <Link href="/" onClick={(e) => {
+      <Link prefetch={false} href="/" onClick={(e) => {
 
         if (isInGame.current) {
           e.preventDefault();
@@ -141,12 +141,14 @@ const Sidepanel = ({ className }: { className?: string }) => {
         }
       }}>
         <div className="w-46 hidden items-center justify-center md:flex">
-          <img className="!w-64 px-6" src="/img/logo.png" alt="logo" />
+          <Image className="!w-64 px-6" src="/img/logo.png" alt="logo" width={256} height={256} />
         </div>
-        <img
+        <Image
           className="w-16 px-4 md:hidden"
           src="/img/smalllogo.svg"
           alt="logo"
+          width={64}
+          height={64}
         />
       </Link>
       <Items className="flex w-full flex-col gap-2 text-lg md:gap-4 md:text-sm">

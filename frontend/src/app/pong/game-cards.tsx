@@ -1,6 +1,5 @@
 "use client";
 import { Button, Card, Carousel, Input, Spinner, UserBanner } from "@/components";
-import Modal from "@/components/modal";
 import useSwr from "swr";
 import { AppContext, fetcher } from "@/context/app.context";
 import { GameContext } from "@/context/game.context";
@@ -265,7 +264,7 @@ export default function GameCards() {
 	const { socket } = useContext(GameContext);
 	const { user } = useContext(AppContext);
 	return (
-		<Carousel className="w-full" chevrons={true}>
+		<Carousel className="w-full" indicators={false} chevrons={true}>
 			<CreateGameCard
 				invite
 				title="Invite Your Friends to Play"

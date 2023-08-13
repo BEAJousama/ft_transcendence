@@ -52,8 +52,10 @@ export class AuthController {
   @Public()
   @Post('signin')
   @SignInDoc()
-  async signIn(@Body() body: SignInDto) {
-    return await this.authService.signIn(body);
+  async signIn(@Body() body: SignInDto, @Res() res) {
+    const test = await this.authService.signIn(body);
+    res.cookie('access_token', '2135574687434');
+    res.end();
   }
 
   @Public()
