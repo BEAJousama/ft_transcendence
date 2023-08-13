@@ -37,6 +37,12 @@ export class PongGateway {
     await this.pongService.checkForActiveInvitations(client);
   }
 
+  @SubscribeMessage('check-for-invitaion-sent')
+  async checkForInvitaionSent(@ConnectedSocket() client: Socket) {
+    const value = await this.pongService.checkForInvitaionSent(client);
+    client.emit('check-for-invitaion-sent', value);
+  }
+
   @SubscribeMessage('reject-invitation')
   @SubscribeMessage('cancel-invite')
   rejectInvitation(@MessageBody() info) {

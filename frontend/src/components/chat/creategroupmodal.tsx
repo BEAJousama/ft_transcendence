@@ -56,7 +56,7 @@ const CreateGroupModal = ({
       <Modal
         className="z-10 bg-secondary-800 
         border-none flex flex-col items-center justify-start shadow-lg shadow-secondary-500 gap-4 text-white min-w-[90%]
-        lg:min-w-[40%] xl:min-w-[800px] animate-jump-in animate-ease-out animate-duration-400 max-h-screen overflow-y-scroll"
+        lg:min-w-[40%] xl:min-w-[800px] animate-jump-in animate-ease-out animate-duration-400 max-h-screen overflow-y-scroll scrollbar-hide"
         setShowModal={setShowModal!}
       >
         <div className="flex items-center justify-between w-full">
@@ -72,7 +72,7 @@ const CreateGroupModal = ({
                   setGroupName("");
                 }}
               >
-                <ChevronLast />
+                <ChevronFirst />
               </Button>
               <span className="text-lg">New Group Chat</span>
             </>
@@ -86,7 +86,7 @@ const CreateGroupModal = ({
                   setShowDm(false);
                 }}
               >
-                <ChevronLast />
+                <ChevronFirst />
               </Button>
               <span className="text-lg">Send Message</span>
             </>
@@ -117,7 +117,7 @@ const CreateGroupModal = ({
               }}
             />
 
-            <Input type="select" label="Visibility" onChange={(e) => {
+            <Input type="select" onChange={(e) => {
               setVisibility(e.target.value)
             }} options={[
               {
@@ -173,7 +173,7 @@ const CreateGroupModal = ({
               >
                 <UserPlus />
                 Group Chat
-                <ChevronFirst />
+                <ChevronLast />
               </Button>
               <Button
                 variant="text"
@@ -184,14 +184,14 @@ const CreateGroupModal = ({
               >
                 <Send />
                 Direct Message
-                <ChevronFirst />
+                <ChevronLast />
               </Button>
             </>
           )
         )}
         {
           show && (
-            <div className="w-full flex items-center justify-center flex-col align-middle gap-2 pt-2">
+            <div className="w-full flex items-center justify-center flex-col align-middle max-h-[450px] overflow-auto scrollbar-hide gap-2 pt-2">
               <span className="w-full mb-2 text-sm font-bold text-white">Select Members: </span>
               {users?.length ? (
                 users
@@ -234,7 +234,7 @@ const CreateGroupModal = ({
         {
           showDm && (
 
-            <div className="w-full flex items-center justify-center flex-col align-middle gap-2 pt-2">
+            <div className="w-full flex items-center justify-center flex-col align-middle gap-2 pt-2 max-h-[450px] overflow-auto scrollbar-hide">
               {users?.length ? (
                 users?.filter((u: any) => {
                   return u.id !== user?.id && !checkBlock(u.id);

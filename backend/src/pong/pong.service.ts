@@ -245,15 +245,18 @@ export class PongService {
     client: Socket,
   ) {
     // Check if the invited friend is already in an active invitation
-    if (
-      this.isInvited(invitedFriendId) ||
-      this.isAlreadyInGame(null, { userId: inviterId }) ||
-      this.isAlreadyInGame(null, { userId: invitedFriendId })
-    ) {
-      console.log('Invitation already sent to the friend.');
+    if (this.isInvited(invitedFriendId)) {
+      client.emit('error', 'Invitation already sent to the friend.');
       return;
     }
 
+    if (
+      this.isAlreadyInGame(null, { userId: inviterId }) ||
+      this.isAlreadyInGame(null, { userId: invitedFriendId })
+    ) {
+      client.emit('error', 'Player already in Game');
+      return;
+    }
     // Create an invitation object
     const invitation: Invitation = {
       inviterId,
@@ -265,7 +268,7 @@ export class PongService {
     };
 
     // Add the invitation to the active invitations dictionary
-    this.activeInvitations.set(inviterId, invitation);
+    this.activeInvitations.set(inviterId.toString(), invitation);
     this.notificationService.sendNotification(
       inviterId,
       invitedFriendId,
@@ -293,10 +296,7 @@ export class PongService {
           invitation.invitedFriendId.toString() === invitedFriendId.toString(),
       );
       this.activeInvitations.delete(invitation.inviterId);
-      // invitation.values()[0].inviterSocket.emit('init-game');
-      // const invitation = this.activeInvitations.get(invitedFriendId);
-      // Proceed with joining the game or taking any other action
-      // to fulfill the invitation request
+      this.activeInvitations.delete(invitation.invitedFriendId);
       const playerA = await this.createPlayer(invitation.inviterSocket);
       const playerB = await this.createPlayer(client);
       playerB.x = playerB.canvas.width - playerB.width;
@@ -352,6 +352,12 @@ export class PongService {
         invitation.invitedFriendId.toString() === playerId.toString(),
     );
     return activeInvitations.length > 0;
+  }
+
+  async checkForInvitaionSent(client) {
+    const id = await this.getClientIdFromClient(client);
+    console.log(this.activeInvitations);
+    return this.activeInvitations.has(id);
   }
 
   async checkForActiveInvitations(client) {

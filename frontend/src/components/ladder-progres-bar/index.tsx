@@ -1,11 +1,5 @@
 "use client"
 
-
-import { twMerge } from "tailwind-merge";
-import IUser from "../../interfaces/user";
-import Image from "next/image";
-
-
 const icons = [
     "beginner.svg",
     "amateur.svg",
@@ -15,7 +9,7 @@ const icons = [
     "legendary.svg",
 ];
 
-const LadderProgressBar = ({ user }: { user: IUser }) => {
+const LadderProgressBar = ({ rating }: { rating: number }) => {
     return (
         <>
             <div className="relative hidden h-14 w-full max-w-[1024px] md:block ">
@@ -27,10 +21,7 @@ const LadderProgressBar = ({ user }: { user: IUser }) => {
                                 src={`/levels/${item}`}
                                 alt=""
                                 width={40}
-                                className={twMerge(
-                                    i * 20 > (user?.rating / 10000) * 100 &&
-                                    "grayscale-[70%]"
-                                )}
+                                className={`${i * 20 > (rating / 10000) * 100 ? "grayscale-[70%]" : ""}`}
                             />
                         );
                     })}
@@ -40,7 +31,7 @@ const LadderProgressBar = ({ user }: { user: IUser }) => {
                         className="h-4 rounded-full bg-primary-400"
                         style={{
                             width: `${Math.min(
-                                (user?.rating / 10000) * 100,
+                                (rating / 10000) * 100,
                                 100
                             ).toString()}%`,
                         }}

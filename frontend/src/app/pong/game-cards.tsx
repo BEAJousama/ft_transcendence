@@ -1,12 +1,14 @@
-"use client";
+"use client"
 import { Button, Card, Carousel, Input, Spinner, UserBanner } from "@/components";
 import useSwr from "swr";
 import { AppContext, fetcher } from "@/context/app.context";
 import { GameContext } from "@/context/game.context";
 import IUser from "@/interfaces/user";
 import { useContext, useEffect, useState } from "react";
-
 import { toast } from "react-toastify";
+import Image from "next/image";
+import { SocketContext } from "@/context/socket.context";
+
 
 const RadioCheck = ({
 	options,
@@ -35,7 +37,7 @@ const RadioCheck = ({
 								onChange={onChange}
 								value={option}
 								name={htmlFor}
-								className="border-gray-300ring-offset-gray-800 h-4 w-4 bg-gray-100 text-blue-600 focus:ring-2 "
+								className="border-gray-300 ring-offset-gray-800 h-4 w-4 bg-gray-100 text-blue-600 focus:ring-2 "
 							/>
 							<label htmlFor={htmlFor} className="ml-2 text-sm font-medium ">
 								{option}
@@ -63,6 +65,7 @@ const CreateGameCard = ({
 	setGameMode,
 	gameOption,
 	setGameOption,
+
 }: {
 	onClick: () => void;
 	onCancel: () => void;
@@ -78,9 +81,11 @@ const CreateGameCard = ({
 	setGameMode?: React.Dispatch<React.SetStateAction<string>>;
 	gameOption?: string;
 	setGameOption?: React.Dispatch<React.SetStateAction<string>>;
+
 }) => {
 	const { data: users, isLoading } = useSwr("api/users", fetcher, {
 		errorRetryCount: 0,
+		refreshInterval: 1000,
 	});
 	const [value, setValue] = useState<string>("");
 	const [show, setShow] = useState<boolean>(false);
@@ -88,26 +93,39 @@ const CreateGameCard = ({
 	const [selectedUser, setSelectedUser] = useState<IUser>();
 	const [filtred, setFiltred] = useState<IUser[]>();
 	const { socket } = useContext(GameContext);
+	const notificationSocket = useContext(SocketContext);
 	const { user } = useContext(AppContext);
 
 	useEffect(() => {
-		// if (users && (filtred || !value))
-		//     setFiltred(
-		//         users.filter((item: IUser) =>
-		//             item.fullname.toLowerCase().includes(value.toLowerCase()) && item.status === "ONLINE" && item.id !== user?.id
-		//         )
-		//     );
-		// else setFiltred(users?.filter((item: IUser) => item.status === "ONLINE" && item.id !== user?.id));
 		if (users && (filtred || !value))
 			setFiltred(
-				users.filter(
-					(item: IUser) =>
-						item.fullname.toLowerCase().includes(value.toLowerCase()) &&
-						item.id !== user?.id
+				users.filter((item: IUser) =>
+					item.fullname.toLowerCase().includes(value.toLowerCase()) && item.status === "ONLINE" && item.id !== user?.id
 				)
 			);
-		else setFiltred(users?.filter((item: IUser) => item.id !== user?.id));
+		else setFiltred(users?.filter((item: IUser) => item.status === "ONLINE" && item.id !== user?.id));
 	}, [value, users]);
+
+	useEffect(() => {
+		notificationSocket?.on("invitation-canceled", () => {
+			setShow(false);
+		})
+
+		socket?.emit("check-for-invitaion-sent");
+		socket?.on("check-for-invitaion-sent", () => {
+			setShow(true)
+			// setShowModal(true);
+		});
+
+		socket?.on("game-over", () => {
+			setShow(false)
+			setShowModal(false);
+		});
+
+
+		return () => { }
+
+	}, [socket])
 
 	return (
 		<Card
@@ -131,7 +149,7 @@ const CreateGameCard = ({
 					{isLoading ? (
 						<Spinner />
 					) : filtred?.length ? (
-						<div className="flex h-full max-h-[500px] overflow-auto scrollbar-hide w-full flex-col">
+						<div className="flex h-full max-h-[350px] md:max-h-[500px] overflow-auto scrollbar-hide w-full flex-col">
 							{filtred.map((item: IUser) => {
 								return (
 									<Button
@@ -142,7 +160,11 @@ const CreateGameCard = ({
 										}}
 										key={item.id}
 									>
-										<UserBanner user={item} showRating rank={item.rating} />
+										<UserBanner
+											user={item}
+											showRating
+											rank={item.rating}
+										/>
 									</Button>
 								);
 							})}
@@ -151,7 +173,8 @@ const CreateGameCard = ({
 						<div className="flex items-center justify-center text-xs text-primary-500 md:text-2xl">
 							No matches found
 						</div>
-					)}
+					)
+					}
 					<span className="w-full">Selected User : </span>
 					{selectedUser && (
 						<UserBanner
@@ -163,7 +186,6 @@ const CreateGameCard = ({
 					)}
 					<div className="flex w-full items-center justify-center gap-4">
 						<Button
-							disabled={!!!selectedUser}
 							onClick={() => {
 								setShowModal(false);
 							}}
@@ -171,6 +193,7 @@ const CreateGameCard = ({
 							Cancel
 						</Button>
 						<Button
+							disabled={!!!selectedUser}
 							onClick={() => {
 								socket?.emit("invite-friend", {
 									inviterId: user?.id,
@@ -187,48 +210,51 @@ const CreateGameCard = ({
 						</Button>
 					</div>
 				</div>
+
 			)}
-			{!showModal && (
-				<>
-					{showOptions ? (
-						<>
-							<RadioCheck
-								value={gameMode}
-								onChange={(e) => {
-									setGameMode && setGameMode(e.target.value);
-								}}
-								htmlFor={"gamemode" + name}
-								label="Select Game bet"
-								options={["Classic Mode", "Ranked Mode", "Time Attack"]}
-							/>
-							<RadioCheck
-								value={gameOption}
-								onChange={(e) => {
-									setGameOption && setGameOption(e.target.value);
-								}}
-								htmlFor={"gameoption" + name}
-								label="Select Game Options"
-								options={["Classic", "Power Shot", "ShrinkingPaddle"]}
-							/>
-						</>
-					) : (
-						<>
-							<img src="/img/3839218-removebg-preview.png" alt="" width={200} />
-						</>
-					)}
-					<Button
-						className="px-16"
-						onClick={() => {
-							!invite && onClick();
-							!invite && setShow(true);
-							invite && setShowModal(true);
-						}}
-						disabled={disabled}
-					>
-						{content}
-					</Button>
-				</>
-			)}
+			{
+				!showModal && (
+					<>
+						{showOptions ? (
+							<>
+								<RadioCheck
+									value={gameMode}
+									onChange={(e) => {
+										setGameMode && setGameMode(e.target.value);
+									}}
+									htmlFor={"gamemode" + name}
+									label="Select Game bet"
+									options={["Classic Mode", "Ranked Mode", "Time Attack"]}
+								/>
+								<RadioCheck
+									value={gameOption}
+									onChange={(e) => {
+										setGameOption && setGameOption(e.target.value);
+									}}
+									htmlFor={"gameoption" + name}
+									label="Select Game Options"
+									options={["Classic", "Power Shot", "ShrinkingPaddle"]}
+								/>
+							</>
+						) : (
+							<>
+								<Image src="/img/3839218-removebg-preview.png" alt="" width={200} height={200} />
+							</>
+						)}
+						<Button
+							className="px-16"
+							onClick={() => {
+								!invite && onClick();
+								!invite && setShow(true);
+								invite && setShowModal(true);
+							}}
+							disabled={disabled}
+						>
+							{content}
+						</Button>
+					</>
+				)
+			}
 			{showLoading && show && (
 				<>
 					<div className="absolute inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm"></div>
@@ -254,6 +280,7 @@ const CreateGameCard = ({
 	);
 };
 
+
 export default function GameCards() {
 	const [disabled, setDisabled] = useState<{
 		invite: boolean;
@@ -262,9 +289,36 @@ export default function GameCards() {
 	const [gameMode, setGameMode] = useState<string>("Classic Mode");
 	const [gameOption, setGameOption] = useState<string>("Classic");
 	const { socket } = useContext(GameContext);
+	const notificationSocket = useContext(SocketContext);
 	const { user } = useContext(AppContext);
+	let timeoutId: NodeJS.Timeout | null = null;
+
+	useEffect(() => {
+		notificationSocket?.on("invitation-canceled", () => {
+			setDisabled({
+				invite: false,
+				join: false,
+			});
+		})
+		socket?.emit("check-for-invitaion-sent");
+		socket?.on("check-for-invitaion-sent", () => {
+			setDisabled({
+				invite: true,
+				join: false,
+			})
+		});
+
+		socket?.on("game-over", () => {
+			setDisabled({
+				invite: false,
+				join: false,
+			})
+		});
+		return () => { }
+	}, [socket]);
+
 	return (
-		<Carousel className="w-full" chevrons={true}>
+		<Carousel className="w-full" chevrons={!disabled?.invite && !disabled?.join} swipeable={false}>
 			<CreateGameCard
 				invite
 				title="Invite Your Friends to Play"
@@ -275,6 +329,12 @@ export default function GameCards() {
 						invite: false,
 						join: true,
 					});
+					timeoutId = setTimeout(() => {
+						setDisabled({
+							invite: false,
+							join: false,
+						});
+					}, 30000)
 				}}
 				showOptions
 				showLoading
@@ -291,6 +351,7 @@ export default function GameCards() {
 						invite: false,
 						join: false,
 					});
+					timeoutId && clearTimeout(timeoutId);
 				}}
 			/>
 			<CreateGameCard
@@ -336,5 +397,5 @@ export default function GameCards() {
 				disabled={disabled?.join}
 			/>
 		</Carousel>
-	);
+	)
 }

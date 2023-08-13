@@ -7,6 +7,7 @@ import {
   Post,
   InternalServerErrorException,
   Body,
+  UseFilters,
 } from '@nestjs/common';
 import {
   CallbackDoc,
@@ -30,6 +31,7 @@ import { GoogleGuard } from './guards/google.guard';
 import { SignInDto } from './dto/signin.dto';
 import { SignUpDto } from './dto/signup.dto';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import { FourtyTwoFilter } from './exeception.filter';
 
 @Controller('auth')
 export class AuthController {
@@ -73,6 +75,7 @@ export class AuthController {
     }
   }
 
+  @UseFilters(FourtyTwoFilter)
   @UseGuards(FourtyTwoGuard)
   @Public()
   @CallbackDoc()
