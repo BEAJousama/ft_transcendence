@@ -5,21 +5,41 @@ import { Button, Input } from "@/components";
 import axios from "axios";
 import { useFormik } from "formik";
 import { useRouter } from "next/navigation";
-import dynamic from "next/dynamic";
-import Image from "next/image";
 import { getCookieItem, setCookieItem } from "@/context/app.context";
+import Image from "next/image";
+import { twMerge } from "tailwind-merge";
+import { useDebounce } from "react-use";
 
-const Spinner = dynamic(() => import("@/components/").then((mod) => mod.Spinner), { ssr: false });
+const SSO: { key: "42" | "google"; name: string; url: string }[] = [
+	{
+		key: "42",
+		name: "Intra",
+		url: `${process.env.NEXT_PUBLIC_BACK_END_URL}api/auth/42/callback`,
+	},
+	{
+		key: "google",
+		name: "Google",
+		url: `${process.env.NEXT_PUBLIC_BACK_END_URL}api/auth/google/login`,
+	},
+];
 
-const Login = () => {
-	const [loading, setLoading] = useState<boolean>(false);
-	const [success, setSuccess] = useState<boolean>(false);
-	const [error, setError] = useState("");
+const Login = ({
+	setSelectable,
+	needs2fa,
+}: {
+	setSelectable: React.Dispatch<React.SetStateAction<boolean>>;
+	needs2fa: () => void;
+}) => {
+	const [loading, setLoading] = useState<"" | "internal" | "42" | "google">("");
+	const [success, setSuccess] = useState<"" | "internal" | "42" | "google">("");
+	const [error, setError] = useState<"" | "internal" | "42" | "google">("");
+	const [invalidCreds, setInvalidCreds] = useState<string>("");
 	const router = useRouter();
 
 	const [externalPopup, setExternalPopup] = useState<Window | null>(null);
 
-	const connectClick = (e: any, url: string) => {
+	const connectClick = (e: any, key: "42" | "google", url: string) => {
+		setLoading(key);
 		const width = 500;
 		const height = 700;
 		const left = window.screenX + (window.outerWidth - width) / 2;
@@ -35,17 +55,40 @@ const Login = () => {
 	};
 
 	useEffect(() => {
-		if (!externalPopup || externalPopup.closed) return;
+		if (!externalPopup) return;
+		setSelectable(false);
 		const checkPopup = setInterval(() => {
-			if (externalPopup.window.location.href.includes(`e2r2p11.1337.ma:5000/`)) {
-				clearInterval(checkPopup);
-				externalPopup.close();
-				setTimeout(() => {
-					if (!getCookieItem("access_token")) return;
-					setSuccess(true);
-					router.push("/home");
-				}, 2000);
-			}
+			try {
+				if (externalPopup.closed) {
+					clearInterval(checkPopup);
+					setError(loading);
+					setTimeout(() => {
+						setError("");
+					}, 2000);
+					setLoading("");
+					setSelectable(true);
+					return;
+				}
+				if (
+					externalPopup.window.location.href.includes(
+						`${process.env.NEXT_PUBLIC_FRONT_END_URL}`
+					)
+				) {
+					clearInterval(checkPopup);
+					externalPopup.close();
+					if (!getCookieItem("2fa_access_token") && !getCookieItem("access_token")) {
+						setSelectable(true);
+						setLoading("");
+						return;
+					}
+					setSuccess(loading);
+					if (getCookieItem("2fa_access_token")) needs2fa();
+					else
+						setTimeout(() => {
+							router.push("/home");
+						}, 2000);
+				}
+			} catch (_) {}
 		}, 500);
 	}, [externalPopup]);
 
@@ -70,36 +113,42 @@ const Login = () => {
 	});
 
 	const handleLogin = async () => {
+		const handleError = (_error: string) => {
+			setError("internal");
+			setSelectable(true);
+			setTimeout(() => {
+				setError("");
+			}, 2000);
+			if (!invalidCreds) setInvalidCreds(_error);
+			setLoading("");
+			return;
+		};
 		try {
-			setLoading(true);
-			setError("");
+			setLoading("internal");
+			setSelectable(false);
 			formik.validateForm();
 
 			if (
 				Object.values(formik.values).some((value) => value === "") ||
 				Object.values(formik.errors).some((value) => value !== "")
-			) {
-				setError("Please enter a valid username and password");
-				setLoading(false);
-				return;
-			}
+			)
+				handleError("Please fill in valid credentials");
 			const res = await axios.post(`${process.env.NEXT_PUBLIC_BACK_END_URL}api/auth/signin`, {
 				username: formik.values.username,
 				password: formik.values.password,
 			});
-			if (res.data.error) {
-				setError("Incorrect username or password");
-				setLoading(false);
-				return;
-			}
-			setSuccess(true);
+			setSuccess("internal");
 			if (res.data) {
-				setCookieItem("access_token", res.data.access_token);
-				// updateUser();
+				setInvalidCreds("");
+				setCookieItem(res.data.name, res.data.value);
+				if (res.data.name === "2fa_access_token") needs2fa();
+				else
+					setTimeout(() => {
+						router.push("/home");
+					}, 2000);
 			}
-		} catch (_e) {
-			setError("Incorrect username or password");
-			setLoading(false);
+		} catch (_e: any) {
+			handleError(_e.response.data.message);
 			console.log(_e);
 		}
 	};
@@ -115,7 +164,9 @@ const Login = () => {
 					value={formik.values.username}
 					onChange={formik.handleChange}
 					onBlur={formik.handleBlur}
-					success={success}
+					success={success === "internal"}
+					disabled={!!loading || !!success}
+					isError={error === "internal"}
 				/>
 				<Input
 					name="password"
@@ -124,64 +175,66 @@ const Login = () => {
 					value={formik.values.password}
 					onChange={formik.handleChange}
 					onBlur={formik.handleBlur}
-					success={success}
+					success={success === "internal"}
+					disabled={!!loading || !!success}
+					isError={error === "internal"}
 				/>
-				{error && (
-					<p className={"mt-2 text-xs text-red-600 dark:text-red-500 animate-[pulse_1s]"}>
-						<span className="font-medium">{error}</span>
+				{!!invalidCreds && (
+					<p
+						className={twMerge(
+							"text-xs text-red-600 dark:text-red-500 font-medium",
+							invalidCreds && "animate-[pulse_1s]"
+						)}
+					>
+						{invalidCreds}
 					</p>
 				)}
-				<div className="relative flex w-full">
-					{loading && (
-						<Spinner className="absolute flex items-center justify-center w-1/3 h-full transition duration-300 ease-out z-10 backdrop-blur-[2px] inset-x-1/3" />
+				<Button
+					className={twMerge(
+						"w-full",
+						loading === "internal" && "animate-pulse disabled:cursor-wait"
 					)}
-					<Button
-						className="relative w-full"
-						onClick={handleLogin}
-						disabled={
-							loading ||
-							success ||
-							Object.values(formik.values).some((value) => value === "") ||
-							Object.values(formik.errors).some((value) => value !== "")
-						}
-					>
-						Sign in
-					</Button>
-				</div>
+					onClick={handleLogin}
+					type={
+						!!success && success === "internal"
+							? "success"
+							: error === "internal"
+							? "danger"
+							: "primary"
+					}
+					disabled={
+						!!loading ||
+						!!success ||
+						error === "internal" ||
+						Object.values(formik.values).some((value) => value === "") ||
+						Object.values(formik.errors).some((value) => value !== "")
+					}
+				>
+					Sign in
+				</Button>
 				<div className="flex w-full items-center gap-2">
 					<hr className="w-[70%] border-gray-400" />
 					or
 					<hr className="w-[70%] border-gray-400" />
 				</div>
 				<div className="flex w-full justify-center gap-4 md:flex-col">
-					<Button
-						onClick={(e) =>
-							connectClick(
-								e,
-								`${process.env.NEXT_PUBLIC_BACK_END_URL}api/auth/42/callback`
-							)
-						}
-						type="secondary"
-						disabled={loading || success}
-						className="h-14 w-14 justify-center rounded-xl md:h-auto md:w-full text-sm backdrop-blur-sm"
-					>
-						<Image src="/img/42Logo-light.svg" alt="logo" width={30} height={30} />
-						<p className="hidden md:block">Continue with Intra</p>
-					</Button>
-					<Button
-						onClick={(e) =>
-							connectClick(
-								e,
-								`${process.env.NEXT_PUBLIC_BACK_END_URL}api/auth/google/login`
-							)
-						}
-						type="secondary"
-						disabled={loading || success}
-						className="h-14 w-14 justify-center rounded-xl md:h-auto md:w-full text-sm backdrop-blur-sm"
-					>
-						<Image src="/img/google.svg" alt="logo" width={30} height={30} />
-						<p className="hidden md:block">Continue with Google</p>
-					</Button>
+					{SSO.map((sso) => (
+						<Button
+							key={sso.key}
+							onClick={(e) => connectClick(e, sso.key, sso.url)}
+							type="secondary"
+							disabled={!!loading || !!success || error === sso.key}
+							className={twMerge(
+								"h-14 w-14 justify-center rounded-xl md:h-auto md:w-full text-sm backdrop-blur-sm transition",
+								loading === sso.key && "animate-pulse disabled:cursor-wait",
+								error === sso.key && "border-red-700 text-red-700",
+								success === sso.key && "border-transparent text-white bg-green-700"
+							)}
+						>
+							<Image src={`/img/${sso.key}.svg`} alt="logo" width={28} height={28} />
+							<p className="hidden md:block">Continue with {sso.name}</p>
+						</Button>
+					))}
 				</div>
 			</div>
 		</div>

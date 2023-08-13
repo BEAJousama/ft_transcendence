@@ -3,8 +3,8 @@ import { twMerge } from "tailwind-merge";
 
 interface LandingPageSelectorProps {
 	selectable: boolean;
-	state: "login" | "register" | "other";
-	setState: (state: "login" | "register" | "other") => void;
+	state: "login" | "register" | "2fa" | "complete";
+	setState: (state: "login" | "register" | "2fa" | "complete") => void;
 }
 
 export default function LandingPageSelector({

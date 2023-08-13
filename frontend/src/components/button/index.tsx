@@ -29,7 +29,7 @@ const Button = ({
 						className={twMerge(
 							"transition disabled:opacity-80 disabled:grayscale-[20%] disabled:cursor-not-allowed",
 							variant === "contained" &&
-								"duration-400 m-auto flex items-center  rounded bg-primary-500 p-2  font-bold text-secondary-500 transition ease-in-out enabled:hover:bg-secondary-200",
+								"duration-400 m-auto flex items-center rounded bg-primary-500 p-2  font-bold text-secondary-500 transition ease-in-out enabled:hover:bg-secondary-200",
 							variant === "text" &&
 								"flex items-center rounded bg-white  font-semibold text-gray-800 enabled:hover:bg-secondary-200",
 							className,
