@@ -87,7 +87,7 @@ const UpdateInfo = ({
                             }
                             setLoading(true);
                             await axios.post(
-                                `${process.env.NEXT_PUBLIC_BACK_END_URL}api/users/${user?.id}`,
+                                `${process.env.NEXT_PUBLIC_BACK_END_URL}api/users/`,
                                 {
                                     user: {
                                         username: formik.values.username,
@@ -96,6 +96,7 @@ const UpdateInfo = ({
                                         country: formik.values.country,
                                         avatar: previewImage,
                                     },
+                                    id: user.id,
                                 },
                                 {
                                     withCredentials: true

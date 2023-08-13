@@ -88,10 +88,10 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
 		if (isLoading) return;
 		const id = setInterval(async () => {
 			const accessToken = getCookieItem("access_token");
-			if (accessToken !== prevAccessToken) {
+			if (accessToken !== prevAccessToken && isAuthenticated) {
 				setPrevAccessToken(accessToken);
 				setIsAuthenticated(false);
-				window.location.reload();
+				router.push("/");
 			}
 		}, 500);
 		return () => clearInterval(id);

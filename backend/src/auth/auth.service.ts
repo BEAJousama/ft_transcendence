@@ -57,43 +57,6 @@ export class AuthService {
     }
   }
 
-  // async signIn(body: SignInDto, res) {
-  //   try {
-  //     const user = await this.usersService.findUserByLogin(body.username);
-  //     if (!user) {
-  //       throw new UnauthorizedException('Invalid credentials');
-  //     }
-  //     const isMatch = await this.verifyPassword(body.password, user.password);
-  //     if (!isMatch) {
-  //       throw new UnauthorizedException('Invalid credentials');
-  //     }
-
-  //     if (user.twoFactorAuth === true) {
-  //       const payload = { login: user.login, sub: user.id };
-  //       const access_token = this.jwtService.sign(payload, {
-  //         secret: process.env.TFA_JWT_SECRET,
-  //         expiresIn: '24h',
-  //       });
-
-  //       res.cookie('2fa_access_token', access_token);
-  //       // res.redirect(process.env.FRONTEND_URL);
-  //       res.end();
-  //       return;
-  //     }
-
-  //     const payload = { login: user.login, sub: user.id, email: user.email };
-  //     const access_token = this.jwtService.sign(payload, {
-  //       secret: process.env.JWT_SECRET,
-  //       expiresIn: '24h',
-  //     });
-  //     res.cookie('access_token', access_token);
-  //     // res.redirect(process.env.FRONTEND_URL);
-  //     res.end();
-  //   } catch (error) {
-  //     throw error;
-  //   }
-  // }
-
   async signIn(body: SignInDto) {
     try {
       const user = await this.usersService.findUserByLogin(body.username);

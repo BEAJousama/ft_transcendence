@@ -28,7 +28,7 @@ export default function Pong() {
   const [showInvitaionModal, setShowInvitaionModal] = useState<boolean>(false);
   const [gameData, setGameData] = useState<any>();
 
-  const { socket, playerA, setPlayerA, playerB, setPlayerB, ball, setBall } =
+  const { socket, playerA, setPlayerA, playerB, setPlayerB, ball, setBall, isInGame } =
     useContext(GameContext);
   const { user } = useContext(AppContext);
   const notificationSocket = useContext(SocketContext);
@@ -68,6 +68,7 @@ export default function Pong() {
     // diconnect handler
     socket.on("disconnect", () => {
       setShow(false);
+      isInGame.current = false;
     });
 
     const handleUnload = () => {

@@ -11,6 +11,13 @@ const TwoFactorAuth = () => {
 	const [code, setCode] = useState("");
 	const router = useRouter();
 	const [error, setError] = useState("");
+	const [shouldRedirect, setShouldRedirect] = useState<boolean>();
+
+	useEffect(() => {
+		if (shouldRedirect) {
+			router.push("/app");
+		}
+	}, [shouldRedirect]);
 
 	const inputsRef = [
 		useRef<HTMLInputElement>(null),
@@ -123,7 +130,6 @@ const TwoFactorAuth = () => {
 					className="w-full justify-center"
 					onClick={async () => {
 						try {
-
 							await axios.post(
 								`${process.env.NEXT_PUBLIC_BACK_END_URL}api/auth/2fa/verify`,
 								{ code },
@@ -133,7 +139,7 @@ const TwoFactorAuth = () => {
 							);
 							await fetchUser();
 							setAuthenticated(true);
-							router.push("/home");
+							setShouldRedirect(true);
 						} catch (error) {
 							console.log(error);
 							toast.error("Invalid Code");

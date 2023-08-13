@@ -211,8 +211,6 @@ export class UsersService {
           status: true,
           ladder: true,
           rating: true,
-          createdAt: true,
-          updatedAt: true,
           wins: true,
           losses: true,
           sentRequests: true,
@@ -295,8 +293,6 @@ export class UsersService {
           status: true,
           ladder: true,
           rating: true,
-          createdAt: true,
-          updatedAt: true,
           wins: true,
           losses: true,
           totalGames: true,
@@ -355,7 +351,6 @@ export class UsersService {
       };
     } catch (error) {
       if (error && error.code) {
-        console.log(error);
         if (error.code === 'P2016') {
           throw new NotFoundException(`User with ID ${id} not found`);
         } else if (error.code === 'P2025') {

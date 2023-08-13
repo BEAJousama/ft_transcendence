@@ -55,8 +55,11 @@ export default function SettingsPage() {
                   onAccept={async () => {
                     try {
                       await axios.delete(
-                        `${process.env.NEXT_PUBLIC_BACK_END_URL}api/users/${user?.id}`,
+                        `${process.env.NEXT_PUBLIC_BACK_END_URL}api/users`,
                         {
+                          data: {
+                            id: user?.id,
+                          },
                           withCredentials: true,
                         }
                       );

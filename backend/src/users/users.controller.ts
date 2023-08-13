@@ -139,7 +139,6 @@ export class UsersController {
   @UnblockUserDoc()
   async unblockUsers(@Body() body: UnblockUserDto) {
     try {
-      console.log(body);
       const blockedUser = await this.usersService.unblockUser(body);
       if (!blockedUser) throw 'No Matches Found !!!!!';
       return blockedUser;
@@ -218,7 +217,7 @@ export class UsersController {
     }
   }
 
-  @Post(':id')
+  @Post()
   @UpdateDoc()
   async updateOne(@Body() { user, id }: UpdateUserDto) {
     try {
@@ -228,7 +227,7 @@ export class UsersController {
     }
   }
 
-  @Delete(':id')
+  @Delete()
   @DeleteDoc()
   async deleteOne(@Body() { id }: IdDto) {
     try {

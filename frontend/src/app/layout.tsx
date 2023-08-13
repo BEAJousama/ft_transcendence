@@ -27,30 +27,30 @@ export default function RootLayout({
   return (
 
     <html lang="en">
-      <AppProvider>
+      {/* <AppProvider>
         <ChatProvider>
           <SocketProvider>
-            <GameProvider>
-              <body className={montserrat.className}>
-                {children}
-                <ToastContainer
-                  position="top-right"
-                  autoClose={5000}
-                  limit={2}
-                  hideProgressBar={false}
-                  newestOnTop
-                  rtl={false}
-                  pauseOnFocusLoss
-                  draggable
-                  pauseOnHover
-                  theme="colored"
-                  transition={Slide}
-                />
-              </body>
-            </GameProvider>
+            <GameProvider> */}
+      <body className={montserrat.className}>
+        {children}
+        <ToastContainer
+          position="top-right"
+          autoClose={5000}
+          limit={2}
+          hideProgressBar={false}
+          newestOnTop
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="colored"
+          transition={Slide}
+        />
+      </body>
+      {/* </GameProvider>
           </SocketProvider>
         </ChatProvider>
-      </AppProvider>
+      </AppProvider> */}
     </html>
   );
 }
