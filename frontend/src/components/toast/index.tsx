@@ -1,6 +1,6 @@
 "use client"
 
-import { CgClose } from "react-icons/cg"
+import { X } from 'lucide-react';
 import Button from "../button"
 import Avatar from "../avatar"
 import React from "react";
@@ -33,7 +33,9 @@ const Toast = ({
 
     return (
         <div className="flex items-center justify-between gap-4 bg-white" role="alert" ref={toastId}>
-            <Avatar src={sender.avatar} alt="" className=" !w-12 !h-12" />
+            <div className="basis-[15%]">
+                <Avatar src={sender.avatar} alt="" className=" !w-12 !h-12" />
+            </div>
             <div>
                 <p className="text-black">{title}</p>
                 <p className="text-xs text-tertiary-200">{content || sender.fullname}</p>
@@ -41,7 +43,7 @@ const Toast = ({
             <Button variant="text" onClick={() => {
                 toast.dismiss(toastId.current?.id)
             }}>
-                <CgClose />
+                <X />
             </Button>
         </div>
     )

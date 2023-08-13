@@ -2,21 +2,27 @@
 import Image from "next/image";
 import { toast } from "react-toastify";
 
-import { MdSettings } from "react-icons/md";
+import { Settings } from 'lucide-react';
 import {
-  Avatar,
   Spinner,
-  ConfirmationModal,
   UpdateAvatar,
   UpdateInfo,
   ActivateTfa,
-} from "../../components";
+} from "@/components";
 import { useContext, useState } from "react";
 import { AppContext } from "../../context/app.context";
 import axios from "axios";
 import Layout from "../layout/index";
+import dynamic from "next/dynamic";
 
-export default function Settings() {
+const ConfirmationModal = dynamic(
+  () => import("@/components/confirmationmodal/index"),
+  {
+    ssr: false,
+  }
+);
+
+export default function SettingsPage() {
   const { user } = useContext(AppContext);
   const [previewImage, setPreviewImage] = useState<string>(user?.avatar || "");
   const [showmodal, setShowmodal] = useState<boolean>(false);
@@ -30,7 +36,7 @@ export default function Settings() {
         ) : (
           <>
             <div className="flex w-full items-center gap-2 p-2 text-lg text-white md:gap-4 md:text-2xl">
-              <MdSettings />
+              <Settings />
               Account Settings
             </div>
             <UpdateAvatar
@@ -44,13 +50,16 @@ export default function Settings() {
                   accept="Yes, Delete"
                   reject="Keep Account"
                   icon={
-                    <img src={"/img/danger.png"} alt="" className="h-32 w-32" />
+                    <Image src={"/img/danger.png"} alt="" width={128} height={128} className="h-32 w-32" />
                   }
                   onAccept={async () => {
                     try {
                       await axios.delete(
-                        `${process.env.NEXT_PUBLIC_BACK_END_URL}api/users/${user?.id}`,
+                        `${process.env.NEXT_PUBLIC_BACK_END_URL}api/users`,
                         {
+                          data: {
+                            id: user?.id,
+                          },
                           withCredentials: true,
                         }
                       );

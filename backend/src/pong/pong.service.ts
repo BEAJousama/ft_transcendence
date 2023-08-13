@@ -1,5 +1,9 @@
 import NotificationService from 'src/notification/notification.service';
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { GameStatus, Ladder } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Socket } from 'socket.io';
@@ -7,11 +11,14 @@ import { AIPlayer, Ball, Canvas, Player } from './classes';
 import { Invitation } from './interfaces/index';
 import { GameProvider } from './services/gameprovider.service';
 import { UsersService } from 'src/users/users.service';
+import { JwtService } from '@nestjs/jwt';
+import { WsException } from '@nestjs/websockets';
+import { NotificationGateway } from 'src/notification/notification.gateway';
 
 type Game = {
   playerASocket: Socket;
   playerBSocket: Socket;
-  bit: string;
+  gameMode: string;
   powerUps: string;
 };
 
@@ -23,13 +30,117 @@ export class PongService {
     number,
     Invitation
   >(); // Map to store active invitations
-  use: any;
 
   constructor(
     private prisma: PrismaService,
     private notificationService: NotificationService,
     private usersService: UsersService,
+    @Inject(JwtService) private readonly jwtService,
+    @Inject(NotificationGateway)
+    private notificationGateway: NotificationGateway,
   ) {}
+
+  // -----------------------------------------Game History-----------------------------------------//
+
+  // Fetches the match history of a specific user
+  async getMatchHistory(userId: number) {
+    try {
+      const games = await this.prisma.game.findMany({
+        where: {
+          OR: [
+            {
+              player1Id: userId,
+            },
+            {
+              player2Id: userId,
+            },
+          ],
+          status: 'FINISHED',
+        },
+        include: {
+          player1: true,
+          player2: true,
+        },
+      });
+      return games;
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  // Updates the winner and loser of a game
+  async updateWinnerandLoser(
+    winnerId: number,
+    loserId: number,
+    gameId: number,
+  ) {
+    try {
+      const game = await this.prisma.game.update({
+        where: {
+          id: gameId,
+        },
+        data: {
+          winner: {
+            connect: {
+              id: winnerId,
+            },
+          },
+          loser: {
+            connect: {
+              id: loserId,
+            },
+          },
+          status: 'FINISHED',
+        },
+      });
+      console.log(game);
+    } catch (error) {
+      // Handle the error here
+      console.log(error);
+    }
+  }
+
+  // Updates the score of a game
+  async updateScore(
+    gameId: number,
+    player1score: number,
+    player2score: number,
+  ) {
+    try {
+      await this.prisma.game.update({
+        where: {
+          id: gameId,
+        },
+        data: {
+          player1Score: player1score,
+          player2Score: player2score,
+        },
+      });
+    } catch (error) {
+      // Handle the error here
+      // console.log(error);
+    }
+  }
+
+  // Creates a game between two players
+  async createGame(player1Id: number, player2Id: number) {
+    try {
+      if (isNaN(player1Id) || isNaN(player2Id)) return;
+      const game = await this.prisma.game.create({
+        data: {
+          player1: { connect: { id: player1Id } },
+          player2: { connect: { id: player2Id } },
+          status: GameStatus.IN_PROGRESS,
+        },
+      });
+      return game;
+    } catch (error) {
+      // Handle the error here
+      throw error;
+    }
+  }
+
+  //-----------------------------------------Random Matching-----------------------------------------//
 
   private isMatchingGameMode(game: Game, gameMode: string): boolean {
     const playerGameMode = this.getClientGameMode(game); // Implement a function to get the player's game mode
@@ -47,20 +158,14 @@ export class PongService {
     client,
     {
       userId,
-      bit,
+      gameMode,
       powerUps,
     }: {
       userId: number;
-      bit: string;
+      gameMode: string;
       powerUps: string;
     },
   ) {
-    /*
-      userid,
-      gameMode,
-      playMode,
-      socket,
-    */
     client.on('disconnect', () => {
       this.leaveQueue(client);
     });
@@ -71,19 +176,9 @@ export class PongService {
       return;
     }
 
-    console.log(
-      'Player joined the queue.',
-      this.getClientIdFromClient(client),
-      // clientquery,
-      ' !=== ',
-      userId,
-      powerUps,
-      bit,
-    );
-
     const matchingPlayers = this.queue.filter(
       (game) =>
-        this.isMatchingGameMode(game, bit) &&
+        this.isMatchingGameMode(game, gameMode) &&
         this.isMatchingPlayMode(game, powerUps),
     );
 
@@ -94,7 +189,7 @@ export class PongService {
       );
       const playerB = await this.createPlayer(client);
       playerB.x = playerB.canvas.width - playerB.width;
-      this.createGameProvider(playerA, playerB, powerUps, bit);
+      this.createGameProvider(playerA, playerB, powerUps, gameMode);
       playerA.socket.emit('init-game');
       playerB.socket.emit('init-game');
       return;
@@ -103,12 +198,14 @@ export class PongService {
     const game: Game = {
       playerASocket: client,
       playerBSocket: null,
-      bit: bit,
+      gameMode: gameMode,
       powerUps: powerUps,
     };
 
     this.queue.push(game);
   }
+
+  //--------------------------------------------------------------------------------------------------//
 
   // get player from game provider by id
   getPlayerById(id: number) {
@@ -121,7 +218,7 @@ export class PongService {
   isAlreadyInGame(client, info: { userId: number }) {
     const gameProvider = this.getGameProviderByUserId(info.userId);
     const player = this.getPlayerById(info.userId);
-    if (player) {
+    if (player && client) {
       player.socket.off('disconnect', () => {});
       player.socket = client;
     }
@@ -142,12 +239,17 @@ export class PongService {
     this.gameOver(gameProvider);
   }
 
+  //-------------------------------invite friend-----------------------------------//
   inviteFriend(
-    { inviterId, invitedFriendId, bit, powerUps }: any,
+    { inviterId, invitedFriendId, gameMode, powerUps }: any,
     client: Socket,
   ) {
     // Check if the invited friend is already in an active invitation
-    if (this.isInvited(invitedFriendId)) {
+    if (
+      this.isInvited(invitedFriendId) ||
+      this.isAlreadyInGame(null, { userId: inviterId }) ||
+      this.isAlreadyInGame(null, { userId: invitedFriendId })
+    ) {
       console.log('Invitation already sent to the friend.');
       return;
     }
@@ -158,7 +260,7 @@ export class PongService {
       inviterSocket: client,
       invitedFriendId,
       timestamp: Date.now(),
-      bit,
+      gameMode,
       powerUps,
     };
 
@@ -202,7 +304,7 @@ export class PongService {
         playerA,
         playerB,
         invitation.powerUps,
-        invitation.bit,
+        invitation.gameMode,
       );
       playerA.socket.emit('init-game');
       playerB.socket.emit('init-game');
@@ -215,12 +317,30 @@ export class PongService {
 
   resetInvitation(inviterId: number) {
     // Check if the inviter has an active invitation
+    const inv: Invitation = this.activeInvitations.get(inviterId);
+    // console.log('Invitation reset.');
     if (this.isInvited(inviterId)) {
       // Remove the invitation from the active invitations dictionary
+
       this.activeInvitations.delete(inviterId);
 
       // Proceed with any necessary reset or clean-up actions
-      console.log('Invitation reset.');
+    } else if (inv) {
+      if (inv && inv.inviterSocket) {
+        const id = this.notificationGateway.clients_map.get(
+          inv.inviterId.toString(),
+        );
+        this.notificationGateway.server.to(id).emit('invitation-canceled');
+        this.activeInvitations.delete(inviterId);
+        this.notificationService.sendNotification(
+          inv.inviterId,
+          inv.invitedFriendId,
+          'Game Invite Rejected',
+          '',
+          inv.inviterId,
+          '/pong',
+        );
+      }
     }
   }
 
@@ -234,143 +354,46 @@ export class PongService {
     return activeInvitations.length > 0;
   }
 
-  checkForActiveInvitations(client) {
-    const id = this.getClientIdFromClient(client);
+  async checkForActiveInvitations(client) {
+    const id = await this.getClientIdFromClient(client);
     const invitations = Array.from(this.activeInvitations.values());
     const activeInvitations = invitations.filter(
       (invitation) => invitation.invitedFriendId.toString() === id,
     );
-    if (activeInvitations.length > 0)
-      client.emit('check-for-active-invitations', activeInvitations[0]);
+    if (activeInvitations.length > 0) {
+      client.emit('check-for-active-invitations', {
+        inviterId: activeInvitations[0]?.inviterId,
+        invitedFriendId: activeInvitations[0]?.invitedFriendId,
+        gameMode: activeInvitations[0]?.gameMode,
+        powerUps: activeInvitations[0]?.powerUps,
+      });
+    }
   }
+
+  //--------------------------------------------------------------------------------//
   // Fetches the list of ongoing games with player information
-  async getLiveGames() {
+
+  async verifyClient(client) {
+    let token: string = client.handshake.auth.token as string;
+    if (token.search('Bearer') !== -1) token = token.split(' ')[1];
     try {
-      const games = await this.prisma.game.findMany({
-        where: {
-          status: 'IN_PROGRESS',
-        },
-        include: {
-          player1: true,
-          player2: true,
-        },
+      const data = await this.jwtService.verifyAsync(token, {
+        secret: process.env.JWT_SECRET,
       });
-      return games;
-    } catch (error) {
-      console.log(error);
+      client.data = data;
+      return data;
+    } catch (err) {
+      throw new WsException({
+        error: 'Authentication failed',
+        message: err.message,
+      });
     }
   }
-
-  // Fetches the match history of a specific user
-  async getMatchHistory(userId: number) {
-    try {
-      const games = await this.prisma.game.findMany({
-        where: {
-          OR: [
-            {
-              player1Id: userId,
-            },
-            {
-              player2Id: userId,
-            },
-          ],
-          status: 'FINISHED',
-        },
-        include: {
-          player1: true,
-          player2: true,
-        },
-      });
-      return games;
-    } catch (error) {
-      console.log(error);
-    }
-  }
-
-  // Updates the winner and loser of a game
-  async updateWinnerandLoser(
-    winnerId: number,
-    loserId: number,
-    gameId: number,
-  ) {
-    try {
-      await this.adjustPlayerRating(winnerId, loserId);
-      const game = await this.prisma.game.update({
-        where: {
-          id: gameId,
-        },
-        data: {
-          winner: {
-            connect: {
-              id: winnerId,
-            },
-          },
-          loser: {
-            connect: {
-              id: loserId,
-            },
-          },
-          status: 'FINISHED',
-        },
-      });
-      console.log(game);
-    } catch (error) {
-      // Handle the error here
-      console.log(error);
-    }
-  }
-
-  // Updates the score of a game
-  async updateScore(
-    gameId: number,
-    player1score: number,
-    player2score: number,
-    player1Id: number,
-    player2Id: number,
-  ) {
-    try {
-      if (player1score === 7 || player2score === 7) {
-        this.updateWinnerandLoser(
-          player1score === 7 ? player1Id : player2Id,
-          player1score === 7 ? player2Id : player1Id,
-          gameId,
-        );
-      }
-      const game = await this.prisma.game.update({
-        where: {
-          id: gameId,
-        },
-        data: {
-          player1Score: player1score,
-          player2Score: player2score,
-        },
-      });
-    } catch (error) {
-      // Handle the error here
-      console.log(error);
-    }
-  }
-
-  // Creates a game between two players
-  async createGame(player1Id: number, player2Id: number) {
-    try {
-      const game = await this.prisma.game.create({
-        data: {
-          player1: { connect: { id: player1Id } },
-          player2: { connect: { id: player2Id } },
-          status: GameStatus.IN_PROGRESS,
-        },
-      });
-      return game;
-    } catch (error) {
-      // Handle the error here
-      console.log(error);
-    }
-  }
-
   // Retrieves the client ID from the socket client
-  private getClientIdFromClient(client: Socket): string {
-    return client.handshake.query.clientId.toString();
+  private async getClientIdFromClient(client: Socket) {
+    // if (client.handshake.query.clientId)
+
+    return (await this.verifyClient(client)).sub.toString();
   }
 
   // Handles client disconnection
@@ -380,21 +403,12 @@ export class PongService {
       if (!game || !playerA || !playerB) return;
       game?.playerA?.id === winnerId ? 7 : 0;
       game?.playerB?.id === winnerId ? 7 : 0;
-      // Update the score and remove the game provider
       this.gameOver(game);
-      // this.updateScore(
-      //   game.id,
-      // playerA.id === winnerId ? 7 : 0,
-      // playerB.id === winnerId ? 7 : 0,
-      //   playerA.id,
-      //   playerB.id,
-      // );
-      // this.removeGameProvider(game);
     });
   }
 
   getClientGameMode(game: Game) {
-    return game.bit;
+    return game.gameMode;
   }
 
   getClientPlayMode(game: Game) {
@@ -418,13 +432,16 @@ export class PongService {
     }
   }
 
-  // Checks if a player's game mode matches the requested game mode
-
   // Plays the game with an AI player
   async playWithAI(client: Socket) {
     const playerA = await this.createPlayer(client);
     const playerB = new AIPlayer(1, playerA.canvas, 3, new Ball(new Canvas()));
-    const game = await this.createGameProvider(playerA, playerB, 'Power Shot');
+    const game = await this.createGameProvider(
+      playerA,
+      playerB,
+      'Classic',
+      'Ranked Mode',
+    );
     playerB.ball = game.game.ball;
     client.on('disconnect', () => {
       // this.updateScore(game.id, playerA.score, 7, playerA.id, playerB.id);
@@ -443,7 +460,7 @@ export class PongService {
 
   // Creates a player instance from a client socket
   private async createPlayer(client: Socket): Promise<Player> {
-    const userId = this.getClientIdFromClient(client); // Implement a function to get the user ID from the client
+    const userId = await this.getClientIdFromClient(client); // Implement a function to get the user ID from the client
     const playerCanvas = new Canvas(); // Replace canvasWidth and canvasHeight with actual values
     const achievements = await this.getPlayerAchievements(parseInt(userId));
 
@@ -455,10 +472,12 @@ export class PongService {
     playerA: Player,
     playerB: Player,
     powerUps?: string,
-    bit?: string,
+    gameMode?: string,
   ) {
-    const gameProvider = new GameProvider(powerUps, bit);
+    if (!playerA && !playerB) return;
+    const gameProvider = new GameProvider(powerUps, gameMode);
     const game = await this.createGame(playerA.id, playerB.id);
+    if (!game) return null;
     gameProvider.id = game.id;
     gameProvider.init(playerA, playerB);
     this.gameProviders.push(gameProvider);
@@ -503,10 +522,7 @@ export class PongService {
   resumeGame(client: Socket, info: { userId: number }) {
     const gameProvider = this.getGameProviderByUserId(info.userId);
     if (!gameProvider) return;
-    const { playerA, playerB } = gameProvider.game;
     gameProvider.paused = false;
-    // playerA.socket.emit('game-paused');
-    // playerB.socket.emit('game-paused');
   }
 
   // Removes a game provider from the list
@@ -524,7 +540,6 @@ export class PongService {
         gameProvider.game.playerB.id === userId,
     );
   }
-
   // Checks if a client is in the queue
   private isInQueue(client: Socket): boolean {
     return this.queue
@@ -556,6 +571,7 @@ export class PongService {
 
     const winner = playerA.score > playerB.score ? playerA : playerB;
     const loser = playerA.score < playerB.score ? playerA : playerB;
+    this.updateScore(gameProvider.id, playerA.score, playerB.score);
     const playerAUser = await this.usersService.findUserById(playerA.id);
     playerA.acheivementsWatcher.checkAchievementsWhenGameIDone(
       playerA,
@@ -568,7 +584,10 @@ export class PongService {
       playerA,
       playerBUser,
     );
-    await this.adjustPlayerRating(winner.id, loser.id);
+    if (gameProvider.gameMode === 'Ranked Mode') {
+      await this.adjustPlayerRating(winner.id, loser.id);
+    }
+
     if (playerA.socket) {
       playerA.socket.emit('game-over', {
         winner: winner.id,
@@ -590,9 +609,11 @@ export class PongService {
   emitUpdate(
     data: { ball: Ball; playerA: Player; playerB: Player },
     client: Socket,
+    timeremaining: Date,
   ) {
     if (data && client) {
       client.emit('update', data.ball);
+      client.emit('update-time', timeremaining);
       client.emit('update-player-a', {
         id: data.playerA.id,
         x: data.playerA.x,
@@ -618,22 +639,25 @@ export class PongService {
     if (gameProvider.paused || !gameProvider.gameStarted) return;
     const game = gameProvider.update(info);
     const { playerA, playerB } = game;
-    this.assingAchievements(playerA);
-    this.assingAchievements(playerB);
-    this.updateScore(
-      gameProvider.id,
-      playerA.score,
-      playerB.score,
-      playerA.id,
-      playerB.id,
-    );
-    if (playerA.score >= 7 || playerB.score >= 7) {
-      this.gameOver(gameProvider);
-      this.removeGameProvider(gameProvider);
-      return;
+
+    if (gameProvider.gameMode !== 'Time Attack') {
+      if (playerA.score >= 7 || playerB.score >= 7) {
+        this.gameOver(gameProvider);
+        this.removeGameProvider(gameProvider);
+        return;
+      }
+    } else {
+      let differenceInMinutes =
+        (gameProvider.endsAt.getTime() - Date.now()) / 60000;
+
+      if (differenceInMinutes < 0) {
+        this.gameOver(gameProvider);
+        this.removeGameProvider(gameProvider);
+      }
     }
-    this.emitUpdate(game, playerA.socket);
-    this.emitUpdate(game, playerB.socket);
+
+    this.emitUpdate(game, playerA.socket, gameProvider.endsAt);
+    this.emitUpdate(game, playerB.socket, gameProvider.endsAt);
     return game;
   }
 
@@ -701,22 +725,30 @@ export class PongService {
       loser.rating = loser.rating < 0 ? 0 : loser.rating;
       loser.ladder = this.adjustLadderLevel(loser.rating) as Ladder;
 
-      const { sentRequests, receivedRequests, achievements, ...winnerData } =
-        winner;
-      const {
-        sentRequests: _,
-        receivedRequests: __,
-        achievements: ___,
-        ...loserData
-      } = loser;
-      await this.usersService.updateUser({ user: winnerData }, winnerId);
-      await this.usersService.updateUser({ user: loserData }, loserId);
+      await this.usersService.updateUser({
+        user: {
+          rating: winner.rating,
+          ladder: winner.ladder,
+          winStreak: winner.winStreak,
+          totalGames: winner.totalGames,
+          wins: winner.wins,
+        },
+        id: winnerId,
+      });
+      await this.usersService.updateUser({
+        user: {
+          rating: loser.rating,
+          ladder: loser.ladder,
+          winStreak: loser.winStreak,
+          totalGames: loser.totalGames,
+          losses: loser.losses,
+        },
+        id: loserId,
+      });
     } catch (e) {
-      console.log(e);
       throw new InternalServerErrorException(
         'Could not update user rating and ladder',
       );
-      // Handle any errors that occur during the adjustment process
     }
   }
 }

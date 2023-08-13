@@ -3,7 +3,10 @@ import { Game, Player } from '../classes';
 import { Inject, Injectable } from '@nestjs/common';
 import { UsersService } from 'src/users/users.service';
 
-type UpdatedUser = Omit<User, 'password' | 'tfaSecret'>;
+type UpdatedUser = Omit<
+  User,
+  'password' | 'tfaSecret' | 'createdAt' | 'updatedAt'
+>;
 
 enum Achievements {
   PERFECT_GAME = 'PERFECT_GAME',
@@ -38,12 +41,10 @@ class AchievementsWatcher {
   // private player: Player;
 
   constructor(player: Player, achievedAchievements: Set<Achievements>) {
-    // this.player = player;
     this.achievedAchievements = new Set(achievedAchievements);
     this.toWatchAchievements = new Set<Achievements>(
       Object.values(Achievements),
     );
-    // console.log(this.toWatchAchievements);
     this.toAssignAchievements = new Set<Achievements>();
     for (const achievement of this.achievedAchievements) {
       this.toWatchAchievements.delete(achievement);
@@ -122,7 +123,7 @@ class AchievementsWatcher {
     }
   }
 
-  checkAchievementsWhenPlayerScores(player: Player, game: Game) {
+  async checkAchievementsWhenPlayerScores(player: Player, game: Game) {
     if (game.ball.speed >= 8) {
       this.achieveAchievement(Achievements.POWER_SERVE);
     }

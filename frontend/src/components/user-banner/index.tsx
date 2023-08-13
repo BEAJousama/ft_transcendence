@@ -44,7 +44,7 @@ const UserBanner = ({
                 )}
             >
                 {user?.rating}
-                <img src="/img/smalllogo.svg" alt="logo" width={20} />
+                <Image src="/img/smalllogo.svg" alt="logo" height={20} width={20} />
             </div>
         </div>
     );

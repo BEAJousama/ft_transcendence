@@ -1,183 +1,227 @@
 "use client";
 import React, { useContext, useEffect, useState } from "react";
-import { Carousel, Login, SignUp, CompleteInfo, TwoFactorAuth, Spinner } from "@/components";
-import { Button } from "@/components";
-import { twMerge } from "tailwind-merge";
-import Image from "next/image";
-import { AppContext } from "@/context/app.context";
+import dynamic from "next/dynamic";
 import Link from "next/link";
-import { IoLogoGithub, IoLogoInstagram, IoLogoLinkedin } from "react-icons/io5";
+import Image from "next/image";
 import { redirect } from "next/navigation";
-if (typeof window !== "undefined") require("@lottiefiles/lottie-player");
+import { AppContext, getCookieItem } from "@/context/app.context";
+import { twMerge } from "tailwind-merge";
+import CountUp from "react-countup";
+import axios from "axios";
+
+import { Carousel, Login, Register } from "@/components";
+import LandingPageSelector from "@/components/landing-page-selector";
+const Contributor = dynamic(() => import("@/components/contributor"), { ssr: false });
+const Tfa = dynamic(() => import("@/components/tfa"), { ssr: false });
+const CompleteInfo = dynamic(() => import("@/components/complete-info"), { ssr: false });
+
+const LottiePlayer = dynamic(
+	() => import("@lottiefiles/react-lottie-player").then((mod) => mod.Player),
+	{ ssr: false }
+);
+
+const Contributors = [
+	{
+		name: "Hicham Bel Houcin",
+		role: "Full Stack Developer",
+		image: "/img/hbel-hou.jpg",
+		linkedin: "hicham-bel-houcin",
+		github: "Hicham-BelHoucin",
+		instagram: "hicham_belhoucin",
+	},
+	{
+		name: "Oussama Beaj",
+		role: "Developer",
+		image: "/img/obeaj.jpg",
+		linkedin: "ousama-b-a8a84a247",
+		github: "BEAJousama",
+		instagram: "obeaj29",
+	},
+	{
+		name: "Soufiane El Marsi",
+		role: "Developer",
+		image: "/img/sel-mars.jpg",
+		linkedin: "soufiane-el-marsi",
+		github: "soofiane262",
+		instagram: "soufiane.elmarsi",
+	},
+];
+
+
 
 const LandingPage = () => {
-	const [slide, setSlide] = useState(1);
-	const { user, loading, authenticated } = useContext(AppContext);
-
-	const getCookieItem = (key: string): string | undefined => {
-		const cookieString = document.cookie;
-		const cookiesArray = cookieString.split("; ");
-
-		for (const cookie of cookiesArray) {
-			const [cookieKey, cookieValue] = cookie.split("=");
-			if (cookieKey === key) {
-				return decodeURIComponent(cookieValue);
-			}
-		}
-
-		return undefined;
-	};
+	const [slide, setSlide] = useState(0);
+	const { user, loading, authenticated, fetchUser } = useContext(AppContext);
+	const [selectable, setSelectable] = useState(true);
+	const [numUsers, setNumUsers] = useState(0);
+	const [numGames, setNumGames] = useState(0);
+	const [state, setState] = useState<"login" | "register" | "other">("login");
 
 	useEffect(() => {
-		if (getCookieItem("2fa_access_token") && !getCookieItem("access_token")) setSlide(0);
-		if (!user) return;
-		if (user.createdAt === user.updatedAt) setSlide(3);
-	}, [user]);
+		const fetchStats = async () => {
+			const res = await axios.get(`${process.env.NEXT_PUBLIC_BACK_END_URL}api/users/stats`);
+			setNumUsers(res.data.users);
+			setNumGames(res.data.games);
+		};
+		fetchStats();
+	}, []);
+
+	useEffect(() => {
+		if (state === "other") {
+			setSelectable(false);
+			setTimeout(() => {
+				setSlide(2);
+			}, 100);
+		} else if (state === "login") setSlide(0);
+		else if (state === "register") setSlide(1);
+	}, [state]);
 
 	if (authenticated && user && user.createdAt !== user.updatedAt) {
-		console.log("to home");
 		redirect("/home");
 	}
 
 	return (
-		<div className="overflow-auto scrollbar-hide relative flex flex-col items-center w-screen h-screen bg-secondary-500">
-			<div className="absolute flex h-screen w-screen items-center justify-center">
-				<lottie-player
-					autoplay
+		<div className="overflow-auto scrollbar-hide flex flex-col items-center w-screen h-screen bg-secondary-700">
+			<div className="fixed inset-0 flex items-center justify-center opacity-30">
+				<LottiePlayer
 					loop
-					mode="normal"
-					intermission={3000}
-					src="/lottie/handJoystick.json"
+					autoplay
+					src="/anim/handJoystick.json"
 					style={{ width: 100 + "%", height: 100 + "%", opacity: 0.3 }}
 				/>
 			</div>
 			<div className="grid w-full max-w-5xl h-fit grid-cols-1 place-items-center justify-center gap-8 md:gap-16 p-8 lg:grid-cols-2 z-10 backdrop-blur-sm backdrop-opacity-10">
 				<div className="flex w-full max-w-xs items-center justify-center lg:col-span-2 lg:max-w-xl py-16">
-					<img src="/img/Logo.svg" alt="logo" className={"w-[80%]"} />
+					<Image src="/img/logo.png" priority alt="Pong Maters" width={400} height={45} />
 				</div>
-				<div className="relative flex flex-col items-center justify-center w-full h-full">
-					{loading && (
-						<Spinner className="absolute flex items-center justify-center w-full h-full transition duration-300 ease-out z-20" />
-					)}
+				<div className="flex flex-col items-center justify-center w-full h-full">
 					<div
 						className={twMerge(
-							"flex flex-col items-center justify-center w-full h-[600px] transition duration-500 ease-out",
+							"flex flex-col items-center justify-center w-full h-full transition duration-500 ease-out",
 							loading && "animate-pulse blur-sm"
 						)}
 					>
-						<div className="overflow-hidden group relative h-fit w-fit rounded-xl shadow-lg shadow-secondary-700 transition-all duration-200 ease-out bg-secondary-500">
-							<div
-								className={twMerge(
-									"absolute h-10 bg-primary-600 transition-all duration-500 ease-out",
-									slide <= 1 ? "left-0 w-24" : "left-24 w-28"
-								)}
-							></div>
-							<button
-								className={twMerge(
-									"relative overflow-hidden h-10 w-24 transition-all duration-500 ease-out",
-									slide <= 1
-										? "font-semibold text-secondary-700"
-										: "text-secondary-100 before:ease before:absolute before:right-0 before:top-0 before:h-12 before:w-6 before:translate-x-12 before:rotate-6 before:bg-white before:opacity-10 before:duration-700 hover:before:-translate-x-40"
-								)}
-								disabled={slide <= 1}
-								onClick={() => setSlide(1)}
-							>
-								Login
-							</button>
-							<button
-								className={twMerge(
-									"relative overflow-hidden h-10 w-28 transition-all duration-500 ease-out",
-									slide > 1
-										? "font-semibold text-secondary-700"
-										: "text-secondary-100 before:ease before:absolute before:right-0 before:top-0 before:h-12 before:w-6 before:translate-x-12 before:rotate-6 before:bg-white before:opacity-10 before:duration-700 hover:before:-translate-x-40"
-								)}
-								disabled={slide > 1}
-								onClick={() => setSlide(2)}
-							>
-								Register
-							</button>
-						</div>
+						<LandingPageSelector
+							state={state}
+							setState={setState}
+							selectable={selectable}
+						/>
 						<Carousel
 							swipeable={false}
 							chevrons={false}
-							indicators={false}
 							slide={slide}
 							className="w-full h-full"
 						>
-							<TwoFactorAuth />
 							<Login />
-							<SignUp />
-							<CompleteInfo />
+							<Register />
+							{getCookieItem("2fa_access_token") &&
+								!getCookieItem("access_token") && <Tfa />}
+							{user && user.createdAt === user.updatedAt && <CompleteInfo />}
 						</Carousel>
 					</div>
 				</div>
-
-				<div className="flex flex-col items-center justify-center w-full h-fit">
-					<p className="text-justify text-lg text-primary-500">
-						Our user-friendly interface and integrated chat feature ensure a seamless
-						gaming experience. Get ready to paddle up, score points, and rise to the top
-						as you participate in the ultimate Pong challenge. May the best player win!
+				<div className="flex flex-col items-center justify-between w-full h-fit">
+					<div className="flex w-full items-end gap-4 px-4 py-2 text-right">
+						<CountUp end={numUsers} duration={4} className="w-1/2">
+							{({ countUpRef }) => (
+								<div className="w-full">
+									<span
+										ref={countUpRef}
+										className="text-6xl font-semibold text-primary-400"
+									/>
+									<span className="text-base text-primary-600"> Users</span>
+								</div>
+							)}
+						</CountUp>
+						<CountUp end={numGames} duration={6} className="w-1/2">
+							{({ countUpRef }) => (
+								<div className="w-full">
+									<span
+										ref={countUpRef}
+										className="text-6xl font-semibold text-primary-400"
+									/>
+									<span className="text-base text-primary-600"> Games</span>
+								</div>
+							)}
+						</CountUp>
+					</div>
+					<p className="text-primary-500 w-full text-lg">
+						Pong Maters is a multiplayer online game that allows you to play Pong with
+						your friends and other players around the world. Our platform is designed to
+						provide you with a fun and competitive gaming experience. Our user-friendly
+						interface and integrated chat feature ensure a seamless gaming experience.
+						Get ready to paddle up, score points, and rise to the top as you participate
+						in the ultimate Pong challenge. May the best player win!
 					</p>
+					{/* <Link
+						href="https://github.com/Hicham-BelHoucin/ft_transcendence"
+						className="text-gray-200 hover:text-primary-700 transition"
+						target="_blank"
+						rel="noopener noreferrer"
+					>
+						<Github size={"40px"} />
+					</Link>
+					<div className="flex items-center justify-center gap-4 pb-4">
+						<BiLogoTypescript size={"34px"} className="text-gray-400" />
+						<SiNestjs size={"34px"} className="text-gray-400" />
+						<SiNextdotjs size={"34px"} className="text-gray-400" />
+						<FaNode size={"40px"} className="text-gray-400" />
+					</div> */}
 				</div>
 			</div>
-			<div className="relative flex flex-wrap justify-center text-center w-full max-w-5xl px-8 py-16">
-				<h1 className="text-primary-400 text-4xl font-bold mb-8">Meet the Team</h1>
-				<p className="text-primary-600 w-full text-lg font-light">
-					We are a group of students from the{" "}
-					<Link
-						href={"https://1337.ma/"}
-						target={"_blank"}
-						rel={"noopener noreferrer"}
-						className="underline text-primary-500 font-semibold"
-					>
-						1337 Coding School
-					</Link>{" "}
-					in Morocco.
-					<br />
-					We are passionate about coding and we love to create new things.
-					<br />
-					We created this project to learn more about web development and to develop our
-					skills.
-				</p>
-			</div>
-			<div className="grid md:grid-cols-3 w-full place-items-center justify-center px-24 py-16 gap-8">
-				<div className="flex flex-col px-4">
-					<img
-						className="rounded-2xl drop-shadow-md hover:drop-shadow-xl transition-all duration-200 delay-100"
-						src="https://images.unsplash.com/photo-1634926878768-2a5b3c42f139?fit=clamp&w=400&h=400&q=80"
-					/>
-
-					<div className="flex flex-col items-center justify-center text-center">
-						<h1 className="text-gray-100 text-xl font-bold">Hicham Bel Houcin</h1>
-
-						<div className="text-gray-300 font-light">
-							<span className="text-primary-300">Full Stack Developer</span> |{" "}
-						</div>
-
-						<div
-							className="grid grid-cols-3 w-fit place-items-center gap-4 opacity-70 hover:opacity-100
-                                transition-opacity duration-300"
+			<div className="grid md:grid-cols-3 w-full max-w-5xl place-items-center justify-center px-8 pb-16 pt-4 gap-8">
+				<div className="flex flex-wrap justify-center text-justify col-span-3 z-20">
+					<h1 className="text-primary-400 text-4xl font-bold mb-8">Meet the Team</h1>
+					<p className="text-primary-600 w-full text-lg">
+						We are a vibrant group of talented students hailing from the prestigious{" "}
+						<Link
+							href={"https://1337.ma/"}
+							target={"_blank"}
+							rel={"noopener noreferrer"}
+							className="underline text-primary-500 font-semibold"
 						>
-							<Link
-								href="#"
-								className="text-gray-300 hover:text-primary-300 transition"
-							>
-								<IoLogoLinkedin size={"20px"} />
-							</Link>
-							<Link
-								href="#"
-								className="text-gray-300 hover:text-primary-300 transition"
-							>
-								<IoLogoGithub size={"20px"} />
-							</Link>
-							<Link
-								href="#"
-								className="text-gray-300 hover:text-primary-300 transition"
-							>
-								<IoLogoInstagram size={"20px"} />
-							</Link>
-						</div>
-					</div>
+							1337 Coding School
+						</Link>{" "}
+						in Morocco, part of the global{" "}
+						<Link
+							href={"https://42.fr/"}
+							target={"_blank"}
+							rel={"noopener noreferrer"}
+							className="underline text-primary-500 font-semibold"
+						>
+							42 Network
+						</Link>{" "}
+						an institution renowned for its innovative educational approach and
+						groundbreaking impact on the tech industry.
+						<br />
+						At 1337, we embrace innovative self-directed learning and collaboration,
+						honing our technical and soft skills. Powered by peer-to-peer evaluation and
+						a growth mindset, we thrive in creating meaningful projects that shape the
+						future of technology.
+					</p>
+				</div>
+				{Contributors.map((contributor, index) => (
+					<Contributor key={index} {...contributor} />
+				))}
+			</div>
+			<div className="flex items-center justify-center h-16">
+				<p className="text-gray-200 text-lg font-medium z-10">Crafted with</p>
+				<div className="-mx-12">
+					<LottiePlayer
+						autoplay
+						loop
+						src="/anim/heart.json"
+						style={{ width: "140px", height: "140px" }}
+					/>
+				</div>
+				<p className="text-gray-200 text-lg font-medium z-10">from</p>
+				<div className="px-2">
+					<LottiePlayer
+						autoplay
+						loop
+						src="/anim/moroccanFlag.json"
+						style={{ width: "24px", height: "24px" }}
+					/>
 				</div>
 			</div>
 		</div>

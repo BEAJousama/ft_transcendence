@@ -4,29 +4,37 @@ import {
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
-  // WebSocketDisconnect,
-  OnGatewayDisconnect,
+  WsException,
 } from '@nestjs/websockets';
-import { Invitation } from './interfaces/index';
+import { Invitation, UpdateDto } from './interfaces/index';
 import { Socket } from 'socket.io';
 import { PongService } from './pong.service';
-import { UsersService } from 'src/users/users.service';
-import { Inject } from '@nestjs/common';
+import { Inject, UseGuards } from '@nestjs/common';
 import { NotificationGateway } from 'src/notification/notification.gateway';
+import { JwtService } from '@nestjs/jwt';
+import { AuthGuard } from '@nestjs/passport';
 
 @WebSocketGateway({ namespace: 'pong', cors: true, origins: '*' })
+// @UseGuards(SocketAuthGuard) // Apply the guard to the entire gateway
 export class PongGateway {
   constructor(
     private readonly pongService: PongService,
-    private usersService: UsersService,
     @Inject(NotificationGateway)
     private notificationGateway: NotificationGateway,
   ) {}
   @WebSocketServer() server;
 
+  async handleConnection(@ConnectedSocket() client: Socket) {
+    try {
+      await this.pongService.verifyClient(client);
+    } catch (error) {
+      client.disconnect();
+    }
+  }
+
   @SubscribeMessage('check-for-active-invitations')
-  checkForActiveInvitations(@ConnectedSocket() client: Socket) {
-    this.pongService.checkForActiveInvitations(client);
+  async checkForActiveInvitations(@ConnectedSocket() client: Socket) {
+    await this.pongService.checkForActiveInvitations(client);
   }
 
   @SubscribeMessage('reject-invitation')
@@ -40,18 +48,20 @@ export class PongGateway {
     @ConnectedSocket() client: Socket,
     @MessageBody() info: Invitation,
   ) {
-    const invitation = this.pongService.inviteFriend(info, client);
+    const invitation: Invitation = this.pongService.inviteFriend(info, client);
     const id = this.notificationGateway.clients_map.get(
       info.invitedFriendId.toString(),
     );
-    this.notificationGateway.server
-      .to(id)
-      .emit('check-for-active-invitations', {
-        inviterId: invitation.inviterId,
-        invitedFriendId: invitation.invitedFriendId,
-        bit: invitation.bit,
-        powerUps: invitation.powerUps,
-      });
+    if (invitation && invitation.inviterId && invitation.invitedFriendId) {
+      this.notificationGateway.server
+        .to(id)
+        .emit('check-for-active-invitations', {
+          inviterId: invitation.inviterId,
+          invitedFriendId: invitation.invitedFriendId,
+          gameMode: invitation.gameMode,
+          powerUps: invitation.powerUps,
+        });
+    }
   }
 
   @SubscribeMessage('accept-invitation')
@@ -63,23 +73,29 @@ export class PongGateway {
   }
 
   @SubscribeMessage('puase-game')
-  pauseGame(@ConnectedSocket() client: Socket, @MessageBody() info) {
+  pauseGame(@ConnectedSocket() client: Socket, @MessageBody() info: UpdateDto) {
     this.pongService.pauseGame(client, info);
   }
 
   @SubscribeMessage('resume-game')
-  resumeGame(@ConnectedSocket() client: Socket, @MessageBody() info) {
+  resumeGame(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() info: UpdateDto,
+  ) {
     this.pongService.resumeGame(client, info);
   }
 
   @SubscribeMessage('is-already-in-game')
-  isAlreadyInGame(@ConnectedSocket() client: Socket, @MessageBody() info) {
+  isAlreadyInGame(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() info: UpdateDto,
+  ) {
     const isInGame = this.pongService.isAlreadyInGame(client, info);
     client.emit('is-already-in-game', isInGame);
   }
 
   @SubscribeMessage('leave-game')
-  leaveGame(@ConnectedSocket() client: Socket, @MessageBody() info) {
+  leaveGame(@ConnectedSocket() client: Socket, @MessageBody() info: UpdateDto) {
     this.pongService.leaveGame(client, info);
   }
 
@@ -101,7 +117,7 @@ export class PongGateway {
     @MessageBody()
     info: {
       userId: number;
-      bit: string;
+      gameMode: string;
       powerUps: string;
     },
   ) {

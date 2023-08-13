@@ -67,10 +67,22 @@ export class AuthService {
       if (!isMatch) {
         throw new UnauthorizedException('Invalid credentials');
       }
+      if (user.twoFactorAuth === true) {
+        const payload = { login: user.login, sub: user.id };
+        const access_token = this.jwtService.sign(payload, {
+          secret: process.env.TFA_JWT_SECRET,
+          expiresIn: '24h',
+        });
+
+        return {
+          name: '2fa_access_token',
+          value: access_token,
+        };
+      }
       const payload = { login: user.login, sub: user.id, email: user.email };
       const access_token = this.jwtService.sign(payload, {
         secret: process.env.JWT_SECRET,
-        expiresIn: '24h',
+        expiresIn: '7d',
       });
       return {
         name: 'access_token',
@@ -92,16 +104,7 @@ export class AuthService {
     }
   }
 
-  // async getAccessToken() {
-  //   const token = this.accessToken;
-  //   this.accessToken = {
-  //     name: '',
-  //     value: '',
-  //   };
-  //   return token;
-  // }
-
-  async callback(req) {
+  async callback(req, res) {
     try {
       if (!req.user) throw new UnauthorizedException();
       const data = req.user;
@@ -124,21 +127,22 @@ export class AuthService {
           secret: process.env.TFA_JWT_SECRET,
           expiresIn: '24h',
         });
-        return {
-          name: '2fa_access_token',
-          value: access_token,
-        };
+
+        res.cookie('2fa_access_token', access_token);
+        res.redirect(process.env.FRONTEND_URL);
+        res.end();
+        return;
       }
 
       const payload = { login: user.login, sub: user.id, email: user.email };
       const access_token = this.jwtService.sign(payload, {
         secret: process.env.JWT_SECRET,
-        expiresIn: '24h',
+        expiresIn: '7d',
       });
-      return {
-        name: 'access_token',
-        value: access_token,
-      };
+      res.cookie('access_token', access_token);
+      res.redirect(process.env.FRONTEND_URL);
+      res.end();
+      return;
     } catch (error: any) {
       throw new InternalServerErrorException(error.response.message);
     }
@@ -152,18 +156,17 @@ export class AuthService {
         user,
       );
       if (isvalid && user) {
-        await this.usersService.updateUser(
-          {
-            user: {
-              twoFactorAuth: true,
-            },
+        await this.usersService.updateUser({
+          user: {
+            twoFactorAuth: true,
           },
-          user.id,
-        );
+          id: user.id,
+        });
         return {
           message: 'success',
         };
       }
+
       return {
         message: 'fail',
       };
@@ -182,14 +185,12 @@ export class AuthService {
         user,
       );
       if (isvalid && user) {
-        await this.usersService.updateUser(
-          {
-            user: {
-              twoFactorAuth: false,
-            },
+        await this.usersService.updateUser({
+          user: {
+            twoFactorAuth: false,
           },
-          user.id,
-        );
+          id: user.id,
+        });
         return {
           message: 'success',
         };
@@ -198,29 +199,33 @@ export class AuthService {
         message: 'fail',
       };
     } catch (error) {
-      console.log(error);
       throw new InternalServerErrorException(
         'An internal server error occurred.',
       );
     }
   }
 
-  async verify(req) {
+  async verify(req, res) {
     try {
       const user = await this.getprofile(req.user.login);
+
       const { code } = req.body;
+
       const isvalid = this.verifyTwoFactorAuthentication(code, user);
+
       if (isvalid === true) {
         const payload = { login: user.login, sub: user.id };
         const access_token = this.jwtService.sign(payload, {
           secret: process.env.JWT_SECRET,
           expiresIn: '7d',
         });
+
+        res.cookie('access_token', access_token);
         return {
-          access_token,
+          message: 'success',
         };
       }
-      return null;
+      throw new UnauthorizedException('Invalid credentials');
     } catch (error) {
       throw new UnauthorizedException('Invalid credentials');
     }
@@ -228,7 +233,8 @@ export class AuthService {
 
   verifyTwoFactorAuthentication(twoFactorAuthenticationCode: string, user) {
     try {
-      if (!user || twoFactorAuthenticationCode) return false;
+      if (!user || !user.tfaSecret || !twoFactorAuthenticationCode)
+        return false;
 
       return authenticator.verify({
         token: twoFactorAuthenticationCode,

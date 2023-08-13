@@ -131,7 +131,7 @@ export default function Home() {
           <div className="flex flex-col text-white">
             <div className="flex gap-2">
               <span>{user?.rating}</span>
-              <img src="/img/smalllogo.svg" alt="logo" width={20} />
+              <Image src="/img/smalllogo.svg" alt="logo" width={20} height={20} />
             </div>
             <div className="flex ">
               <span>{user ? user.totalGames && ((user.wins / user.totalGames) * 100).toFixed().toString() : 0} %</span>

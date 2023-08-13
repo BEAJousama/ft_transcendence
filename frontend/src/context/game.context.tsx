@@ -2,9 +2,11 @@
 
 import React, { createContext, useContext, useEffect, useRef, useState } from "react";
 import io, { Socket } from "socket.io-client";
-import { AppContext } from "./app.context";
+import { AppContext, getCookieItem } from "./app.context";
 import { Ball, Player } from "@/interfaces/game";
 import { toast } from "react-toastify";
+
+
 
 enum Keys {
 	ArrowUp = "ArrowUp",
@@ -87,7 +89,6 @@ export default function SocketProvider({
 
 	const [show, setShow] = useState<boolean>(false);
 	const isInGame = useRef(false);
-	const activatePowerUp = useRef(true);
 
 	const { user } = useContext(AppContext);
 
@@ -96,46 +97,55 @@ export default function SocketProvider({
 	const keyState: { [key: string]: boolean } = {};
 
 	useEffect(() => {
-		if (!user) return
-		const newSocket = io(`${process.env.NEXT_PUBLIC_BACK_END_URL}pong`, {
-			query: {
-				clientId: user?.id,
-			},
-		});
-		console.log(newSocket);
-		newSocket.on("connect", () => {
-			console.log("Game Connected");
-		});
+		try {
 
-		newSocket.on("disconnect", () => {
-			console.log("Game Disconnected");
-		});
+			const token = getCookieItem("access_token");
+			if (!token) return;
+
+			const newSocket = io(`${process.env.NEXT_PUBLIC_BACK_END_URL}pong`, {
+				auth: {
+					token,
+				}
+			});
+
+			newSocket.on("connect", () => {
+
+			});
+
+			newSocket.on("disconnect", () => {
+
+			});
 
 
-		setSocket(newSocket);
+			setSocket(newSocket);
 
-		return () => {
-			newSocket.disconnect();
-		};
-	}, [user]);
+			return () => {
+				newSocket.disconnect();
+			};
+		} catch (error) {
+
+		}
+	}, []);
 
 	useEffect(() => {
+		let currentKey: string | null = null; // Keep track of the currently pressed key
+
+		let debounceTimeout: ReturnType<typeof setTimeout> | null = null;
+
 		const handleKeyDown = (event: KeyboardEvent) => {
 			const { key } = event;
 			if (Object.values(Keys).includes(key as Keys) && !keyState[key]) {
-				if (key === " " && !activatePowerUp.current) {
-					toast.info("Sorry, you cannot use the power-up right now. It is on cooldown for the next 10 seconds since you've recently used it");
-					return
-				}
-				else if (key === " ")
-					toast.success("Power-up activated! You can now use the power-up for the next 5 seconds");
 				keyState[key] = true;
-				activatePowerUp.current = false;
-				const id = setTimeout(() => {
-					activatePowerUp.current = true;
-					clearTimeout(id);
-				}, 10000);
-				socket?.emit("keyPressed", { key, userId: user?.id });
+
+				if (currentKey !== key) {
+					if (currentKey && debounceTimeout) {
+						clearTimeout(debounceTimeout);
+						socket?.emit("keyReleased", { key: currentKey, userId: user?.id });
+					}
+
+					currentKey = key;
+					socket?.emit("keyPressed", { key, userId: user?.id });
+				}
 			}
 		};
 
@@ -143,9 +153,18 @@ export default function SocketProvider({
 			const { key } = event;
 			if (Object.values(Keys).includes(key as Keys)) {
 				keyState[key] = false;
-				// console.log(user?.id, "released", key);
-				// Emit the event for the specific key release
-				socket?.emit("keyReleased", { key, userId: user?.id });
+
+				if (debounceTimeout) {
+					clearTimeout(debounceTimeout);
+				}
+
+				debounceTimeout = setTimeout(() => {
+					debounceTimeout = null;
+					if (key === currentKey) {
+						socket?.emit("keyReleased", { key, userId: user?.id });
+						currentKey = null;
+					}
+				}, 125); // Adjust the debounce time as needed
 			}
 		};
 

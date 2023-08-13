@@ -5,6 +5,8 @@ import { ChatModule } from './chat/chat.module';
 import { PongModule } from './pong/pong.module';
 import { NotificationModule } from './notification/notification.module';
 import { UsersModule } from './users/users.module';
+import { APP_FILTER } from '@nestjs/core';
+import { GlobalExceptionFilter } from './global-exception.filter';
 
 @Module({
   imports: [
@@ -15,6 +17,11 @@ import { UsersModule } from './users/users.module';
     PongModule,
     ChatModule,
   ],
-  providers: [],
+  // providers: [
+  //   {
+  //     provide: APP_FILTER,
+  //     useClass: GlobalExceptionFilter,
+  //   },
+  // ],
 })
 export class AppModule {}

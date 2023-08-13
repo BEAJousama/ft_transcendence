@@ -4,7 +4,7 @@ import React, { useContext, useState } from "react";
 import { AppContext, IAppContext } from "../../context/app.context";
 import { ChatContext, IchatContext } from "../../context/chat.context";
 
-import CustomSelect from "../select";
+
 import Input from "../../components/input";
 import ProfileBanner from "../../components/profilebanner";
 import { Button, Divider, UpdateAvatar } from "../../components";
@@ -53,7 +53,7 @@ const CreateGroupModal = ({
   }
 
   const handleCreateDm = (id: number) => {
-    if(!user?.id || !id) return;
+    if (!user?.id || !id) return;
     socket?.emit("dm_create", { senderId: user?.id, receiverId: id });
     setShowModal(false);
   }
@@ -124,7 +124,23 @@ const CreateGroupModal = ({
                 if (value !== "") setShowSubmit(true);
               }}
             />
-            <CustomSelect label="Visibility" setX={setVisibility} options={["PUBLIC", "PRIVATE", "PROTECTED"]} />
+
+            <Input type="select" label="Visibility" onChange={(e) => {
+              setVisibility(e.target.value)
+            }} options={[
+              {
+                label: "PUBLIC",
+                value: "PUBLIC",
+              },
+              {
+                label: "PRIVATE",
+                value: "PRIVATE",
+              },
+              {
+                label: "PROTECTED",
+                value: "PROTECTED",
+              },
+            ]} />
             {
               (visibility === "PROTECTED") && (
                 <>
@@ -185,42 +201,42 @@ const CreateGroupModal = ({
           show && (
             <div className="w-full flex items-center justify-center flex-col align-middle gap-2 pt-2">
               <span className="w-full mb-2 text-sm font-bold text-white">Select Members: </span>
-                  {users?.length ? (
-                    users
-                      ?.filter((u: any) => {
-                        return u.id !== user?.id && !checkBlock(u.id);
-                      })
-                      .map((u: any) => {
-                        return (
-                          <div key={u.id} className="flex flex-row items-center justify-between w-full">
-                            <ProfileBanner
-                              key={u.id}
-                              avatar={u.avatar}
-                              name={u.username}
-                              description={u.status}
-                            />
-                            <div className="w-8">
-                              <input
-                                id="purple-checkbox"
-                                type="checkbox"
-                                className="w-4 h-4 bg-tertiary-600 focus:border-primary-500 rounded focus:ring-primary-500 focus:text-tertiary-700"
-                                onClick={() => {}}
-                                onChange={() => {
-                                  !selectedUsers.includes(u.id)
-                                    ? setSelectedUsers([...selectedUsers, u.id])
-                                    : setSelectedUsers(selectedUsers?.filter((id) => id !== u.id));
-                                }}
-                              />
-                            </div>
-                          </div>
-                        );
-                      })
-                  ) : (
-                    <div className="flex flex-col items-center justify-center w-full">
-                      <p className="text-gray-500 text-lg">No users found</p>
-                    </div>
-                  )}
-              </div>
+              {users?.length ? (
+                users
+                  ?.filter((u: any) => {
+                    return u.id !== user?.id && !checkBlock(u.id);
+                  })
+                  .map((u: any) => {
+                    return (
+                      <div key={u.id} className="flex flex-row items-center justify-between w-full">
+                        <ProfileBanner
+                          key={u.id}
+                          avatar={u.avatar}
+                          name={u.username}
+                          description={u.status}
+                        />
+                        <div className="w-8">
+                          <input
+                            id="purple-checkbox"
+                            type="checkbox"
+                            className="w-4 h-4 bg-tertiary-600 focus:border-primary-500 rounded focus:ring-primary-500 focus:text-tertiary-700"
+                            onClick={() => { }}
+                            onChange={() => {
+                              !selectedUsers.includes(u.id)
+                                ? setSelectedUsers([...selectedUsers, u.id])
+                                : setSelectedUsers(selectedUsers?.filter((id) => id !== u.id));
+                            }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })
+              ) : (
+                <div className="flex flex-col items-center justify-center w-full">
+                  <p className="text-gray-500 text-lg">No users found</p>
+                </div>
+              )}
+            </div>
           )}
 
         {

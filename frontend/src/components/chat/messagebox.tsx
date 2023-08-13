@@ -65,12 +65,12 @@ const MessageBox = ({ message, right, autoScroll }: { message: Imessage; right?:
                   src={message?.sender?.avatar}
                   alt={message?.sender?.username}
                 />
-            </span>
-          </div>
-          :
-          <div className="h-24">
-            <Spinner/>
-          </div>
+              </span>
+            </div>
+            :
+            <div className="h-24">
+              <Spinner />
+            </div>
         )}
         <div
           className={twMerge(
@@ -113,7 +113,7 @@ const MessageBox = ({ message, right, autoScroll }: { message: Imessage; right?:
                 }
                 }
               >
-                <MdDelete />
+                <Trash />
                 Delete Message
               </RightClickMenuItem>
             )}

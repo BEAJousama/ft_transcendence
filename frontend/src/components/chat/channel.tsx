@@ -9,10 +9,8 @@ import Avatar from "../avatar";
 import RightClickMenu, { RightClickMenuItem } from "../rightclickmenu";
 import { twMerge } from "tailwind-merge";
 
-import { BiVolumeMute } from "react-icons/bi";
-import { BsArchiveFill, BsPinAngleFill } from "react-icons/bs";
-import { RiMailUnreadFill } from "react-icons/ri";
-import { MdDelete } from "react-icons/md";
+import { VolumeX, Archive, Pin, Trash, BellDot } from 'lucide-react';
+
 
 interface ChannelProps {
   id: number | undefined;
@@ -183,8 +181,8 @@ const Channel: React.FC<ChannelProps> = ({
               {newMessages !== 0 ? newMessages : ""}
             </span>
           )}
-          {muted && <BiVolumeMute />}
-          {pinned && <BsPinAngleFill />}
+          {muted && <VolumeX />}
+          {pinned && <Pin />}
         </div>
       </div>
       {showMenu && (
@@ -198,7 +196,7 @@ const Channel: React.FC<ChannelProps> = ({
                   pinChannel(e)
               }}
           >
-            <BsPinAngleFill />
+            <Pin />
             {pinned ? "Unpin chat" : "Pin chat"}
           </RightClickMenuItem>
           <RightClickMenuItem
@@ -206,7 +204,7 @@ const Channel: React.FC<ChannelProps> = ({
               (e) => {
                 archived ? unarchiveChannel(e) : archiveChannel(e);
               }}>
-            <BsArchiveFill />
+            <Archive />
             {archived ? "Unarchive chat" : "Archive chat"}
           </RightClickMenuItem>
           <RightClickMenuItem
@@ -215,7 +213,7 @@ const Channel: React.FC<ChannelProps> = ({
                 unread ? markAsRead(e) : markAsUnread(e);
               }}
           >
-            <RiMailUnreadFill />
+            <BellDot />
             {unread ? "Mark as read" : "Mark as unread"}
           </RightClickMenuItem>
           <RightClickMenuItem
@@ -225,7 +223,7 @@ const Channel: React.FC<ChannelProps> = ({
                   muteChannel(e);
               }}
           >
-            <BiVolumeMute />
+            <VolumeX />
             {muted ? "Unmute channel" : "Mute channel"}
           </RightClickMenuItem>
           <RightClickMenuItem
@@ -234,7 +232,7 @@ const Channel: React.FC<ChannelProps> = ({
                 deleteChannel(e);
               }}
           >
-            <MdDelete />
+            <Trash />
             Delete Chat
           </RightClickMenuItem>
         </RightClickMenu>

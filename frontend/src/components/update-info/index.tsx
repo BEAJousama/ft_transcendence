@@ -1,6 +1,5 @@
 "use client"
 
-
 import { useContext } from "react";
 import { AppContext } from "../../context/app.context";
 import { useFormik } from "formik";
@@ -8,7 +7,7 @@ import Input from "../input";
 import Button from "../button";
 import axios from "axios";
 import Divider from "../divider";
-import { MdDelete } from "react-icons/md";
+import { Trash } from 'lucide-react';
 import { toast } from "react-toastify";
 
 
@@ -88,7 +87,7 @@ const UpdateInfo = ({
                             }
                             setLoading(true);
                             await axios.post(
-                                `${process.env.NEXT_PUBLIC_BACK_END_URL}api/users/${user?.id}`,
+                                `${process.env.NEXT_PUBLIC_BACK_END_URL}api/users/`,
                                 {
                                     user: {
                                         username: formik.values.username,
@@ -97,6 +96,7 @@ const UpdateInfo = ({
                                         country: formik.values.country,
                                         avatar: previewImage,
                                     },
+                                    id: user.id,
                                 },
                                 {
                                     withCredentials: true
@@ -134,7 +134,7 @@ const UpdateInfo = ({
                     setShowmodal(true);
                 }}
             >
-                <MdDelete />
+                <Trash />
                 Remove account
             </Button>
         </>

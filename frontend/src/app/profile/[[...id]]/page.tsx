@@ -3,19 +3,23 @@
 import {
 	Divider,
 	Spinner,
-	Achievement,
 	ProfileInfo,
 	LadderProgressBar,
 	FourOFour
 } from "@/components";
-import { CgProfile } from "react-icons/cg";
-import { useCallback, useContext } from "react";
+import { UserCircle } from 'lucide-react';
+import { useContext } from "react";
 import { AppContext, fetcher } from "../../../context/app.context";
 import IAchievement from "../../../interfaces/achievement";
 import useSWR from "swr";
 import Layout from "../../layout/index";
 import IUser from "@/interfaces/user";
 import { useParams } from "next/navigation";
+import dynamic from "next/dynamic";
+
+const Achievement = dynamic(() => import("@/components/achievement/index"), {
+	ssr: false,
+});
 
 const Achievements = ({ user }: { user: IUser }) => {
 	const { data: achievements, isLoading } = useSWR(
@@ -23,16 +27,13 @@ const Achievements = ({ user }: { user: IUser }) => {
 		fetcher
 	);
 
-	const isDisabled = useCallback(
-		(name: string) => {
-			const achievements = user?.achievements;
-			if (!achievements) return true;
-			return !achievements.find(
-				(item: IAchievement) => item.name === name
-			);
-		},
-		[user?.achievements]
-	);
+	const isDisabled = (name: string) => {
+		const achievements = user?.achievements;
+		if (!achievements) return true;
+		return !achievements.find(
+			(item: IAchievement) => item.name === name
+		);
+	}
 
 	return (
 		<>
@@ -86,7 +87,8 @@ const Achievements = ({ user }: { user: IUser }) => {
 };
 
 export default function Profile() {
-	const { id } = useParams()
+	const prams = useParams()
+	const { id } = prams ? prams : { id: null };
 	const { user: currentUser } = useContext(AppContext);
 	const {
 		data: user,
@@ -95,7 +97,10 @@ export default function Profile() {
 		data: IUser;
 		isLoading: boolean;
 	} = useSWR(`api/users/${id || currentUser?.id}`, fetcher, {
-		refreshInterval: 1,
+		refreshInterval: 0,
+		revalidateOnFocus: true,
+		revalidateOnReconnect: true,
+		refreshWhenHidden: true,
 	});
 
 	if (!isLoading && !user) {
@@ -108,13 +113,12 @@ export default function Profile() {
 			) : (
 				<>
 					<div className="flex w-full max-w-[1024px] items-center gap-2 p-2 text-lg font-bold text-white md:gap-4  md:text-2xl">
-						<CgProfile />
+						<UserCircle size={40} />
 						Profile
 					</div>
 					<ProfileInfo
 						user={user}
 						currentUser={currentUser}
-
 					/>
 					<LadderProgressBar user={user} />
 					<Divider />

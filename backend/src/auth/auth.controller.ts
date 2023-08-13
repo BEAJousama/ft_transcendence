@@ -46,17 +46,16 @@ export class AuthController {
   @GoogleCallbackDoc()
   @UseGuards(GoogleGuard)
   async googleAuthRedirect(@Req() req, @Res() res) {
-    const accesToken = await this.authService.callback(req);
-    res.cookie(accesToken.name, accesToken.value);
-    res.redirect(process.env.FRONTEND_URL);
-    res.end();
+    await this.authService.callback(req, res);
   }
 
   @Public()
   @Post('signin')
   @SignInDoc()
-  async signIn(@Body() body: SignInDto) {
-    return await this.authService.signIn(body);
+  async signIn(@Body() body: SignInDto, @Res() res) {
+    const test = await this.authService.signIn(body);
+    res.cookie('access_token', '2135574687434');
+    res.end();
   }
 
   @Public()
@@ -82,11 +81,7 @@ export class AuthController {
   @Get('42/callback')
   async fortyTwoLoginCallback(@Req() req, @Res() res: Response) {
     try {
-      const accesToken = await this.authService.callback(req);
-      res.cookie(accesToken.name, accesToken.value);
-      res.redirect(process.env.FRONTEND_URL);
-      res.end();
-      // return res.redirect(process.env.FRONTEND_URL);
+      await this.authService.callback(req, res);
     } catch (e) {
       throw e;
     }
@@ -132,11 +127,8 @@ export class AuthController {
   @Post('2fa/verify')
   async verifyTwoFactorAuthentication(@Req() req, @Res() res) {
     try {
-      const value = await this.authService.verify(req);
-      if (value) {
-        res.cookie('access_token', value.access_token);
-      }
-      res.send(value);
+      const _res = await this.authService.verify(req, res);
+      res.end(_res.message);
     } catch (e) {
       throw e;
     }

@@ -38,15 +38,13 @@ export class UsersService {
           phone: '',
           email: 'PongMastersAi@PongMasters.pg',
         });
-        this.updateUser(
-          {
-            user: {
-              ...ai,
-              status: 'ONLINE',
-            },
+        this.updateUser({
+          user: {
+            ...ai,
+            status: 'ONLINE',
           },
-          ai.id,
-        );
+          id: ai.id,
+        });
         const keys = Object.keys(Achievements);
         keys.map(async (key, i) => {
           await this.prisma.achievement.create({
@@ -60,6 +58,33 @@ export class UsersService {
       }
     } catch (error) {
       return error;
+    }
+  }
+
+  async findStats() {
+    try {
+      const users = await this.prisma.user.findMany({
+        orderBy: {
+          rating: 'desc',
+        },
+      });
+      const games = await this.prisma.game.findMany({});
+
+      return {
+        users: users.length,
+        games: games.length,
+        user: {
+          username: users[0].username,
+          rating: users[0].rating,
+          wins: users[0].wins,
+          losses: users[0].losses,
+          totalGames: users[0].totalGames,
+          winStreak: users[0].winStreak,
+          avatar: users[0].avatar,
+        },
+      };
+    } catch (_) {
+      return null;
     }
   }
 
@@ -167,24 +192,6 @@ export class UsersService {
     }
   }
 
-  // async findUserById(id: number) {
-  //   try {
-  //     const user = await this.prisma.user.findUnique({
-  //       where: {
-  //         id,
-  //       },
-  //       include: {
-  //         sentRequests: true,
-  //         receivedRequests: true,
-  //         achievements: true,
-  //       },
-  //     });
-  //     return user;
-  //   } catch (error) {
-  //     throw new NotFoundException(`user with ${id} does not exist.`);
-  //   }
-  // }
-
   async findUserById(id: number) {
     try {
       const user = await this.prisma.user.findUnique({
@@ -204,8 +211,6 @@ export class UsersService {
           status: true,
           ladder: true,
           rating: true,
-          createdAt: true,
-          updatedAt: true,
           wins: true,
           losses: true,
           sentRequests: true,
@@ -262,7 +267,7 @@ export class UsersService {
     }
   }
 
-  async findAllUsers(username: string) {
+  async findAllUsers() {
     try {
       const users = await this.prisma.user.findMany({
         orderBy: {
@@ -288,8 +293,6 @@ export class UsersService {
           status: true,
           ladder: true,
           rating: true,
-          createdAt: true,
-          updatedAt: true,
           wins: true,
           losses: true,
           totalGames: true,
@@ -332,54 +335,36 @@ export class UsersService {
     }
   }
 
-  async updateUser(body: UpdateUserDto, id: number) {
+  async updateUser({ user, id }: UpdateUserDto) {
     try {
-      const user = await this.prisma.user.update({
+      const { id, ...rest } = user;
+      await this.prisma.user.update({
         where: {
           id,
         },
-        data: <User>body.user,
+        data: {
+          ...(rest as User),
+        },
       });
       return {
         message: 'User updated successfully',
       };
     } catch (error) {
-      if (error instanceof PrismaClientKnownRequestError) {
+      if (error && error.code) {
         if (error.code === 'P2016') {
-          throw new NotFoundException(`User with ID ${body.user.id} not found`);
+          throw new NotFoundException(`User with ID ${id} not found`);
         } else if (error.code === 'P2025') {
-          throw new BadRequestException('Invalid update data');
+          throw new BadRequestException('Invalid user not found ');
+        } else if (error.code === 'P2002') {
+          throw new BadRequestException(
+            'Invalid update data duplicate => ' +
+              error.meta?.target?.toString(),
+          );
         }
       }
-      throw error;
+      // throw error;
     }
   }
-
-  // async updateStatus(status: string, id: number) {
-  //   try {
-  //     if (!id || !status) return;
-  //     const user = await this.prisma.user.update({
-  //       where: {
-  //         id,
-  //       },
-  //       data: {
-  //         status: UserStatus[status],
-  //       },
-  //     });
-  //     return {
-  //       message: 'User updated successfully',
-  //     };
-  //   } catch (error) {
-  //     if (error instanceof PrismaClientKnownRequestError) {
-  //       if (error.code === 'P2016') {
-  //         throw new NotFoundException(`User with ID ${id} not found`);
-  //       } else if (error.code === 'P2025') {
-  //         throw new BadRequestException('Invalid update data');
-  //       }
-  //     }
-  //     throw error;
-  //   }
-  // }
 
   async deleteUser(id: number) {
     try {
@@ -473,7 +458,7 @@ export class UsersService {
         'Friend Request Accepted',
         '',
         request.senderId,
-        '/notifications/',
+        '',
       );
       return request;
     } catch (error) {

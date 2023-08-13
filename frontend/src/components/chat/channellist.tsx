@@ -10,14 +10,12 @@ import { ChatContext, Ichannel, IchannelMember, IchatContext, Imessage } from ".
 import Modal from "../modal";
 import Input from "../input";
 import Button from "../button";
-
 import { AppContext } from "../../context/app.context";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { twMerge } from "tailwind-merge";
 
-import { BsFillChatLeftTextFill } from "react-icons/bs";
-import { BiFilter } from "react-icons/bi";
+import { ListFilter, MessageSquarePlus } from "lucide-react";
 
 interface ChannelListProps {
   className?: string;
@@ -25,7 +23,7 @@ interface ChannelListProps {
   setCurrentChannel: React.Dispatch<React.SetStateAction<Ichannel | undefined>>;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setMessages: React.Dispatch<React.SetStateAction<Imessage[]>>;
-  inputRef?:  React.RefObject<HTMLInputElement>;
+  inputRef?: React.RefObject<HTMLInputElement>;
   checkBlock: (id: number) => boolean;
 }
 
@@ -54,7 +52,7 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
 
   const onClick = async (channel: Ichannel): Promise<void | undefined> => {
     if (!user || !channel)
-      return; 
+      return;
     socket?.emit('reset_mssg_count', { channelId: channel.id });
     const [member, messages] = await Promise.all([
       fetcher(`api/channels/member/${user?.id}/${channel.id}`),
@@ -81,9 +79,9 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
     //eslint-disable-next-line
   }
 
-  function debounce(callback : any, delay : number) {
-    let timeoutId : any;
-    return function() {
+  function debounce(callback: any, delay: number) {
+    let timeoutId: any;
+    return function () {
       clearTimeout(timeoutId);
       timeoutId = setTimeout(callback, delay);
     }
@@ -112,7 +110,7 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
     if (!user)
       return;
     fetcher(`api/channels/${user?.id}`)
-      .then((channels : Ichannel[]) => {
+      .then((channels: Ichannel[]) => {
         channels.forEach((channel: Ichannel) => {
           if (channel.type === "CONVERSATION") {
             channel.name = channel.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.username;
@@ -126,7 +124,7 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
       .then((channels) => {
         setArchiveChannels(channels);
       });
-      //eslint-disable-next-line
+    //eslint-disable-next-line
   }, [socket, user?.id]);
 
   useEffect(() => {
@@ -141,12 +139,12 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
       setOpen(false);
     });
 
-    socket?.on('channel_access', (data: {channel: Ichannel, messages : Imessage[]}) => {
-        setOpen(true);
-        setCurrentChannel(data?.channel);
-        setSelectedChannel(data?.channel);
-        setMessages(data?.messages);
-        // inputRef?.current?.focus();
+    socket?.on('channel_access', (data: { channel: Ichannel, messages: Imessage[] }) => {
+      setOpen(true);
+      setCurrentChannel(data?.channel);
+      setSelectedChannel(data?.channel);
+      setMessages(data?.messages);
+      // inputRef?.current?.focus();
     });
 
     socket?.on('channel_delete', () => {
@@ -217,7 +215,7 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
 
   const onChange = (e: any) => {
     e.preventDefault();
-    const {value} = e.target
+    const { value } = e.target
     setSearch(value);
     if (value.trim().length > 0) {
       setChannels(channels.filter((item: Ichannel) => item.name.toLowerCase().includes(value.toLowerCase())));
@@ -263,14 +261,15 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
               />
             </div>
           </form>
-          <BsFillChatLeftTextFill style={{ color: "#727587", fontSize: "30px", cursor: "pointer" }}
+          <MessageSquarePlus size={35} style={{ color: "#727587", fontSize: "30px", cursor: "pointer" }}
             onClick={
               () => {
                 setShowModal(true);
               }
             } />
-          <BiFilter
-            style={{ color: isFocused ? "#E5AC7C" : "#727587", fontSize: "40px", cursor: "pointer" }}
+          <ListFilter
+            size={35}
+            style={{ color: isFocused ? "#E5AC7C" : "#727587", fontSize: "60px", cursor: "pointer" }}
             onClick={
               () => {
                 setIsFocused(!isFocused);
@@ -463,7 +462,7 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
                 </Button>
                 <Button
                   className="h-10 w-20 md:w-30 bg-primary-500 text-white text-xs rounded-full mt-2"
-                  onClick={async() => {
+                  onClick={async () => {
                     await accessChannel()
                     setModal(false);
                     setPassword("");
