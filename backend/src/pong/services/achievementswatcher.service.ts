@@ -124,7 +124,7 @@ class AchievementsWatcher {
   }
 
   async checkAchievementsWhenPlayerScores(player: Player, game: Game) {
-    if (game.ball.speed >= 8) {
+    if (game.ball.speed >= 25) {
       this.achieveAchievement(Achievements.POWER_SERVE);
     }
     // Score a point within 10 seconds of the start of a game.

@@ -48,9 +48,9 @@ export const AppContext = React.createContext<IAppContext>({
 	user: undefined,
 	loading: true,
 	authenticated: false,
-	setAuthenticated: () => {},
-	fetchUser: async () => {},
-	updateUser: async () => {},
+	setAuthenticated: () => { },
+	fetchUser: async () => { },
+	updateUser: async () => { },
 });
 
 export const fetcher = async (url: string) => {
@@ -96,18 +96,6 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
 		setIsLoading(false);
 	}, [data, loading]);
 
-	React.useEffect(() => {
-		if (isLoading) return;
-		const id = setInterval(async () => {
-			const accessToken = getCookieItem("access_token");
-			if (accessToken !== prevAccessToken && isAuthenticated) {
-				setPrevAccessToken(accessToken);
-				setIsAuthenticated(false);
-				router.push("/");
-			}
-		}, 500);
-		return () => clearInterval(id);
-	}, [isLoading]);
 
 	if (isLoading) {
 		return (
@@ -116,9 +104,9 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
 					user: undefined,
 					loading: false,
 					authenticated: false,
-					setAuthenticated: () => {},
-					fetchUser: async () => {},
-					updateUser: async () => {},
+					setAuthenticated: () => { },
+					fetchUser: async () => { },
+					updateUser: async () => { },
 				}}
 			>
 				<body />

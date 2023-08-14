@@ -49,7 +49,7 @@ const Contributors = [
 
 const LandingPage = () => {
 	const [slide, setSlide] = useState(0);
-	const { user, loading, authenticated, fetchUser } = useContext(AppContext);
+	const { user, loading, authenticated } = useContext(AppContext);
 	const [selectable, setSelectable] = useState(true);
 	const [numUsers, setNumUsers] = useState(0);
 	const [numGames, setNumGames] = useState(0);
