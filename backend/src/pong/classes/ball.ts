@@ -20,7 +20,7 @@ class Ball {
   constructor(canvas: Canvas) {
     this.x = canvas.width / 2;
     this.y = canvas.height / 2;
-    this.speed = 10;
+    this.speed = 15;
     this.radius = 10;
     this.velocity = {
       x: 2,

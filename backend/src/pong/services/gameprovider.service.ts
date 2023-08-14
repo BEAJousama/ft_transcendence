@@ -63,20 +63,24 @@ class GameProvider {
 
     if (playerA.keyState['ArrowUp'] && playerA.y > 5) {
       playerA.y -= 5;
+      playerA.paddleWizard = false;
     } else if (
       playerA.keyState['ArrowDown'] &&
       playerA.y < height - playerA.height - 5
     ) {
       playerA.y += 5;
+      playerA.paddleWizard = false;
     }
 
     if (playerB.keyState['ArrowUp'] && playerB.y > 5) {
+      playerB.paddleWizard = false;
       playerB.y -= 5;
     } else if (
       playerB.keyState['ArrowDown'] &&
       playerB.y < height - playerB.height - 5
     ) {
       playerB.y += 5;
+      playerB.paddleWizard = false;
     }
 
     if (playerA.keyState['ArrowUp']) {

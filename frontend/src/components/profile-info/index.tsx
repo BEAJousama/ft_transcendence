@@ -61,6 +61,8 @@ const ProfileInfo = ({
         },
         {
             refreshInterval: 1,
+            errorRetryCount: 0,
+            shouldRetryOnError: false,
         }
     );
     const [text, setText] = useState("");

@@ -35,3 +35,4 @@ export { default as ScoreBoard } from "./score-board";
 export { default as PauseGame } from "./puase-game";
 export { default as Login } from "./login";
 export { default as Register } from "./register";
+export { default as RadioCheck } from "./radio-check";
