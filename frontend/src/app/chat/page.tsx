@@ -119,7 +119,7 @@ export default function Chat() {
     });
 
     socket?.on('message', (data: Imessage) => {
-      if(data?.receiverId === currentChannel?.id)
+      if(data?.receiverId === currentChannel?.id && messages)
         setMessages([...messages, data]);
     }
     );
@@ -163,12 +163,14 @@ export default function Chat() {
     socket?.on("channel_create", () => {
       if (!isMatch)
         setOpen(true);
+      setMessages(null as any as Imessage[]);
       setMessages([]);
     });
-
+    
     socket?.on("dm_create", () => {
       if (!isMatch)
-        setOpen(true);
+      setOpen(true);
+      setMessages(null as any as Imessage[]);
       setMessages([]);
     });
 
@@ -184,15 +186,14 @@ export default function Chat() {
     socket?.on("blockUser", handleSocketEvent);
     return () => {
       socket?.off("blockUser");
-      // socket?.off('channel_member');
-      // socket?.off('channel_leave');
-      // socket?.off('channel_join');
-      // socket?.off('channel_remove');
-      // socket?.off('channel_create');
-      // socket?.off('dm_create');
-      // socket?.off('current_ch_update');
-      // socket?.off('getChannelMessages');
-      // socket?.off('reset_mssg_count');
+      socket?.off('message');
+      socket?.off('channel_leave');
+      socket?.off('channel_join');
+      socket?.off('channel_remove');
+      socket?.off('channel_create');
+      socket?.off('dm_create');
+      socket?.off('current_ch_update');
+      socket?.off('getChannelMessages');
     };
   });
 

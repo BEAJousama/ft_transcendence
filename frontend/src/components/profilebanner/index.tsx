@@ -12,7 +12,7 @@ import Input from "../input";
 import { GameContext } from "@/context/game.context";
 import { useRouter } from "next/navigation";
 import { useClickAway } from "react-use";
-import { VolumeX, Archive, ArchiveRestore, Pin, Trash, BellDot, UserMinus, MoreVertical, Ban, ShieldAlert, PlusCircle, UserPlus } from 'lucide-react';
+import { VolumeX, Archive, ArchiveRestore, Pin, Trash, BellDot, UserMinus, MoreVertical, Ban, ShieldAlert, PlusCircle, UserPlus, UserSquare2 ,Gamepad } from 'lucide-react';
 
 
 
@@ -178,7 +178,7 @@ const ProfileBanner = ({
                       router.push("/pong")
                     }}
                   >
-                    <UserPlus />
+                    <Gamepad />
                     Invite To Play
                   </RightClickMenuItem>
                   <RightClickMenuItem
@@ -187,7 +187,7 @@ const ProfileBanner = ({
                       setShowMenu(false);
                     }}
                   >
-                    <UserPlus />
+                    <UserSquare2 />
                     Go to profile
                   </RightClickMenuItem>
                   {((channelMember?.role === "ADMIN" || channelMember?.role === "OWNER") && role !== "OWNER") &&

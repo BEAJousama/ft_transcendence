@@ -191,7 +191,7 @@ const CreateGroupModal = ({
         )}
         {
           show && (
-            <div className="w-full flex items-center justify-center flex-col align-middle max-h-[450px] overflow-auto scrollbar-hide gap-2 pt-2">
+            <div className="w-full flex items-center justify-center flex-col align-middle gap-2 pt-2">
               <span className="w-full mb-2 text-sm font-bold text-white">Select Members: </span>
               {users?.length ? (
                 users

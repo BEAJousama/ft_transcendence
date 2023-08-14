@@ -21,7 +21,7 @@ const Welcome = ({ className, setShowModal }: {
           <p className="text-primary-50 text-lg font-semibold  relative z-10 flex justify-center"> Use the search bar to find specific channels. <br /> <br /> </p>
           <p className="text-primary-50 text-lg font-semibold  relative z-10 flex justify-center"> Happy chatting!</p>
           <Button
-            // variant="contained"
+            variant="contained"
             type="secondary"
             className="rounded-md"
             onClick={() => {
@@ -34,13 +34,6 @@ const Welcome = ({ className, setShowModal }: {
       </div>
     </div>
   );
-
-
-
-
-
 };
 
-
 export default Welcome;
-/* Welcome to your chat section! Stay connected with your friends. Start a new conversation or select one from the list.Use the search bar to find specific messages.Happy chatting! */
