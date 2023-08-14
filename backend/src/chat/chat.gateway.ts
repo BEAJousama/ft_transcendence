@@ -726,7 +726,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const channel = await this.channelService.getChannelById(
         parseInt(payload.channelId),
       );
-      const channelMembers =
+      let channelMembers =
         await this.channelService.getChannelMembersByChannelId(
           parseInt(payload.channelId),
         );
@@ -740,21 +740,20 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         client.data.sub,
         parseInt(payload.channelId),
       );
-      channelMembers
-        .filter(
-          (member) =>
-            member.status !== MemberStatus.BANNED &&
-            member.status !== MemberStatus.LEFT,
-        )
-        .forEach((member) => {
-          this.sendChannels(member.userId);
-          const sockets = this.getConnectedUsers(member.userId);
-          sockets.forEach((socket) =>
-            this.server
-              .to(socket.id)
-              .emit(EVENT.CHANNEL_REMOVE, { id: parseInt(payload.channelId) }),
-          );
-        });
+      channelMembers = channelMembers.filter(
+        (member) =>
+          member.status !== MemberStatus.BANNED &&
+          member.status !== MemberStatus.LEFT,
+      );
+      for (const member of channelMembers) {
+        this.sendChannels(member.userId);
+        const sockets = this.getConnectedUsers(member.userId);
+        for (const socket of sockets) {
+          this.server
+            .to(socket.id)
+            .emit(EVENT.CHANNEL_REMOVE, { id: parseInt(payload.channelId) });
+        }
+      }
     } catch (err) {
       client.emit(EVENT.ERROR, err.message);
       throw new WsException({
@@ -1170,10 +1169,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     await this.channelService.getChannelById(channelId);
     let sockets;
     members.forEach(async (member) => {
-      // const messages = await this.messageService.getMessagesByChannelId(
-      //   channelId,
-      //   member.userId,
-      // );
       if (
         member.status === MemberStatus.BANNED ||
         member.status === MemberStatus.LEFT ||

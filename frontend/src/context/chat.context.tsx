@@ -82,15 +82,6 @@ export default function ChatProvider({
                 token: token,
             },
         });
-
-        newSocket.on("connect", () => {
-            console.log("Chat Connected");
-        });
-
-        newSocket.on("disconnect", () => {
-            console.log("Chat Disconnected");
-        });
-
         newSocket.on("notification", (data: INotification) => {
             if (data.sender.id === user?.id) return;
             toast(
@@ -106,7 +97,6 @@ export default function ChatProvider({
                 }
             );
         });
-        // add a toast like for error messages
 
         newSocket.on("error", (data: string) => {
             toast.error(

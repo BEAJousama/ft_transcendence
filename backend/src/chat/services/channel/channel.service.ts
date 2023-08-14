@@ -706,11 +706,11 @@ export class ChannelService {
               id: userId,
             },
           },
-          // deletedFor: {
-          //   connect: {
-          //     id: userId,
-          //   },
-          // },
+          deletedFor: {
+            connect: {
+              id: userId,
+            },
+          },
         },
       });
       return updated.count;
@@ -879,11 +879,11 @@ export class ChannelService {
               id: userId,
             },
           },
-          // deletedFor: {
-          //   connect: {
-          //     id: userId,
-          //   },
-          // },
+          deletedFor: {
+            connect: {
+              id: userId,
+            },
+          },
         },
       });
 
@@ -1358,11 +1358,11 @@ export class ChannelService {
               id: userId,
             },
           },
-          // deletedFor: {
-          //   connect: {
-          //     id: userId,
-          //   },
-          // },
+          deletedFor: {
+            connect: {
+              id: userId,
+            },
+          },
         },
       });
       return updated.count;
@@ -1411,11 +1411,11 @@ export class ChannelService {
             id: userId,
           },
         },
-        deletedFor: {
-          disconnect: {
-            id: userId,
-          },
-        },
+        // deletedFor: {
+        //   disconnect: {
+        //     id: userId,
+        //   },
+        // },
       },
     });
     return updated.count;
