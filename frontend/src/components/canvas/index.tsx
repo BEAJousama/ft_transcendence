@@ -4,6 +4,7 @@ import { useContext, useEffect, useRef } from "react";
 import { GameContext } from "../../context/game.context";
 import { useMedia } from "react-use";
 import { AppContext } from "../../context/app.context";
+import { toast } from "react-toastify";
 
 enum Keys {
     ArrowUp = "ArrowUp",
@@ -141,6 +142,20 @@ const Canvas = () => {
             renderGame();
         }
     }, [playerA, playerB, ball, heightScaleFactor, widthScaleFactor]);
+
+    useEffect(() => {
+        if ('connection' in navigator) {
+            const connection = navigator.connection as any;
+            const intervalId = setInterval(() => {
+                if (connection.effectiveType === 'slow-2g' || connection.effectiveType === '2g') {
+                    toast.warning('Your connection is slow. Try improving your connection for a better gaming experience.');
+                }
+            }, 20000)
+            return () => {
+                return clearInterval(intervalId);
+            };
+        }
+    }, []);
 
     return (
         <canvas
