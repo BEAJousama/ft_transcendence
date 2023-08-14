@@ -1,5 +1,5 @@
 "use client"
-import { Button, Card, Carousel, Input, Spinner, UserBanner } from "@/components";
+import { Button, Card, Carousel, Input, RadioCheck, Spinner, UserBanner } from "@/components";
 import useSwr from "swr";
 import { AppContext, fetcher } from "@/context/app.context";
 import { GameContext } from "@/context/game.context";
@@ -8,47 +8,6 @@ import { useContext, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import Image from "next/image";
 import { SocketContext } from "@/context/socket.context";
-
-
-const RadioCheck = ({
-	options,
-	label,
-	htmlFor,
-	onChange,
-	value,
-}: {
-	label?: string;
-	htmlFor?: string;
-	options: string[];
-	onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
-	value?: string;
-}) => {
-	return (
-		<div className="flex w-full flex-col items-center gap-2 pt-2">
-			<div className="text-white">{label}</div>
-			<ul>
-				{options.map((option: string, i: number) => {
-					return (
-						<div className="flex items-center" key={i}>
-							<input
-								checked={value === option}
-								id={htmlFor}
-								type="radio"
-								onChange={onChange}
-								value={option}
-								name={htmlFor}
-								className="border-gray-300 ring-offset-gray-800 h-4 w-4 bg-gray-100 text-blue-600 focus:ring-2 "
-							/>
-							<label htmlFor={htmlFor} className="ml-2 text-sm font-medium ">
-								{option}
-							</label>
-						</div>
-					);
-				})}
-			</ul>
-		</div>
-	);
-};
 
 const CreateGameCard = ({
 	onClick,
@@ -112,12 +71,16 @@ const CreateGameCard = ({
 		})
 
 		socket?.emit("check-for-invitaion-sent");
-		socket?.on("check-for-invitaion-sent", () => {
-			setShow(true)
-			// setShowModal(true);
+		socket?.on("check-for-invitaion-sent", (data: boolean) => {
+			if (data) {
+				console.log("invitation sent => show spinner", data);
+				setShow(true)
+				setShowModal(true);
+			}
 		});
 
 		socket?.on("game-over", () => {
+			console.log("game over => remove spinner");
 			setShow(false)
 			setShowModal(false);
 		});
@@ -301,11 +264,14 @@ export default function GameCards() {
 			});
 		})
 		socket?.emit("check-for-invitaion-sent");
-		socket?.on("check-for-invitaion-sent", () => {
-			setDisabled({
-				invite: true,
-				join: false,
-			})
+		socket?.on("check-for-invitaion-sent", (data: boolean) => {
+			if (data) {
+
+				setDisabled({
+					invite: true,
+					join: false,
+				})
+			}
 		});
 
 		socket?.on("game-over", () => {
@@ -344,6 +310,7 @@ export default function GameCards() {
 				setGameOption={setGameOption}
 				disabled={disabled?.invite}
 				onCancel={() => {
+					console.log('cancel invite')
 					socket?.emit("cancel-invite", {
 						inviterId: user?.id,
 					});

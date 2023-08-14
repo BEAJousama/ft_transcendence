@@ -12,6 +12,7 @@ import {
   BlockUserDto,
   UnblockUserDto,
   UpdateUserDto,
+  UserDto,
 } from './dto';
 import Achievements from './achievements/index.tsx';
 import NotificationService from 'src/notification/notification.service';
@@ -340,9 +341,9 @@ export class UsersService {
     }
   }
 
-  async updateUser({ user, id }: UpdateUserDto) {
+  async updateUser({ user, id }: { user: UserDto; id: number }) {
     try {
-      const { id, ...rest } = user;
+      const { id: _, ...rest } = user;
       await this.prisma.user.update({
         where: {
           id,
@@ -367,6 +368,7 @@ export class UsersService {
           );
         }
       }
+      // console.log(error);
       // throw error;
     }
   }

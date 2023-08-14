@@ -11,8 +11,6 @@ import { Socket } from 'socket.io';
 import { PongService } from './pong.service';
 import { Inject, UseGuards } from '@nestjs/common';
 import { NotificationGateway } from 'src/notification/notification.gateway';
-import { JwtService } from '@nestjs/jwt';
-import { AuthGuard } from '@nestjs/passport';
 
 @WebSocketGateway({ namespace: 'pong', cors: true, origins: '*' })
 // @UseGuards(SocketAuthGuard) // Apply the guard to the entire gateway
@@ -44,8 +42,11 @@ export class PongGateway {
   }
 
   @SubscribeMessage('reject-invitation')
-  @SubscribeMessage('cancel-invite')
   rejectInvitation(@MessageBody() info) {
+    this.pongService.resetInvitation(info.inviterId);
+  }
+  @SubscribeMessage('cancel-invite')
+  cancelInvitation(@MessageBody() info) {
     this.pongService.resetInvitation(info.inviterId);
   }
 

@@ -3,10 +3,12 @@ const withBundleAnalyzer = require("@next/bundle-analyzer")({
   enabled: process.env.ANALYZE === "true",
 });
 
-// const nextConfig = {
-//   webpack(config, options) {
-//     return config;
-//   },
-// };
+const nextConfig = {
+  compiler: {
+    removeConsole: true,
+    // removeConsole: process.env.NODE_ENV === "production",
+  },
+};
 
 module.exports = withBundleAnalyzer({});
+module.exports = nextConfig;

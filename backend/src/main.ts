@@ -9,8 +9,6 @@ import * as cookieParser from 'cookie-parser';
 import { ContextInterceptor } from './context-interceptor';
 import { GlobalExceptionFilter } from './global-exception.filter';
 
-// global-header.middleware.ts
-
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     cors: {
@@ -23,7 +21,6 @@ async function bootstrap() {
   app.use(cookieParser());
   app.useGlobalInterceptors(new ContextInterceptor());
   app.setGlobalPrefix('/api');
-  // app.useGlobalFilters(new GlobalExceptionFilter());
 
   const reflector = app.get(Reflector);
   const jwt = app.get(JwtService);

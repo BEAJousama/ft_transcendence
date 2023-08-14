@@ -8,19 +8,13 @@ import {
     ScoreBoard,
     PauseGame,
 } from "@/components";
-import React, {
-    useContext,
-    useEffect,
-    useRef,
-    useState,
-} from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { GameContext } from "../../context/game.context";
 import { AppContext } from "../../context/app.context";
 import Modal from "../../components/modal";
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle } from "lucide-react";
 import { Player, Ball } from "../../interfaces/game";
 import TimeDifference from "./time-difference";
-
 
 const PongGame = ({
     playerA,
@@ -53,8 +47,11 @@ const PongGame = ({
 
     useEffect(() => {
         isInGame.current = true;
+        let intervalId: NodeJS.Timer | undefined;
 
         socket?.on("update", (data: Ball) => {
+            clearInterval(intervalId);
+            setshowStartingModal(0);
             // Update the ball position with the scaled values
             setShowPausedModal(false);
             setBall((prev) => {
@@ -66,8 +63,7 @@ const PongGame = ({
         });
 
         socket?.on("update-time", (data: string) => {
-            if (data && !time.current)
-                time.current = new Date(data);
+            if (data && !time.current) time.current = new Date(data);
         });
 
         socket?.on("update-player-a", (data: Player) => {
@@ -93,7 +89,7 @@ const PongGame = ({
             setShowModal(false);
         });
 
-        const intervalId = setInterval(() => {
+        intervalId = setInterval(() => {
             setshowStartingModal((prev) => {
                 if (prev === 0) {
                     clearInterval(intervalId);
@@ -117,9 +113,28 @@ const PongGame = ({
             {time && time.current && <TimeDifference time={time.current} />}
             {!!showstartingModal && (
                 <Modal>
-                    <div className="flex w-full flex-col items-center justify-center gap-2">
-                        <div className="text-white text-2xl">Game Starting in</div>
-                        <div className="text-white text-2xl">{showstartingModal}</div>
+                    <div className="flex w-full flex-col items-center justify-center gap-2 text-tertiary-200">
+                        <div className="text-2xl">Game Starting in</div>
+                        <div className={`text-2xl ${showstartingModal < 4 ? "text-red-500 animate-jump animate-infinite animate-duration-1000 animate-ease-out" : "text-primary-500"}`}>{showstartingModal}</div>
+                        <h1>🏆 Objective: Be the first to achieve a stunning 7-0 victory!</h1>
+                        <p className="text-center">
+                            <span className="text-primary-500">🚀 Power Up:</span> Unleash your potential by pressing the space key to
+                            activate incredible power-ups!
+                        </p>
+                        <p className="text-center">
+                            <span className="text-primary-500">🎮 Paddle Control:</span> Navigate your paddle with finesse using the up
+                            and down arrow keys. Feel the thrill of precision at your
+                            fingertips.
+                        </p>
+                        <p className="text-center">
+                            <span className="text-primary-500">📱 Mobile Mastery:</span> On mobile devices, tap the left side of the
+                            screen to gracefully glide your paddle to the left, or tap the
+                            right side to elegantly steer it to the right.
+                        </p>
+                        <p className="text-center text-primary-700">
+                            🏁 May the most skilled player emerge victorious in this epic
+                            showdown of skill and strategy! 🏓🥇
+                        </p>
                     </div>
                 </Modal>
             )}
