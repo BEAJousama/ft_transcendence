@@ -13,25 +13,21 @@ export default function LandingPageSelector({
 	setState,
 }: LandingPageSelectorProps) {
 	return (
-		<div
-			className={twMerge(
-				"overflow-hidden group relative h-fit w-fit rounded-xl shadow-lg shadow-secondary-700 transition-all duration-200 ease-out bg-secondary-500",
-				!selectable && "opacity-50"
-			)}
-		>
+		<div className="overflow-hidden group relative h-fit w-fit rounded-xl shadow-lg shadow-secondary-700 transition-all duration-200 ease-out bg-secondary-500">
 			<div
 				className={twMerge(
 					"absolute h-10 bg-primary-600 transition-all duration-500 ease-out",
-					state === "login" ? "left-0 w-24" : "left-24 w-28"
+					state === "register" || state === "complete" ? "left-24 w-28" : "left-0 w-24"
 				)}
 			/>
 			<button
 				className={twMerge(
-					"relative overflow-hidden h-10 w-24 transition-all duration-500 ease-out",
-					state === "login"
+					"relative overflow-hidden h-10 w-24 transition-all duration-500 ease-out text-secondary-100",
+					state === "login" || state === "2fa"
 						? "font-semibold text-secondary-700"
-						: selectable &&
-								"text-secondary-100 before:ease before:absolute before:right-0 before:top-0 before:h-12 before:w-6 before:translate-x-12 before:rotate-6 before:bg-white before:opacity-10 before:duration-700 hover:before:-translate-x-40"
+						: selectable
+						? "hover:bg-white hover:bg-opacity-10"
+						: "opacity-50"
 				)}
 				disabled={state === "login" || !selectable}
 				onClick={() => setState("login")}
@@ -40,11 +36,12 @@ export default function LandingPageSelector({
 			</button>
 			<button
 				className={twMerge(
-					"relative overflow-hidden h-10 w-28 transition-all duration-500 ease-out",
-					state === "register"
+					"relative overflow-hidden h-10 w-28 transition-all duration-500 ease-out text-secondary-100",
+					state === "register" || state === "complete"
 						? "font-semibold text-secondary-700"
-						: selectable &&
-								"text-secondary-100 before:ease before:absolute before:right-0 before:top-0 before:h-12 before:w-6 before:translate-x-12 before:rotate-6 before:bg-white before:opacity-10 before:duration-700 hover:before:-translate-x-40"
+						: selectable
+						? "hover:bg-white hover:bg-opacity-10"
+						: "opacity-50"
 				)}
 				disabled={state === "register" || !selectable}
 				onClick={() => setState("register")}
