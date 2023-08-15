@@ -98,7 +98,10 @@ const Input = ({
 					/>
 					{htmlType === "password" && (
 						<div
-							className="absolute right-0 top-0 h-full flex items-center justify-center pr-3 cursor-pointer"
+							className={twMerge(
+								"absolute right-0 top-0 h-full flex items-center justify-center pr-3 cursor-pointer",
+								error && "-top-3"
+							)}
 							onClick={() => setShowPassword(!showPassword)}
 						>
 							{!showPassword && (

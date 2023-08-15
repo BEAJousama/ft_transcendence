@@ -1,15 +1,11 @@
 "use client";
 
-import { useContext, useState, KeyboardEvent, useEffect } from "react";
-import dynamic from "next/dynamic";
-import { Button, Input } from "@/components";
-import { AppContext } from "@/context/app.context";
+import { useContext, useState } from "react";
 import axios from "axios";
-import { useRouter } from "next/navigation";
 import { useFormik } from "formik";
 import { twMerge } from "tailwind-merge";
-
-const Spinner = dynamic(() => import("@/components/").then((mod) => mod.Spinner), { ssr: false });
+import { AppContext, setCookieItem } from "@/context/app.context";
+import { Button, Input } from "@/components";
 
 const Inputs: {
 	name: "email" | "username" | "fullname" | "password" | "confirmPassword";
@@ -41,7 +37,7 @@ const Inputs: {
 ];
 
 const isValidEmail = (email: string) => {
-	return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+	return /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(email);
 };
 
 const commonWordsRegex = /^(?!.*(password|123456|qwerty|azerty|etc))$/i;
@@ -54,8 +50,8 @@ const meetsComplexityRequirements = (password: string) => {
 	return hasUppercase && hasLowercase && hasNumber && hasSymbol && isCommon;
 };
 
-export default function Register() {
-	const router = useRouter();
+export default function Register({ registrOk }: { registrOk: () => void }) {
+	const { updateUser, updateAccessToken } = useContext(AppContext);
 	const [error, setError] = useState("");
 	const [loading, setLoading] = useState<boolean>(false);
 	const [success, setSuccess] = useState<boolean>(false);
@@ -104,12 +100,11 @@ export default function Register() {
 		try {
 			setLoading(true);
 			setSubmitCount((prev) => prev + 1);
-			setError("");
-			formik.validateForm();
-
+			const errors = await formik.validateForm();
 			if (
 				Object.values(formik.values).some((value) => value === "") ||
-				Object.values(formik.errors).some((value) => value !== "")
+				Object.values(formik.errors).some((value) => value !== "") ||
+				Object.values(errors).some((value) => value !== "")
 			) {
 				console.log("invalid");
 				setError("Please enter valid details");
@@ -122,18 +117,19 @@ export default function Register() {
 				email: formik.values.email,
 				password: formik.values.password,
 			});
+			setError("");
 			setSuccess(true);
-			if (res.data) {
-				document.cookie = `${res.data.name}=${res.data.value}; Path=/;`;
-				setTimeout(() => {
-					console.log("ok", res.data);
-					// router.push("/");
-				}, 1000);
-			}
-		} catch (_e) {
-			setError("An error occurred, please try again later");
+			if (res.data) setCookieItem(res.data.name, res.data.value);
+			updateAccessToken();
+			updateUser();
+			registrOk();
+		} catch (e: any) {
+			console.log(e.response.data);
+			if (e.response.data.message.includes("login", "username"))
+				setError("Username already exists");
+			else if (e.response.data.message.includes("email")) setError("Email already exists");
+			else setError("Something went wrong...");
 			setLoading(false);
-			console.log(_e);
 		}
 	};
 
@@ -152,11 +148,12 @@ export default function Register() {
 						label={input.label}
 						value={formik.values[input.name]}
 						error={formik.errors[input.name]}
-						isError={!!formik.errors[input.name]}
+						isError={!!formik.errors[input.name] || error.includes(input.label)}
 						onBlur={formik.handleBlur}
 						onChange={formik.handleChange}
 						success={success}
 						htmlType={input.htmlType}
+						disabled={loading}
 					/>
 				))}
 				{error && (
@@ -165,11 +162,11 @@ export default function Register() {
 					</p>
 				)}
 				<div className="relative flex w-full">
-					{loading && (
-						<Spinner className="absolute flex items-center justify-center w-1/3 h-full transition duration-300 ease-out z-10 inset-x-1/3 cursor-not-allowed" />
-					)}
 					<Button
-						className={twMerge("relative w-full", loading && " blur-[2px]")}
+						className={twMerge(
+							"relative w-full",
+							loading && "animate-pulse disabled:cursor-wait"
+						)}
 						onClick={handleSignUp}
 						type={success ? "success" : "primary"}
 						disabled={

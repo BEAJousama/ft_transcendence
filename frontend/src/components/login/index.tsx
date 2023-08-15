@@ -30,7 +30,7 @@ const Login = ({
 	setState: React.Dispatch<React.SetStateAction<"login" | "register" | "2fa" | "complete">>;
 	loginOk: () => void;
 }) => {
-	const { user, updateUser, updateAccessToken } = useContext(AppContext);
+	const { updateUser, updateAccessToken } = useContext(AppContext);
 	const [loading, setLoading] = useState<"" | "internal" | "42" | "google">("");
 	const [success, setSuccess] = useState<"" | "internal" | "42" | "google">("");
 	const [error, setError] = useState<"" | "internal" | "42" | "google">("");
@@ -137,11 +137,12 @@ const Login = ({
 		try {
 			setLoading("internal");
 			setSelectable(false);
-			formik.validateForm();
+			const errors = await formik.validateForm();
 
 			if (
 				Object.values(formik.values).some((value) => value === "") ||
-				Object.values(formik.errors).some((value) => value !== "")
+				Object.values(formik.errors).some((value) => value !== "") ||
+				Object.values(errors).some((value) => value !== "")
 			)
 				handleError("Please fill in valid credentials");
 			const res = await axios.post(`${process.env.NEXT_PUBLIC_BACK_END_URL}api/auth/signin`, {
@@ -165,7 +166,6 @@ const Login = ({
 			}
 		} catch (_e: any) {
 			handleError(_e.response.data.message);
-			console.log(_e);
 		}
 	};
 
