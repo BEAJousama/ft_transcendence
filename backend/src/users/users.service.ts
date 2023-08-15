@@ -368,8 +368,7 @@ export class UsersService {
           );
         }
       }
-      // console.log(error);
-      // throw error;
+      throw new InternalServerErrorException('Failed to update user');
     }
   }
 

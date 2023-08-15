@@ -78,6 +78,10 @@ export default function Profile() {
 	const { user: currentUser } = useContext(AppContext);
 	const { data, isLoading } = useSwr(`api/users/${id || currentUser?.id}`, fetcher, {
 		refreshInterval: 0,
+		refreshWhenHidden: true,
+		refreshWhenOffline: false,
+		revalidateOnFocus: false,
+		revalidateOnReconnect: false,
 	});
 
 	const user = useMemo(() => {
