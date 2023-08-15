@@ -156,7 +156,6 @@ export class PongService {
   async joinQueue(
     client,
     {
-      userId,
       gameMode,
       powerUps,
     }: {
@@ -185,6 +184,10 @@ export class PongService {
     if (matchingPlayers.length > 0) {
       const playerA = await this.createPlayer(
         matchingPlayers.shift().playerASocket,
+      );
+
+      this.queue = this.queue.filter(
+        (game) => game.playerASocket !== playerA.socket,
       );
       const playerB = await this.createPlayer(client);
       playerB.x = playerB.canvas.width - playerB.width;

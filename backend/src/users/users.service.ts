@@ -603,6 +603,7 @@ export class UsersService {
           },
         },
       });
+      console.log(block);
       return block;
     } catch (error) {
       throw new InternalServerErrorException('Failed to unblock user');
