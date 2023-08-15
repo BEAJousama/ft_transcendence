@@ -89,19 +89,17 @@ const UnBlockUser = async (blockerId: number, blockingId: number) => {
   }
 };
 
-const isBlocked = (id: number, user?: IUser) => {
-  if (user && user.blockers) {
-    const { blockers } = user;
-    const res = blockers.map((block: IBlock) => {
-      console.log("blockers ", block.blockingId, "====", id);
-      if (block.blockingId === id) {
-        return true;
+const isBlocked = (id: number, blockers?: IBlock[]): IBlock | undefined => {
+  if (blockers) {
+    const res = blockers.filter((block: IBlock) => {
+      if (block.blockingId === id || block.blockerId === id) {
+        return block;
       }
-      return false;
     });
-    return res.includes(true);
+    console.log(res);
+    return res[0];
   }
-  return false;
+  return undefined;
 };
 
 export {

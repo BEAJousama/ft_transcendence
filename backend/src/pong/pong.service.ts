@@ -16,6 +16,7 @@ import { WsException } from '@nestjs/websockets';
 import { NotificationGateway } from 'src/notification/notification.gateway';
 
 type Game = {
+  playerAId: number;
   playerASocket: Socket;
   playerBSocket: Socket;
   gameMode: string;
@@ -156,6 +157,7 @@ export class PongService {
   async joinQueue(
     client,
     {
+      userId,
       gameMode,
       powerUps,
     }: {
@@ -169,8 +171,15 @@ export class PongService {
     });
 
     // Check if the player is already in the queue
-    if (this.isInQueue(client)) {
-      console.log('Player is already in the queue.');
+    if (await this.isInQueue(client)) {
+      console.log(' Player is already in the queue.');
+      const id = await this.getClientIdFromClient(client);
+      const res = this.queue.find((game) => game.playerAId === parseInt(id));
+      res.playerASocket.emit('game-over', {
+        winner: 0,
+      });
+      res.playerASocket = client;
+      client.emit('error', 'Player is already in the queue.');
       return;
     }
 
@@ -198,6 +207,7 @@ export class PongService {
     }
 
     const game: Game = {
+      playerAId: userId,
       playerASocket: client,
       playerBSocket: null,
       gameMode: gameMode,
@@ -549,10 +559,11 @@ export class PongService {
     );
   }
   // Checks if a client is in the queue
-  private isInQueue(client: Socket): boolean {
+  private async isInQueue(client: Socket): Promise<boolean> {
+    const id = await this.getClientIdFromClient(client);
     return this.queue
       .map((game) => {
-        return game.playerASocket === client || game.playerBSocket === client;
+        return game.playerAId === parseInt(id);
       })
       .includes(true);
   }
