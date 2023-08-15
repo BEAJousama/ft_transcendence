@@ -166,7 +166,7 @@ const ProfileBanner = ({
           {
             status !== "BANNED" ?
               (
-                <RightClickMenu className="w-full !bg-secondary-400 max-h-50">
+                <RightClickMenu className="w-full !bg-secondary-400 max-h-50 overflow-y-visible">
                   <RightClickMenuItem
                     onClick={() => {
                       gamesocket?.emit("invite-friend", {

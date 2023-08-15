@@ -19,11 +19,11 @@ const Welcome = ({ className, setShowModal }: {
           <p className="text-primary-50 text-lg font-semibold  relative z-10 flex justify-center"> Stay connected with your friends. </p>
           <p className="text-primary-50 text-lg font-semibold  relative z-10 flex justify-center"> Start a new conversation or select one from the list.</p>
           <p className="text-primary-50 text-lg font-semibold  relative z-10 flex justify-center"> Use the search bar to find specific channels. <br /> <br /> </p>
-          <p className="text-primary-50 text-lg font-semibold  relative z-10 flex justify-center"> Happy chatting!</p>
+          <p className="text-primary-50 text-lg font-semibold  relative z-10 flex justify-center pb-10"> Happy chatting!</p>
           <Button
             variant="contained"
             type="secondary"
-            className="rounded-md"
+            className="rounded-md z-20 w-50"
             onClick={() => {
               setShowModal(true);
             }}

@@ -117,7 +117,7 @@ const CreateGroupModal = ({
               }}
             />
 
-            <Input type="select" onChange={(e) => {
+            <Input type="select" defaultValue="PUBLIC" onChange={(e) => {
               setVisibility(e.target.value)
             }} options={[
               {

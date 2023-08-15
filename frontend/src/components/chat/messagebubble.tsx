@@ -352,7 +352,7 @@ const MessageBubble: React.FC<ChannelProps> = ({
         className && className
       )}
     >
-      <div className=" bg-secondary-400 rounded-t-3xl align-middle items-center sticky top-0 z-20">
+      <div className=" bg-secondary-400 rounded-t-3xl align-middle items-center sticky top-0 z-10">
         <div className="relative grid grid-cols-10 lg:grid-cols-12">
           <Button
             type="simple"
@@ -1039,6 +1039,7 @@ const MessageBubble: React.FC<ChannelProps> = ({
               <Input
                 type="select"
                 label="Visibility"
+                defaultValue={currentChannel?.visiblity || "PUBLIC"}
                 onChange={(e) => {
                   setVisibility(e.target.value);
                 }}
