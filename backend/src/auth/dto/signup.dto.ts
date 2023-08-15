@@ -60,7 +60,7 @@ export class SignUpDto {
   @IsNotEmpty()
   @IsFullname({
     message:
-      'FullName must be between 3 and 20 characters and can contain only letters, numbers, and underscores',
+      'Full Name must be between 3 and 20 characters and can contain only letters, numbers, and underscores',
   })
   @ApiProperty({
     description: 'fullname of user',

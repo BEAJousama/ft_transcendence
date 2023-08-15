@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { User, UserStatus } from '@prisma/client';
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import {
   AddFriendsDto,
@@ -437,7 +437,7 @@ export class UsersService {
         message: 'User updated successfully',
       };
     } catch (error) {
-      if (error instanceof PrismaClientKnownRequestError) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2016') {
           throw new NotFoundException(`User with ID ${id} not found`);
         } else if (error.code === 'P2025') {

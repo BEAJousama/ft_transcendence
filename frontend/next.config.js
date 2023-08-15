@@ -4,10 +4,10 @@ const withBundleAnalyzer = require("@next/bundle-analyzer")({
 });
 
 const nextConfig = {
-  compiler: {
-    removeConsole: true,
-    // removeConsole: process.env.NODE_ENV === "production",
-  },
+	compiler: {
+		// removeConsole: true,
+		// removeConsole: process.env.NODE_ENV === "production",
+	},
 };
 
 module.exports = withBundleAnalyzer({});

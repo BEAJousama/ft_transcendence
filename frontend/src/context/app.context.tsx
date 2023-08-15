@@ -74,7 +74,9 @@ export const fetcher = async (url: string) => {
 
 const AppProvider = ({ children }: { children: React.ReactNode }) => {
 	const [user, setUser] = React.useState<IUser | undefined>(undefined);
-	const [accessToken, setAccessToken] = React.useState<string | undefined>(undefined);
+	const [accessToken, setAccessToken] = React.useState<string | undefined>(
+		getCookieItem("access_token")
+	);
 	const [isAuthenticated, setIsAuthenticated] = React.useState<boolean>(false);
 	const [isLoading, setIsLoading] = React.useState<boolean>(true);
 	const location = useLocation();
