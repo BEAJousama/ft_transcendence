@@ -368,8 +368,7 @@ export class UsersService {
           );
         }
       }
-      // console.log(error);
-      // throw error;
+      throw new InternalServerErrorException('Failed to update user');
     }
   }
 
@@ -603,7 +602,6 @@ export class UsersService {
           },
         },
       });
-      console.log(block);
       return block;
     } catch (error) {
       throw new InternalServerErrorException('Failed to unblock user');

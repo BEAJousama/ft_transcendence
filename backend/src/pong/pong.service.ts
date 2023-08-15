@@ -65,7 +65,7 @@ export class PongService {
       });
       return games;
     } catch (error) {
-      console.log(error);
+      throw error;
     }
   }
 
@@ -95,8 +95,8 @@ export class PongService {
         },
       });
     } catch (error) {
+      throw error;
       // Handle the error here
-      console.log(error);
     }
   }
 
@@ -118,7 +118,6 @@ export class PongService {
       });
     } catch (error) {
       // Handle the error here
-      // console.log(error);
     }
   }
 
@@ -172,7 +171,6 @@ export class PongService {
 
     // Check if the player is already in the queue
     if (await this.isInQueue(client)) {
-      console.log(' Player is already in the queue.');
       const id = await this.getClientIdFromClient(client);
       const res = this.queue.find((game) => game.playerAId === parseInt(id));
       res.playerASocket.emit('game-over', {
@@ -324,16 +322,14 @@ export class PongService {
       playerA.socket.emit('init-game');
       playerB.socket.emit('init-game');
       // return;
-      console.log('Invitation accepted. Joining the game...');
     } else {
-      console.log('No active invitation found for the friend.');
+      client.emit('error', 'No active invitation found for the friend.');
     }
   }
 
   resetInvitation(inviterId: number) {
     // Check if the inviter has an active invitation
     const inv: Invitation = this.activeInvitations.get(inviterId);
-    console.log(inv);
     if (this.isInvited(inviterId)) {
       // Remove the invitation from the active invitations dictionary
 
@@ -445,9 +441,7 @@ export class PongService {
         },
       });
       return user.achievements.map((item) => item.name);
-    } catch (error) {
-      console.log(error);
-    }
+    } catch (error) {}
   }
 
   // Plays the game with an AI player
@@ -712,9 +706,7 @@ export class PongService {
   ) {
     try {
       const winner = await this.usersService.findUserById(winnerId);
-      // console.log(winner);
       const loser = await this.usersService.findUserById(loserId);
-      // console.log(loser);
 
       // Assume winner.ladderLevel and loser.ladderLevel represent the ladder levels of the players
 
@@ -743,7 +735,6 @@ export class PongService {
 
       winner.winStreak++;
       winner.totalGames++;
-      console.log('here', winner.totalGames);
       winner.wins++;
       // Adjust ladder level if needed
       // ...
