@@ -3,11 +3,10 @@ import React, { useContext, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import Image from "next/image";
-import { redirect } from "next/navigation";
-import { AppContext, getCookieItem } from "@/context/app.context";
-import { twMerge } from "tailwind-merge";
+import { AppContext, deleteCookieItem } from "@/context/app.context";
 import CountUp from "react-countup";
 import axios from "axios";
+import { useRouter } from "next/navigation";
 
 import { Carousel, Login, Register } from "@/components";
 import LandingPageSelector from "@/components/landing-page-selector";
@@ -48,21 +47,33 @@ const Contributors = [
 ];
 
 const LandingPage = () => {
+	const router = useRouter();
 	const [slide, setSlide] = useState(0);
-	const { user, loading, authenticated } = useContext(AppContext);
+	const { user, authenticated } = useContext(AppContext)
 	const [selectable, setSelectable] = useState(true);
 	const [numUsers, setNumUsers] = useState(0);
 	const [numGames, setNumGames] = useState(0);
 	const [state, setState] = useState<"login" | "register" | "2fa" | "complete">("login");
+	const [ok, setOk] = useState(false);
 
 	useEffect(() => {
+		if (authenticated && user && user.createdAt !== user.updatedAt) router.push("/home");
 		const fetchStats = async () => {
 			const res = await axios.get(`${process.env.NEXT_PUBLIC_BACK_END_URL}api/users/stats`);
 			setNumUsers(res.data.users);
-			setNumGames(res.data.games);
+			setNumGames(res.data.games);.
 		};
 		fetchStats();
 	}, []);
+
+	useEffect(() => {
+		if (ok) {
+			if (state === "2fa") deleteCookieItem("2fa_access_token");
+			setTimeout(() => {
+				router.push("/home");
+			}, 1000);
+		}
+	}, [ok]);
 
 	useEffect(() => {
 		if (state === "login") setSlide(0);
@@ -73,10 +84,6 @@ const LandingPage = () => {
 			}, 1000);
 		}
 	}, [state]);
-
-	if (authenticated && user && user.createdAt !== user.updatedAt) {
-		redirect("/home");
-	}
 
 	return (
 		<div className="overflow-auto scrollbar-hide flex flex-col items-center w-screen h-screen bg-secondary-700">
@@ -93,12 +100,7 @@ const LandingPage = () => {
 					<Image src="/img/logo.png" priority alt="Pong Maters" width={400} height={45} />
 				</div>
 				<div className="flex flex-col items-center justify-center w-full h-full">
-					<div
-						className={twMerge(
-							"flex flex-col items-center justify-center w-full h-full transition duration-500 ease-out",
-							loading && "animate-pulse blur-sm"
-						)}
-					>
+					<div className="flex flex-col items-center justify-center w-full h-full transition duration-500 ease-out">
 						<LandingPageSelector
 							state={state}
 							setState={setState}
@@ -110,9 +112,13 @@ const LandingPage = () => {
 							slide={slide}
 							className="w-full h-full"
 						>
-							<Login setSelectable={setSelectable} needs2fa={() => setState("2fa")} />
+							<Login
+								setSelectable={setSelectable}
+								setState={setState}
+								loginOk={() => setOk(true)}
+							/>
 							<Register />
-							{state === "2fa" && <Tfa />}
+							{state === "2fa" && <Tfa tfaOk={() => setOk(true)} />}
 							{state === "complete" && <CompleteInfo />}
 						</Carousel>
 					</div>

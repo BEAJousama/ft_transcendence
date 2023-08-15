@@ -1,14 +1,12 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Button, Input } from "@/components";
 import axios from "axios";
 import { useFormik } from "formik";
-import { useRouter } from "next/navigation";
-import { getCookieItem, setCookieItem } from "@/context/app.context";
+import { AppContext, getCookieItem, setCookieItem } from "@/context/app.context";
 import Image from "next/image";
 import { twMerge } from "tailwind-merge";
-import { useDebounce } from "react-use";
 
 const SSO: { key: "42" | "google"; name: string; url: string }[] = [
 	{
@@ -25,18 +23,30 @@ const SSO: { key: "42" | "google"; name: string; url: string }[] = [
 
 const Login = ({
 	setSelectable,
-	needs2fa,
+	setState,
+	loginOk,
 }: {
 	setSelectable: React.Dispatch<React.SetStateAction<boolean>>;
-	needs2fa: () => void;
+	setState: React.Dispatch<React.SetStateAction<"login" | "register" | "2fa" | "complete">>;
+	loginOk: () => void;
 }) => {
+	const { user, updateUser, updateAccessToken } = useContext(AppContext);
 	const [loading, setLoading] = useState<"" | "internal" | "42" | "google">("");
 	const [success, setSuccess] = useState<"" | "internal" | "42" | "google">("");
 	const [error, setError] = useState<"" | "internal" | "42" | "google">("");
 	const [invalidCreds, setInvalidCreds] = useState<string>("");
-	const router = useRouter();
-
 	const [externalPopup, setExternalPopup] = useState<Window | null>(null);
+
+	useEffect(() => {
+		if (externalPopup) {
+			externalPopup.close();
+		}
+		if (getCookieItem("2fa_access_token")) {
+			setSelectable(false);
+			setLoading("internal");
+			setState("2fa");
+		}
+	}, []);
 
 	const connectClick = (e: any, key: "42" | "google", url: string) => {
 		setLoading(key);
@@ -57,7 +67,7 @@ const Login = ({
 	useEffect(() => {
 		if (!externalPopup) return;
 		setSelectable(false);
-		const checkPopup = setInterval(() => {
+		const checkPopup = setInterval(async () => {
 			try {
 				if (externalPopup.closed) {
 					clearInterval(checkPopup);
@@ -82,11 +92,17 @@ const Login = ({
 						return;
 					}
 					setSuccess(loading);
-					if (getCookieItem("2fa_access_token")) needs2fa();
-					else
-						setTimeout(() => {
-							router.push("/home");
-						}, 2000);
+					updateAccessToken();
+					updateUser().then((res) => {
+						if (getCookieItem("2fa_access_token")) setState("2fa");
+						else if (res && res.createdAt === res.updatedAt) {
+							setState("complete");
+						} else {
+							console.log("here");
+							console.log(user);
+							loginOk();
+						}
+					});
 				}
 			} catch (_) {}
 		}, 500);
@@ -141,11 +157,8 @@ const Login = ({
 			if (res.data) {
 				setInvalidCreds("");
 				setCookieItem(res.data.name, res.data.value);
-				if (res.data.name === "2fa_access_token") needs2fa();
-				else
-					setTimeout(() => {
-						router.push("/home");
-					}, 2000);
+				if (res.data.name === "2fa_access_token") setState("2fa");
+				else loginOk();
 			}
 		} catch (_e: any) {
 			handleError(_e.response.data.message);
