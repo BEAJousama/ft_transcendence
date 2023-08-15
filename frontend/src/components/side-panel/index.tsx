@@ -99,7 +99,9 @@ const SidePanelItem = ({
           className={`flex items-center justify-start gap-4 rounded bg-secondary-900 py-2 font-bold hover:bg-secondary-900 md:w-8/12 ${selected ? "text-primary-500" : "text-secondary-300"
             }`}
           onClick={(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-            onClick && onClick();
+            if (!isInGame.current) {
+              onClick && onClick();
+            }
           }}
         >
           {children ? (
@@ -131,7 +133,6 @@ const Sidepanel = ({ className }: { className?: string }) => {
       )}
     >
       <Link prefetch={false} href="/home" onClick={(e) => {
-
         if (isInGame.current) {
           e.preventDefault();
           setShow(true)
