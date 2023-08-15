@@ -1,23 +1,17 @@
 "use client";
-import { useContext, useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
-import { AppContext } from "@/context/app.context";
+import { useEffect, useRef, useState, useContext } from "react";
 import axios from "axios";
-import { toast } from "react-toastify";
 import { Button, Input } from "@/components";
+import { twMerge } from "tailwind-merge";
+import { AppContext } from "@/context/app.context";
 
-const TwoFactorAuth = () => {
-	const { fetchUser, setAuthenticated } = useContext(AppContext);
-	const [code, setCode] = useState("");
-	const router = useRouter();
+const TwoFactorAuth = ({ tfaOk }: { tfaOk: () => void }) => {
+	const { updateUser, updateAccessToken } = useContext(AppContext);
+	const [code, setCode] = useState<string>("");
 	const [error, setError] = useState("");
-	const [shouldRedirect, setShouldRedirect] = useState<boolean>();
-
-	useEffect(() => {
-		if (shouldRedirect) {
-			router.push("/app");
-		}
-	}, [shouldRedirect]);
+	const [loading, setLoading] = useState(false);
+	const [success, setSuccess] = useState(false);
+	const [inputsError, setInputsError] = useState(false);
 
 	const inputsRef = [
 		useRef<HTMLInputElement>(null),
@@ -28,19 +22,70 @@ const TwoFactorAuth = () => {
 		useRef<HTMLInputElement>(null),
 	];
 
-	const handleInputChange = (index: number, value: string) => {
-		setCode((prev) => {
-			const newCode = prev.slice(0, index) + "" + prev.slice(index + 1);
-			return newCode;
-		});
-		if (value.length === 1) {
+	useEffect(() => {
+		setTimeout(() => {
+			inputsRef[0].current?.focus();
+		}, 1350);
+	}, []);
+
+	useEffect(() => {
+		if (code.length === 6) {
+			inputsRef[5].current?.blur();
+			handleCodeSubmit();
+		}
+	}, [code]);
+
+	const handleKeyDown = (index: number, event: React.KeyboardEvent<HTMLInputElement>) => {
+		if (event.key === "Backspace" || event.key === "Delete") {
+			event.preventDefault();
+
+			if (index > 0 && !code[index]) inputsRef[index - 1].current?.focus();
 			setCode((prev) => {
-				const newCode = prev.slice(0, index) + value + prev.slice(index + 1);
-				return newCode;
+				let newCode = prev.split("");
+				if (newCode[index]) newCode[index] = "";
+				else if (newCode[index - 1]) newCode[index - 1] = "";
+				return newCode.join("");
 			});
-			if (inputsRef && inputsRef[index + 1]) {
-				inputsRef[index + 1].current?.focus();
+		}
+	};
+
+	const handleInputChange = (index: number, value: string) => {
+		if (/^[0-9]$/.test(value)) {
+			if (value.length === 1) {
+				if (code.length < 5) inputsRef[code.length + 1].current?.focus();
+				setCode((prev) => {
+					let newCode = prev.split("");
+					newCode[index] = value;
+					return newCode.join("");
+				});
 			}
+		}
+	};
+
+	const handleCodeSubmit = async () => {
+		try {
+			setLoading(true);
+			await axios.post(
+				`${process.env.NEXT_PUBLIC_BACK_END_URL}api/auth/2fa/verify`,
+				{ code },
+				{
+					withCredentials: true,
+				}
+			);
+			setError("");
+			setSuccess(true);
+			updateAccessToken();
+			await updateUser();
+			tfaOk();
+		} catch (_e) {
+			console.log(_e);
+			if (!!error) setError("Invalid Code");
+			setInputsError(true);
+			setLoading(false);
+			setTimeout(() => {
+				setInputsError(false);
+				inputsRef[5].current?.focus();
+			}, 1000);
 		}
 	};
 
@@ -50,8 +95,7 @@ const TwoFactorAuth = () => {
 				<div className="flex flex-col items-center gap-2 text-center">
 					<h1 className="text-2xl">Two-Factor Authentication</h1>
 					<p className=" text-tertiary-200">
-						Open the two-step verification app on your mobile device to get your
-						verification code
+						Enter 6-digit code from your two factor authenticator App
 					</p>
 				</div>
 				<div
@@ -65,41 +109,35 @@ const TwoFactorAuth = () => {
 					{[...Array(6)].map((_, i) => (
 						<Input
 							key={i}
-							isError={error ? true : false}
-							className="text-center"
+							isError={inputsError}
+							className={twMerge("text-center", loading && "animate-pulse")}
 							MaxLength={1}
 							inputRef={inputsRef[i]}
-							onChange={(e) => {
+							onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
 								handleInputChange(i, e.target.value);
 							}}
+							onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+								handleKeyDown(i, e);
+							}}
 							value={code[i] || ""}
+							disabled={loading}
+							success={success}
 						/>
 					))}
 				</div>
 				<Button
-					className="w-full justify-center"
-					onClick={async () => {
-						try {
-							await axios.post(
-								`${process.env.NEXT_PUBLIC_BACK_END_URL}api/auth/2fa/verify`,
-								{ code },
-								{
-									withCredentials: true,
-								}
-							);
-							await fetchUser();
-							setAuthenticated(true);
-							setShouldRedirect(true);
-						} catch (error) {
-							console.log(error);
-							toast.error("Invalid Code");
-						}
-					}}
+					className={twMerge(
+						"w-full justify-center",
+						success && "bg-green-700 text-white disabled:cursor-wait"
+					)}
+					onClick={handleCodeSubmit}
+					disabled={loading || code.length !== 6 || inputsError}
 				>
-					Authenticate
+					Submit
 				</Button>
 				<Button
 					variant="text"
+					disabled={loading || code.length === 0}
 					className="w-full justify-center"
 					onClick={() => {
 						setCode("");

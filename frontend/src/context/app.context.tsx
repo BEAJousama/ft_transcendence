@@ -3,16 +3,19 @@
 import axios from "axios";
 import React from "react";
 import IUser from "@/interfaces/user";
-import { redirect, usePathname, useRouter } from "next/navigation";
+import { redirect, usePathname } from "next/navigation";
 import useSwr from "swr";
+import { useLocation } from "react-use";
+import { toast } from "react-toastify";
 
 export interface IAppContext {
 	user: IUser | undefined;
 	loading: boolean;
 	authenticated: boolean;
 	setAuthenticated: React.Dispatch<React.SetStateAction<boolean>>;
-	fetchUser: () => Promise<void>;
-	updateUser: () => Promise<void>;
+	updateUser: () => Promise<IUser | undefined>;
+	updateAccessToken: () => void;
+	checkConnection: () => void;
 }
 
 export const getCookieItem = (key: string): string | undefined => {
@@ -44,13 +47,18 @@ export const setCookieItem = (
 	)};expires=${expiration.toUTCString()};path=${path}`;
 };
 
+export const deleteCookieItem = (key: string, path = "/") => {
+	document.cookie = `${key}=;expires=Thu, 01 Jan 1970 00:00:01 GMT;path=${path}`;
+};
+
 export const AppContext = React.createContext<IAppContext>({
 	user: undefined,
 	loading: true,
 	authenticated: false,
 	setAuthenticated: () => { },
-	fetchUser: async () => { },
-	updateUser: async () => { },
+	updateUser: async (): Promise<undefined> => { },
+	updateAccessToken: () => { },
+	checkConnection: () => { },
 });
 
 export const fetcher = async (url: string) => {
@@ -65,48 +73,65 @@ export const fetcher = async (url: string) => {
 };
 
 const AppProvider = ({ children }: { children: React.ReactNode }) => {
-	const {
-		data,
-		isLoading: loading,
-		mutate,
-	} = useSwr("api/auth/42", fetcher, {
-		revalidateOnFocus: false,
-		revalidateOnReconnect: false,
-		refreshInterval: 0,
-		refreshWhenHidden: false,
-		refreshWhenOffline: false,
-		shouldRetryOnError: false,
-	});
+	const [user, setUser] = React.useState<IUser | undefined>(undefined);
+	const [accessToken, setAccessToken] = React.useState<string | undefined>(getCookieItem("access_token"));
 	const [isAuthenticated, setIsAuthenticated] = React.useState<boolean>(false);
 	const [isLoading, setIsLoading] = React.useState<boolean>(true);
-	const [prevAccessToken, setPrevAccessToken] = React.useState<string | undefined>(undefined);
-	const router = useRouter();
+	const location = useLocation();
 
-	const path = usePathname();
+	const checkConnection = () => {
+		const _accessToken = getCookieItem("access_token");
+		if (!_accessToken || _accessToken !== accessToken) {
+			setIsAuthenticated(false);
+			setAccessToken("undefined");
+			setUser(undefined);
+			deleteCookieItem("access_token");
+			redirect("/");
+		}
+	};
+
+	const updateUser = async (): Promise<IUser | undefined> => {
+		try {
+			const data = await fetcher("api/auth/42");
+			if (data) {
+				setIsAuthenticated(true);
+				setUser(data);
+			} else {
+				setIsAuthenticated(false);
+			}
+			setIsLoading(false);
+			return data;
+		} catch (_) {
+			setIsAuthenticated(false);
+			setIsLoading(false);
+		}
+		return undefined;
+	};
+
+	const updateAccessToken = () => {
+		setAccessToken(getCookieItem("access_token"));
+	};
 
 	React.useEffect(() => {
-		if (loading) return;
-		if (data) {
-			const accessToken = getCookieItem("access_token");
-			setPrevAccessToken(accessToken);
-			setIsAuthenticated(true);
-		} else {
-			setIsAuthenticated(false);
-		}
-		setIsLoading(false);
-	}, [data, loading]);
+		updateUser();
+	}, []);
 
+	React.useEffect(() => {
+		if (location.pathname === "/") return;
+		checkConnection();
+	}, [location.pathname]);
 
 	if (isLoading) {
 		return (
 			<AppContext.Provider
 				value={{
 					user: undefined,
-					loading: false,
+					loading: true,
 					authenticated: false,
 					setAuthenticated: () => { },
-					fetchUser: async () => { },
-					updateUser: async () => { },
+					updateUser: async (): Promise<undefined> => { },
+					updateAccessToken: () => { },
+					checkConnection: () => { },
 				}}
 			>
 				<body />
@@ -114,20 +139,19 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
 		);
 	}
 
-	if (!isAuthenticated && !isLoading && path !== "/") redirect("/");
-
-	if (isAuthenticated && !isLoading && path === "/" && data.updatedAt !== data.createdAt) {
-		redirect("/home");
-	}
+	if (!isAuthenticated && !isLoading && location.pathname !== "/") redirect("/");
 
 	const appContextValue: IAppContext = {
-		user: data,
+		user,
 		loading: isLoading,
 		authenticated: isAuthenticated,
 		setAuthenticated: setIsAuthenticated,
-		fetchUser: mutate,
-		updateUser: mutate,
+		updateUser,
+		updateAccessToken,
+		checkConnection,
 	};
+
+
 
 	return <AppContext.Provider value={appContextValue}>{children}</AppContext.Provider>;
 };

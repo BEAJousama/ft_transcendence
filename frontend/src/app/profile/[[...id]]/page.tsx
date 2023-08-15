@@ -1,13 +1,7 @@
-"use client"
+"use client";
 
-import {
-	Divider,
-	Spinner,
-	ProfileInfo,
-	LadderProgressBar,
-	FourOFour
-} from "@/components";
-import { UserCircle } from 'lucide-react';
+import { Divider, Spinner, ProfileInfo, LadderProgressBar, FourOFour } from "@/components";
+import { UserCircle } from "lucide-react";
 import { useContext, useMemo } from "react";
 import { AppContext, fetcher } from "../../../context/app.context";
 import IAchievement from "../../../interfaces/achievement";
@@ -22,18 +16,13 @@ const Achievement = dynamic(() => import("@/components/achievement/index"), {
 });
 
 const Achievements = ({ userAchievements }: { userAchievements: IAchievement[] }) => {
-	const { data: achievements, isLoading } = useSwr(
-		"api/users/achievements",
-		fetcher
-	);
+	const { data: achievements, isLoading } = useSwr("api/users/achievements", fetcher);
 
 	const isDisabled = (name: string) => {
 		const achievements = userAchievements;
 		if (!achievements) return true;
-		return !achievements.find(
-			(item: IAchievement) => item.name === name
-		);
-	}
+		return !achievements.find((item: IAchievement) => item.name === name);
+	};
 
 	return (
 		<>
@@ -41,11 +30,8 @@ const Achievements = ({ userAchievements }: { userAchievements: IAchievement[] }
 				Achievements
 				{achievements && achievements?.length && (
 					<>
-						<span className="text-primary-500">
-							{" "}
-							{userAchievements?.length || 0}
-						</span>
-						/{` ${achievements?.length}`}
+						<span className="text-primary-500"> {userAchievements?.length || 0}</span>/
+						{` ${achievements?.length}`}
 					</>
 				)}
 			</span>
@@ -87,28 +73,28 @@ const Achievements = ({ userAchievements }: { userAchievements: IAchievement[] }
 };
 
 export default function Profile() {
-	const prams = useParams()
+	const prams = useParams();
 	const { id } = prams ? prams : { id: null };
 	const { user: currentUser } = useContext(AppContext);
-	const {
-		data,
-		isLoading,
-	} = useSwr(`api/users/${id || currentUser?.id}`, fetcher, {
+	const { data, isLoading } = useSwr(`api/users/${id || currentUser?.id}`, fetcher, {
 		refreshInterval: 0,
+		refreshWhenHidden: true,
+		refreshWhenOffline: false,
+		revalidateOnFocus: false,
+		revalidateOnReconnect: false,
 	});
 
 	const user = useMemo(() => {
 		return data as IUser;
 	}, [data]);
 
-	if (!isLoading && !user) {
-		return <FourOFour />;
-	}
-
 	const achievements = useMemo(() => {
 		return user?.achievements || undefined;
 	}, [user?.achievements]);
 
+	if (!isLoading && !user) {
+		return <FourOFour />;
+	}
 	return (
 		<Layout className="flex flex-col items-center gap-4 md:gap-8">
 			{isLoading ? (
@@ -119,10 +105,7 @@ export default function Profile() {
 						<UserCircle size={40} />
 						Profile
 					</div>
-					<ProfileInfo
-						user={user}
-						currentUserId={currentUser?.id || 0}
-					/>
+					<ProfileInfo user={user} currentUserId={currentUser?.id || 0} />
 					<LadderProgressBar rating={user?.rating} />
 					<Divider />
 					<Achievements userAchievements={achievements} />
