@@ -95,13 +95,8 @@ const Login = ({
 					updateAccessToken();
 					updateUser().then((res) => {
 						if (getCookieItem("2fa_access_token")) setState("2fa");
-						else if (res && res.createdAt === res.updatedAt) {
-							setState("complete");
-						} else {
-							console.log("here");
-							console.log(user);
-							loginOk();
-						}
+						else if (res && res.createdAt === res.updatedAt) setState("complete");
+						else loginOk();
 					});
 				}
 			} catch (_) {}
@@ -153,12 +148,20 @@ const Login = ({
 				username: formik.values.username,
 				password: formik.values.password,
 			});
-			setSuccess("internal");
 			if (res.data) {
+				setSuccess("internal");
 				setInvalidCreds("");
 				setCookieItem(res.data.name, res.data.value);
 				if (res.data.name === "2fa_access_token") setState("2fa");
-				else loginOk();
+				else {
+					updateAccessToken();
+					updateUser().then((res) => {
+						if (res && res.createdAt === res.updatedAt) setState("complete");
+						else loginOk();
+					});
+				}
+			} else {
+				handleError("Please fill in valid credentials");
 			}
 		} catch (_e: any) {
 			handleError(_e.response.data.message);

@@ -49,7 +49,7 @@ const Contributors = [
 const LandingPage = () => {
 	const router = useRouter();
 	const [slide, setSlide] = useState(0);
-	const { user, authenticated } = useContext(AppContext)
+	const { user, authenticated } = useContext(AppContext);
 	const [selectable, setSelectable] = useState(true);
 	const [numUsers, setNumUsers] = useState(0);
 	const [numGames, setNumGames] = useState(0);
@@ -61,7 +61,7 @@ const LandingPage = () => {
 		const fetchStats = async () => {
 			const res = await axios.get(`${process.env.NEXT_PUBLIC_BACK_END_URL}api/users/stats`);
 			setNumUsers(res.data.users);
-			setNumGames(res.data.games);.
+			setNumGames(res.data.games);
 		};
 		fetchStats();
 	}, []);
@@ -119,7 +119,9 @@ const LandingPage = () => {
 							/>
 							<Register />
 							{state === "2fa" && <Tfa tfaOk={() => setOk(true)} />}
-							{state === "complete" && <CompleteInfo />}
+							{state === "complete" && (
+								<CompleteInfo completeOk={() => setOk(true)} />
+							)}
 						</Carousel>
 					</div>
 				</div>

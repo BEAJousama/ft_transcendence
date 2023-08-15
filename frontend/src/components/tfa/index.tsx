@@ -1,11 +1,12 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useContext } from "react";
 import axios from "axios";
-import { toast } from "react-toastify";
 import { Button, Input } from "@/components";
 import { twMerge } from "tailwind-merge";
+import { AppContext } from "@/context/app.context";
 
 const TwoFactorAuth = ({ tfaOk }: { tfaOk: () => void }) => {
+	const { updateUser, updateAccessToken } = useContext(AppContext);
 	const [code, setCode] = useState<string>("");
 	const [error, setError] = useState("");
 	const [loading, setLoading] = useState(false);
@@ -73,6 +74,8 @@ const TwoFactorAuth = ({ tfaOk }: { tfaOk: () => void }) => {
 			);
 			setError("");
 			setSuccess(true);
+			updateAccessToken();
+			await updateUser();
 			tfaOk();
 		} catch (_e) {
 			console.log(_e);
