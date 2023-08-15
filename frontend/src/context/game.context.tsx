@@ -132,6 +132,7 @@ export default function SocketProvider({
 		let debounceTimeout: ReturnType<typeof setTimeout> | null = null;
 
 		const handleKeyDown = (event: KeyboardEvent) => {
+			if (!isInGame.current) return;
 			const { key } = event;
 			if (Object.values(Keys).includes(key as Keys) && !keyState[key]) {
 				keyState[key] = true;
@@ -149,6 +150,7 @@ export default function SocketProvider({
 		};
 
 		const handleKeyUp = (event: KeyboardEvent) => {
+			if (!isInGame.current) return;
 			const { key } = event;
 			if (Object.values(Keys).includes(key as Keys)) {
 				keyState[key] = false;

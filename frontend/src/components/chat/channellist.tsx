@@ -54,15 +54,18 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
     if (!user || !channel)
       return;
     socket?.emit('reset_mssg_count', { channelId: channel.id });
-    const [member, messages] = await Promise.all([
-      fetcher(`api/channels/member/${user?.id}/${channel.id}`),
-      loadMessages(channel.id)
-    ]);
+    const member = await fetcher(`api/channels/member/${user?.id}/${channel.id}`);
+    // const [member, messages] = await Promise.all([
+    //   fetcher(`api/channels/member/${user?.id}/${channel.id}`),
+    //   loadMessages(channel.id)
+    // ]);
     if (channel.isacessPassword && member.role !== "OWNER") {
       if (selectedChannel && selectedChannel.id === channel.id) {
         setOpen(true);
         setCurrentChannel(channel);
         setSelectedChannel(channel);
+        setMessages(null as any as Imessage[]);
+        const messages = await loadMessages(channel.id);
         setMessages(messages);
         inputRef?.current?.focus();
       } else {
@@ -73,21 +76,13 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
       setOpen(true);
       setCurrentChannel(channel);
       setSelectedChannel(channel);
+      setMessages(null as any as Imessage[]);
+      const messages = await loadMessages(channel.id);
       setMessages(messages);
       inputRef?.current?.focus();
     }
     //eslint-disable-next-line
   }
-
-  function debounce(callback: any, delay: number) {
-    let timeoutId: any;
-    return function () {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(callback, delay);
-    }
-  }
-
-  // const onClick = (channel: Ichannel) => debounce(handleClick(channel), 100);
 
   const accessChannel = async () => {
     const res = await axios.post(`${process.env.NEXT_PUBLIC_BACK_END_URL}api/channels/checkpass`,
@@ -97,6 +92,8 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
       setOpen(true);
       setCurrentChannel(tempChannel);
       setSelectedChannel(tempChannel);
+      setModal(false);
+      setMessages(null as any as Imessage[]);
       const messages = await loadMessages(tempChannel?.id);
       setMessages(messages);
       inputRef?.current?.focus();
@@ -156,12 +153,11 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
     return () => {
       socket?.off('channel_leave');
       socket?.off('channel_delete');
-      // socket?.off('channel_remove');
-      // socket?.off('getChannels');
-      // socket?.off('getArchiveChannels');
+      socket?.off('getChannels');
+      socket?.off('getArchiveChannels');
       // socket?.off('channel_create');
       // socket?.off('dm_create');
-      // socket?.off('channel_access');
+      socket?.off('channel_access');
     }
     //eslint-disable-next-line
   });

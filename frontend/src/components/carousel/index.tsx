@@ -81,13 +81,13 @@ const Carousel = ({
 						onClick={prev}
 						className={`absolute left-4 top-1/2 transform -translate-y-1/2 transition-all pl-1.5 hover:pl-1 opacity-70 hover:opacity-100 text-secondary-700`}
 					>
-						<ChevronFirst size={34} />
+						<ChevronFirst size={34} className="text-primary-500" />
 					</button>
 					<button
 						onClick={next}
 						className={`absolute right-4 top-1/2 transform -translate-y-1/2 transition-all pr-1.5 hover:pr-1 opacity-70 hover:opacity-100 text-secondary-700`}
 					>
-						<ChevronLast size={34} />
+						<ChevronLast size={34} className="text-primary-500" />
 					</button>
 				</>
 			)}

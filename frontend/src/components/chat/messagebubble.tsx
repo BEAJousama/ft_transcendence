@@ -42,6 +42,7 @@ import {
   SendHorizonal,
   ChevronFirst,
 } from "lucide-react";
+import { Spinner } from "..";
 
 interface ChannelProps {
   className?: string;
@@ -136,7 +137,7 @@ const MessageBubble: React.FC<ChannelProps> = ({
     return () => {
       socket?.off("message", handleMessage);
     };
-  });
+  }, []);
 
   useEffect(() => {
     setVisibility(currentChannel?.visiblity || "");
@@ -506,6 +507,14 @@ const MessageBubble: React.FC<ChannelProps> = ({
 
       {
         // !spinner ?
+        !messages ? (
+        <div className="mb-2 flex h-full flex-col  justify-end gap-2 z-[0] px-[10px] ">
+          <div className="flex justify-center items-center h-full">
+            <Spinner/>
+          </div>
+        </div>
+        )
+        : (
         <div className="mb-2 flex flex-col overflow-y-scroll scroll-smooth scrollbar-hide h-full first:space-y-4 gap-2 z-[0] px-[10px] ">
           {messages?.map((message, index) => {
             return index !== messages.length - 1 ? (
@@ -574,7 +583,7 @@ const MessageBubble: React.FC<ChannelProps> = ({
             );
           })}
           <div className="mt-5"></div>
-        </div>
+        </div>)
         // :
         // <div className="mb-2 flex h-full flex-col  justify-end gap-2 z-[0] px-[10px] ">
         //   <div className="flex justify-center items-center h-full">

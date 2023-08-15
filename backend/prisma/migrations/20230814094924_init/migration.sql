@@ -42,6 +42,8 @@ CREATE TABLE "User" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "wins" INTEGER NOT NULL DEFAULT 0,
     "losses" INTEGER NOT NULL DEFAULT 0,
+    "winStreak" INTEGER NOT NULL DEFAULT 0,
+    "totalGames" INTEGER NOT NULL DEFAULT 0,
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
 );
@@ -87,7 +89,7 @@ CREATE TABLE "Channel" (
     "type" "ChannelType" NOT NULL DEFAULT 'GROUP',
     "createAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
-    "lastestMessageDate" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
+    "lastMessage" TEXT DEFAULT '',
     "newMessagesCount" INTEGER DEFAULT 0,
 
     CONSTRAINT "Channel_pkey" PRIMARY KEY ("id")
@@ -112,8 +114,6 @@ CREATE TABLE "Message" (
     "content" TEXT NOT NULL,
     "receiverId" INTEGER NOT NULL,
     "senderId" INTEGER NOT NULL,
-    "pinned" BOOLEAN DEFAULT false,
-    "pinnerId" INTEGER,
     "date" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Message_pkey" PRIMARY KEY ("id")
@@ -304,9 +304,6 @@ ALTER TABLE "Message" ADD CONSTRAINT "Message_receiverId_fkey" FOREIGN KEY ("rec
 
 -- AddForeignKey
 ALTER TABLE "Message" ADD CONSTRAINT "Message_senderId_fkey" FOREIGN KEY ("senderId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Message" ADD CONSTRAINT "Message_pinnerId_fkey" FOREIGN KEY ("pinnerId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Game" ADD CONSTRAINT "Game_player1Id_fkey" FOREIGN KEY ("player1Id") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

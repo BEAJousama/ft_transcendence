@@ -93,7 +93,6 @@ export class PongService {
           status: 'FINISHED',
         },
       });
-      console.log(game);
     } catch (error) {
       // Handle the error here
       console.log(error);
@@ -219,6 +218,9 @@ export class PongService {
     const gameProvider = this.getGameProviderByUserId(info.userId);
     const player = this.getPlayerById(info.userId);
     if (player && client) {
+      player.socket.emit('game-over', {
+        winner: 0,
+      });
       player.socket.off('disconnect', () => {});
       player.socket = client;
     }
@@ -268,7 +270,7 @@ export class PongService {
     };
 
     // Add the invitation to the active invitations dictionary
-    this.activeInvitations.set(inviterId.toString(), invitation);
+    this.activeInvitations.set(inviterId, invitation);
     this.notificationService.sendNotification(
       inviterId,
       invitedFriendId,
@@ -318,7 +320,7 @@ export class PongService {
   resetInvitation(inviterId: number) {
     // Check if the inviter has an active invitation
     const inv: Invitation = this.activeInvitations.get(inviterId);
-    // console.log('Invitation reset.');
+    console.log(inv);
     if (this.isInvited(inviterId)) {
       // Remove the invitation from the active invitations dictionary
 
@@ -356,8 +358,7 @@ export class PongService {
 
   async checkForInvitaionSent(client) {
     const id = await this.getClientIdFromClient(client);
-    console.log(this.activeInvitations);
-    return this.activeInvitations.has(id);
+    return this.activeInvitations.has(parseInt(id));
   }
 
   async checkForActiveInvitations(client) {
@@ -376,9 +377,6 @@ export class PongService {
     }
   }
 
-  //--------------------------------------------------------------------------------//
-  // Fetches the list of ongoing games with player information
-
   async verifyClient(client) {
     let token: string = client.handshake.auth.token as string;
     if (token.search('Bearer') !== -1) token = token.split(' ')[1];
@@ -395,8 +393,9 @@ export class PongService {
       });
     }
   }
+
   // Retrieves the client ID from the socket client
-  private async getClientIdFromClient(client: Socket) {
+  private async getClientIdFromClient(client: Socket): Promise<string> {
     // if (client.handshake.query.clientId)
 
     return (await this.verifyClient(client)).sub.toString();
@@ -590,9 +589,6 @@ export class PongService {
       playerA,
       playerBUser,
     );
-    if (gameProvider.gameMode === 'Ranked Mode') {
-      await this.adjustPlayerRating(winner.id, loser.id);
-    }
 
     if (playerA.socket) {
       playerA.socket.emit('game-over', {
@@ -604,6 +600,8 @@ export class PongService {
         winner: winner.id,
       });
     }
+    await this.adjustPlayerRating(winner.id, loser.id, gameProvider.gameMode);
+    await this.updateWinnerandLoser(winner.id, loser.id, gameProvider.id);
     this.usersService.changeUserStatus(playerA.id, 'ONLINE');
     this.usersService.changeUserStatus(playerB.id, 'ONLINE');
     this.assingAchievements(playerA);
@@ -693,43 +691,53 @@ export class PongService {
     }
   }
 
-  async adjustPlayerRating(winnerId: number, loserId: number) {
+  async adjustPlayerRating(
+    winnerId: number,
+    loserId: number,
+    gameMode: string,
+  ) {
     try {
       const winner = await this.usersService.findUserById(winnerId);
+      // console.log(winner);
       const loser = await this.usersService.findUserById(loserId);
+      // console.log(loser);
 
       // Assume winner.ladderLevel and loser.ladderLevel represent the ladder levels of the players
 
-      let winPoints = 0;
-      let lossPoints = 0;
+      if (gameMode === 'Ranked Mode') {
+        let winPoints = 0;
+        let lossPoints = 0;
 
-      if (winner.ladder < loser.ladder) {
-        winPoints = 50;
-        lossPoints = 150;
-      } else if (winner.ladder > loser.ladder) {
-        winPoints = 100;
-        lossPoints = 50;
-      } else {
-        winPoints = 75;
-        lossPoints = 100;
+        if (winner.ladder < loser.ladder) {
+          winPoints = 50;
+          lossPoints = 150;
+        } else if (winner.ladder > loser.ladder) {
+          winPoints = 100;
+          lossPoints = 50;
+        } else {
+          winPoints = 75;
+          lossPoints = 100;
+        }
+
+        // Update the winner's points and ladder level
+        winner.rating += winPoints;
+        winner.ladder = this.adjustLadderLevel(winner.rating) as Ladder;
+        loser.rating -= lossPoints;
+        loser.rating = loser.rating < 0 ? 0 : loser.rating;
+        loser.ladder = this.adjustLadderLevel(loser.rating) as Ladder;
       }
 
-      // Update the winner's points and ladder level
-      winner.rating += winPoints;
-      winner.ladder = this.adjustLadderLevel(winner.rating) as Ladder;
       winner.winStreak++;
       winner.totalGames++;
+      console.log('here', winner.totalGames);
       winner.wins++;
       // Adjust ladder level if needed
       // ...
 
       // Update the loser's points and ladder level
-      loser.rating -= lossPoints;
       loser.losses++;
       loser.winStreak = 0;
       loser.totalGames++;
-      loser.rating = loser.rating < 0 ? 0 : loser.rating;
-      loser.ladder = this.adjustLadderLevel(loser.rating) as Ladder;
 
       await this.usersService.updateUser({
         user: {
@@ -739,7 +747,7 @@ export class PongService {
           totalGames: winner.totalGames,
           wins: winner.wins,
         },
-        id: winnerId,
+        id: winner.id,
       });
       await this.usersService.updateUser({
         user: {
@@ -749,7 +757,7 @@ export class PongService {
           totalGames: loser.totalGames,
           losses: loser.losses,
         },
-        id: loserId,
+        id: winner.id,
       });
     } catch (e) {
       throw new InternalServerErrorException(
