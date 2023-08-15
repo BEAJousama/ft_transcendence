@@ -79,6 +79,7 @@ const LandingPage = () => {
 		if (state === "login") setSlide(0);
 		else if (state === "register") setSlide(1);
 		else {
+			setSelectable(false);
 			setTimeout(() => {
 				setSlide(2);
 			}, 1000);
@@ -97,7 +98,14 @@ const LandingPage = () => {
 			</div>
 			<div className="grid w-full max-w-5xl h-fit grid-cols-1 place-items-center justify-center gap-8 md:gap-16 p-8 lg:grid-cols-2 z-10 backdrop-blur-sm backdrop-opacity-10">
 				<div className="flex w-full max-w-xs items-center justify-center lg:col-span-2 lg:max-w-xl py-16">
-					<Image src="/img/logo.png" priority alt="Pong Maters" width={400} height={45} />
+					<Image
+						src="/img/logo.svg"
+						priority
+						alt="Pong Maters"
+						width={400}
+						height={45}
+						className="animate-fade"
+					/>
 				</div>
 				<div className="flex flex-col items-center justify-center w-full h-full">
 					<div className="flex flex-col items-center justify-center w-full h-full transition duration-500 ease-out">
@@ -110,14 +118,14 @@ const LandingPage = () => {
 							swipeable={false}
 							chevrons={false}
 							slide={slide}
-							className="w-full h-full"
+							className="w-full h-full animate-fade-down animate-ease-out"
 						>
 							<Login
 								setSelectable={setSelectable}
 								setState={setState}
 								loginOk={() => setOk(true)}
 							/>
-							<Register />
+							<Register registrOk={() => setState("complete")} />
 							{state === "2fa" && <Tfa tfaOk={() => setOk(true)} />}
 							{state === "complete" && (
 								<CompleteInfo completeOk={() => setOk(true)} />
@@ -126,8 +134,8 @@ const LandingPage = () => {
 					</div>
 				</div>
 				<div className="flex flex-col items-center justify-between w-full h-fit">
-					<div className="flex w-full items-end gap-4 px-4 py-2 text-right">
-						<CountUp end={numUsers} duration={4} className="w-1/2">
+					<div className="grid grid-cols-2 w-full place-items-end gap-4 px-4 py-2 text-right">
+						<CountUp end={numUsers} duration={4}>
 							{({ countUpRef }) => (
 								<div className="w-full">
 									<span
@@ -138,7 +146,7 @@ const LandingPage = () => {
 								</div>
 							)}
 						</CountUp>
-						<CountUp end={numGames} duration={6} className="w-1/2">
+						<CountUp end={numGames} duration={6}>
 							{({ countUpRef }) => (
 								<div className="w-full">
 									<span
@@ -158,24 +166,31 @@ const LandingPage = () => {
 						Get ready to paddle up, score points, and rise to the top as you participate
 						in the ultimate Pong challenge. May the best player win!
 					</p>
-					{/* <Link
+					<Link
 						href="https://github.com/Hicham-BelHoucin/ft_transcendence"
-						className="text-gray-200 hover:text-primary-700 transition"
+						className="p-4"
 						target="_blank"
 						rel="noopener noreferrer"
 					>
-						<Github size={"40px"} />
+						<Image
+							src="/img/githubCard.svg"
+							width={120}
+							height={40}
+							alt={"Github"}
+							className="animate-flip-down animate-delay-[2000ms]"
+						/>
 					</Link>
-					<div className="flex items-center justify-center gap-4 pb-4">
-						<BiLogoTypescript size={"34px"} className="text-gray-400" />
-						<SiNestjs size={"34px"} className="text-gray-400" />
-						<SiNextdotjs size={"34px"} className="text-gray-400" />
-						<FaNode size={"40px"} className="text-gray-400" />
-					</div> */}
+					<Image
+						src="/img/techs.png"
+						width={260}
+						height={50}
+						alt={"Technologies"}
+						className="animate-fade"
+					/>
 				</div>
 			</div>
 			<div className="grid md:grid-cols-3 w-full max-w-5xl place-items-center justify-center px-8 pb-16 pt-4 gap-8">
-				<div className="flex flex-wrap justify-center text-justify col-span-3 z-20">
+				<div className="flex flex-wrap justify-center text-justify md:col-span-3 z-20">
 					<h1 className="text-primary-400 text-4xl font-bold mb-8">Meet the Team</h1>
 					<p className="text-primary-600 w-full text-lg">
 						We are a vibrant group of talented students hailing from the prestigious{" "}

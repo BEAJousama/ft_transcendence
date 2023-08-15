@@ -13,7 +13,7 @@ export default function LandingPageSelector({
 	setState,
 }: LandingPageSelectorProps) {
 	return (
-		<div className="overflow-hidden group relative h-fit w-fit rounded-xl shadow-lg shadow-secondary-700 transition-all duration-200 ease-out bg-secondary-500">
+		<div className="overflow-hidden group relative h-fit w-fit rounded-xl shadow-lg shadow-secondary-700 transition-all duration-200 ease-out bg-secondary-500 animate-flip-down">
 			<div
 				className={twMerge(
 					"absolute h-10 bg-primary-600 transition-all duration-500 ease-out",

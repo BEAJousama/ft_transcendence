@@ -1,13 +1,12 @@
 "use client";
 
-import { Avatar, Card, Button, Input } from "..";
-import { useContext, useEffect, useState } from "react";
-import { Pencil } from "lucide-react";
-import { useRef } from "react";
-import { useFormik } from "formik";
-import { AppContext } from "@/context/app.context";
+import { useContext, useState, useRef } from "react";
 import axios from "axios";
+import { useFormik } from "formik";
 import { twMerge } from "tailwind-merge";
+import { Pencil } from "lucide-react";
+import { AppContext } from "@/context/app.context";
+import { Avatar, Button, Input } from "@/components";
 
 export default function CompleteInfo({ completeOk }: { completeOk: () => void }) {
 	const { user, updateUser } = useContext(AppContext);
@@ -31,7 +30,7 @@ export default function CompleteInfo({ completeOk }: { completeOk: () => void })
 			};
 			if (!values.username || values.username.length < 3 || values.username.length > 20)
 				errors.username = "Invalid username";
-			if (!values.email || !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(values.email))
+			if (!values.email || !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(values.email))
 				errors.email = "Invalid email address";
 			if (!values.phone || !/^[0-9]{10}$/i.test(values.phone))
 				errors.phone = "Invalid phone number";
@@ -59,9 +58,7 @@ export default function CompleteInfo({ completeOk }: { completeOk: () => void })
 					},
 					id: user?.id,
 				},
-				{
-					withCredentials: true,
-				}
+				{ withCredentials: true }
 			);
 			setError("");
 			setSuccess(true);
@@ -145,8 +142,8 @@ export default function CompleteInfo({ completeOk }: { completeOk: () => void })
 						disabled={loading || success}
 						success={success}
 						className={twMerge(loading && "animate-pulse")}
-						error={formik.errors.phone || error.includes("Phone") ? error : ""}
-						isError={!!formik.errors.phone || error.includes("Phone")}
+						error={formik.errors.phone}
+						isError={!!formik.errors.phone}
 					/>
 					<Input
 						label="Email"
