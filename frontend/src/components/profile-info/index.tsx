@@ -1,9 +1,9 @@
 "use client";
 
-import useSWR from "swr";
-import IUser from "@/interfaces/user";
+import useSwr from "swr";
+import IUser, { IBlock } from "@/interfaces/user";
 import axios from "axios";
-import { useContext, useEffect, useState } from "react";
+import { use, useContext, useEffect, useState } from "react";
 import {
     addFriend,
     cancelFriend,
@@ -17,6 +17,7 @@ import Image from "next/image";
 import { Spinner, Avatar, Button } from "@/components";
 import { ChatContext } from "@/context/chat.context";
 import { useRouter } from "next/navigation";
+import { AppContext, fetcher } from "@/context/app.context";
 
 
 const status = {
@@ -34,15 +35,15 @@ const ProfileInfo = ({
 }) => {
     const router = useRouter();
     const { socket } = useContext(ChatContext);
+    const { user: __user, updateUser } = useContext(AppContext)
     const {
         data: friendRequest,
         isLoading,
         mutate,
-    } = useSWR(
+    } = useSwr(
         `api/users/${user?.id}/friend-request`,
         async (url) => {
             try {
-
                 const response = await axios.get(
                     `${process.env.NEXT_PUBLIC_BACK_END_URL}${url}`,
                     {
@@ -55,8 +56,8 @@ const ProfileInfo = ({
                 );
                 return response.data;
             }
-            catch (_) {
-                return null;
+            catch (error) {
+                throw error;
             }
         },
         {
@@ -65,8 +66,10 @@ const ProfileInfo = ({
             shouldRetryOnError: false,
         }
     );
+    let blocked = false;
+    let __blocked = false;
+
     const [text, setText] = useState("");
-    const blocked = isBlocked(currentUserId || 0, user);
 
     useEffect(() => {
         if (
@@ -86,6 +89,32 @@ const ProfileInfo = ({
     if (isLoading) return <Spinner />;
 
     const userStatus = status[user.status as "ONLINE" | "OFFLINE" | "INGAME"];
+
+    const _isBlocked = (id: number, blockers?: IBlock[]) => {
+        if (blockers) {
+            const res = blockers.map((block: IBlock) => {
+                if (block.blockingId === id) {
+                    return true;
+                }
+                return false;
+            });
+            return res.includes(true);
+        }
+        return false;
+    };
+
+    blocked = _isBlocked(user.id, __user?.blockers);
+
+    let block: IBlock | undefined = isBlocked(currentUserId, __user?.blockers)
+    if (!block) {
+        block = isBlocked(user.id, __user?.blocking)
+    }
+
+    if (block) {
+        console.log(block)
+        __blocked = block.blockerId === user.id
+    }
+
     return (
         <>
             <div className="flex w-full max-w-[1024px] flex-col items-center justify-between gap-4 md:flex-row ">
@@ -114,7 +143,7 @@ const ProfileInfo = ({
                                     </div>
                                     <div className="flex w-full gap-4">
                                         <Button
-                                            disabled={user?.id === currentUserId}
+                                            disabled={user?.id === currentUserId || (blocked || __blocked)}
                                             className="w-full !text-xs"
                                             onClick={async () => {
                                                 if (text === "Add Friend")
@@ -129,7 +158,7 @@ const ProfileInfo = ({
                                             {text}
                                         </Button>
                                         <Button
-                                            disabled={user?.id === currentUserId}
+                                            disabled={user?.id === currentUserId || (blocked || __blocked)}
                                             className="w-full !text-xs"
                                             onClick={() => {
                                                 socket?.emit("dm_create", {
@@ -142,16 +171,17 @@ const ProfileInfo = ({
                                             Message
                                         </Button>
                                         <Button
-                                            disabled={user?.id === currentUserId}
+                                            disabled={user?.id === currentUserId || __blocked}
                                             type={blocked ? "success" : "danger"}
                                             onClick={async () => {
                                                 blocked
                                                     ? UnBlockUser(currentUserId || 0, user.id)
                                                     : BlockUser(currentUserId || 0, user.id);
                                                 await mutate();
+                                                await updateUser();
                                             }}
                                         >
-                                            {blocked ? "Block" : "Unblock"}
+                                            {blocked ? "UnBlock" : "block"}
                                         </Button>
                                     </div>
                                 </div>

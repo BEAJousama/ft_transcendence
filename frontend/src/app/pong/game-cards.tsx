@@ -72,6 +72,7 @@ const CreateGameCard = ({
 	useEffect(() => {
 		notificationSocket?.on("invitation-canceled", () => {
 			setShow(false);
+			setShowModal(false);
 		});
 
 		socket?.emit("check-for-invitaion-sent");
@@ -161,6 +162,7 @@ const CreateGameCard = ({
 									gameMode: gameMode,
 									powerUps: gameOption,
 								});
+								onClick();
 								toast.success("Invitation sent successfully");
 								setShowModal(false);
 								setShow(true);

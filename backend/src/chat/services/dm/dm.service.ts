@@ -57,9 +57,7 @@ export class DmService {
       });
       if (!dm) return null;
       return dm;
-    } catch (e) {
-      console.log(e);
-    }
+    } catch (e) {}
   }
 
   async getDmsByUserId(userId: number) {

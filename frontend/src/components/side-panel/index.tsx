@@ -99,7 +99,9 @@ const SidePanelItem = ({
 						selected ? "text-primary-500" : "text-secondary-300"
 					}`}
 					onClick={(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-						onClick && onClick();
+						if (!isInGame.current) {
+							onClick && onClick();
+						}
 					}}
 				>
 					{children ? (
@@ -132,7 +134,7 @@ const Sidepanel = ({ className }: { className?: string }) => {
 		>
 			<Link
 				prefetch={false}
-				href="/"
+				href="/home"
 				onClick={(e) => {
 					if (isInGame.current) {
 						e.preventDefault();
@@ -146,7 +148,7 @@ const Sidepanel = ({ className }: { className?: string }) => {
 				<div className="w-46 hidden items-center justify-center md:flex">
 					<Image
 						className="!w-64 px-6"
-						src="/img/logo.svg"
+						src="/img/logo.png"
 						alt="logo"
 						width={256}
 						height={256}
