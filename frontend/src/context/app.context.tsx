@@ -55,10 +55,10 @@ export const AppContext = React.createContext<IAppContext>({
 	user: undefined,
 	loading: true,
 	authenticated: false,
-	setAuthenticated: () => {},
-	updateUser: async (): Promise<undefined> => {},
-	updateAccessToken: () => {},
-	checkConnection: () => {},
+	setAuthenticated: () => { },
+	updateUser: async (): Promise<undefined> => { },
+	updateAccessToken: () => { },
+	checkConnection: () => { },
 });
 
 export const fetcher = async (url: string) => {
@@ -74,7 +74,7 @@ export const fetcher = async (url: string) => {
 
 const AppProvider = ({ children }: { children: React.ReactNode }) => {
 	const [user, setUser] = React.useState<IUser | undefined>(undefined);
-	const [accessToken, setAccessToken] = React.useState<string | undefined>(undefined);
+	const [accessToken, setAccessToken] = React.useState<string | undefined>(getCookieItem("access_token"));
 	const [isAuthenticated, setIsAuthenticated] = React.useState<boolean>(false);
 	const [isLoading, setIsLoading] = React.useState<boolean>(true);
 	const location = useLocation();
@@ -128,10 +128,10 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
 					user: undefined,
 					loading: true,
 					authenticated: false,
-					setAuthenticated: () => {},
-					updateUser: async (): Promise<undefined> => {},
-					updateAccessToken: () => {},
-					checkConnection: () => {},
+					setAuthenticated: () => { },
+					updateUser: async (): Promise<undefined> => { },
+					updateAccessToken: () => { },
+					checkConnection: () => { },
 				}}
 			>
 				<body />
@@ -150,6 +150,8 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
 		updateAccessToken,
 		checkConnection,
 	};
+
+
 
 	return <AppContext.Provider value={appContextValue}>{children}</AppContext.Provider>;
 };

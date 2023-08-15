@@ -61,7 +61,7 @@ const LandingPage = () => {
 		const fetchStats = async () => {
 			const res = await axios.get(`${process.env.NEXT_PUBLIC_BACK_END_URL}api/users/stats`);
 			setNumUsers(res.data.users);
-			setNumGames(res.data.games);.
+			setNumGames(res.data.games);
 		};
 		fetchStats();
 	}, []);

@@ -17,6 +17,7 @@ import Image from "next/image";
 import { Spinner, Avatar, Button } from "@/components";
 import { ChatContext } from "@/context/chat.context";
 import { useRouter } from "next/navigation";
+import { AppContext } from "@/context/app.context";
 
 
 const status = {
@@ -34,6 +35,7 @@ const ProfileInfo = ({
 }) => {
     const router = useRouter();
     const { socket } = useContext(ChatContext);
+    const { user: __user, updateUser } = useContext(AppContext)
     const {
         data: friendRequest,
         isLoading,
@@ -66,7 +68,7 @@ const ProfileInfo = ({
         }
     );
     const [text, setText] = useState("");
-    const blocked = isBlocked(currentUserId || 0, user);
+    const blocked = isBlocked(user.id, __user);
 
     useEffect(() => {
         if (
@@ -114,7 +116,7 @@ const ProfileInfo = ({
                                     </div>
                                     <div className="flex w-full gap-4">
                                         <Button
-                                            disabled={user?.id === currentUserId}
+                                            disabled={user?.id === currentUserId || blocked}
                                             className="w-full !text-xs"
                                             onClick={async () => {
                                                 if (text === "Add Friend")
@@ -129,7 +131,7 @@ const ProfileInfo = ({
                                             {text}
                                         </Button>
                                         <Button
-                                            disabled={user?.id === currentUserId}
+                                            disabled={user?.id === currentUserId || blocked}
                                             className="w-full !text-xs"
                                             onClick={() => {
                                                 socket?.emit("dm_create", {
@@ -149,9 +151,10 @@ const ProfileInfo = ({
                                                     ? UnBlockUser(currentUserId || 0, user.id)
                                                     : BlockUser(currentUserId || 0, user.id);
                                                 await mutate();
+                                                await updateUser();
                                             }}
                                         >
-                                            {blocked ? "Block" : "Unblock"}
+                                            {blocked ? "UnBlock" : "block"}
                                         </Button>
                                     </div>
                                 </div>

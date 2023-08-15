@@ -101,13 +101,14 @@ export default function Profile() {
 		return data as IUser;
 	}, [data]);
 
-	if (!isLoading && !user) {
-		return <FourOFour />;
-	}
 
 	const achievements = useMemo(() => {
 		return user?.achievements || undefined;
 	}, [user?.achievements]);
+
+	if (!isLoading && !user) {
+		return <FourOFour />;
+	}
 
 	return (
 		<Layout className="flex flex-col items-center gap-4 md:gap-8">

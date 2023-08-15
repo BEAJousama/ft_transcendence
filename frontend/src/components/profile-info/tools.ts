@@ -61,6 +61,7 @@ const BlockUser = async (blockerId: number, blockingId: number) => {
       }
     );
     if (response) {
+      console.log(response);
       toast.success("Friend blocked Successfully");
     }
   } catch (e) {
@@ -71,7 +72,7 @@ const BlockUser = async (blockerId: number, blockingId: number) => {
 const UnBlockUser = async (blockerId: number, blockingId: number) => {
   try {
     const response = await axios.post(
-      `${process.env.NEXT_PUBLIC_BACK_END_URL}api/users/block-user`,
+      `${process.env.NEXT_PUBLIC_BACK_END_URL}api/users/unblock-user`,
       {
         blockerId: blockerId,
         blockingId: blockingId,
@@ -88,10 +89,11 @@ const UnBlockUser = async (blockerId: number, blockingId: number) => {
   }
 };
 
-const isBlocked = (id: number, user: IUser) => {
-  if (user && user.blocking) {
-    const { blocking } = user;
-    const res = blocking.map((block: IBlock) => {
+const isBlocked = (id: number, user?: IUser) => {
+  if (user && user.blockers) {
+    const { blockers } = user;
+    const res = blockers.map((block: IBlock) => {
+      console.log("blockers ", block.blockingId, "====", id);
       if (block.blockingId === id) {
         return true;
       }

@@ -130,7 +130,7 @@ const Sidepanel = ({ className }: { className?: string }) => {
         className
       )}
     >
-      <Link prefetch={false} href="/" onClick={(e) => {
+      <Link prefetch={false} href="/home" onClick={(e) => {
 
         if (isInGame.current) {
           e.preventDefault();
