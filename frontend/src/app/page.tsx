@@ -49,7 +49,7 @@ const Contributors = [
 const LandingPage = () => {
 	const router = useRouter();
 	const [slide, setSlide] = useState(0);
-	const { user, authenticated } = useContext(AppContext)
+	const { user, authenticated } = useContext(AppContext);
 	const [selectable, setSelectable] = useState(true);
 	const [numUsers, setNumUsers] = useState(0);
 	const [numGames, setNumGames] = useState(0);
@@ -119,7 +119,9 @@ const LandingPage = () => {
 							/>
 							<Register />
 							{state === "2fa" && <Tfa tfaOk={() => setOk(true)} />}
-							{state === "complete" && <CompleteInfo />}
+							{state === "complete" && (
+								<CompleteInfo completeOk={() => setOk(true)} />
+							)}
 						</Carousel>
 					</div>
 				</div>
