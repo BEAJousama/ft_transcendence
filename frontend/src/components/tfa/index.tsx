@@ -77,9 +77,9 @@ const TwoFactorAuth = ({ tfaOk }: { tfaOk: () => void }) => {
 			updateAccessToken();
 			await updateUser();
 			tfaOk();
-		} catch (_e) {
-			console.log(_e);
-			if (!!error) setError("Invalid Code");
+		} catch (_e: any) {
+			if (_e.response?.data.message) setError(_e.response.data.message);
+			else setError("Something went wrong...");
 			setInputsError(true);
 			setLoading(false);
 			setTimeout(() => {
@@ -125,6 +125,9 @@ const TwoFactorAuth = ({ tfaOk }: { tfaOk: () => void }) => {
 						/>
 					))}
 				</div>
+				{error && (
+					<p className="text-xs text-red-600 dark:text-red-500 font-medium">{error}</p>
+				)}
 				<Button
 					className={twMerge(
 						"w-full justify-center",
