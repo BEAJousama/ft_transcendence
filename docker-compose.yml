@@ -11,8 +11,6 @@ services:
       - ft_transcendence
     env_file:
       - ./backend/.env
-    volumes:
-      - ./db:/var/lib/postgresql/data
     healthcheck:
       test: pg_isready -q -d $$POSTGRES_DB -U $$POSTGRES_USER
       interval: 30s
@@ -27,11 +25,8 @@ services:
     restart: on-failure
     ports:
       - 3000:3000
-      - 5555:5555
     networks:
       - ft_transcendence
-    volumes:
-      - ./backend:/app
     env_file:
       - ./backend/.env
     depends_on:
@@ -44,28 +39,26 @@ services:
       retries: 3
       start_period: 2m
 
-  # frontend:
-  #   build: ./frontend
-  #   image: ft_transcendence-frontend
-  #   container_name: ft_transcendence-frontend
-  #   restart: on-failure
-  #   ports:
-  #     - 5000:5000
-  #   networks:
-  #     - ft_transcendence
-  #   volumes:
-  #     - ./frontend:/app
-  #   env_file:
-  #     - ./frontend/.env
-  #   depends_on:
-  #     backend:
-  #       condition: service_healthy
-  #   healthcheck:
-  #     test: curl -fLs http://localhost:5000/ > /dev/null
-  #     interval: 30s
-  #     timeout: 10s
-  #     retries: 3
-  #     start_period: 1m
+  frontend:
+    build: ./frontend
+    image: ft_transcendence-frontend
+    container_name: ft_transcendence-frontend
+    restart: on-failure
+    ports:
+      - 5000:5000
+    networks:
+      - ft_transcendence
+    env_file:
+      - ./frontend/.env
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: curl -fLs http://localhost:5000/ > /dev/null
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 1m
 
 networks:
   ft_transcendence:
