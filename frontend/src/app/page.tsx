@@ -7,12 +7,14 @@ import { AppContext, deleteCookieItem } from "@/context/app.context";
 import CountUp from "react-countup";
 import axios from "axios";
 import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
 
 import { Carousel, Login, Register } from "@/components";
 import LandingPageSelector from "@/components/landing-page-selector";
 const Contributor = dynamic(() => import("@/components/contributor"), { ssr: false });
 const Tfa = dynamic(() => import("@/components/tfa"), { ssr: false });
 const CompleteInfo = dynamic(() => import("@/components/complete-info"), { ssr: false });
+// const Toast = dynamic(() => import("react-toastify").then((mod) => mod.toast), { ssr: false });
 
 const LottiePlayer = dynamic(
 	() => import("@lottiefiles/react-lottie-player").then((mod) => mod.Player),
@@ -30,7 +32,7 @@ const Contributors = [
 	},
 	{
 		name: "Oussama Beaj",
-		role: "Developer",
+		role: "Full Stack Developer",
 		image: "/img/obeaj.jpg",
 		linkedin: "ousama-b-a8a84a247",
 		github: "BEAJousama",
@@ -38,7 +40,7 @@ const Contributors = [
 	},
 	{
 		name: "Soufiane El Marsi",
-		role: "Developer",
+		role: "Front End Developer",
 		image: "/img/sel-mars.jpg",
 		linkedin: "soufiane-el-marsi",
 		github: "soofiane262",
@@ -55,9 +57,33 @@ const LandingPage = () => {
 	const [numGames, setNumGames] = useState(0);
 	const [state, setState] = useState<"login" | "register" | "2fa" | "complete">("login");
 	const [ok, setOk] = useState(false);
+	const [disabled, setDisabled] = useState(false);
 
 	useEffect(() => {
+		if (navigator.cookieEnabled === false) {
+			toast.error(
+				<Link
+					href="https://support.google.com/accounts/answer/61416"
+					target="_blank"
+					rel="noopener noreferrer"
+				>
+					<div className="text-sm w-full h-full">
+						<p className="text-lg font-semibold animate-pulse">
+							Cookies are disabled !
+						</p>
+						Please enable cookies and refresh the page to use this website.
+					</div>
+				</Link>,
+				{
+					autoClose: false,
+					closeOnClick: false,
+				}
+			);
+			setSelectable(false);
+			setDisabled(true);
+		}
 		if (authenticated && user && user.createdAt !== user.updatedAt) router.push("/home");
+		else if (authenticated && user) setState("complete");
 		const fetchStats = async () => {
 			const res = await axios.get(`${process.env.NEXT_PUBLIC_BACK_END_URL}api/users/stats`);
 			setNumUsers(res.data.users);
@@ -124,6 +150,7 @@ const LandingPage = () => {
 								setSelectable={setSelectable}
 								setState={setState}
 								loginOk={() => setOk(true)}
+								disabled={disabled}
 							/>
 							<Register registrOk={() => setState("complete")} />
 							{state === "2fa" && <Tfa tfaOk={() => setOk(true)} />}

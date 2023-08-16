@@ -25,10 +25,12 @@ const Login = ({
 	setSelectable,
 	setState,
 	loginOk,
+	disabled,
 }: {
 	setSelectable: React.Dispatch<React.SetStateAction<boolean>>;
 	setState: React.Dispatch<React.SetStateAction<"login" | "register" | "2fa" | "complete">>;
 	loginOk: () => void;
+	disabled: boolean;
 }) => {
 	const { updateUser, updateAccessToken } = useContext(AppContext);
 	const [loading, setLoading] = useState<"" | "internal" | "42" | "google">("");
@@ -150,9 +152,9 @@ const Login = ({
 				password: formik.values.password,
 			});
 			if (res.data) {
+				setCookieItem(res.data.name, res.data.value);
 				setSuccess("internal");
 				setInvalidCreds("");
-				setCookieItem(res.data.name, res.data.value);
 				if (res.data.name === "2fa_access_token") setState("2fa");
 				else {
 					updateAccessToken();
@@ -165,7 +167,7 @@ const Login = ({
 				handleError("Please fill in valid credentials");
 			}
 		} catch (_e: any) {
-			handleError(_e.response.data.message);
+			handleError(_e.response?.data.message || "Something went wrong...");
 		}
 	};
 
@@ -181,7 +183,7 @@ const Login = ({
 					onChange={formik.handleChange}
 					onBlur={formik.handleBlur}
 					success={success === "internal"}
-					disabled={!!loading || !!success}
+					disabled={disabled || !!loading || !!success}
 					isError={error === "internal"}
 				/>
 				<Input
@@ -192,7 +194,7 @@ const Login = ({
 					onChange={formik.handleChange}
 					onBlur={formik.handleBlur}
 					success={success === "internal"}
-					disabled={!!loading || !!success}
+					disabled={disabled || !!loading || !!success}
 					isError={error === "internal"}
 				/>
 				{!!invalidCreds && (
@@ -219,6 +221,7 @@ const Login = ({
 							: "primary"
 					}
 					disabled={
+						disabled ||
 						!!loading ||
 						!!success ||
 						error === "internal" ||
@@ -239,7 +242,7 @@ const Login = ({
 							key={sso.key}
 							onClick={(e) => connectClick(e, sso.key, sso.url)}
 							type="secondary"
-							disabled={!!loading || !!success || error === sso.key}
+							disabled={disabled || !!loading || !!success || error === sso.key}
 							className={twMerge(
 								"h-14 w-14 justify-center rounded-xl md:h-auto md:w-full text-sm backdrop-blur-sm transition",
 								loading === sso.key && "animate-pulse disabled:cursor-wait",
