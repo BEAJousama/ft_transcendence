@@ -146,7 +146,7 @@ const Input = ({
 					)}
 					<select
 						id="countries"
-						className="block w-full rounded-lg bg-transparent border-2 border-tertiary-200 text-white p-3"
+						className="block w-full rounded-lg bg-transparent border-2 border-tertiary-200 text-white px-10 py-3"
 						value={value}
 						defaultValue={defaultValue}
 						onChange={(e: any) => {
