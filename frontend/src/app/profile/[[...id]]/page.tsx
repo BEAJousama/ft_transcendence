@@ -1,14 +1,16 @@
 "use client";
 
-import { Divider, Spinner, FourOFour } from "@/components";
-import { UserCircle } from "lucide-react";
+import { Divider, Container, Spinner, FourOFour, Carousel, GameBanner } from "@/components";
+import { Link, UserCircle } from "lucide-react";
 import { useContext, useEffect, useMemo, useState } from "react";
-import { AppContext, fetcher } from "../../../context/app.context";
-import IAchievement from "../../../interfaces/achievement";
+import { AppContext, fetcher } from "@/context/app.context";
+import IAchievement from "@/interfaces/achievement";
 import useSwr from "swr";
 import IUser from "@/interfaces/user";
 import { useParams } from "next/navigation";
 import dynamic from "next/dynamic";
+import { twMerge } from "tailwind-merge";
+import useSWR from "swr";
 
 const Layout = dynamic(() => import("../../layout/index"), {
 	ssr: false,
@@ -96,6 +98,27 @@ const Achievements = ({
 	);
 };
 
+const MatchHistory = () => {
+	const { user } = useContext(AppContext);
+
+	const { data: matches, isLoading } = useSWR(`api/pong/match-history/${user?.id}`, fetcher, {
+		errorRetryCount: 0,
+	});
+	return (<Container title="MATCH HISTORY" icon="/img/history.svg">
+		{!isLoading ? (
+			matches &&
+			matches.map((match: any) => {
+				return <Link href={``} key={match?.id}>
+					<GameBanner player1={match.player1} player2={match.player2} player1Score={match.player1Score}
+						player2Score={match.player2Score} />
+				</Link>
+			})
+		) : (
+			<Spinner />
+		)}
+	</Container>)
+}
+
 export default function Profile() {
 	const prams = useParams();
 	const { id } = prams ? prams : { id: null };
@@ -103,6 +126,7 @@ export default function Profile() {
 	const { data, isLoading: loading, mutate } = useSwr(`api/users/${id || currentUser?.id}`, fetcher);
 	const [user, setUser] = useState<IUser | undefined>(undefined);
 	const [isLoading, setIsLoading] = useState<boolean>(false);
+	const [state, setState] = useState<"achievements" | "match-history">("achievements");
 
 	useEffect(() => {
 		if (loading) return;
@@ -140,7 +164,39 @@ export default function Profile() {
 					)}
 					<LadderProgressBar rating={user?.rating || 0} />
 					<Divider />
-					<Achievements userAchievements={achievements || []} />
+					<div className=" h-fit w-fit">
+						<button
+							className={twMerge(
+								"h-6 w-fit transition-all duration-500 ease-out text-secondary-200 px-2",
+								state === "achievements"
+									? "underline font-semibold text-primary-500" : "hover:bg-white hover:bg-opacity-10"
+							)}
+							disabled={state === "achievements"}
+							onClick={() => setState("achievements")}
+						>
+							Achievements
+						</button>
+						<button
+							className={twMerge(
+								"h-6 w-fit transition-all duration-500 ease-out text-secondary-200 px-2",
+								state === "match-history"
+									? "underline font-semibold text-primary-500" : "hover:bg-white hover:bg-opacity-10"
+							)}
+							disabled={state === "match-history"}
+							onClick={() => setState("match-history")}
+						>
+							Match History
+						</button>
+					</div>
+					<Carousel
+						swipeable={false}
+						chevrons={false}
+						slide={state === "achievements" ? 0 : 1}
+						className={`w-full h-full overflow-visible justify-start`}
+					>
+						<Achievements userAchievements={achievements || []} />
+						<MatchHistory />
+					</Carousel>
 				</>
 			)}
 		</Layout>
