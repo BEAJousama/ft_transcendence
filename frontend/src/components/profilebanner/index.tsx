@@ -276,8 +276,8 @@ const ProfileBanner = ({
         muteModal &&
         (
           <Modal
-            className="bg-secondary-400 !overflow-hidden !w-[500px] !h-52"
-            className2="!w-[600px] h-[200px]  p-4 !overflow-hidden absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+            className="bg-secondary-700 !overflow-hidden !h-52"
+            className2="!w-[500px] h-[200px]  p-4 !overflow-hidden absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
           >
             <div className="grid grid-rows w-full p-5 gap-10">
               <div className="grid grid-cols-10 justify-center items-center  gap-3">
