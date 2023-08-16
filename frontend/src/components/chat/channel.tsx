@@ -181,8 +181,8 @@ const Channel: React.FC<ChannelProps> = ({
               {newMessages !== 0 ? newMessages : ""}
             </span>
           )}
-          {muted && <VolumeX />}
-          {pinned && <Pin />}
+          {muted && <VolumeX color="#F6E3D3" />}
+          {pinned && <Pin color="#F6E3D3" />}
         </div>
       </div>
       {showMenu && (
