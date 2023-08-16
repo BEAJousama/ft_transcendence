@@ -147,7 +147,7 @@ export default function Profile() {
 		}, 500);
 		setTimeout(() => {
 			setIsLoading(false);
-		}, 500);
+		}, 1000);
 		return () => clearInterval(id);
 	}, [data]);
 
@@ -169,9 +169,7 @@ export default function Profile() {
 						Profile
 					</div>
 					{!!user && <ProfileInfo user={user} currentUserId={currentUser?.id || 0} />}
-					{/* <div className="basis-[50%]"> */}
 					<LadderProgressBar rating={user?.rating || 0} />
-					{/* </div> */}
 					<Divider />
 					<div className="w-full flex flex-col gap-4 max-w-5xl">
 						<MatchHistory id={user?.id} />

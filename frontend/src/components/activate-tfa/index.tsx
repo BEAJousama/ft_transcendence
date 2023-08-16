@@ -66,9 +66,7 @@ const ActivateTfa = () => {
 						type="success"
 						disabled={user?.twoFactorAuth}
 						onClick={() => {
-							toogleTfa(
-								`${process.env.NEXT_PUBLIC_BACK_END_URL}api/auth/2fa/turn-on`
-							);
+							toogleTfa(`${process.env.BACK_END_URL}api/auth/2fa/turn-on`);
 						}}
 					>
 						Turn On
@@ -78,9 +76,7 @@ const ActivateTfa = () => {
 						type="danger"
 						disabled={!user?.twoFactorAuth}
 						onClick={() => {
-							toogleTfa(
-								`${process.env.NEXT_PUBLIC_BACK_END_URL}api/auth/2fa/turn-off`
-							);
+							toogleTfa(`${process.env.BACK_END_URL}api/auth/2fa/turn-off`);
 						}}
 					>
 						Turn Off

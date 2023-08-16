@@ -1,11 +1,10 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useRef, useState } from "react";
+
 import io, { Socket } from "socket.io-client";
 import { AppContext, getCookieItem } from "./app.context";
 import { Ball, Player } from "@/interfaces/game";
-
-
 
 enum Keys {
 	ArrowUp = "ArrowUp",
@@ -36,7 +35,7 @@ export const GameContext = createContext<IGameContext>({
 		height: 0,
 		score: 0,
 	},
-	setPlayerA: () => { },
+	setPlayerA: () => {},
 	playerB: {
 		id: 0,
 		x: 0,
@@ -45,24 +44,19 @@ export const GameContext = createContext<IGameContext>({
 		height: 0,
 		score: 0,
 	},
-	setPlayerB: () => { },
+	setPlayerB: () => {},
 	ball: {
 		x: 0,
 		y: 0,
 		radius: 0,
 	},
-	setBall: () => { },
+	setBall: () => {},
 	isInGame: { current: false },
 	show: false,
-	setShow: () => { },
+	setShow: () => {},
 });
 
-
-export default function SocketProvider({
-	children,
-}: {
-	children: React.ReactNode;
-}) {
+export default function SocketProvider({ children }: { children: React.ReactNode }) {
 	const [playerA, setPlayerA] = useState<Player>({
 		id: 0,
 		x: 0,
@@ -98,33 +92,25 @@ export default function SocketProvider({
 	useEffect(() => {
 		if (!user && !socket?.connected) return;
 		try {
-
 			const token = getCookieItem("access_token");
 			if (!token) return;
 
-			const newSocket = io(`${process.env.NEXT_PUBLIC_BACK_END_URL}pong`, {
+			const newSocket = io(`${process.env.BACK_END_URL}pong`, {
 				auth: {
 					token,
-				}
+				},
 			});
 
-			newSocket.on("connect", () => {
+			newSocket.on("connect", () => {});
 
-			});
-
-			newSocket.on("disconnect", () => {
-
-			});
-
+			newSocket.on("disconnect", () => {});
 
 			setSocket(newSocket);
 
 			return () => {
 				newSocket.disconnect();
 			};
-		} catch (error) {
-
-		}
+		} catch (error) {}
 	}, [user]);
 
 	useEffect(() => {
@@ -189,11 +175,7 @@ export default function SocketProvider({
 		isInGame,
 		show,
 		setShow,
-	}
+	};
 
-	return (
-		<GameContext.Provider value={gameContextValue}>
-			{children}
-		</GameContext.Provider>
-	);
+	return <GameContext.Provider value={gameContextValue}>{children}</GameContext.Provider>;
 }

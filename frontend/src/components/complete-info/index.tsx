@@ -1,6 +1,7 @@
 "use client";
 
 import { useContext, useState, useRef } from "react";
+
 import axios from "axios";
 import { useFormik } from "formik";
 import { twMerge } from "tailwind-merge";
@@ -10,6 +11,7 @@ import { Avatar, Button, Input } from "@/components";
 
 export default function CompleteInfo({ completeOk }: { completeOk: () => void }) {
 	const { user, updateUser } = useContext(AppContext);
+
 	const [loading, setLoading] = useState(false);
 	const [success, setSuccess] = useState(false);
 	const [error, setError] = useState("");
@@ -48,7 +50,7 @@ export default function CompleteInfo({ completeOk }: { completeOk: () => void })
 		setLoading(true);
 		try {
 			await axios.post(
-				`${process.env.NEXT_PUBLIC_BACK_END_URL}api/users/`,
+				`${process.env.BACK_END_URL}api/users/`,
 				{
 					user: {
 						username: formik.values.username,

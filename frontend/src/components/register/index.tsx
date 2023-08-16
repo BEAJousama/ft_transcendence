@@ -1,6 +1,7 @@
 "use client";
 
 import { useContext, useState } from "react";
+
 import axios from "axios";
 import { useFormik } from "formik";
 import { twMerge } from "tailwind-merge";
@@ -52,6 +53,7 @@ const meetsComplexityRequirements = (password: string) => {
 
 export default function Register({ registrOk }: { registrOk: () => void }) {
 	const { updateUser, updateAccessToken } = useContext(AppContext);
+
 	const [error, setError] = useState("");
 	const [loading, setLoading] = useState<boolean>(false);
 	const [success, setSuccess] = useState<boolean>(false);
@@ -110,7 +112,7 @@ export default function Register({ registrOk }: { registrOk: () => void }) {
 				setLoading(false);
 				return;
 			}
-			const res = await axios.post(`${process.env.NEXT_PUBLIC_BACK_END_URL}api/auth/signup`, {
+			const res = await axios.post(`${process.env.BACK_END_URL}api/auth/signup`, {
 				fullname: formik.values.fullname,
 				username: formik.values.username,
 				email: formik.values.email,

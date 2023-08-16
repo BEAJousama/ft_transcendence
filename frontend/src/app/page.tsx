@@ -1,5 +1,6 @@
 "use client";
 import React, { useContext, useEffect, useState } from "react";
+
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import Image from "next/image";
@@ -49,6 +50,7 @@ const Contributors = [
 
 const LandingPage = () => {
 	const router = useRouter();
+
 	const [slide, setSlide] = useState(0);
 	const { user, authenticated } = useContext(AppContext);
 	const [selectable, setSelectable] = useState(true);
@@ -85,7 +87,7 @@ const LandingPage = () => {
 		if (authenticated && user && user.createdAt !== user.updatedAt) router.push("/home");
 		else if (authenticated && user) setState("complete");
 		const fetchStats = async () => {
-			const res = await axios.get(`${process.env.NEXT_PUBLIC_BACK_END_URL}api/users/stats`);
+			const res = await axios.get(`${process.env.BACK_END_URL}api/users/stats`);
 			setNumUsers(res.data.users);
 			setNumGames(res.data.games);
 		};

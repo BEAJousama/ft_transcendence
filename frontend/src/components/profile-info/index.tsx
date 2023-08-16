@@ -18,6 +18,7 @@ const status = {
 
 const ProfileInfo = ({ user, currentUserId }: { user: IUser; currentUserId: number }) => {
 	const router = useRouter();
+
 	const { socket } = useContext(ChatContext);
 	const { user: __user, updateUser } = useContext(AppContext);
 	const {
@@ -28,7 +29,7 @@ const ProfileInfo = ({ user, currentUserId }: { user: IUser; currentUserId: numb
 		`api/users/${user?.id}/friend-request`,
 		async (url) => {
 			try {
-				const response = await axios.get(`${process.env.NEXT_PUBLIC_BACK_END_URL}${url}`, {
+				const response = await axios.get(`${process.env.BACK_END_URL}${url}`, {
 					withCredentials: true,
 					params: {
 						senderId: currentUserId,
@@ -102,7 +103,6 @@ const ProfileInfo = ({ user, currentUserId }: { user: IUser; currentUserId: numb
 										src={user?.avatar || "/img/default-avatar.png"}
 										alt="avatar"
 										className="h-48 w-48 md:h-24 md:w-24"
-										status={user?.status as "ONLINE" | "OFFLINE" | "INGAME"}
 									/>
 								</div>
 								<div className="place-items-left grid w-full gap-1">
