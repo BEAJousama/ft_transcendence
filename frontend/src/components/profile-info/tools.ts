@@ -55,7 +55,6 @@ const BlockUser = async (blockerId: number, blockingId: number) => {
 			}
 		);
 		if (response) {
-			console.log(response);
 			toast.success("Friend blocked Successfully");
 		}
 	} catch (e) {
@@ -90,7 +89,6 @@ const isBlocked = (id: number, blockers?: IBlock[]): IBlock | undefined => {
 				return block;
 			}
 		});
-		console.log(res);
 		return res[0];
 	}
 	return undefined;

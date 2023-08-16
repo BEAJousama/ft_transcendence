@@ -219,6 +219,10 @@ export class UsersService {
           achievements: true,
           totalGames: true,
           winStreak: true,
+          createdAt: true,
+          updatedAt: true,
+          blockers: true,
+          blocking: true,
         },
       });
 

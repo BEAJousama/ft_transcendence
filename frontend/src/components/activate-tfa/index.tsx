@@ -34,11 +34,9 @@ const ActivateTfa = () => {
 				);
 				return;
 			}
-			console.log(response.data);
 			toast.error("Invalid Code");
 			setError("Invalid Code");
 		} catch (error) {
-			console.log(error);
 			toast.error("Somthing Went Wrong !!!");
 		}
 	};

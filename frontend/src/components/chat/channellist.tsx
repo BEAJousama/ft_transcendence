@@ -72,7 +72,6 @@ const ChannelList: React.FC<ChannelListProps> = ({
 				setOpen(true);
 				setCurrentChannel(channel);
 				setSelectedChannel(channel);
-				console.log(selectedChannel);
 				socket?.emit("reset_mssg_count", { channelId: channel?.id });
 				setMessages(null as any as Imessage[]);
 				const messages = await loadMessages(channel.id);
@@ -86,7 +85,6 @@ const ChannelList: React.FC<ChannelListProps> = ({
 			setOpen(true);
 			setCurrentChannel(channel);
 			setSelectedChannel(channel);
-			console.log(selectedChannel);
 			socket?.emit("reset_mssg_count", { channelId: channel?.id });
 			setMessages(null as any as Imessage[]);
 			const messages = await loadMessages(channel.id);

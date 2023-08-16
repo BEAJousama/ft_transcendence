@@ -53,8 +53,6 @@ const ProfileInfo = ({ user, currentUserId }: { user: IUser; currentUserId: numb
 	const [text, setText] = useState("");
 
 	useEffect(() => {
-		console.clear();
-		console.log("friend: ", friendRequest);
 		if (friendRequest?.status === "PENDING" && friendRequest?.senderId === currentUserId)
 			setText("Cancel Request");
 		else if (friendRequest?.status === "PENDING" && friendRequest?.senderId !== currentUserId)
@@ -115,54 +113,63 @@ const ProfileInfo = ({ user, currentUserId }: { user: IUser; currentUserId: numb
 											{userStatus.status}
 										</span>
 									</div>
-									<div className="flex w-full gap-4">
-										<Button
-											disabled={
-												user?.id === currentUserId || blocked || __blocked
-											}
-											className="w-full !text-xs"
-											onClick={async () => {
-												if (text === "Add Friend") {
-													await addFriend(currentUserId || 0, user.id);
-												} else if (text === "Accept") {
-													await acceptFriend(friendRequest.id);
-												} else {
-													await cancelFriend(friendRequest.id);
+									{user?.id !== currentUserId && (
+										<div className="flex w-full gap-4">
+											<Button
+												disabled={
+													user?.id === currentUserId ||
+													blocked ||
+													__blocked
 												}
-												await mutate();
-											}}
-										>
-											{text}
-										</Button>
-										<Button
-											disabled={
-												user?.id === currentUserId || blocked || __blocked
-											}
-											className="w-full !text-xs"
-											onClick={() => {
-												socket?.emit("dm_create", {
-													senderId: currentUserId,
-													receiverId: user?.id,
-												});
-												router.push(`/chat`);
-											}}
-										>
-											Message
-										</Button>
-										<Button
-											disabled={user?.id === currentUserId || __blocked}
-											type={blocked ? "success" : "danger"}
-											onClick={async () => {
-												blocked
-													? UnBlockUser(currentUserId || 0, user.id)
-													: BlockUser(currentUserId || 0, user.id);
-												await mutate();
-												await updateUser();
-											}}
-										>
-											{blocked ? "UnBlock" : "block"}
-										</Button>
-									</div>
+												className="w-full !text-xs"
+												onClick={async () => {
+													if (text === "Add Friend") {
+														await addFriend(
+															currentUserId || 0,
+															user.id
+														);
+													} else if (text === "Accept") {
+														await acceptFriend(friendRequest.id);
+													} else {
+														await cancelFriend(friendRequest.id);
+													}
+													await mutate();
+												}}
+											>
+												{text}
+											</Button>
+											<Button
+												disabled={
+													user?.id === currentUserId ||
+													blocked ||
+													__blocked
+												}
+												className="w-full !text-xs"
+												onClick={() => {
+													socket?.emit("dm_create", {
+														senderId: currentUserId,
+														receiverId: user?.id,
+													});
+													router.push(`/chat`);
+												}}
+											>
+												Message
+											</Button>
+											<Button
+												disabled={user?.id === currentUserId || __blocked}
+												type={blocked ? "success" : "danger"}
+												onClick={async () => {
+													blocked
+														? UnBlockUser(currentUserId || 0, user.id)
+														: BlockUser(currentUserId || 0, user.id);
+													await mutate();
+													await updateUser();
+												}}
+											>
+												{blocked ? "UnBlock" : "block"}
+											</Button>
+										</div>
+									)}
 								</div>
 							</div>
 							<div className="grid w-full justify-between grid-cols-1">

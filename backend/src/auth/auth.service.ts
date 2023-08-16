@@ -143,7 +143,9 @@ export class AuthService {
         expiresIn: '7d',
       });
       res.cookie('access_token', access_token);
-      res.redirect(process.env.FRONTEND_URL);
+      if (user.createdAt === user.updatedAt)
+        res.redirect(process.env.FRONTEND_URL + '/complete-info');
+      else res.redirect(process.env.FRONTEND_URL);
       res.end();
       return;
     } catch (error: any) {

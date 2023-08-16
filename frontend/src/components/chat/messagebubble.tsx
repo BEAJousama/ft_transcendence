@@ -367,7 +367,7 @@ const MessageBubble: React.FC<ChannelProps> = ({
 							alt=""
 							status={
 								currentChannel?.type !== "CONVERSATION"
-									? "OFFLINE"
+									? undefined
 									: currentChannel?.channelMembers?.filter(
 											(member: IchannelMember) => member.userId !== user?.id
 									  )[0].user?.status === "ONLINE" &&
@@ -378,7 +378,7 @@ const MessageBubble: React.FC<ChannelProps> = ({
 											)[0].user?.id
 									  )
 									? "ONLINE"
-									: "OFFLINE"
+									: undefined
 							}
 						/>
 						<div>

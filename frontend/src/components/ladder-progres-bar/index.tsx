@@ -12,8 +12,8 @@ const icons = [
 const LadderProgressBar = ({ rating }: { rating: number }) => {
 	return (
 		// <>
-		<div className="relative hidden h-14 w-full max-w-[1024px] md:block ">
-			<div className="absolute -top-5 lg:top-2 z-10 flex w-full items-center justify-between">
+		<div className="relative hidden h-10 w-full max-w-[1024px] md:block ">
+			<div className="absolute top-2/5 left-2/5 transform -translate-y-1/2 z-10 flex w-full items-center justify-between">
 				{icons.map((item, i) => {
 					return (
 						<img
@@ -28,7 +28,7 @@ const LadderProgressBar = ({ rating }: { rating: number }) => {
 					);
 				})}
 			</div>
-			<div className="absolute top-[45%] mb-4 h-4 w-[99%] rounded-full bg-primary-800 dark:bg-gray-700">
+			<div className="absolute top-2/5 left-2/5 transform -translate-y-1/2 w-[99%] rounded-full bg-primary-800 dark:bg-gray-700">
 				<div
 					className="h-4 rounded-full bg-primary-400"
 					style={{
