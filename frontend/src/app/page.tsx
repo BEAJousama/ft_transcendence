@@ -208,8 +208,8 @@ const LandingPage = () => {
 						/>
 					</Link>
 					<Image
-						src="/img/techs.png"
-						width={260}
+						src="/img/tech.png"
+						width={250}
 						height={50}
 						alt={"Technologies"}
 						className="animate-fade"
