@@ -86,7 +86,7 @@ export class UsersController {
   async findFriends(@Param('id', ParseIntPipe) id: number) {
     try {
       const friends = await this.usersService.getFriends(id);
-      if (!friends) throw new NotFoundException('No Matches Found !!!!!');
+      if (!friends) return null;
       return friends;
     } catch (error) {
       throw error;
@@ -116,7 +116,7 @@ export class UsersController {
         senderId,
         receiverId,
       });
-      if (!friend) throw new NotFoundException('No Matches Found !!!!!');
+      if (!friend) return null;
       return friend;
     } catch (error) {
       throw error;
