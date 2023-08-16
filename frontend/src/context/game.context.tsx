@@ -165,7 +165,7 @@ export default function SocketProvider({
 						socket?.emit("keyReleased", { key, userId: user?.id });
 						currentKey = null;
 					}
-				}, 125); // Adjust the debounce time as needed
+				}, 100); // Adjust the debounce time as needed
 			}
 		};
 

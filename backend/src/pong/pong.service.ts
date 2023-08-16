@@ -709,7 +709,6 @@ export class PongService {
       const loser = await this.usersService.findUserById(loserId);
 
       // Assume winner.ladderLevel and loser.ladderLevel represent the ladder levels of the players
-
       if (gameMode === 'Ranked Mode') {
         let winPoints = 0;
         let lossPoints = 0;
@@ -762,7 +761,7 @@ export class PongService {
           totalGames: loser.totalGames,
           losses: loser.losses,
         },
-        id: winner.id,
+        id: loser.id,
       });
     } catch (e) {
       throw new InternalServerErrorException(
