@@ -1060,6 +1060,7 @@ const MessageBubble: React.FC<ChannelProps> = ({
               />
               {visibility === "PROTECTED" && (
                 <Input
+                  className="!mt-2"
                   label="Password [required]"
                   placeholder="*****************"
                   htmlType="password"

@@ -102,8 +102,12 @@ export default function Home() {
     return b.channelMembers.length - a.channelMembers.length;
   });
 
-  if (isLoading) return <Spinner />;
-
+  if (isLoading) 
+    return (
+            <div className="flex justify-center items-center h-screen bg-secondary-50">
+              <Spinner />
+            </div>
+            );
 
   return (
     <Layout className="3xl:grid-cols-3 flex flex-col items-center gap-5 2xl:grid 2xl:grid-cols-2 2xl:place-items-center">

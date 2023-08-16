@@ -8,6 +8,7 @@ import { Button, Divider, UpdateAvatar } from "../../components";
 import Modal from "../modal";
 import IUser from "../../interfaces/user";
 import { Send, X, UserPlus, ChevronFirst, ChevronLast, SendHorizonal } from "lucide-react"
+import { toast } from "react-toastify";
 
 
 const CreateGroupModal = ({
