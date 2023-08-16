@@ -101,7 +101,7 @@ export default function Profile() {
 	const prams = useParams();
 	const { id } = prams ? prams : { id: null };
 	const { user: currentUser } = useContext(AppContext);
-	const { data } = useSwr(`api/users/${id}`, fetcher);
+	const { data, mutate } = useSwr(`api/users/${id || currentUser?.id}`, fetcher);
 	const [user, setUser] = useState<IUser | undefined>(undefined);
 	const [isLoading, setIsLoading] = useState<boolean>(false);
 
@@ -110,7 +110,11 @@ export default function Profile() {
 			setUser(data);
 		}
 		setIsLoading(false);
-	}, [data]);
+		const id = setInterval(async () => {
+			await mutate();
+		}, 500);
+		return () => clearInterval(id);
+	}, [data, data]);
 
 	const achievements = useMemo(() => {
 		return user?.achievements || undefined;
