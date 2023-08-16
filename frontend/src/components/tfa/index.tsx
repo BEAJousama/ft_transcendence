@@ -91,7 +91,7 @@ const TwoFactorAuth = ({ tfaOk }: { tfaOk: () => void }) => {
 
 	return (
 		<div className="grid place-items-center justify-center w-full h-full">
-			<div className="flex flex-col items-center justify-center w-full max-w-sm md:max-w-md lg:max-w-lg gap-4 px-16 py-12 text-white">
+			<div className="flex flex-col items-center justify-center w-full max-w-sm md:max-w-md lg:max-w-lg gap-4 px-4 sm:px-6 md:px-16 py-12 text-white">
 				<div className="flex flex-col items-center gap-2 text-center">
 					<h1 className="text-2xl">Two-Factor Authentication</h1>
 					<p className=" text-tertiary-200">
