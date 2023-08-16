@@ -90,14 +90,13 @@ const SidePanelItem = ({
 				className={twMerge(
 					`flex w-full items-center justify-center pt-2`,
 					selected &&
-						"relative before:absolute before:-left-1.5 before:h-full  before:rounded-md before:border-2 before:border-primary-500 before:bg-primary-500 before:text-primary-500 before:content-['1']",
+					"relative before:absolute before:-left-1.5 before:h-full  before:rounded-md before:border-2 before:border-primary-500 before:bg-primary-500 before:text-primary-500 before:content-['1']",
 					className
 				)}
 			>
 				<button
-					className={`flex items-center justify-start gap-4 rounded bg-secondary-900 py-2 font-bold hover:bg-secondary-900 md:w-8/12 ${
-						selected ? "text-primary-500" : "text-secondary-300"
-					}`}
+					className={`flex items-center justify-start gap-4 rounded bg-secondary-900 py-2 font-bold hover:bg-secondary-900 md:w-8/12 ${selected ? "text-primary-500" : "text-secondary-300"
+						}`}
 					onClick={(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
 						if (!isInGame.current) {
 							onClick && onClick();
