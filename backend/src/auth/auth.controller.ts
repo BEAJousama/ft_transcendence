@@ -32,10 +32,14 @@ import { SignInDto } from './dto/signin.dto';
 import { SignUpDto } from './dto/signup.dto';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { FourtyTwoFilter } from './exeception.filter';
+import { UsersService } from 'src/users/users.service';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private usersService: UsersService,
+  ) {}
 
   @Public()
   @Get('google/login')
@@ -69,7 +73,7 @@ export class AuthController {
   @Get('42')
   async fortyTwoLogin(@Req() req) {
     try {
-      return this.authService.getprofile(req.user.login ? req.user.login : '');
+      return this.usersService.findUserById(req.user.sub ? req.user.sub : 0);
     } catch (e) {
       throw e;
     }

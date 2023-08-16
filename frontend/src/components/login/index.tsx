@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useContext, useEffect, useState } from "react";
+
 import { Button, Input } from "@/components";
 import axios from "axios";
 import { useFormik } from "formik";
@@ -12,12 +13,12 @@ const SSO: { key: "42" | "google"; name: string; url: string }[] = [
 	{
 		key: "42",
 		name: "Intra",
-		url: `${process.env.NEXT_PUBLIC_BACK_END_URL}api/auth/42/callback`,
+		url: `${process.env.BACK_END_URL}api/auth/42/callback`,
 	},
 	{
 		key: "google",
 		name: "Google",
-		url: `${process.env.NEXT_PUBLIC_BACK_END_URL}api/auth/google/login`,
+		url: `${process.env.BACK_END_URL}api/auth/google/login`,
 	},
 ];
 
@@ -81,11 +82,7 @@ const Login = ({
 					setSelectable(true);
 					return;
 				}
-				if (
-					externalPopup.window.location.href.includes(
-						`${process.env.NEXT_PUBLIC_FRONT_END_URL}`
-					)
-				) {
+				if (externalPopup.window.location.href.includes(`${process.env.FRONT_END_URL}`)) {
 					clearInterval(checkPopup);
 					externalPopup.close();
 					if (!getCookieItem("2fa_access_token") && !getCookieItem("access_token")) {
@@ -95,11 +92,10 @@ const Login = ({
 					}
 					setSuccess(loading);
 					updateAccessToken();
-					updateUser().then((res) => {
-						if (getCookieItem("2fa_access_token")) setState("2fa");
-						else if (res && res.createdAt === res.updatedAt) setState("complete");
-						else loginOk();
-					});
+					await updateUser();
+					if (getCookieItem("2fa_access_token")) setState("2fa");
+					else if (getCookieItem("complete_info")) setState("complete");
+					else loginOk();
 				}
 			} catch (_) {}
 		}, 500);
@@ -147,7 +143,7 @@ const Login = ({
 				Object.values(errors).some((value) => value !== "")
 			)
 				handleError("Please fill in valid credentials");
-			const res = await axios.post(`${process.env.NEXT_PUBLIC_BACK_END_URL}api/auth/signin`, {
+			const res = await axios.post(`${process.env.BACK_END_URL}api/auth/signin`, {
 				username: formik.values.username,
 				password: formik.values.password,
 			});

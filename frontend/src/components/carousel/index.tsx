@@ -1,15 +1,8 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import dynamic from "next/dynamic";
 import { twMerge } from "tailwind-merge";
-import { useSwipeable } from "react-swipeable";
+import { ChevronFirst, ChevronLast } from "lucide-react";
 
-const ChevronFirst = dynamic(() => import("lucide-react").then((mod) => mod.ChevronFirst), {
-	ssr: false,
-});
-const ChevronLast = dynamic(() => import("lucide-react").then((mod) => mod.ChevronLast), {
-	ssr: false,
-});
 interface CarouselProps {
 	children: React.ReactNode[];
 	className?: string;
@@ -18,6 +11,7 @@ interface CarouselProps {
 	autoSlideInterval?: number;
 	swipeable?: boolean;
 	chevrons?: boolean;
+	gridClassName?: string;
 }
 
 const Carousel = ({
@@ -28,6 +22,7 @@ const Carousel = ({
 	autoSlideInterval = 3000,
 	swipeable = true,
 	chevrons = true,
+	gridClassName = "",
 }: CarouselProps) => {
 	const slides = React.Children.toArray(children);
 
@@ -36,19 +31,6 @@ const Carousel = ({
 	const prev = () => setCurr((curr) => (curr === 0 ? slides.length - 1 : curr - 1));
 
 	const next = () => setCurr((curr) => (curr === slides.length - 1 ? 0 : curr + 1));
-
-	const handleSwipeLeft = () => {
-		if (swipeable) next();
-	};
-
-	const handleSwipeRight = () => {
-		if (swipeable) prev();
-	};
-
-	const handlers = useSwipeable({
-		onSwipedLeft: handleSwipeLeft,
-		onSwipedRight: handleSwipeRight,
-	});
 
 	useEffect(() => {
 		if (!autoSlide) return;
@@ -61,16 +43,19 @@ const Carousel = ({
 	}, [slide]);
 
 	return (
-		<div
-			className={twMerge(`relative overflow-hidden`, className)}
-			{...(swipeable ? handlers : {})}
-		>
+		<div className={twMerge(`relative overflow-hidden`, className)}>
 			<div
 				className="flex transition-transform ease-out duration-500"
 				style={{ transform: `translateX(-${curr * 100}%)` }}
 			>
 				{slides.map((slide, i) => (
-					<div key={i} className="w-full grid place-items-center shrink-0">
+					<div
+						key={i}
+						className={twMerge(
+							"w-full grid place-items-center shrink-0",
+							gridClassName
+						)}
+					>
 						{slide}
 					</div>
 				))}

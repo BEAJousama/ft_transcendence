@@ -1,12 +1,13 @@
 "use client";
 import React, { useContext, useEffect, useState } from "react";
+
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import Image from "next/image";
-import { AppContext, deleteCookieItem } from "@/context/app.context";
+import { AppContext, deleteCookieItem, getCookieItem } from "@/context/app.context";
 import CountUp from "react-countup";
 import axios from "axios";
-import { useRouter } from "next/navigation";
+import { redirect } from "next/navigation";
 import { toast } from "react-toastify";
 
 import { Carousel, Login, Register } from "@/components";
@@ -48,7 +49,6 @@ const Contributors = [
 ];
 
 const LandingPage = () => {
-	const router = useRouter();
 	const [slide, setSlide] = useState(0);
 	const { user, authenticated } = useContext(AppContext);
 	const [selectable, setSelectable] = useState(true);
@@ -57,6 +57,12 @@ const LandingPage = () => {
 	const [state, setState] = useState<"login" | "register" | "2fa" | "complete">("login");
 	const [ok, setOk] = useState(false);
 	const [disabled, setDisabled] = useState(false);
+
+	const [_redirect, setRedirect] = useState(false);
+
+	if (_redirect) {
+		redirect("/home");
+	}
 
 	useEffect(() => {
 		if (navigator.cookieEnabled === false) {
@@ -82,10 +88,15 @@ const LandingPage = () => {
 			setDisabled(true);
 			return;
 		}
-		if (authenticated && user && user.createdAt !== user.updatedAt) router.push("/home");
-		else if (authenticated && user) setState("complete");
+		if (authenticated && user && getCookieItem("complete_info")) {
+			setDisabled(true);
+			setState("complete");
+		} else if (authenticated && user) {
+			setDisabled(true);
+			setRedirect(true);
+		}
 		const fetchStats = async () => {
-			const res = await axios.get(`${process.env.NEXT_PUBLIC_BACK_END_URL}api/users/stats`);
+			const res = await axios.get(`${process.env.BACK_END_URL}api/users/stats`);
 			setNumUsers(res.data.users);
 			setNumGames(res.data.games);
 		};
@@ -96,7 +107,7 @@ const LandingPage = () => {
 		if (ok) {
 			if (state === "2fa") deleteCookieItem("2fa_access_token");
 			setTimeout(() => {
-				router.push("/home");
+				setRedirect(true);
 			}, 1000);
 		}
 	}, [ok]);
@@ -199,13 +210,7 @@ const LandingPage = () => {
 						target="_blank"
 						rel="noopener noreferrer"
 					>
-						<Image
-							src="/img/githubCard.svg"
-							width={120}
-							height={40}
-							alt={"Github"}
-							className="animate-flip-down animate-delay-[2000ms]"
-						/>
+						<Image src="/img/githubCard.svg" width={120} height={40} alt={"Github"} />
 					</Link>
 					<Image
 						src="/img/tech.png"

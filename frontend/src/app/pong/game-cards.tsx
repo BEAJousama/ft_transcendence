@@ -78,14 +78,12 @@ const CreateGameCard = ({
 		socket?.emit("check-for-invitaion-sent");
 		socket?.on("check-for-invitaion-sent", (data: boolean) => {
 			if (data) {
-				console.log("invitation sent => show spinner", data);
 				setShow(true);
 				setShowModal(true);
 			}
 		});
 
 		socket?.on("game-over", () => {
-			console.log("game over => remove spinner");
 			setShow(false);
 			setShowModal(false);
 		});
@@ -308,7 +306,6 @@ export default function GameCards() {
 				setGameOption={setGameOption}
 				disabled={disabled?.invite}
 				onCancel={() => {
-					console.log("cancel invite");
 					socket?.emit("cancel-invite", {
 						inviterId: user?.id,
 					});

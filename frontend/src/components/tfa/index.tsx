@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState, useContext } from "react";
+
 import axios from "axios";
 import { Button, Input } from "@/components";
 import { twMerge } from "tailwind-merge";
@@ -7,6 +8,7 @@ import { AppContext } from "@/context/app.context";
 
 const TwoFactorAuth = ({ tfaOk }: { tfaOk: () => void }) => {
 	const { updateUser, updateAccessToken } = useContext(AppContext);
+
 	const [code, setCode] = useState<string>("");
 	const [error, setError] = useState("");
 	const [loading, setLoading] = useState(false);
@@ -66,7 +68,7 @@ const TwoFactorAuth = ({ tfaOk }: { tfaOk: () => void }) => {
 		try {
 			setLoading(true);
 			await axios.post(
-				`${process.env.NEXT_PUBLIC_BACK_END_URL}api/auth/2fa/verify`,
+				`${process.env.BACK_END_URL}api/auth/2fa/verify`,
 				{ code },
 				{
 					withCredentials: true,

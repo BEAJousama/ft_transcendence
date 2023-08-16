@@ -143,6 +143,8 @@ export class AuthService {
         expiresIn: '7d',
       });
       res.cookie('access_token', access_token);
+      if (user.createdAt === user.updatedAt)
+        res.cookie('complete_info', 'complete your info');
       res.redirect(process.env.FRONTEND_URL);
       res.end();
       return;

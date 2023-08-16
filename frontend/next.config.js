@@ -1,14 +1,13 @@
 /** @type {import('next').NextConfig} */
-const withBundleAnalyzer = require("@next/bundle-analyzer")({
-	enabled: process.env.ANALYZE === "true",
-});
 
 const nextConfig = {
+	env: {
+		BACK_END_URL: process.env.NEXT_PUBLIC_BACK_END_URL,
+		FRONT_END_URL: process.env.NEXT_PUBLIC_FRONT_END_URL,
+	},
 	compiler: {
-		// removeConsole: true,
-		// removeConsole: process.env.NODE_ENV === "production",
+		removeConsole: process.env.NODE_ENV === "production",
 	},
 };
 
-module.exports = withBundleAnalyzer({});
-// module.exports = nextConfig;
+module.exports = nextConfig;
