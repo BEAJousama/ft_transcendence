@@ -14,7 +14,6 @@ import LandingPageSelector from "@/components/landing-page-selector";
 const Contributor = dynamic(() => import("@/components/contributor"), { ssr: false });
 const Tfa = dynamic(() => import("@/components/tfa"), { ssr: false });
 const CompleteInfo = dynamic(() => import("@/components/complete-info"), { ssr: false });
-// const Toast = dynamic(() => import("react-toastify").then((mod) => mod.toast), { ssr: false });
 
 const LottiePlayer = dynamic(
 	() => import("@lottiefiles/react-lottie-player").then((mod) => mod.Player),
