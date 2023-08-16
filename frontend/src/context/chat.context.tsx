@@ -76,6 +76,7 @@ export default function ChatProvider({
     let count = 0;
 
     useEffect(() => {
+        if (!user && !socket?.connected) return;
         const token = getCookieItem("access_token");
         if (!token) return;
         const newSocket = io(`${process.env.NEXT_PUBLIC_BACK_END_URL}chat`, {
@@ -137,7 +138,7 @@ export default function ChatProvider({
             newSocket.disconnect();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [user]);
 
 
     const chatContextValue: IchatContext = {
