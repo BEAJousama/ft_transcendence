@@ -4,9 +4,6 @@ import axios from "axios";
 import React from "react";
 import IUser from "@/interfaces/user";
 import { redirect, usePathname } from "next/navigation";
-import useSwr from "swr";
-import { useLocation } from "react-use";
-import { toast } from "react-toastify";
 
 export interface IAppContext {
 	user: IUser | undefined;
@@ -79,7 +76,7 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
 	);
 	const [isAuthenticated, setIsAuthenticated] = React.useState<boolean>(false);
 	const [isLoading, setIsLoading] = React.useState<boolean>(true);
-	const location = useLocation();
+	const location = usePathname();
 
 	const checkConnection = () => {
 		const _accessToken = getCookieItem("access_token");
@@ -119,9 +116,9 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
 	}, []);
 
 	React.useEffect(() => {
-		if (location.pathname === "/") return;
+		if (location === "/") return;
 		checkConnection();
-	}, [location.pathname]);
+	}, [location]);
 
 	if (isLoading) {
 		return (
@@ -141,7 +138,7 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
 		);
 	}
 
-	if (!isAuthenticated && !isLoading && location.pathname !== "/") redirect("/");
+	if (!isAuthenticated && !isLoading && location !== "/") redirect("/");
 
 	const appContextValue: IAppContext = {
 		user,

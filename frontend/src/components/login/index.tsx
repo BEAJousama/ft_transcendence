@@ -92,11 +92,10 @@ const Login = ({
 					}
 					setSuccess(loading);
 					updateAccessToken();
-					updateUser().then((res) => {
-						if (getCookieItem("2fa_access_token")) setState("2fa");
-						else if (res && res.createdAt === res.updatedAt) setState("complete");
-						else loginOk();
-					});
+					await updateUser();
+					if (getCookieItem("2fa_access_token")) setState("2fa");
+					else if (getCookieItem("complete_info")) setState("complete");
+					else loginOk();
 				}
 			} catch (_) {}
 		}, 500);

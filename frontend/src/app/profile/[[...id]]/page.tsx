@@ -135,29 +135,27 @@ export default function Profile() {
 	} = useSwr(`api/users/${id || currentUser?.id}`, fetcher);
 	const [user, setUser] = useState<IUser | undefined>(undefined);
 	const [isLoading, setIsLoading] = useState<boolean>(false);
-	const [state, setState] = useState<"achievements" | "match-history">("achievements");
 
 	useEffect(() => {
 		if (loading) return;
 		if (data) {
 			setUser(data);
+		} else {
+			setUser(undefined);
 		}
 		const id = setInterval(async () => {
 			await mutate();
-		}, 500);
-		setTimeout(() => {
-			setIsLoading(false);
 		}, 1000);
+		setIsLoading(false);
 		return () => clearInterval(id);
-	}, [data]);
+	}, [data, loading]);
 
 	const achievements = useMemo(() => {
 		return user?.achievements || undefined;
 	}, [user?.achievements]);
 
-	if (!isLoading && !user && !data) {
-		return <FourOFour />;
-	}
+	if (!data && !isLoading && !user) return <FourOFour />;
+
 	return (
 		<Layout className="flex flex-col items-center gap-4 md:gap-8 py-8 md:py-16">
 			{isLoading ? (
