@@ -392,9 +392,38 @@ export class UsersService {
     }
   }
 
+  async findBlock(blockerId: number, blockingId: number) {
+    try {
+      const isBlocked = await this.prisma.block.findFirst({
+        where: {
+          OR: [
+            {
+              blockerId,
+              blockingId,
+            },
+            {
+              blockerId: blockingId,
+              blockingId: blockerId,
+            },
+          ],
+        },
+      });
+      return isBlocked;
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to find block');
+    }
+  }
+
   async sendFriendRequest(body: AddFriendsDto) {
     try {
       const { senderId, receiverId } = body;
+
+      const isBlocked = await this.findBlock(senderId, receiverId);
+
+      if (isBlocked) {
+        throw new Error('Sender is blocked by receiver');
+      }
+
       const request = await this.prisma.friend.create({
         data: {
           senderId,
@@ -449,6 +478,17 @@ export class UsersService {
 
   async acceptFriendRequest(id: number) {
     try {
+      const data = await this.prisma.friend.findFirst({
+        where: {
+          id: id,
+        },
+      });
+      const isBlocked = await this.findBlock(data.senderId, data.receiverId);
+
+      if (isBlocked) {
+        throw new Error('Sender is blocked by receiver');
+      }
+
       const request = await this.prisma.friend.update({
         where: {
           id: id,

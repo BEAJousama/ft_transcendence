@@ -13,7 +13,7 @@ const Modal = ({
   setShowModal?: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   return (
-    <div className="animation-fade fixed z-10 left-0 top-0 flex h-screen w-screen items-center justify-center animate-duration-500 overflow-hidden">
+    <div className="animation-fade fixed z-30 left-0 top-0 flex h-screen w-screen items-center justify-center animate-duration-500 overflow-hidden">
       <div className="fixed inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm"></div>
       <Card
         setShowModal={setShowModal}
