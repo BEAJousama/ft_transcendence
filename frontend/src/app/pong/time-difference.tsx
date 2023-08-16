@@ -50,7 +50,7 @@ const TimeDifference: React.FC<TimeDifferenceProps> = ({ time }) => {
     }, [time]);
 
     return (
-        <div className="absolute top-2 left-1/2 transform -translate-x-1/2">
+        <div className="absolute top-2 left-1/2 transform -translate-x-1/2 text-xl text-primary-500">
             {timeDiff}
         </div>
     );

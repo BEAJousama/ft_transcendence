@@ -3,7 +3,7 @@
 import useSwr from "swr";
 import IUser, { IBlock } from "@/interfaces/user";
 import axios from "axios";
-import { use, useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import {
     addFriend,
     cancelFriend,
@@ -12,12 +12,10 @@ import {
     UnBlockUser,
     isBlocked,
 } from "./tools";
-import Image from "next/image";
-
 import { Spinner, Avatar, Button } from "@/components";
 import { ChatContext } from "@/context/chat.context";
 import { useRouter } from "next/navigation";
-import { AppContext, fetcher } from "@/context/app.context";
+import { AppContext } from "@/context/app.context";
 
 
 const status = {
@@ -57,7 +55,7 @@ const ProfileInfo = ({
                 return response.data;
             }
             catch (error) {
-                throw error;
+                return null;
             }
         },
         {
@@ -72,6 +70,8 @@ const ProfileInfo = ({
     const [text, setText] = useState("");
 
     useEffect(() => {
+        console.clear();
+        console.log('friend: ', friendRequest);
         if (
             friendRequest?.status === "PENDING" &&
             friendRequest?.senderId === currentUserId
@@ -111,7 +111,6 @@ const ProfileInfo = ({
     }
 
     if (block) {
-        console.log(block)
         __blocked = block.blockerId === user.id
     }
 
@@ -146,12 +145,16 @@ const ProfileInfo = ({
                                             disabled={user?.id === currentUserId || (blocked || __blocked)}
                                             className="w-full !text-xs"
                                             onClick={async () => {
-                                                if (text === "Add Friend")
+                                                if (text === "Add Friend") {
                                                     await addFriend(currentUserId || 0, user.id);
-                                                else if (text === "Accept")
+                                                }
+                                                else if (text === "Accept") {
                                                     await acceptFriend(friendRequest.id);
-                                                else await cancelFriend(friendRequest.id);
+                                                }
+                                                else {
+                                                    await cancelFriend(friendRequest.id);
 
+                                                }
                                                 await mutate();
                                             }}
                                         >

@@ -37,7 +37,7 @@ const Inputs: {
 ];
 
 const isValidEmail = (email: string) => {
-	return /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(email);
+	return /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(email);
 };
 
 const commonWordsRegex = /^(?!.*(password|123456|qwerty|azerty|etc))$/i;
@@ -106,7 +106,6 @@ export default function Register({ registrOk }: { registrOk: () => void }) {
 				Object.values(formik.errors).some((value) => value !== "") ||
 				Object.values(errors).some((value) => value !== "")
 			) {
-				console.log("invalid");
 				setError("Please enter valid details");
 				setLoading(false);
 				return;
@@ -124,10 +123,9 @@ export default function Register({ registrOk }: { registrOk: () => void }) {
 			updateUser();
 			registrOk();
 		} catch (e: any) {
-			console.log(e.response.data);
-			if (e.response.data.message.includes("login", "username"))
+			if (e.response?.data.message.includes("login", "username"))
 				setError("Username already exists");
-			else if (e.response.data.message.includes("email")) setError("Email already exists");
+			else if (e.response?.data.message.includes("email")) setError("Email already exists");
 			else setError("Something went wrong...");
 			setLoading(false);
 		}
@@ -157,8 +155,8 @@ export default function Register({ registrOk }: { registrOk: () => void }) {
 					/>
 				))}
 				{error && (
-					<p className="mt-2 text-xs text-red-600 dark:text-red-500">
-						<span className="font-medium">{error}</span>
+					<p className="mt-2 text-xs text-red-600 dark:text-red-500 font-medium">
+						{error}
 					</p>
 				)}
 				<div className="relative flex w-full">

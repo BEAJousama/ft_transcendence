@@ -148,10 +148,10 @@ const Sidepanel = ({ className }: { className?: string }) => {
 				<div className="w-46 hidden items-center justify-center md:flex">
 					<Image
 						className="!w-64 px-6"
-						src="/img/logo.png"
+						src="/img/logo.svg"
 						alt="logo"
 						width={256}
-						height={256}
+						height={24}
 					/>
 				</div>
 				<Image

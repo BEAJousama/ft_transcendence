@@ -96,6 +96,7 @@ export default function SocketProvider({
 	const keyState: { [key: string]: boolean } = {};
 
 	useEffect(() => {
+		if (!user && !socket?.connected) return;
 		try {
 
 			const token = getCookieItem("access_token");
@@ -124,7 +125,7 @@ export default function SocketProvider({
 		} catch (error) {
 
 		}
-	}, []);
+	}, [user]);
 
 	useEffect(() => {
 		let currentKey: string | null = null; // Keep track of the currently pressed key
@@ -165,7 +166,7 @@ export default function SocketProvider({
 						socket?.emit("keyReleased", { key, userId: user?.id });
 						currentKey = null;
 					}
-				}, 125); // Adjust the debounce time as needed
+				}, 100); // Adjust the debounce time as needed
 			}
 		};
 

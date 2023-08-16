@@ -109,7 +109,7 @@ export default function ChatProvider({
             count++;
             if (count > 8) return;
             const currentUrl = window.location.pathname;
-            if (currentUrl === data.url) 
+            if (currentUrl === data.url)
                 return;
             toast(
                 <Link href={data.url}>

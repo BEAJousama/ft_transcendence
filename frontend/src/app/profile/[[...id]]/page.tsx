@@ -1,22 +1,43 @@
 "use client";
 
-import { Divider, Spinner, ProfileInfo, LadderProgressBar, FourOFour } from "@/components";
+import { Divider, Spinner, FourOFour } from "@/components";
 import { UserCircle } from "lucide-react";
-import { useContext, useMemo } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { AppContext, fetcher } from "../../../context/app.context";
 import IAchievement from "../../../interfaces/achievement";
 import useSwr from "swr";
-import Layout from "../../layout/index";
 import IUser from "@/interfaces/user";
 import { useParams } from "next/navigation";
 import dynamic from "next/dynamic";
 
-const Achievement = dynamic(() => import("@/components/achievement/index"), {
+const Layout = dynamic(() => import("../../layout/index"), {
 	ssr: false,
 });
 
-const Achievements = ({ userAchievements }: { userAchievements: IAchievement[] }) => {
-	const { data: achievements, isLoading } = useSwr("api/users/achievements", fetcher);
+const ProfileInfo = dynamic(() => import("@/components/profile-info"), {
+	ssr: false,
+});
+
+const LadderProgressBar = dynamic(
+	() => import("@/components/ladder-progres-bar"),
+	{
+		ssr: false,
+	}
+);
+
+const Achievement = dynamic(() => import("@/components/achievement"), {
+	ssr: false,
+});
+
+const Achievements = ({
+	userAchievements,
+}: {
+	userAchievements: IAchievement[];
+}) => {
+	const { data: achievements, isLoading } = useSwr(
+		"api/users/achievements",
+		fetcher
+	);
 
 	const isDisabled = (name: string) => {
 		const achievements = userAchievements;
@@ -30,8 +51,11 @@ const Achievements = ({ userAchievements }: { userAchievements: IAchievement[] }
 				Achievements
 				{achievements && achievements?.length && (
 					<>
-						<span className="text-primary-500"> {userAchievements?.length || 0}</span>/
-						{` ${achievements?.length}`}
+						<span className="text-primary-500">
+							{" "}
+							{userAchievements?.length || 0}
+						</span>
+						/{` ${achievements?.length}`}
 					</>
 				)}
 			</span>
@@ -76,23 +100,29 @@ export default function Profile() {
 	const prams = useParams();
 	const { id } = prams ? prams : { id: null };
 	const { user: currentUser } = useContext(AppContext);
-	const { data, isLoading } = useSwr(`api/users/${id || currentUser?.id}`, fetcher, {
-		refreshInterval: 0,
-		refreshWhenHidden: true,
-		refreshWhenOffline: false,
-		revalidateOnFocus: false,
-		revalidateOnReconnect: false,
-	});
+	const { data, isLoading: loading, mutate } = useSwr(`api/users/${id || currentUser?.id}`, fetcher);
+	const [user, setUser] = useState<IUser | undefined>(undefined);
+	const [isLoading, setIsLoading] = useState<boolean>(false);
 
-	const user = useMemo(() => {
-		return data as IUser;
+	useEffect(() => {
+		if (loading) return;
+		if (data) {
+			setUser(data);
+		}
+		const id = setInterval(async () => {
+			await mutate();
+		}, 500);
+		setTimeout(() => {
+			setIsLoading(false);
+		}, 500);
+		return () => clearInterval(id);
 	}, [data]);
 
 	const achievements = useMemo(() => {
 		return user?.achievements || undefined;
 	}, [user?.achievements]);
 
-	if (!isLoading && !user) {
+	if (!isLoading && !user && !data) {
 		return <FourOFour />;
 	}
 	return (
@@ -105,10 +135,12 @@ export default function Profile() {
 						<UserCircle size={40} />
 						Profile
 					</div>
-					<ProfileInfo user={user} currentUserId={currentUser?.id || 0} />
-					<LadderProgressBar rating={user?.rating} />
+					{!!user && (
+						<ProfileInfo user={user} currentUserId={currentUser?.id || 0} />
+					)}
+					<LadderProgressBar rating={user?.rating || 0} />
 					<Divider />
-					<Achievements userAchievements={achievements} />
+					<Achievements userAchievements={achievements || []} />
 				</>
 			)}
 		</Layout>
