@@ -469,7 +469,10 @@ export class ChannelService {
       }
       if (channelData.type === 'visibility') {
         const ch = await this.getChannelById(channelData.id);
-        if (ch.visiblity === Visiblity[channelData.visibility])
+        if (
+          ch.visiblity === Visiblity[channelData.visibility] &&
+          ch.visiblity !== Visiblity.PROTECTED
+        )
           throw new Error('Please select another visibility option!');
         if (
           ch.visiblity !== Visiblity.PROTECTED &&

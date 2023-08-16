@@ -1161,12 +1161,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   private async sendMessageToChannelMembers(
     senderId: number,
     channelId: number,
-    message: MessageDto,
+    message: any,
   ) {
     const members = await this.channelService.getChannelMembersByChannelId(
       channelId,
     );
-    await this.channelService.getChannelById(channelId);
+    const channel = await this.channelService.getChannelById(channelId);
+    const name =
+      channel.type === ChannelType.CONVERSATION ? 'DM' : channel.name;
     let sockets;
     members.forEach(async (member) => {
       if (
@@ -1178,19 +1180,19 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       sockets = this.getConnectedUsers(member.userId);
       sockets.forEach((socket) => {
         this.server.to(socket.id).emit('message', message);
-        // const data = {
-        //   id: randomInt(1000000, 9999999),
-        //   title: 'New message',
-        //   content: message.content,
-        //   createdAt: message.date,
-        //   updatedAt: message.date,
-        //   seen: false,
-        //   sender: message.sender,
-        //   receiver: member.userId,
-        //   url: '/chat',
-        // };
-        // if (!channel.mutedFor.map((u) => u.id).includes(member.userId))
-        // this.server.to(socket.id).emit(EVENT.GET_CH_MSSGS, messages);
+        const data = {
+          id: 1,
+          title: 'New message: ' + name,
+          content: `${message.sender.username}:  ${message.content}`,
+          createdAt: message.date,
+          updatedAt: message.date,
+          seen: false,
+          sender: message.sender,
+          receiver: member.userId,
+          url: '/chat',
+        };
+        if (channel.mutedFor.map((u) => u.id).includes(member.userId)) return;
+        this.server.to(socket.id).emit('newmessage', data);
       });
     });
   }

@@ -61,11 +61,11 @@ export class AuthService {
     try {
       const user = await this.usersService.findUserByLogin(body.username);
       if (!user) {
-        throw new UnauthorizedException('Invalid credentials');
+        throw new UnauthorizedException('Incorrect username or password');
       }
       const isMatch = await this.verifyPassword(body.password, user.password);
       if (!isMatch) {
-        throw new UnauthorizedException('Invalid credentials');
+        throw new UnauthorizedException('Incorrect username or password');
       }
       if (user.twoFactorAuth === true) {
         const payload = { login: user.login, sub: user.id };

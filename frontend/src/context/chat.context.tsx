@@ -73,6 +73,7 @@ export default function ChatProvider({
 }) {
     const [socket, setSocket] = useState<Socket | null>(null);
     const { user } = useContext(AppContext);
+    let count = 0;
 
     useEffect(() => {
         const token = getCookieItem("access_token");
@@ -84,6 +85,31 @@ export default function ChatProvider({
         });
         newSocket.on("notification", (data: INotification) => {
             if (data.sender.id === user?.id) return;
+            toast(
+                <Link href={data.url}>
+                    <Toast
+                        title={data.title}
+                        content={data.content}
+                        sender={data.sender.id === user?.id ? data.receiver : data.sender}
+                    />
+                </Link>,
+                {
+                    className: "md:w-[400px] md:right-[90px]",
+                }
+            );
+        });
+
+        const path = window.location.pathname;
+        if (path === "/chat") {
+            count = 0;
+        }
+
+        newSocket.on("newmessage", (data: INotification) => {
+            count++;
+            if (count > 8) return;
+            const currentUrl = window.location.pathname;
+            if (currentUrl === data.url) 
+                return;
             toast(
                 <Link href={data.url}>
                     <Toast

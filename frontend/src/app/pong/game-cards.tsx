@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import { Button, Card, Carousel, Input, RadioCheck, Spinner, UserBanner } from "@/components";
 import useSwr from "swr";
 import { AppContext, fetcher } from "@/context/app.context";
@@ -39,7 +39,6 @@ const CreateGameCard = ({
 	setGameMode?: React.Dispatch<React.SetStateAction<string>>;
 	gameOption?: string;
 	setGameOption?: React.Dispatch<React.SetStateAction<string>>;
-
 }) => {
 	const { data: users, isLoading } = useSwr("api/users", fetcher, {
 		errorRetryCount: 0,
@@ -57,38 +56,42 @@ const CreateGameCard = ({
 	useEffect(() => {
 		if (users && (filtred || !value))
 			setFiltred(
-				users.filter((item: IUser) =>
-					item.fullname.toLowerCase().includes(value.toLowerCase()) && item.status === "ONLINE" && item.id !== user?.id
+				users.filter(
+					(item: IUser) =>
+						item.fullname.toLowerCase().includes(value.toLowerCase()) &&
+						item.status === "ONLINE" &&
+						item.id !== user?.id
 				)
 			);
-		else setFiltred(users?.filter((item: IUser) => item.status === "ONLINE" && item.id !== user?.id));
+		else
+			setFiltred(
+				users?.filter((item: IUser) => item.status === "ONLINE" && item.id !== user?.id)
+			);
 	}, [value, users]);
 
 	useEffect(() => {
 		notificationSocket?.on("invitation-canceled", () => {
 			setShow(false);
-			setShowModal(false)
-		})
+			setShowModal(false);
+		});
 
 		socket?.emit("check-for-invitaion-sent");
 		socket?.on("check-for-invitaion-sent", (data: boolean) => {
 			if (data) {
 				console.log("invitation sent => show spinner", data);
-				setShow(true)
+				setShow(true);
 				setShowModal(true);
 			}
 		});
 
 		socket?.on("game-over", () => {
 			console.log("game over => remove spinner");
-			setShow(false)
+			setShow(false);
 			setShowModal(false);
 		});
 
-
-		return () => { }
-
-	}, [socket])
+		return () => {};
+	}, [socket]);
 
 	return (
 		<Card
@@ -123,11 +126,7 @@ const CreateGameCard = ({
 										}}
 										key={item.id}
 									>
-										<UserBanner
-											user={item}
-											showRating
-											rank={item.rating}
-										/>
+										<UserBanner user={item} showRating rank={item.rating} />
 									</Button>
 								);
 							})}
@@ -136,8 +135,7 @@ const CreateGameCard = ({
 						<div className="flex items-center justify-center text-xs text-primary-500 md:text-2xl">
 							No matches found
 						</div>
-					)
-					}
+					)}
 					<span className="w-full">Selected User : </span>
 					{selectedUser && (
 						<UserBanner
@@ -174,51 +172,48 @@ const CreateGameCard = ({
 						</Button>
 					</div>
 				</div>
-
 			)}
-			{
-				!showModal && (
-					<>
-						{showOptions ? (
-							<>
-								<RadioCheck
-									value={gameMode}
-									onChange={(e) => {
-										setGameMode && setGameMode(e.target.value);
-									}}
-									htmlFor={"gamemode" + name}
-									label="Select Game bet"
-									options={["Classic Mode", "Ranked Mode", "Time Attack"]}
-								/>
-								<RadioCheck
-									value={gameOption}
-									onChange={(e) => {
-										setGameOption && setGameOption(e.target.value);
-									}}
-									htmlFor={"gameoption" + name}
-									label="Select Game Options"
-									options={["Classic", "Power Shot", "ShrinkingPaddle"]}
-								/>
-							</>
-						) : (
-							<>
-								<Image src="/img/3839218-removebg-preview.png" alt="" width={200} height={200} />
-							</>
-						)}
-						<Button
-							className="px-16"
-							onClick={() => {
-								!invite && onClick();
-								!invite && setShow(true);
-								invite && setShowModal(true);
-							}}
-							disabled={disabled}
-						>
-							{content}
-						</Button>
-					</>
-				)
-			}
+			{!showModal && (
+				<>
+					{showOptions ? (
+						<>
+							<RadioCheck
+								value={gameMode}
+								onChange={(e) => {
+									setGameMode && setGameMode(e.target.value);
+								}}
+								htmlFor={"gamemode" + name}
+								label="Select Game bet"
+								options={["Classic Mode", "Ranked Mode", "Time Attack"]}
+							/>
+							<RadioCheck
+								value={gameOption}
+								onChange={(e) => {
+									setGameOption && setGameOption(e.target.value);
+								}}
+								htmlFor={"gameoption" + name}
+								label="Select Game Options"
+								options={["Classic", "Power Shot", "ShrinkingPaddle"]}
+							/>
+						</>
+					) : (
+						<>
+							<Image src="/img/game.png" alt="" width={200} height={200} />
+						</>
+					)}
+					<Button
+						className="px-16"
+						onClick={() => {
+							!invite && onClick();
+							!invite && setShow(true);
+							invite && setShowModal(true);
+						}}
+						disabled={disabled}
+					>
+						{content}
+					</Button>
+				</>
+			)}
 			{showLoading && show && (
 				<>
 					<div className="absolute inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm"></div>
@@ -244,7 +239,6 @@ const CreateGameCard = ({
 	);
 };
 
-
 export default function GameCards() {
 	const [disabled, setDisabled] = useState<{
 		invite: boolean;
@@ -263,14 +257,14 @@ export default function GameCards() {
 				invite: false,
 				join: false,
 			});
-		})
+		});
 		socket?.emit("check-for-invitaion-sent");
 		socket?.on("check-for-invitaion-sent", (data: boolean) => {
 			if (data) {
 				setDisabled({
 					invite: true,
 					join: false,
-				})
+				});
 			}
 		});
 
@@ -278,13 +272,17 @@ export default function GameCards() {
 			setDisabled({
 				invite: false,
 				join: false,
-			})
+			});
 		});
-		return () => { }
+		return () => {};
 	}, [socket]);
 
 	return (
-		<Carousel className="w-full" chevrons={!disabled?.invite && !disabled?.join} swipeable={false}>
+		<Carousel
+			className="w-full"
+			chevrons={!disabled?.invite && !disabled?.join}
+			swipeable={false}
+		>
 			<CreateGameCard
 				invite
 				title="Invite Your Friends to Play"
@@ -300,7 +298,7 @@ export default function GameCards() {
 							invite: false,
 							join: false,
 						});
-					}, 30000)
+					}, 30000);
 				}}
 				showOptions
 				showLoading
@@ -310,7 +308,7 @@ export default function GameCards() {
 				setGameOption={setGameOption}
 				disabled={disabled?.invite}
 				onCancel={() => {
-					console.log('cancel invite')
+					console.log("cancel invite");
 					socket?.emit("cancel-invite", {
 						inviterId: user?.id,
 					});
@@ -324,7 +322,7 @@ export default function GameCards() {
 			<CreateGameCard
 				title="Train Against Ai"
 				content="Play Now"
-				onCancel={() => { }}
+				onCancel={() => {}}
 				onClick={() => {
 					socket?.emit("play-with-ai", {
 						userId: user?.id,
@@ -364,5 +362,5 @@ export default function GameCards() {
 				disabled={disabled?.join}
 			/>
 		</Carousel>
-	)
+	);
 }

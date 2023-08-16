@@ -6,14 +6,16 @@ import Card from "../card";
 const Modal = ({
   children,
   className,
+  className2,
   setShowModal,
 }: {
   children: React.ReactNode;
   className?: string;
+  className2?: string;
   setShowModal?: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   return (
-    <div className="animation-fade fixed z-30 left-0 top-0 flex h-screen w-screen items-center justify-center animate-duration-500 overflow-hidden">
+    <div className={twMerge(`animation-fade fixed z-10 left-0 top-0 flex h-screen w-screen items-center justify-center animate-duration-500 overflow-hidden `, className2 && className2)}>
       <div className="fixed inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm"></div>
       <Card
         setShowModal={setShowModal}

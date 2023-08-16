@@ -3,13 +3,12 @@
 import React, { useRef } from "react";
 import { useContext, useState } from "react";
 import { AppContext, fetcher } from "../../context/app.context";
-import { ChatContext } from "../../context/chat.context";
+import { ChatContext, Ichannel } from "../../context/chat.context";
 import { useRouter } from "next/navigation";
 import Avatar from "../avatar";
 import AvatarGroup from "../avatarGroup";
 import Button from "../button";
 import Input from "../input";
-import Card from "../card";
 import Modal from "../modal";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -18,7 +17,7 @@ import { Key, Users2 } from "lucide-react";
 const ChatBanner = ({
     channel,
 }: {
-    channel?: any;
+    channel?: Ichannel;
 }) => {
     const router = useRouter();
     const { user } = useContext(AppContext);
@@ -30,7 +29,7 @@ const ChatBanner = ({
     const [accesModal, setAccessModal] = useState(false);
 
     const channelMembers = channel?.channelMembers?.filter((member: any) => {
-        return member.status === "ACTIVE";
+        return member.status === "ACTIVE" || member.status === "MUTED";
     });
 
     const handleJoin = () => {
@@ -45,10 +44,10 @@ const ChatBanner = ({
 
     const handleAccess = async () => {
         try {
-            const member = await fetcher(`api/channels/member/${user?.id}/${channel.id}`);
+            const member = await fetcher(`api/channels/member/${user?.id}/${channel?.id}`);
             if (!member) return;
 
-            if ((channel?.isacessPassword && member.role === "OWNER") || !channel.isacessPassword) {
+            if ((channel?.isacessPassword && member.role === "OWNER") || !channel?.isacessPassword) {
                 socket?.emit("channel_access", { userId: user?.id, channelId: channel?.id });
                 router.push(`/chat`);
                 return;
@@ -66,7 +65,7 @@ const ChatBanner = ({
     const accessChannel = async () => {
         try {
             const res = await axios.post(`${process.env.NEXT_PUBLIC_BACK_END_URL}api/channels/checkpass`,
-                { password: accessPassword, channelId: channel.id },
+                { password: accessPassword, channelId: channel?.id },
                 { withCredentials: true });
             if (res.data === true) {
                 socket?.emit("channel_access", { userId: user?.id, channelId: channel?.id });
@@ -97,7 +96,7 @@ const ChatBanner = ({
                         </div>
                     </div>
                     {
-                        !channelMembers?.map((item: any) => item.userId).includes(user?.id) || channel?.kickedUsers.map((u: any) => u.id).includes(user?.id) ?
+                        channel && (!channelMembers?.map((item: any) => item.userId).includes(user?.id) || channel?.kickedUsers.map((u: any) => u.id).includes(user?.id)) ?
                             <Button onClick={handleJoin} className="w-full sm:w-auto ">Join</Button>
                             :
                             <Button onClick={handleAccess} className="w-full sm:w-auto ">Access</Button>
@@ -118,6 +117,7 @@ const ChatBanner = ({
                 accesModal && (
                     <Modal
                         setShowModal={setAccessModal}
+                        className2="absolute top-0 left-0 w-full h-full bg-black bg-opacity-50"
                         className="z-10 bg-secondary-800 
                                     border-none flex flex-col !items-center !justify-center shadow-lg shadow-secondary-500 gap-4 text-white min-w-[90%]
                                     lg:min-w-[40%] xl:min-w-[800px] animate-jump-in animate-ease-out animate-duration-400">
@@ -172,6 +172,7 @@ const ChatBanner = ({
             {showModal && (
                 <Modal
                     setShowModal={setshowModal}
+                    className2="absolute top-0 left-0 w-full h-full bg-black bg-opacity-50"
                     className="z-10 bg-secondary-800 border-none flex flex-col !items-center !justify-center shadow-lg shadow-secondary-500 gap-4 text-white min-w-[90%] lg:min-w-[40%] xl:min-w-[50%] animate-jump-in animate-ease-out animate-duration-400 max-w-[100%] w-full"
                 >
                     <span className="text-md md:text-lg font-semibold pb-4">This channel is protected</span>

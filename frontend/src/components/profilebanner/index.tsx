@@ -166,7 +166,7 @@ const ProfileBanner = ({
           {
             status !== "BANNED" ?
               (
-                <RightClickMenu className="w-full !bg-secondary-400 max-h-50">
+                <RightClickMenu className="w-full !bg-secondary-400 max-h-50 overflow-y-visible">
                   <RightClickMenuItem
                     onClick={() => {
                       gamesocket?.emit("invite-friend", {
@@ -276,13 +276,12 @@ const ProfileBanner = ({
         muteModal &&
         (
           <Modal
-            className="z-10 bg-secondary-800 w-full 
-                        border-none flex flex-col items-center justify-start shadow-lg shadow-secondary-500 gap-4 text-white min-w-[90%]
-                        lg:min-w-[40%] xl:min-w-[800px] animate-jump-in animate-ease-out animate-duration-400"
+            className="bg-secondary-400 !overflow-hidden !w-[500px] !h-52"
+            className2="!w-[600px] h-[200px]  p-4 !overflow-hidden absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
           >
-            <div className="grid grid-rows w-full">
-              <div className="grid grid-cols-10 justify-center items-center m-5">
-                <div className="col-span-8 gap-4 mr-3">
+            <div className="grid grid-rows w-full p-5 gap-10">
+              <div className="grid grid-cols-10 justify-center items-center  gap-3">
+                <div className="col-span-8">
                   <Input
                     htmlType="number"
                     pattern="[0-9]*"
