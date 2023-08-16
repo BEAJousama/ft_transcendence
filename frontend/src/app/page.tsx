@@ -81,6 +81,7 @@ const LandingPage = () => {
 			);
 			setSelectable(false);
 			setDisabled(true);
+			return;
 		}
 		if (authenticated && user && user.createdAt !== user.updatedAt) router.push("/home");
 		else if (authenticated && user) setState("complete");
