@@ -34,7 +34,7 @@ const UpdateAvatar = ({
                         type="file"
                         hidden
                         ref={ref}
-                        accept="image/png, image/jpeg"
+                        accept="image/png, image/jpeg, image/jpg"
                         onChange={(e) => {
                             if (e.target.files) {
                                 if (e.target.files[0]) {

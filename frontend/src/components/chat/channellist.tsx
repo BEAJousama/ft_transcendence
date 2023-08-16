@@ -53,17 +53,13 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
   const onClick = async (channel: Ichannel): Promise<void | undefined> => {
     if (!user || !channel)
       return;
-    socket?.emit('reset_mssg_count', { channelId: channel.id });
-    const member = await fetcher(`api/channels/member/${user?.id}/${channel.id}`);
-    // const [member, messages] = await Promise.all([
-    //   fetcher(`api/channels/member/${user?.id}/${channel.id}`),
-    //   loadMessages(channel.id)
-    // ]);
+    const member = await fetcher(`api/channels/member/${user?.id}/${channel?.id}`);
     if (channel.isacessPassword && member.role !== "OWNER") {
-      if (selectedChannel && selectedChannel.id === channel.id) {
+      if (selectedChannel && selectedChannel.id === channel?.id) {
         setOpen(true);
         setCurrentChannel(channel);
         setSelectedChannel(channel);
+        socket?.emit('reset_mssg_count', { channelId: channel?.id });
         setMessages(null as any as Imessage[]);
         const messages = await loadMessages(channel.id);
         setMessages(messages);
@@ -76,6 +72,7 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
       setOpen(true);
       setCurrentChannel(channel);
       setSelectedChannel(channel);
+      socket?.emit('reset_mssg_count', { channelId: channel?.id });
       setMessages(null as any as Imessage[]);
       const messages = await loadMessages(channel.id);
       setMessages(messages);
@@ -93,6 +90,7 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
       setCurrentChannel(tempChannel);
       setSelectedChannel(tempChannel);
       setModal(false);
+      socket?.emit('reset_mssg_count', { channelId: tempChannel?.id });
       setMessages(null as any as Imessage[]);
       const messages = await loadMessages(tempChannel?.id);
       setMessages(messages);
@@ -155,8 +153,6 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
       socket?.off('channel_delete');
       socket?.off('getChannels');
       socket?.off('getArchiveChannels');
-      // socket?.off('channel_create');
-      // socket?.off('dm_create');
       socket?.off('channel_access');
     }
     //eslint-disable-next-line

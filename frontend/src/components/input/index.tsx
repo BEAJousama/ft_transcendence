@@ -29,6 +29,7 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 	id?: string;
 	type?: string;
 	success?: boolean;
+	defaultValue?: string;
 }
 
 const Input = ({
@@ -50,6 +51,7 @@ const Input = ({
 	isError,
 	hidden,
 	disabled,
+	defaultValue,
 	type = "text",
 	success = false,
 	required,
@@ -146,6 +148,7 @@ const Input = ({
 						id="countries"
 						className="block w-full rounded-lg bg-transparent border-2 border-tertiary-200 text-white p-3"
 						value={value}
+						defaultValue={defaultValue}
 						onChange={(e: any) => {
 							onChange && onChange(e);
 						}}
