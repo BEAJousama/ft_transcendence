@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { use } from "react";
+import React, { use, useRef } from "react";
 import { useContext, useEffect, useState } from "react";
 
 import Channel from "./channel";
@@ -14,7 +14,6 @@ import { AppContext } from "../../context/app.context";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { twMerge } from "tailwind-merge";
-
 import { ListFilter, MessageSquarePlus } from "lucide-react";
 
 interface ChannelListProps {
@@ -42,27 +41,33 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
   const { user } = useContext<IAppContext>(AppContext)
   const [isFocused, setIsFocused] = useState<boolean>(false);
   const iRef = React.useRef<HTMLInputElement>(null);
+  const { checkConnection } = useContext<IAppContext>(AppContext);
+  const value = useRef<number>(0);
 
   const loadMessages = async (channelId: number | undefined) => {
     if (!user)
       return;
-    const messages = fetcher(`api/messages/${channelId}/${user?.id}`)
+    const messages = await fetcher(`api/messages/${channelId}/${user?.id}`)
     return messages;
   }
 
   const onClick = async (channel: Ichannel): Promise<void | undefined> => {
+    checkConnection();
     if (!user || !channel)
       return;
+    value.current = channel.id || 0;
     const member = await fetcher(`api/channels/member/${user?.id}/${channel?.id}`);
     if (channel.isacessPassword && member.role !== "OWNER") {
       if (selectedChannel && selectedChannel.id === channel?.id) {
         setOpen(true);
         setCurrentChannel(channel);
         setSelectedChannel(channel);
+        console.log(selectedChannel);
         socket?.emit('reset_mssg_count', { channelId: channel?.id });
         setMessages(null as any as Imessage[]);
         const messages = await loadMessages(channel.id);
-        setMessages(messages);
+        if (messages && channel.id ===value.current)
+          setMessages(messages);
         inputRef?.current?.focus();
       } else {
         setModal(true);
@@ -72,14 +77,16 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
       setOpen(true);
       setCurrentChannel(channel);
       setSelectedChannel(channel);
+      console.log(selectedChannel);
       socket?.emit('reset_mssg_count', { channelId: channel?.id });
       setMessages(null as any as Imessage[]);
       const messages = await loadMessages(channel.id);
-      setMessages(messages);
+      if (messages && channel.id === value.current)
+        setMessages(messages);
       inputRef?.current?.focus();
     }
-    //eslint-disable-next-line
   }
+
 
   const accessChannel = async () => {
     const res = await axios.post(`${process.env.NEXT_PUBLIC_BACK_END_URL}api/channels/checkpass`,
@@ -307,9 +314,9 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
                     }
                     newMessages={channel.channelMembers?.filter((member: IchannelMember) => member.userId === user?.id)[0].newMessagesCount}
                     userStatus={channel.type !== "CONVERSATION" ? false : (channel.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.status === "ONLINE") && !checkBlock(channel.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.id)}
-                    onClick={(e: any) => {
+                    onClick={ async (e: any) => {
                       e.preventDefault();
-                      onClick(channel)
+                      await onClick(channel)
                     }}
                     selected={isActive}
                   />
@@ -341,7 +348,10 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
                       }
                       newMessages={channel.channelMembers?.filter((member: IchannelMember) => member.userId === user?.id)[0].newMessagesCount}
                       userStatus={channel.type !== "CONVERSATION" ? false : (channel.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.status === "ONLINE") && !checkBlock(channel.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.id)}
-                      onClick={() => onClick(channel)}
+                      onClick={ async (e: any) => {
+                        e.preventDefault();
+                        await onClick(channel)
+                      }}
                       selected={isActive}
                     />
                   )
@@ -375,7 +385,10 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
                     }
                     newMessages={channel.channelMembers?.filter((member: IchannelMember) => member.userId === user?.id)[0].newMessagesCount}
                     userStatus={channel.type !== "CONVERSATION" ? false : (channel.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.status === "ONLINE") && !checkBlock(channel.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.id)}
-                    onClick={() => onClick(channel)}
+                    onClick={ async (e: any) => {
+                      e.preventDefault();
+                      await onClick(channel)
+                    }}
                     selected={isActive}
                   />
                 )
@@ -406,7 +419,10 @@ const ChannelList: React.FC<ChannelListProps> = ({ className, setShowModal, setC
                       }
                       newMessages={channel.channelMembers?.filter((member: IchannelMember) => member.userId === user?.id)[0].newMessagesCount}
                       userStatus={channel.type !== "CONVERSATION" ? false : (channel.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.status === "ONLINE") && !checkBlock(channel.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.id)}
-                      onClick={() => onClick(channel)}
+                      onClick={ async (e: any) => {
+                        e.preventDefault();
+                        await onClick(channel)
+                      }}
                       selected={isActive}
                     />
                   )

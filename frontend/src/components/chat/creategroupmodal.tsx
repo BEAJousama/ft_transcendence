@@ -235,7 +235,7 @@ const CreateGroupModal = ({
         {
           showDm && (
 
-            <div className="w-full flex items-center justify-center flex-col align-middle gap-2 pt-2 max-h-[450px] overflow-auto scrollbar-hide">
+            <div className="w-full flex items-center justify-center flex-col align-middle gap-2 pt-2">
               {users?.length ? (
                 users?.filter((u: any) => {
                   return u.id !== user?.id && !checkBlock(u.id);

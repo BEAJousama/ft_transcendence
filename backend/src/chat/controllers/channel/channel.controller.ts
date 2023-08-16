@@ -11,15 +11,6 @@ import { Channel } from '@prisma/client';
 import { Request } from 'express';
 import { ChannelService } from 'src/chat/services/channel/channel.service';
 
-/* 
-        Here we have controllers to do the following through HTTP requests :
-                channel  = Group & Dm;
-        1 - get channels based on the userId stored in req.user.id (including dm channels)
-        2 - get The members of a channel based on the channelId
-        3 - get group channels only based on userId
-        4 - get friends list to add to group
-        5 - get only searched channels
-    */
 @Controller('channels')
 export class ChannelController {
   constructor(private channelService: ChannelService) {}
@@ -99,29 +90,4 @@ export class ChannelController {
       throw new HttpException(error.message, HttpStatus.NOT_FOUND);
     }
   }
-
-  // @Get('channels')
-  // async getchannels(@Req() req: Request): Promise<Channel[]> {
-  //   try {
-  //     const channels = await this.channelService.getChannelsByUserId(parseInt(req?.user?.id));
-  //     if (!channels) {
-  //       return [];
-  //     }
-  //     return channels;
-  //   } catch (error) {
-  //     throw new HttpException('No channels found', HttpStatus.NOT_FOUND);
-  //   }
-  // }
-
-  //delete a channel
-
-  //delete a message
-
-  //update a channel
-
-  //add user to channel
-
-  //block user from channel
-
-  //set as admin
 }

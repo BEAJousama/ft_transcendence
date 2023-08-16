@@ -1178,12 +1178,16 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       )
         return;
       sockets = this.getConnectedUsers(member.userId);
+      const content =
+        message.content.length > 40
+          ? message.content.substring(1, 40) + '...'
+          : message.content;
       sockets.forEach((socket) => {
         this.server.to(socket.id).emit('message', message);
         const data = {
           id: 1,
           title: 'New message: ' + name,
-          content: `${message.sender.username}:  ${message.content}`,
+          content: `${message.sender.username}:  ${content}`,
           createdAt: message.date,
           updatedAt: message.date,
           seen: false,
