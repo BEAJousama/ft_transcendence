@@ -6,7 +6,6 @@ import { useContext, useEffect, useMemo, useState } from "react";
 import { AppContext, fetcher } from "../../../context/app.context";
 import IAchievement from "../../../interfaces/achievement";
 import useSwr from "swr";
-// import Layout from "../../layout/index";
 import IUser from "@/interfaces/user";
 import { useParams } from "next/navigation";
 import dynamic from "next/dynamic";
@@ -101,26 +100,29 @@ export default function Profile() {
 	const prams = useParams();
 	const { id } = prams ? prams : { id: null };
 	const { user: currentUser } = useContext(AppContext);
-	const { data, mutate } = useSwr(`api/users/${id || currentUser?.id}`, fetcher);
+	const { data, isLoading: loading, mutate } = useSwr(`api/users/${id || currentUser?.id}`, fetcher);
 	const [user, setUser] = useState<IUser | undefined>(undefined);
 	const [isLoading, setIsLoading] = useState<boolean>(false);
 
 	useEffect(() => {
+		if (loading) return;
 		if (data) {
 			setUser(data);
 		}
-		setIsLoading(false);
 		const id = setInterval(async () => {
 			await mutate();
 		}, 500);
+		setTimeout(() => {
+			setIsLoading(false);
+		}, 500);
 		return () => clearInterval(id);
-	}, [data, data]);
+	}, [data]);
 
 	const achievements = useMemo(() => {
 		return user?.achievements || undefined;
 	}, [user?.achievements]);
 
-	if (!isLoading && !user) {
+	if (!isLoading && !user && !data) {
 		return <FourOFour />;
 	}
 	return (
