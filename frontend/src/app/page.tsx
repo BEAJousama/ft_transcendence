@@ -212,13 +212,7 @@ const LandingPage = () => {
 					>
 						<Image src="/img/githubCard.svg" width={120} height={40} alt={"Github"} />
 					</Link>
-					<Image
-						src="/img/tech.png"
-						width={250}
-						height={50}
-						alt={"Technologies"}
-						className="animate-fade"
-					/>
+					<Image src="/img/tech.png" width={250} height={50} alt={"Technologies"} />
 				</div>
 			</div>
 			<div className="grid md:grid-cols-3 w-full max-w-5xl place-items-center justify-center px-8 pb-16 pt-4 gap-8">

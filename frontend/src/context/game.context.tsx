@@ -125,8 +125,8 @@ export default function SocketProvider({ children }: { children: React.ReactNode
 				keyState[key] = true;
 
 				if (currentKey !== key) {
-					if (currentKey && debounceTimeout) {
-						clearTimeout(debounceTimeout);
+					if (currentKey) {
+						clearTimeout(debounceTimeout || undefined);
 						socket?.emit("keyReleased", { key: currentKey, userId: user?.id });
 					}
 

@@ -38,8 +38,16 @@ const Inputs: {
 ];
 
 const isValidEmail = (email: string) => {
-	return /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(email);
+	return /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/i.test(email);
 };
+
+function isValidFullName(name: string) {
+	return /^[a-zA-Z\s]{3,50}$/.test(name);
+}
+
+function isValidUserName(name: string) {
+	return /^[a-zA-Z0-9_-]{3,20}$/.test(name);
+}
 
 const commonWordsRegex = /^(?!.*(password|123456|qwerty|azerty|etc))$/i;
 const meetsComplexityRequirements = (password: string) => {
@@ -76,11 +84,13 @@ export default function Register({ registrOk }: { registrOk: () => void }) {
 				confirmPassword: "",
 			};
 			if (!values.fullname) errors.fullname = "Please enter your full name";
-			else if (values.fullname.length < 3 || values.fullname.length > 20)
-				errors.fullname = "Full name must be between 3 and 20 characters";
+			else if (!isValidFullName(values.fullname))
+				errors.fullname =
+					"Full Name must be between 3 and 50 characters and can contain only letters and spaces";
 			if (!values.username) errors.username = "Please enter your username";
-			else if (values.username.length < 3 || values.username.length > 20)
-				errors.username = "Username must be between 3 and 20 characters";
+			else if (!isValidUserName(values.username))
+				errors.username =
+					"Username must be between 3 and 20 characters and can contain only letters, numbers, hyphens and underscores";
 			if (!values.email) errors.email = "Please enter your email";
 			else if (!isValidEmail(values.email)) errors.email = "Please enter a valid email";
 			if (!values.password) errors.password = "Please enter a password";
@@ -122,11 +132,18 @@ export default function Register({ registrOk }: { registrOk: () => void }) {
 			setSuccess(true);
 			if (res.data) setCookieItem(res.data.name, res.data.value);
 			updateAccessToken();
-			updateUser();
+			setCookieItem("complete_info", "complete_your_info");
+			await updateUser();
 			registrOk();
 		} catch (e: any) {
-			if (e.response?.data.message.includes("login", "username"))
+			if (
+				e.response?.data.message.includes("login") ||
+				e.response?.data.message.includes("username")
+			)
 				setError("Username already exists");
+			else if (e.response?.data.message.includes("Username"))
+				setError(e.response?.data.message);
+			else if (e.response?.data.message.includes("Full")) setError(e.response?.data.message);
 			else if (e.response?.data.message.includes("email")) setError("Email already exists");
 			else setError("Something went wrong...");
 			setLoading(false);

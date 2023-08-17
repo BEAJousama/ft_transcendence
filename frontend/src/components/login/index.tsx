@@ -155,8 +155,13 @@ const Login = ({
 				else {
 					updateAccessToken();
 					updateUser().then((res) => {
-						if (res && res.createdAt === res.updatedAt) setState("complete");
-						else loginOk();
+						if (
+							res &&
+							Math.abs(res.createdAt.getTime() - res.updatedAt.getTime()) <= 1500
+						) {
+							setCookieItem("complete_info", "complete_your_info");
+							setState("complete");
+						} else loginOk();
 					});
 				}
 			} else {

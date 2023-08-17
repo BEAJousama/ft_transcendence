@@ -43,7 +43,7 @@ export function IsFullname(validationOptions?: ValidationOptions) {
       validator: {
         validate(value: any, args: ValidationArguments) {
           // Modify this regex according to your specific requirements for a full name
-          const fullnameRegex = /^[a-zA-Z\s-']+$/;
+          const fullnameRegex = /^[a-zA-Z\s]+$/;
           const isValidLength = value?.length >= 3 && value?.length <= 50;
           const isValidFormat = fullnameRegex.test(value);
           return isValidLength && isValidFormat;
