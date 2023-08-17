@@ -175,7 +175,7 @@ const ChatBanner = ({ channel }: { channel?: Ichannel }) => {
 				<Modal
 					setShowModal={setshowModal}
 					className2="absolute top-0 left-0 w-full h-full bg-black bg-opacity-50"
-					className="z-10 bg-secondary-800 border-none flex flex-col !items-center !justify-center shadow-lg shadow-secondary-500 gap-4 text-white min-w-[90%] lg:min-w-[40%] xl:min-w-[50%] animate-jump-in animate-ease-out animate-duration-400 max-w-[100%] w-full"
+					className="z-10 bg-secondary-800 border-none flex flex-col !items-center !justify-center shadow-lg shadow-secondary-500 gap-4 text-white min-w-[90%] lg:min-w-[40%] xl:min-w-[50%] animate-jump-in animate-ease-out animate-duration-400 max-w-[100%]"
 				>
 					<span className="text-md md:text-lg font-semibold pb-4">
 						This channel is protected

@@ -5,7 +5,7 @@ import Button from "../button";
 import Avatar from "../avatar";
 import React from "react";
 import { toast } from "react-toastify";
-import IUser from "../../interfaces/user";
+import IUser from "@/interfaces/user";
 
 const Toast = ({ title, content, sender }: { title: string; content: string; sender: IUser }) => {
 	const toastId = React.useRef<HTMLDivElement>(null);
@@ -15,14 +15,7 @@ const Toast = ({ title, content, sender }: { title: string; content: string; sen
 		audio.muted = false;
 		var playedPromise = audio.play();
 		if (playedPromise) {
-			playedPromise
-				.catch((e) => {
-					// console.log(e)
-					// if (e.name === 'NotAllowedError' || e.name === 'NotSupportedError') {
-					//     console.log(e.name);
-					// }
-				})
-				.then(() => {});
+			playedPromise.catch((e) => {}).then(() => {});
 		}
 	};
 	toastShow();

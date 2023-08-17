@@ -118,11 +118,17 @@ export default function SocketProvider({ children }: { children: React.ReactNode
 
 		let debounceTimeout: ReturnType<typeof setTimeout> | null = null;
 
+		// Keep track of the queue of key events
+		let keyEventQueue: Array<{ key: string; eventType: "pressed" | "released" }> = [];
+
 		const handleKeyDown = (event: KeyboardEvent) => {
 			if (!isInGame.current) return;
 			const { key } = event;
 			if (Object.values(Keys).includes(key as Keys) && !keyState[key]) {
 				keyState[key] = true;
+
+				// Add key event to the queue
+				keyEventQueue.push({ key, eventType: "pressed" });
 
 				if (currentKey !== key) {
 					if (currentKey && debounceTimeout) {
@@ -142,16 +148,25 @@ export default function SocketProvider({ children }: { children: React.ReactNode
 			if (Object.values(Keys).includes(key as Keys)) {
 				keyState[key] = false;
 
+				// Add key event to the queue
+				keyEventQueue.push({ key, eventType: "released" });
+
 				if (debounceTimeout) {
 					clearTimeout(debounceTimeout);
 				}
 
 				debounceTimeout = setTimeout(() => {
 					debounceTimeout = null;
-					if (key === currentKey) {
-						socket?.emit("keyReleased", { key, userId: user?.id });
-						currentKey = null;
-					}
+
+					// Process the key events in the queue
+					keyEventQueue.forEach((keyEvent) => {
+						if (keyEvent.eventType === "released" && keyEvent.key === currentKey) {
+							socket?.emit("keyReleased", { key: currentKey, userId: user?.id });
+							currentKey = null;
+						}
+					});
+
+					keyEventQueue = []; // Clear the queue
 				}, 100); // Adjust the debounce time as needed
 			}
 		};

@@ -345,7 +345,7 @@ const MessageBubble: React.FC<ChannelProps> = ({
 				<div className="relative grid grid-cols-10 lg:grid-cols-12">
 					<Button
 						type="simple"
-						className="!items-end bg-secondary-400 !text-white col-span-1 lg:hidden self-center !w-fit m-auto\"
+						className="!items-end bg-secondary-400 !text-white col-span-1 lg:hidden self-center !w-fit m-auto rounded-full"
 						onClick={() => {
 							setOpen(false);
 							inputRef.current?.blur();
@@ -392,7 +392,7 @@ const MessageBubble: React.FC<ChannelProps> = ({
 						</div>
 					</div>
 					<Button
-						className="col-span-1 flex items-center justify-content bg-secondary-400 !p-1 !text-white font-semi-bold self-center !w-fit !m-auto"
+						className="col-span-1 flex items-center justify-content bg-secondary-400 !p-1 !text-white font-semi-bold self-center !w-fit !m-auto rounded-full"
 						type="simple"
 						onClick={() => {
 							if (
