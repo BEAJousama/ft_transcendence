@@ -1,12 +1,14 @@
 "use client";
 import React, { useContext, useEffect, useState } from "react";
+
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import Image from "next/image";
-import { AppContext, deleteCookieItem } from "@/context/app.context";
+import { AppContext, deleteCookieItem, getCookieItem } from "@/context/app.context";
 import CountUp from "react-countup";
 import axios from "axios";
-import { useRouter } from "next/navigation";
+import { redirect } from "next/navigation";
+import { toast } from "react-toastify";
 
 import { Carousel, Login, Register } from "@/components";
 import LandingPageSelector from "@/components/landing-page-selector";
@@ -30,7 +32,7 @@ const Contributors = [
 	},
 	{
 		name: "Oussama Beaj",
-		role: "Developer",
+		role: "Full Stack Developer",
 		image: "/img/obeaj.jpg",
 		linkedin: "ousama-b-a8a84a247",
 		github: "BEAJousama",
@@ -38,7 +40,7 @@ const Contributors = [
 	},
 	{
 		name: "Soufiane El Marsi",
-		role: "Developer",
+		role: "Front End Developer",
 		image: "/img/sel-mars.jpg",
 		linkedin: "soufiane-el-marsi",
 		github: "soofiane262",
@@ -47,7 +49,6 @@ const Contributors = [
 ];
 
 const LandingPage = () => {
-	const router = useRouter();
 	const [slide, setSlide] = useState(0);
 	const { user, authenticated } = useContext(AppContext);
 	const [selectable, setSelectable] = useState(true);
@@ -55,11 +56,47 @@ const LandingPage = () => {
 	const [numGames, setNumGames] = useState(0);
 	const [state, setState] = useState<"login" | "register" | "2fa" | "complete">("login");
 	const [ok, setOk] = useState(false);
+	const [disabled, setDisabled] = useState(false);
+
+	const [_redirect, setRedirect] = useState(false);
+
+	if (_redirect) {
+		redirect("/home");
+	}
 
 	useEffect(() => {
-		if (authenticated && user && user.createdAt !== user.updatedAt) router.push("/home");
+		if (navigator.cookieEnabled === false) {
+			toast.error(
+				<Link
+					href="https://support.google.com/accounts/answer/61416"
+					target="_blank"
+					rel="noopener noreferrer"
+				>
+					<div className="text-sm w-full h-full">
+						<p className="text-lg font-semibold animate-pulse">
+							Cookies are disabled !
+						</p>
+						Please enable cookies and refresh the page to use this website.
+					</div>
+				</Link>,
+				{
+					autoClose: false,
+					closeOnClick: false,
+				}
+			);
+			setSelectable(false);
+			setDisabled(true);
+			return;
+		}
+		if (authenticated && user && getCookieItem("complete_info")) {
+			setDisabled(true);
+			setState("complete");
+		} else if (authenticated && user) {
+			setDisabled(true);
+			setRedirect(true);
+		}
 		const fetchStats = async () => {
-			const res = await axios.get(`${process.env.NEXT_PUBLIC_BACK_END_URL}api/users/stats`);
+			const res = await axios.get(`${process.env.BACK_END_URL}api/users/stats`);
 			setNumUsers(res.data.users);
 			setNumGames(res.data.games);
 		};
@@ -70,7 +107,7 @@ const LandingPage = () => {
 		if (ok) {
 			if (state === "2fa") deleteCookieItem("2fa_access_token");
 			setTimeout(() => {
-				router.push("/home");
+				setRedirect(true);
 			}, 1000);
 		}
 	}, [ok]);
@@ -124,6 +161,7 @@ const LandingPage = () => {
 								setSelectable={setSelectable}
 								setState={setState}
 								loginOk={() => setOk(true)}
+								disabled={disabled}
 							/>
 							<Register registrOk={() => setState("complete")} />
 							{state === "2fa" && <Tfa tfaOk={() => setOk(true)} />}
@@ -172,21 +210,9 @@ const LandingPage = () => {
 						target="_blank"
 						rel="noopener noreferrer"
 					>
-						<Image
-							src="/img/githubCard.svg"
-							width={120}
-							height={40}
-							alt={"Github"}
-							className="animate-flip-down animate-delay-[2000ms]"
-						/>
+						<Image src="/img/githubCard.svg" width={120} height={40} alt={"Github"} />
 					</Link>
-					<Image
-						src="/img/techs.png"
-						width={260}
-						height={50}
-						alt={"Technologies"}
-						className="animate-fade"
-					/>
+					<Image src="/img/tech.png" width={250} height={50} alt={"Technologies"} />
 				</div>
 			</div>
 			<div className="grid md:grid-cols-3 w-full max-w-5xl place-items-center justify-center px-8 pb-16 pt-4 gap-8">

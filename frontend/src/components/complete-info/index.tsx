@@ -1,15 +1,17 @@
 "use client";
 
 import { useContext, useState, useRef } from "react";
+
 import axios from "axios";
 import { useFormik } from "formik";
 import { twMerge } from "tailwind-merge";
 import { Pencil } from "lucide-react";
-import { AppContext } from "@/context/app.context";
+import { AppContext, deleteCookieItem } from "@/context/app.context";
 import { Avatar, Button, Input } from "@/components";
 
 export default function CompleteInfo({ completeOk }: { completeOk: () => void }) {
 	const { user, updateUser } = useContext(AppContext);
+
 	const [loading, setLoading] = useState(false);
 	const [success, setSuccess] = useState(false);
 	const [error, setError] = useState("");
@@ -32,7 +34,7 @@ export default function CompleteInfo({ completeOk }: { completeOk: () => void })
 				errors.username = "Invalid username";
 			if (!values.email || !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(values.email))
 				errors.email = "Invalid email address";
-			if (!values.phone || !/^[0-9]{10}$/i.test(values.phone))
+			if (values.phone && !/^[0-9]{10}$/i.test(values.phone))
 				errors.phone = "Invalid phone number";
 			return errors;
 		},
@@ -48,7 +50,7 @@ export default function CompleteInfo({ completeOk }: { completeOk: () => void })
 		setLoading(true);
 		try {
 			await axios.post(
-				`${process.env.NEXT_PUBLIC_BACK_END_URL}api/users/`,
+				`${process.env.BACK_END_URL}api/users/`,
 				{
 					user: {
 						username: formik.values.username,
@@ -63,6 +65,7 @@ export default function CompleteInfo({ completeOk }: { completeOk: () => void })
 			setError("");
 			setSuccess(true);
 			await updateUser();
+			deleteCookieItem("complete_info");
 			completeOk();
 		} catch (e: any) {
 			if (e.response.data.message.includes("username")) setError("Username already exists");
@@ -167,7 +170,9 @@ export default function CompleteInfo({ completeOk }: { completeOk: () => void })
 						disabled={
 							loading ||
 							success ||
-							Object.values(formik.values).some((value) => value === "") ||
+							Object.entries(formik.values).some(([key, value]) => {
+								return key !== "phone" && value === "";
+							}) ||
 							Object.values(formik.errors).some((value) => value !== "")
 						}
 					>

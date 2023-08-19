@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState, useContext } from "react";
+
 import axios from "axios";
 import { Button, Input } from "@/components";
 import { twMerge } from "tailwind-merge";
@@ -7,6 +8,7 @@ import { AppContext } from "@/context/app.context";
 
 const TwoFactorAuth = ({ tfaOk }: { tfaOk: () => void }) => {
 	const { updateUser, updateAccessToken } = useContext(AppContext);
+
 	const [code, setCode] = useState<string>("");
 	const [error, setError] = useState("");
 	const [loading, setLoading] = useState(false);
@@ -66,7 +68,7 @@ const TwoFactorAuth = ({ tfaOk }: { tfaOk: () => void }) => {
 		try {
 			setLoading(true);
 			await axios.post(
-				`${process.env.NEXT_PUBLIC_BACK_END_URL}api/auth/2fa/verify`,
+				`${process.env.BACK_END_URL}api/auth/2fa/verify`,
 				{ code },
 				{
 					withCredentials: true,
@@ -77,9 +79,9 @@ const TwoFactorAuth = ({ tfaOk }: { tfaOk: () => void }) => {
 			updateAccessToken();
 			await updateUser();
 			tfaOk();
-		} catch (_e) {
-			console.log(_e);
-			if (!!error) setError("Invalid Code");
+		} catch (_e: any) {
+			if (_e.response?.data.message) setError(_e.response.data.message);
+			else setError("Something went wrong...");
 			setInputsError(true);
 			setLoading(false);
 			setTimeout(() => {
@@ -91,7 +93,7 @@ const TwoFactorAuth = ({ tfaOk }: { tfaOk: () => void }) => {
 
 	return (
 		<div className="grid place-items-center justify-center w-full h-full">
-			<div className="flex flex-col items-center justify-center w-full max-w-sm md:max-w-md lg:max-w-lg gap-4 px-16 py-12 text-white">
+			<div className="flex flex-col items-center justify-center w-full max-w-sm md:max-w-md lg:max-w-lg gap-4 px-4 sm:px-6 md:px-16 py-12 text-white">
 				<div className="flex flex-col items-center gap-2 text-center">
 					<h1 className="text-2xl">Two-Factor Authentication</h1>
 					<p className=" text-tertiary-200">
@@ -125,6 +127,9 @@ const TwoFactorAuth = ({ tfaOk }: { tfaOk: () => void }) => {
 						/>
 					))}
 				</div>
+				{error && (
+					<p className="text-xs text-red-600 dark:text-red-500 font-medium">{error}</p>
+				)}
 				<Button
 					className={twMerge(
 						"w-full justify-center",

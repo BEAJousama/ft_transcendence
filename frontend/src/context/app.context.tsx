@@ -4,9 +4,6 @@ import axios from "axios";
 import React from "react";
 import IUser from "@/interfaces/user";
 import { redirect, usePathname } from "next/navigation";
-import useSwr from "swr";
-import { useLocation } from "react-use";
-import { toast } from "react-toastify";
 
 export interface IAppContext {
 	user: IUser | undefined;
@@ -55,15 +52,15 @@ export const AppContext = React.createContext<IAppContext>({
 	user: undefined,
 	loading: true,
 	authenticated: false,
-	setAuthenticated: () => { },
-	updateUser: async (): Promise<undefined> => { },
-	updateAccessToken: () => { },
-	checkConnection: () => { },
+	setAuthenticated: () => {},
+	updateUser: async (): Promise<undefined> => {},
+	updateAccessToken: () => {},
+	checkConnection: () => {},
 });
 
 export const fetcher = async (url: string) => {
 	try {
-		const response = await axios.get(`${process.env.NEXT_PUBLIC_BACK_END_URL}${url}`, {
+		const response = await axios.get(`${process.env.BACK_END_URL}${url}`, {
 			withCredentials: true,
 		});
 		return response.data;
@@ -74,10 +71,12 @@ export const fetcher = async (url: string) => {
 
 const AppProvider = ({ children }: { children: React.ReactNode }) => {
 	const [user, setUser] = React.useState<IUser | undefined>(undefined);
-	const [accessToken, setAccessToken] = React.useState<string | undefined>(getCookieItem("access_token"));
+	const [accessToken, setAccessToken] = React.useState<string | undefined>(
+		getCookieItem("access_token")
+	);
 	const [isAuthenticated, setIsAuthenticated] = React.useState<boolean>(false);
 	const [isLoading, setIsLoading] = React.useState<boolean>(true);
-	const location = useLocation();
+	const location = usePathname();
 
 	const checkConnection = () => {
 		const _accessToken = getCookieItem("access_token");
@@ -117,9 +116,9 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
 	}, []);
 
 	React.useEffect(() => {
-		if (location.pathname === "/") return;
+		if (location === "/") return;
 		checkConnection();
-	}, [location.pathname]);
+	}, [location]);
 
 	if (isLoading) {
 		return (
@@ -128,10 +127,10 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
 					user: undefined,
 					loading: true,
 					authenticated: false,
-					setAuthenticated: () => { },
-					updateUser: async (): Promise<undefined> => { },
-					updateAccessToken: () => { },
-					checkConnection: () => { },
+					setAuthenticated: () => {},
+					updateUser: async (): Promise<undefined> => {},
+					updateAccessToken: () => {},
+					checkConnection: () => {},
 				}}
 			>
 				<body />
@@ -139,7 +138,7 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
 		);
 	}
 
-	if (!isAuthenticated && !isLoading && location.pathname !== "/") redirect("/");
+	if (!isAuthenticated && !isLoading && location !== "/") redirect("/");
 
 	const appContextValue: IAppContext = {
 		user,
@@ -150,8 +149,6 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
 		updateAccessToken,
 		checkConnection,
 	};
-
-
 
 	return <AppContext.Provider value={appContextValue}>{children}</AppContext.Provider>;
 };

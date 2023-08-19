@@ -1,12 +1,11 @@
 FROM node:18
 
-COPY ./package.json /package.json
-RUN npm install
-RUN apt-get update && apt-get install -y curl
-
+COPY . /app
 WORKDIR /app
+RUN apt-get update && apt-get install -y curl
+RUN npm install
 
 EXPOSE 3000
-EXPOSE 5555
 
-ENTRYPOINT ["bash", "-c", "/app/script.sh; npm run start:dev"]
+ENTRYPOINT ["bash", "-c", "./script.sh && npm run start"]
+

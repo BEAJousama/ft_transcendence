@@ -143,6 +143,8 @@ export class AuthService {
         expiresIn: '7d',
       });
       res.cookie('access_token', access_token);
+      if (Math.abs(user.createdAt.getTime() - user.updatedAt.getTime()) <= 1500)
+        res.cookie('complete_info', 'complete_your_info');
       res.redirect(process.env.FRONTEND_URL);
       res.end();
       return;

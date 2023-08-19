@@ -682,7 +682,17 @@ export class ChannelService {
           },
         },
       });
-      if (chMem.role !== Role.OWNER && chMem.role !== Role.ADMIN) {
+      const tokick = await this.prisma.channelMember.findUnique({
+        where: {
+          userId_channelId: {
+            userId,
+            channelId,
+          },
+        },
+      });
+      if (tokick.role === Role.OWNER) {
+        throw new Error('You are not authorized to kick the owner');
+      } else if (chMem.role !== Role.OWNER && chMem.role !== Role.ADMIN) {
         throw new Error('You are not authorized to kick a user');
       } else {
         updated = await this.prisma.channelMember.update({
@@ -1266,7 +1276,17 @@ export class ChannelService {
         },
       },
     });
-    if (chMem.role !== Role.OWNER && chMem.role !== Role.ADMIN) {
+    const tomute = await this.prisma.channelMember.findUnique({
+      where: {
+        userId_channelId: {
+          userId,
+          channelId,
+        },
+      },
+    });
+    if (tomute.role === Role.OWNER) {
+      throw new Error('You are not authorized to mute the owner');
+    } else if (chMem.role !== Role.OWNER && chMem.role !== Role.ADMIN) {
       throw new Error('You are not authorized to mute a user');
     } else {
       updated = await this.prisma.channelMember.update({
@@ -1335,7 +1355,17 @@ export class ChannelService {
           },
         },
       });
-      if (chMem.role !== Role.OWNER && chMem.role !== Role.ADMIN) {
+      const toban = await this.prisma.channelMember.findUnique({
+        where: {
+          userId_channelId: {
+            userId,
+            channelId,
+          },
+        },
+      });
+      if (toban.role === Role.OWNER) {
+        throw new Error('You are not authorized to ban the owner');
+      } else if (chMem.role !== Role.OWNER && chMem.role !== Role.ADMIN) {
         throw new Error('You are not authorized to ban a user');
       } else {
         updated = await this.prisma.channelMember.update({

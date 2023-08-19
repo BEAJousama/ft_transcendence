@@ -1,7 +1,7 @@
 "use client";
 
-import { Divider, Container, Spinner, FourOFour, Carousel, GameBanner } from "@/components";
-import { Link, UserCircle } from "lucide-react";
+import { Divider, Container, Spinner, FourOFour, Carousel, GameBanner, Card } from "@/components";
+import { UserCircle } from "lucide-react";
 import { useContext, useEffect, useMemo, useState } from "react";
 import { AppContext, fetcher } from "@/context/app.context";
 import IAchievement from "@/interfaces/achievement";
@@ -11,6 +11,7 @@ import { useParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import { twMerge } from "tailwind-merge";
 import useSWR from "swr";
+import Link from "next/link";
 
 const Layout = dynamic(() => import("../../layout/index"), {
 	ssr: false,
@@ -20,26 +21,16 @@ const ProfileInfo = dynamic(() => import("@/components/profile-info"), {
 	ssr: false,
 });
 
-const LadderProgressBar = dynamic(
-	() => import("@/components/ladder-progres-bar"),
-	{
-		ssr: false,
-	}
-);
+const LadderProgressBar = dynamic(() => import("@/components/ladder-progres-bar"), {
+	ssr: false,
+});
 
 const Achievement = dynamic(() => import("@/components/achievement"), {
 	ssr: false,
 });
 
-const Achievements = ({
-	userAchievements,
-}: {
-	userAchievements: IAchievement[];
-}) => {
-	const { data: achievements, isLoading } = useSwr(
-		"api/users/achievements",
-		fetcher
-	);
+const Achievements = ({ userAchievements }: { userAchievements: IAchievement[] }) => {
+	const { data: achievements, isLoading } = useSwr("api/users/achievements", fetcher);
 
 	const isDisabled = (name: string) => {
 		const achievements = userAchievements;
@@ -49,19 +40,16 @@ const Achievements = ({
 
 	return (
 		<>
-			<span className="w-full max-w-[1024px] text-xl font-bold text-white">
+			<span className="w-full max-w-5xl text-xl font-bold text-white">
 				Achievements
 				{achievements && achievements?.length && (
 					<>
-						<span className="text-primary-500">
-							{" "}
-							{userAchievements?.length || 0}
-						</span>
-						/{` ${achievements?.length}`}
+						<span className="text-primary-500"> {userAchievements?.length || 0}</span>/
+						{` ${achievements?.length}`}
 					</>
 				)}
 			</span>
-			<div className="flex w-full max-w-[1024px] items-center justify-center">
+			<div className="py-4">
 				{isLoading ? (
 					<Spinner />
 				) : achievements && achievements.length ? (
@@ -98,32 +86,53 @@ const Achievements = ({
 	);
 };
 
-const MatchHistory = () => {
-	const { user } = useContext(AppContext);
-
-	const { data: matches, isLoading } = useSWR(`api/pong/match-history/${user?.id}`, fetcher, {
+const MatchHistory = ({ id }: { id?: number }) => {
+	const { data: matches, isLoading } = useSWR(`api/pong/match-history/${id}`, fetcher, {
 		errorRetryCount: 0,
 	});
-	return (<Container title="MATCH HISTORY" icon="/img/history.svg">
-		{!isLoading ? (
-			matches &&
-			matches.map((match: any) => {
-				return <Link href={``} key={match?.id}>
-					<GameBanner player1={match.player1} player2={match.player2} player1Score={match.player1Score}
-						player2Score={match.player2Score} />
-				</Link>
-			})
-		) : (
-			<Spinner />
-		)}
-	</Container>)
-}
+	return (
+		<>
+			<span className="w-full max-w-5xl text-xl font-bold text-white">Match History</span>
+			<div
+				className={`flex flex-col justify-start w-full h-96 p-4
+        gap-3 overflow-y-auto scrollbar-hide border-tertiary-500 border-2 rounded-md`}
+			>
+				{!isLoading ? (
+					matches && matches.length ? (
+						matches.map((match: any) => {
+							return (
+								<Link className="w-full px-4" href={``} key={match?.id}>
+									<GameBanner
+										player1={match.player1}
+										player2={match.player2}
+										player1Score={match.player1Score}
+										player2Score={match.player2Score}
+									/>
+								</Link>
+							);
+						})
+					) : (
+						<div className="flex h-full w-full items-center justify-center text-xl text-tertiary-200">
+							<p>No matches found</p>
+						</div>
+					)
+				) : (
+					<Spinner />
+				)}
+			</div>
+		</>
+	);
+};
 
 export default function Profile() {
 	const prams = useParams();
 	const { id } = prams ? prams : { id: null };
 	const { user: currentUser } = useContext(AppContext);
-	const { data, isLoading: loading, mutate } = useSwr(`api/users/${id || currentUser?.id}`, fetcher);
+	const {
+		data,
+		isLoading: loading,
+		mutate,
+	} = useSwr(`api/users/${id || currentUser?.id}`, fetcher);
 	const [user, setUser] = useState<IUser | undefined>(undefined);
 	const [isLoading, setIsLoading] = useState<boolean>(false);
 	const [state, setState] = useState<"achievements" | "match-history">("achievements");
@@ -132,71 +141,41 @@ export default function Profile() {
 		if (loading) return;
 		if (data) {
 			setUser(data);
+		} else {
+			setUser(undefined);
 		}
 		const id = setInterval(async () => {
 			await mutate();
-		}, 500);
-		setTimeout(() => {
-			setIsLoading(false);
-		}, 500);
+		}, 1000);
+		setIsLoading(false);
 		return () => clearInterval(id);
-	}, [data]);
+	}, [data, loading]);
 
 	const achievements = useMemo(() => {
 		return user?.achievements || undefined;
 	}, [user?.achievements]);
 
-	if (!isLoading && !user && !data) {
-		return <FourOFour />;
-	}
+	if (!data && !isLoading && !user) return <FourOFour />;
+
 	return (
-		<Layout className="flex flex-col items-center gap-4 md:gap-8">
+		<Layout className="flex flex-col items-center gap-4 md:gap-8 py-8 md:py-16">
 			{isLoading ? (
 				<Spinner />
 			) : (
 				<>
-					<div className="flex w-full max-w-[1024px] items-center gap-2 p-2 text-lg font-bold text-white md:gap-4  md:text-2xl">
+					<div className="flex w-full max-w-5xl items-center gap-2 p-2 text-lg font-bold text-white md:gap-4  md:text-2xl">
 						<UserCircle size={40} />
 						Profile
 					</div>
-					{!!user && (
-						<ProfileInfo user={user} currentUserId={currentUser?.id || 0} />
-					)}
+					{!!user && <ProfileInfo user={user} currentUserId={currentUser?.id || 0} />}
 					<LadderProgressBar rating={user?.rating || 0} />
 					<Divider />
-					<div className=" h-fit w-fit">
-						<button
-							className={twMerge(
-								"h-6 w-fit transition-all duration-500 ease-out text-secondary-200 px-2",
-								state === "achievements"
-									? "underline font-semibold text-primary-500" : "hover:bg-white hover:bg-opacity-10"
-							)}
-							disabled={state === "achievements"}
-							onClick={() => setState("achievements")}
-						>
-							Achievements
-						</button>
-						<button
-							className={twMerge(
-								"h-6 w-fit transition-all duration-500 ease-out text-secondary-200 px-2",
-								state === "match-history"
-									? "underline font-semibold text-primary-500" : "hover:bg-white hover:bg-opacity-10"
-							)}
-							disabled={state === "match-history"}
-							onClick={() => setState("match-history")}
-						>
-							Match History
-						</button>
+					<div className="w-full flex flex-col gap-4 max-w-5xl">
+						<MatchHistory id={user?.id} />
 					</div>
-					<Carousel
-						swipeable={false}
-						chevrons={false}
-						slide={state === "achievements" ? 0 : 1}
-						className={`w-full h-full overflow-visible justify-start`}
-					>
+					<div className="w-full flex flex-col gap-4 max-h-96 scrollbar-hide max-w-5xl">
 						<Achievements userAchievements={achievements || []} />
-						<MatchHistory />
-					</Carousel>
+					</div>
 				</>
 			)}
 		</Layout>
