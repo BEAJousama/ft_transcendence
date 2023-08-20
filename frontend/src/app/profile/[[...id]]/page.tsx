@@ -135,6 +135,7 @@ export default function Profile() {
 	} = useSwr(`api/users/${id || currentUser?.id}`, fetcher);
 	const [user, setUser] = useState<IUser | undefined>(undefined);
 	const [isLoading, setIsLoading] = useState<boolean>(false);
+	const [state, setState] = useState<"achievements" | "match-history">("achievements");
 
 	useEffect(() => {
 		if (loading) return;
