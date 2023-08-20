@@ -7,7 +7,7 @@ import Image from "next/image";
 import { AppContext, deleteCookieItem, getCookieItem } from "@/context/app.context";
 import CountUp from "react-countup";
 import axios from "axios";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 
 import { Carousel, Login, Register } from "@/components";
@@ -49,6 +49,7 @@ const Contributors = [
 ];
 
 const LandingPage = () => {
+	const router = useRouter();
 	const [slide, setSlide] = useState(0);
 	const { user, authenticated } = useContext(AppContext);
 	const [selectable, setSelectable] = useState(true);
@@ -57,12 +58,6 @@ const LandingPage = () => {
 	const [state, setState] = useState<"login" | "register" | "2fa" | "complete">("login");
 	const [ok, setOk] = useState(false);
 	const [disabled, setDisabled] = useState(false);
-
-	const [_redirect, setRedirect] = useState(false);
-
-	if (_redirect) {
-		redirect("/home");
-	}
 
 	useEffect(() => {
 		if (navigator.cookieEnabled === false) {
@@ -93,7 +88,7 @@ const LandingPage = () => {
 			setState("complete");
 		} else if (authenticated && user) {
 			setDisabled(true);
-			setRedirect(true);
+			router.push("/home");
 		}
 		const fetchStats = async () => {
 			const res = await axios.get(`${process.env.BACK_END_URL}api/users/stats`);
@@ -107,7 +102,7 @@ const LandingPage = () => {
 		if (ok) {
 			if (state === "2fa") deleteCookieItem("2fa_access_token");
 			setTimeout(() => {
-				setRedirect(true);
+				router.push("/home");
 			}, 1000);
 		}
 	}, [ok]);
