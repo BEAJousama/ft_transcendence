@@ -154,15 +154,9 @@ const Login = ({
 				if (res.data.name === "2fa_access_token") setState("2fa");
 				else {
 					updateAccessToken();
-					updateUser().then((res) => {
-						if (
-							res &&
-							Math.abs(res.createdAt.getTime() - res.updatedAt.getTime()) <= 1500
-						) {
-							setCookieItem("complete_info", "complete_your_info");
-							setState("complete");
-						} else loginOk();
-					});
+					await updateUser();
+					if (getCookieItem("complete_info")) setState("complete");
+					else loginOk();
 				}
 			} else {
 				handleError("Please fill in valid credentials");
