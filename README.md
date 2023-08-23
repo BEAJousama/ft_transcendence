@@ -1,12 +1,11 @@
 # ft_transcenfence
 
-Surprise
+
+This is an all-in-one single-page website that offers a range of features, centered around a classic pong game. Additionally, it incorporates advanced functionalities including JWT/2FA authentication, an interactive chat system, private messaging capabilities, a personalized friends list, user profiles, and a sophisticated matchmaking system.
 
 ## 🚀 Tech Used
 
-- Next js
-- Tailwind css
-- Nest js
+[![My Skills](https://skillicons.dev/icons?i=next,tailwind,nest,postgres,prisma)](https://skillicons.dev)
 
 # Getting started
 
@@ -37,10 +36,10 @@ $ npm i
 
 ## Create your branch
 
-Your branch name should be in the following format: feature/your-feature-name, hotfix/your-hotfix-name, bugfix/your-bugfix-name
+Your branch name should be in the following format: your-branch-name
 
 ```bash
-$ git checkout -b feature/your-feature-name
+$ git checkout -b your-branch-name
 ```
 
 ## Run the app
@@ -75,9 +74,9 @@ $ git commit -m "your commit message"
 $ git push origin your-branch-name
 ```
 
-## Create a merge request
+## Create a pull request
 
-Go to the [Github repo](https://github.com/Hicham-BelHoucin/ft_transcendence) and create a merge request to the `dev` branch
+Go to the [Github repo](https://github.com/Hicham-BelHoucin/ft_transcendence) and create a pull request to the `dev` branch
 
 ## Pull the latest changes
 
