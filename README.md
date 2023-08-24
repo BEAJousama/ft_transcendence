@@ -1,4 +1,4 @@
-# ft_transcenfence
+# ft_transcendence
 
 
 This is an all-in-one single-page website that offers a range of features, centered around a classic pong game. Additionally, it incorporates advanced functionalities including JWT/2FA authentication, an interactive chat system, private messaging capabilities, a personalized friends list, user profiles, and a sophisticated matchmaking system.
