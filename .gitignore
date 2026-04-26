@@ -17,6 +17,8 @@
 /db
 /.vscode
 # misc
+backend.env
+
 .DS_Store
 *.env
 .env.local

@@ -2,11 +2,54 @@
 @tailwind components;
 @layer base {
   html {
-    @apply scroll-smooth;
+    @apply scroll-smooth antialiased;
+  }
+
+  body {
+    @apply bg-secondary-900 text-secondary-50 font-sans;
+  }
+
+  ::selection {
+    background: rgba(52, 211, 153, 0.3);
+    color: #f8fafc;
+  }
+}
+
+@layer components {
+  .ui-surface {
+    @apply rounded-2xl border border-white/[0.06] bg-secondary-700 shadow-xl shadow-black/20;
+  }
+
+  .ui-surface-elevated {
+    @apply rounded-2xl border border-white/[0.06] bg-secondary-800 shadow-lg shadow-black/20;
+  }
+
+  .ui-title {
+    @apply text-secondary-50 font-semibold tracking-tight;
+  }
+
+  .ui-muted {
+    @apply text-secondary-300;
+  }
+
+  .ui-label {
+    @apply text-[11px] uppercase tracking-[0.18em] text-secondary-300 font-medium;
+  }
+
+  .ui-page-header {
+    @apply flex items-center gap-3 rounded-2xl border border-white/[0.06] bg-secondary-700/80 backdrop-blur-sm px-5 py-3.5 shadow-lg shadow-black/10;
+  }
+
+  .ui-page-header-icon {
+    @apply rounded-xl bg-primary-400/10 p-2.5 text-primary-400;
+  }
+
+  .ui-badge {
+    @apply inline-flex items-center gap-1 rounded-full border border-primary-400/40 bg-primary-400/10 px-3 py-1 text-xs font-medium text-primary-400;
+  }
+
+  .ui-stat-card {
+    @apply flex flex-col gap-0.5 rounded-xl border border-white/[0.06] bg-secondary-800/60 px-3.5 py-2.5;
   }
 }
 @tailwind utilities;
-
-/* .Toastify__toast {
-  width: 500px;
-} */

@@ -1,11 +1,5 @@
 "use client";
-import { MessageCircle } from "lucide-react";
-import { Home } from "lucide-react";
-import { Gamepad2 } from "lucide-react";
-import { User } from "lucide-react";
-import { Settings } from "lucide-react";
-import { LogOut } from "lucide-react";
-import { Search } from "lucide-react";
+import { MessageCircle, Home, Gamepad2, User, Settings, LogOut, Search } from "lucide-react";
 import Image from "next/image";
 import { twMerge } from "tailwind-merge";
 import { useContext } from "react";
@@ -15,42 +9,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const sidePanelItems = [
-	{
-		icon: <Home size={18} />,
-		text: "Home",
-		path: "/home",
-	},
-	{
-		icon: <MessageCircle size={18} />,
-		text: "Chat",
-		path: "/chat",
-	},
-	{
-		icon: <Search size={18} />,
-		text: "Search",
-		path: "/search",
-	},
-	{
-		icon: <Gamepad2 size={18} />,
-		text: "Pong Game",
-		path: "/pong",
-	},
-	{
-		icon: <User size={18} />,
-		text: "Profile",
-		path: "/profile",
-	},
-	{
-		icon: <Settings size={18} />,
-		text: "Settings",
-
-		path: "/settings",
-	},
+	{ icon: <Home size={18} />, text: "Home", path: "/home" },
+	{ icon: <MessageCircle size={18} />, text: "Chat", path: "/chat" },
+	{ icon: <Search size={18} />, text: "Search", path: "/search" },
+	{ icon: <Gamepad2 size={18} />, text: "Pong Game", path: "/pong" },
+	{ icon: <User size={18} />, text: "Profile", path: "/profile" },
+	{ icon: <Settings size={18} />, text: "Settings", path: "/settings" },
 ];
-
-const Items = ({ children, className }: { children: React.ReactNode; className?: string }) => {
-	return <ul className={`${className}`}>{children}</ul>;
-};
 
 const SidePanelItem = ({
 	children,
@@ -80,28 +45,26 @@ const SidePanelItem = ({
 				if (isInGame.current) {
 					e.preventDefault();
 					setShow(true);
-					socket?.emit("puase-game", {
-						userId: user?.id,
-					});
+					socket?.emit("puase-game", { userId: user?.id });
 				}
 			}}
 		>
 			<li
 				className={twMerge(
-					`flex w-full items-center justify-center pt-2`,
-					selected &&
-						"relative before:absolute before:-left-1.5 before:h-full  before:rounded-md before:border-2 before:border-primary-500 before:bg-primary-500 before:text-primary-500 before:content-['1']",
+					"group relative flex w-full items-center justify-center rounded-xl px-2 py-2.5 transition-all duration-200 ease-out",
+					selected
+						? "bg-primary-400/10 text-primary-400"
+						: "text-secondary-300 hover:bg-secondary-700/60 hover:text-secondary-100",
 					className
 				)}
 			>
+				{selected && (
+					<div className="absolute -left-1 top-1/2 h-5 w-1 -translate-y-1/2 rounded-full bg-primary-400" />
+				)}
 				<button
-					className={`flex items-center justify-start gap-4 rounded bg-secondary-900 py-2 font-bold hover:bg-secondary-900 md:w-8/12 ${
-						selected ? "text-primary-500" : "text-secondary-300"
-					}`}
-					onClick={(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-						if (!isInGame.current) {
-							onClick && onClick();
-						}
+					className="flex w-full items-center justify-center gap-3 md:justify-start md:px-2"
+					onClick={(e) => {
+						if (!isInGame.current) onClick && onClick();
 					}}
 				>
 					{children ? (
@@ -109,7 +72,7 @@ const SidePanelItem = ({
 					) : (
 						<>
 							{icon}
-							<span className="hidden truncate text-left font-semibold md:block">
+							<span className="hidden truncate text-left text-sm font-medium md:block">
 								{text}
 							</span>
 						</>
@@ -128,7 +91,7 @@ const Sidepanel = ({ className }: { className?: string }) => {
 	return (
 		<aside
 			className={twMerge(
-				"sticky flex h-screen w-full flex-col items-center justify-between overflow-auto bg-secondary-900 py-8 text-secondary-300 scrollbar-hide md:py-8 rounded-r-3xl",
+				"sticky top-0 flex h-screen w-full flex-col items-center justify-between overflow-hidden border-r border-white/[0.04] bg-secondary-900 py-6 text-secondary-300 scrollbar-hide md:py-8",
 				className
 			)}
 		>
@@ -139,48 +102,32 @@ const Sidepanel = ({ className }: { className?: string }) => {
 					if (isInGame.current) {
 						e.preventDefault();
 						setShow(true);
-						socket?.emit("puase-game", {
-							userId: user?.id,
-						});
+						socket?.emit("puase-game", { userId: user?.id });
 					}
 				}}
 			>
 				<div className="w-46 hidden items-center justify-center md:flex">
-					<Image
-						className="!w-64 px-6"
-						src="/img/logo.svg"
-						alt="logo"
-						width={256}
-						height={24}
-					/>
+					<Image className="!w-48 px-4" src="/img/Logo.svg" alt="logo" width={192} height={24} />
 				</div>
-				<Image
-					className="w-16 px-4 md:hidden"
-					src="/img/smalllogo.svg"
-					alt="logo"
-					width={64}
-					height={64}
-				/>
+				<Image className="w-12 px-2 md:hidden" src="/img/smalllogo.svg" alt="logo" width={48} height={48} />
 			</Link>
-			<Items className="flex w-full flex-col gap-2 text-lg md:gap-4 md:text-sm">
-				{sidePanelItems.map((item, index) => {
-					return (
-						<SidePanelItem
-							key={index}
-							to={item.path}
-							selected={
-								(path?.includes(item.path) && item.path !== "/") ||
-								(path === "/" && item.path === "/")
-							}
-							icon={item.icon}
-							text={item.text}
-						/>
-					);
-				})}
-			</Items>
-			<div className="flex w-full flex-col items-center justify-center gap-4">
+			<ul className="flex w-full flex-col gap-1 px-2 text-lg md:gap-1.5 md:px-3 md:text-sm">
+				{sidePanelItems.map((item, index) => (
+					<SidePanelItem
+						key={index}
+						to={item.path}
+						selected={
+							(path?.includes(item.path) && item.path !== "/") ||
+							(path === "/" && item.path === "/")
+						}
+						icon={item.icon}
+						text={item.text}
+					/>
+				))}
+			</ul>
+			<div className="flex w-full flex-col items-center justify-center gap-4 px-2 md:px-3">
 				<SidePanelItem
-					className="bg-secondary-900 text-secondary-300 hover:bg-secondary-900"
+					className="text-secondary-400 hover:text-red-400 hover:bg-red-500/10"
 					onClick={() => {
 						document.cookie = `${"2fa_access_token"}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
 						document.cookie = `${"access_token"}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
@@ -188,7 +135,7 @@ const Sidepanel = ({ className }: { className?: string }) => {
 					}}
 				>
 					<LogOut size={18} />
-					<span className="hidden text-left md:block">Log Out</span>
+					<span className="hidden text-left text-sm font-medium md:block">Log Out</span>
 				</SidePanelItem>
 			</div>
 		</aside>

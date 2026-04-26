@@ -1,6 +1,5 @@
 "use client"
 
-
 import { twMerge } from "tailwind-merge";
 import { Sidepanel } from "../../components";
 
@@ -12,9 +11,9 @@ const Layout = ({ children, className,
     onContextMenu?: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void;
 }) => {
     return (
-        <div className="grid h-screen w-screen grid-cols-10 2xl:grid-cols-12 bg-secondary-50" onContextMenu={onContextMenu}>
+        <div className="grid min-h-screen w-screen grid-cols-10 2xl:grid-cols-12 bg-secondary-900" onContextMenu={onContextMenu}>
             <Sidepanel className="col-span-2" />
-            <div className={twMerge("col-span-8 2xl:col-span-10 h-screen overflow-y-scroll px-4 py-16 scrollbar-hide", className)}>
+            <div className={twMerge("col-span-8 2xl:col-span-10 min-h-screen overflow-y-auto px-5 py-8 md:px-8 md:py-10 scrollbar-hide", className)}>
                 {children}
             </div>
         </div>

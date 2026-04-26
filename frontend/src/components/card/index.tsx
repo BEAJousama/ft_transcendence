@@ -19,7 +19,13 @@ const Card = ({
 		setShowModal && setShowModal(false);
 	});
 	return (
-		<div className={twMerge("max-w-sm rounded-lg border p-6 shadow", className)} ref={ref}>
+		<div
+			className={twMerge(
+				"max-w-sm rounded-2xl border border-white/[0.06] bg-secondary-700 p-6 shadow-xl shadow-black/20",
+				className
+			)}
+			ref={ref}
+		>
 			{children}
 		</div>
 	);

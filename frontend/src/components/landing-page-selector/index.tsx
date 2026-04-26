@@ -13,20 +13,20 @@ export default function LandingPageSelector({
 	setState,
 }: LandingPageSelectorProps) {
 	return (
-		<div className="overflow-hidden group relative h-fit w-fit rounded-xl shadow-lg shadow-secondary-700 transition-all duration-200 ease-out bg-secondary-500">
+		<div className="group relative h-fit w-fit overflow-hidden rounded-xl border border-white/[0.08] bg-secondary-700 shadow-lg shadow-black/20 transition-all duration-200 ease-out">
 			<div
 				className={twMerge(
-					"absolute h-10 bg-primary-600 transition-all duration-500 ease-out",
+					"absolute h-10 bg-primary-400 transition-all duration-500 ease-out",
 					state === "register" || state === "complete" ? "left-24 w-28" : "left-0 w-24"
 				)}
 			/>
 			<button
 				className={twMerge(
-					"relative overflow-hidden h-10 w-24 transition-all duration-500 ease-out text-secondary-100",
+					"relative h-10 w-24 overflow-hidden transition-all duration-500 ease-out text-secondary-100 text-sm font-medium",
 					state === "login" || state === "2fa"
-						? "font-semibold text-secondary-700"
+						? "font-semibold text-secondary-900"
 						: selectable
-						? "hover:bg-white hover:bg-opacity-10"
+						? "hover:bg-secondary-600"
 						: "opacity-50"
 				)}
 				disabled={state === "login" || !selectable}
@@ -36,11 +36,11 @@ export default function LandingPageSelector({
 			</button>
 			<button
 				className={twMerge(
-					"relative overflow-hidden h-10 w-28 transition-all duration-500 ease-out text-secondary-100",
+					"relative h-10 w-28 overflow-hidden transition-all duration-500 ease-out text-secondary-100 text-sm font-medium",
 					state === "register" || state === "complete"
-						? "font-semibold text-secondary-700"
+						? "font-semibold text-secondary-900"
 						: selectable
-						? "hover:bg-white hover:bg-opacity-10"
+						? "hover:bg-secondary-600"
 						: "opacity-50"
 				)}
 				disabled={state === "register" || !selectable}

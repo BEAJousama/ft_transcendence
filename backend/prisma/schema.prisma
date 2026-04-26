@@ -84,6 +84,9 @@ model Friend {
   receiver   User          @relation("ReceivedRequest", fields: [receiverId], references: [id])
   receiverId Int
   status     RequestStatus @default(PENDING)
+
+  @@index([senderId, receiverId])
+  @@index([receiverId, senderId])
 }
 
 model Achievement {
@@ -101,6 +104,7 @@ model Block {
   blockingId Int
 
   @@id([blockerId, blockingId])
+  @@index([blockingId])
 }
 
 enum Visiblity {
@@ -140,6 +144,8 @@ model Channel {
   messages         Message[]       @relation("receive")
   lastMessage      String?         @default("")
   newMessagesCount Int?            @default(0)
+
+  @@index([type, updatedAt])
 }
 
 enum Role {
@@ -167,6 +173,8 @@ model ChannelMember {
   newMessagesCount Int?         @default(0)
 
   @@id([userId, channelId])
+  @@index([channelId, status])
+  @@index([userId, status])
 }
 
 model Message {
@@ -177,6 +185,9 @@ model Message {
   sender     User     @relation("send", fields: [senderId], references: [id])
   senderId   Int
   date       DateTime @default(now())
+
+  @@index([receiverId, date])
+  @@index([senderId, date])
 }
 
 enum GameStatus {
@@ -213,4 +224,6 @@ model Notification {
   receiverId Int
   sender     User     @relation("sent", fields: [senderId], references: [id])
   receiver   User     @relation("received", fields: [receiverId], references: [id])
+
+  @@index([receiverId, seen, createdAt])
 }

@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import { toast } from "react-toastify";
-
 import { Settings } from "lucide-react";
 import { Spinner, UpdateAvatar, UpdateInfo, ActivateTfa } from "@/components";
 import { useContext, useState } from "react";
@@ -22,21 +21,23 @@ export default function SettingsPage() {
 	const [loading, setLoading] = useState<boolean>(false);
 
 	return (
-		<Layout className="flex w-full flex-col items-center justify-start px-2 pt-8">
+		<Layout className="flex w-full flex-col items-center justify-start px-4 pt-8">
 			<div className="w-full max-w-[1024px] md:flex md:flex-col md:items-center md:justify-center 2xl:w-[65%]">
 				{loading ? (
 					<Spinner />
 				) : (
 					<>
-						<div className="flex w-full items-center gap-2 p-2 text-lg text-white md:gap-4 md:text-2xl">
-							<Settings />
+						<div className="ui-page-header w-full text-lg text-secondary-50 md:text-xl tracking-tight font-semibold">
+							<div className="ui-page-header-icon">
+								<Settings size={22} />
+							</div>
 							Account Settings
 						</div>
 						<UpdateAvatar
 							previewImage={previewImage}
 							setPreviewImage={setPreviewImage}
 						/>
-						<div className="flex w-full flex-wrap items-start justify-center divide-y divide-secondary-300 md:mt-4 md:flex-nowrap md:divide-x md:divide-y-0">
+						<div className="mt-5 flex w-full flex-wrap items-start justify-center rounded-2xl border border-white/[0.06] bg-secondary-700 divide-y divide-white/[0.06] md:flex-nowrap md:divide-x md:divide-y-0">
 							{showmodal && (
 								<ConfirmationModal
 									title="Are you sure you want to delete your account"
@@ -56,9 +57,7 @@ export default function SettingsPage() {
 											await axios.delete(
 												`${process.env.BACK_END_URL}api/users`,
 												{
-													data: {
-														id: user?.id,
-													},
+													data: { id: user?.id },
 													withCredentials: true,
 												}
 											);
@@ -67,17 +66,15 @@ export default function SettingsPage() {
 											window.location.reload();
 										} catch (e) {
 											setShowmodal(false);
-											toast.error("Error: Could not delete Accout");
+											toast.error("Error: Could not delete Account");
 										}
 									}}
-									onReject={() => {
-										setShowmodal(false);
-									}}
+									onReject={() => setShowmodal(false)}
 									showReject
 								/>
 							)}
 							<ActivateTfa />
-							<div className="flex w-full flex-col items-center justify-center gap-4 p-4 ">
+							<div className="flex w-full flex-col items-center justify-center gap-4 p-5 md:p-6">
 								<UpdateInfo
 									user={user}
 									previewImage={previewImage}

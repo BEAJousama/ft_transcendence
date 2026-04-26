@@ -6,10 +6,11 @@ import Layout from "../layout/index";
 import IUser from "../../interfaces/user";
 import Link from "next/link";
 import * as React from "react";
+import { Search as SearchIcon } from "lucide-react";
 
 const options = [
-	{ value: "api/users", label: "users" },
-	{ value: `api/channels`, label: "channels" },
+	{ value: "api/users", label: "Users" },
+	{ value: `api/channels`, label: "Channels" },
 ];
 
 export default function Search() {
@@ -37,22 +38,27 @@ export default function Search() {
 				);
 			}
 		} else setFiltred(users);
-		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [value, users]);
 
 	return (
-		<Layout className="flex flex-col items-center gap-4 md:gap-8">
-			<div className="flex w-full max-w-[500px] flex-col items-center justify-center gap-4">
-				<div className="flex flex-col sm:flex-row w-full items-center gap-2">
+		<Layout className="flex flex-col items-center gap-6 md:gap-8">
+			<div className="w-full max-w-[760px] rounded-2xl border border-white/[0.06] bg-secondary-700 p-5 shadow-xl shadow-black/20 md:p-6">
+				<div className="mb-5 flex items-center gap-3 text-secondary-50">
+					<div className="ui-page-header-icon">
+						<SearchIcon className="h-5 w-5" />
+					</div>
+					<div>
+						<p className="ui-label">Discovery</p>
+						<p className="text-base font-semibold tracking-tight md:text-lg">Search users and channels</p>
+					</div>
+				</div>
+				<div className="flex flex-col sm:flex-row w-full items-center gap-2.5">
 					<Input
-						className="w-full "
+						className="w-full"
 						label="Search"
 						placeholder="Search Users, Games, Channels ...."
 						value={value}
-						onChange={(e) => {
-							const { value } = e.target;
-							setValue(value);
-						}}
+						onChange={(e) => setValue(e.target.value)}
 					/>
 					<div className="w-full sm:w-[30%]">
 						<Input
@@ -60,14 +66,11 @@ export default function Search() {
 							type="select"
 							value={selected}
 							options={options}
-							onChange={(e) => {
-								const { value } = e.target;
-								setSelected(value);
-							}}
+							onChange={(e) => setSelected(e.target.value)}
 						/>
 					</div>
 				</div>
-				<div className="flex w-full flex-col items-center justify-center gap-2">
+				<div className="mt-5 flex w-full flex-col items-center justify-center gap-2">
 					{isLoading ? (
 						<Spinner />
 					) : filtred?.length ? (
@@ -86,7 +89,7 @@ export default function Search() {
 							);
 						})
 					) : (
-						<div className="h-[500px] flex items-center justify-center text-2xl text-primary-500">
+						<div className="flex h-[280px] items-center justify-center text-lg text-secondary-300">
 							No matches found
 						</div>
 					)}

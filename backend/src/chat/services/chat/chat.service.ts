@@ -9,24 +9,18 @@ export class ChatService {
     private userService: UsersService,
   ) {}
   async isBlocked(id1: number, id2: number): Promise<boolean> {
-    const blocked = await this.userService.getBlockedUsers(id1);
-    const blocking = await this.userService.getBlockingUsers(id1);
-    let isblocking: boolean;
-    let isblocked: boolean;
-
-    for (let i = 0; i < blocking.length; i++) {
-      if (blocking[i].blockerId == id2) {
-        isblocking = true;
-        break;
-      }
-    }
-    for (let i = 0; i < blocked.length; i++) {
-      if (blocked[i].blockingId == id2) {
-        isblocked = true;
-        break;
-      }
-    }
-    return isblocked || isblocking;
+    const blockRelation = await this.prisma.block.findFirst({
+      where: {
+        OR: [
+          { blockerId: id1, blockingId: id2 },
+          { blockerId: id2, blockingId: id1 },
+        ],
+      },
+      select: {
+        blockerId: true,
+      },
+    });
+    return !!blockRelation;
   }
 
   async getBlockedUserIds(id1: number): Promise<any[]> {

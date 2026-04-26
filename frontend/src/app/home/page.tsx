@@ -10,13 +10,11 @@ import {
 } from "../../components";
 import { useContext } from "react";
 import { AppContext, fetcher } from "../../context/app.context";
-// import { Link, Navigate } from "react-router-dom";
 import Layout from "../layout/index";
 import useSWR from "swr";
 import IUser from "../../interfaces/user";
 import Link from "next/link";
 import Image from "next/image";
-
 
 const LeaderBoard = () => {
   const { data: users, isLoading } = useSWR("api/users", fetcher, {
@@ -50,12 +48,10 @@ const FriendList = () => {
   const { data: friends, isLoading } = useSWR(
     `api/users/${user?.id}/friends`,
     fetcher,
-    {
-      errorRetryCount: 0,
-    }
+    { errorRetryCount: 0 }
   );
   return (
-    <Container title="FRIEND LIST" icon="/img/friendlist.svg">
+    <Container title="Friend List" icon="/img/friendlist.svg">
       {!isLoading ? (
         friends &&
         friends.map((user: IUser) => {
@@ -72,24 +68,25 @@ const FriendList = () => {
 
 const MatchHistory = () => {
   const { user } = useContext(AppContext);
-
   const { data: matches, isLoading } = useSWR(`api/pong/match-history/${user?.id}`, fetcher, {
     errorRetryCount: 0,
   });
-  return (<Container title="MATCH HISTORY" icon="/img/history.svg">
-    {!isLoading ? (
-      matches &&
-      matches.map((match: any) => {
-        return <Link href={``} key={match?.id}>
-          <GameBanner player1={match.player1} player2={match.player2} player1Score={match.player1Score}
-            player2Score={match.player2Score} />
-        </Link>
-      })
-    ) : (
-      <Spinner />
-    )}
-  </Container>)
-}
+  return (
+    <Container title="Match History" icon="/img/history.svg">
+      {!isLoading ? (
+        matches &&
+        matches.map((match: any) => {
+          return <Link href={``} key={match?.id}>
+            <GameBanner player1={match.player1} player2={match.player2} player1Score={match.player1Score}
+              player2Score={match.player2Score} />
+          </Link>
+        })
+      ) : (
+        <Spinner />
+      )}
+    </Container>
+  );
+};
 
 export default function Home() {
   const { user } = useContext(AppContext);
@@ -97,65 +94,77 @@ export default function Home() {
     errorRetryCount: 0,
   });
 
-  //order channels by number of members
   channels?.sort((a: any, b: any) => {
     return b.channelMembers.length - a.channelMembers.length;
   });
 
-  if (isLoading) 
+  if (isLoading)
     return (
-            <div className="flex justify-center items-center h-screen bg-secondary-50">
-              <Spinner />
-            </div>
-            );
+      <div className="flex justify-center items-center h-screen bg-secondary-900">
+        <Spinner />
+      </div>
+    );
+
+  const winRate = user && user.totalGames ? ((user.wins / user.totalGames) * 100).toFixed(0) : "0";
 
   return (
-    <Layout className="3xl:grid-cols-3 flex flex-col items-center gap-5 2xl:grid 2xl:grid-cols-2 2xl:place-items-center">
+    <Layout className="grid w-full grid-cols-1 items-start gap-6 xl:grid-cols-2 3xl:grid-cols-3">
       <Link
         href={`/profile/${user?.id}`}
-        className=" flex h-[500px] w-[88%] max-w-[800px] animate-fade-right flex-wrap items-center justify-center gap-4 rounded border-2 border-secondary-400 p-4 md:h-[200px] md:flex-nowrap"
+        className="group relative col-span-1 flex min-h-[230px] w-full animate-fade-right flex-wrap items-center justify-between gap-5 overflow-hidden rounded-2xl border border-white/[0.06] bg-gradient-to-br from-secondary-700 via-secondary-700 to-secondary-800 p-5 shadow-xl shadow-black/20 transition-all duration-300 hover:border-primary-400/20 hover:shadow-glow xl:col-span-2 xl:min-h-[210px] xl:flex-nowrap xl:p-7 3xl:col-span-3"
       >
+        <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-primary-400/[0.06] blur-3xl" />
+        <div className="ui-badge absolute right-4 top-4">
+          Player Card
+        </div>
         <Avatar
           src={user?.avatar || ""}
           alt=""
-          className="h-28 w-28 md:h-36 md:w-36"
+          className="h-24 w-24 md:h-28 md:w-28 ring-2 ring-white/[0.06] ring-offset-2 ring-offset-secondary-700"
         />
-        <div className="flex flex-col justify-center gap-2 p-2">
-          <span className="text-lg font-bold text-white">
+        <div className="flex min-w-0 flex-1 flex-col justify-center gap-1.5">
+          <span className="truncate text-lg font-semibold tracking-tight text-secondary-50 md:text-xl">
             {user?.fullname || ""}
           </span>
-          <span className="text-sm text-tertiary-50">@{user?.login || ""}</span>
+          <span className="truncate text-sm text-secondary-300">@{user?.login || ""}</span>
+          <span className="text-xs text-secondary-400">
+            {user?.status || "OFFLINE"} - Ladder {user?.ladder || "BEGINNER"}
+          </span>
         </div>
-        <div className="flex items-start justify-between gap-4 text-sm">
-          <div className="flex flex-col text-secondary-100 ">
-            <span>Score</span>
-            <span>Winning Rate</span>
-            <span>Total Games</span>
+        <div className="grid w-full grid-cols-3 gap-2 md:w-auto md:gap-3">
+          <div className="ui-stat-card items-center text-center">
+            <span className="text-[11px] uppercase tracking-wider text-secondary-400">Score</span>
+            <div className="flex items-center justify-center gap-1.5">
+              <span className="text-lg font-semibold text-secondary-50">{user?.rating}</span>
+              <Image src="/img/smalllogo.svg" alt="logo" width={16} height={16} />
+            </div>
           </div>
-          <div className="flex flex-col text-white">
-            <div className="flex gap-2">
-              <span>{user?.rating}</span>
-              <Image src="/img/smalllogo.svg" alt="logo" width={20} height={20} />
-            </div>
-            <div className="flex ">
-              <span>{user ? user.totalGames && ((user.wins / user.totalGames) * 100).toFixed().toString() : 0} %</span>
-            </div>
-            <div className="flex">
-              {user && <span>{user.wins + user.losses}</span>}
-            </div>
+          <div className="ui-stat-card items-center text-center">
+            <span className="text-[11px] uppercase tracking-wider text-secondary-400">Win Rate</span>
+            <span className="text-lg font-semibold text-primary-400">{winRate}%</span>
+          </div>
+          <div className="ui-stat-card items-center text-center">
+            <span className="text-[11px] uppercase tracking-wider text-secondary-400">Games</span>
+            <span className="text-lg font-semibold text-secondary-50">{user ? user.wins + user.losses : 0}</span>
           </div>
         </div>
       </Link>
-      <LeaderBoard />
-      <FriendList />
-      <MatchHistory />
+      <div className="w-full">
+        <LeaderBoard />
+      </div>
+      <div className="w-full">
+        <FriendList />
+      </div>
+      <div className="w-full">
+        <MatchHistory />
+      </div>
       <Container
-        title="POPULAR ROOMS"
+        title="Popular Rooms"
         icon="/img/3dchat.svg"
-        className="!grid grid-cols-1 place-items-center xl:grid-cols-2"
+        className="!grid w-full grid-cols-1 gap-3 place-items-stretch xl:grid-cols-2"
       >
         {
-          channels?.filter((channel: any) => channel.channelMembers.length >= 3).map((channel: any) => {
+          channels?.map((channel: any) => {
             return <ChatBanner key={channel.id} channel={channel} />
           })
         }

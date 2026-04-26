@@ -62,50 +62,51 @@ export class MessageService {
         },
       });
 
-      ch.channelMembers.forEach(async (member) => {
-        if (
+      const activeMembers = ch.channelMembers.filter(
+        (member) =>
           member.status !== MemberStatus.BANNED &&
-          member.status !== MemberStatus.LEFT
-        ) {
-          if (member.userId != data.senderId) {
-            await this.prisma.channel.update({
+          member.status !== MemberStatus.LEFT &&
+          member.userId !== data.senderId,
+      );
+
+      await Promise.all(
+        activeMembers.map(async (member) => {
+          await this.prisma.channel.update({
+            where: {
+              id: data.receiverId,
+            },
+            data: {
+              deletedFor: {
+                disconnect: {
+                  id: member.userId,
+                },
+              },
+              unreadFor: {
+                connect: {
+                  id: member.userId,
+                },
+              },
+              updatedAt: message.date,
+            },
+          });
+
+          if (!(await this.chatService.isBlocked(member.userId, data.senderId))) {
+            await this.prisma.channelMember.update({
               where: {
-                id: data.receiverId,
+                userId_channelId: {
+                  userId: member.userId,
+                  channelId: data.receiverId,
+                },
               },
               data: {
-                deletedFor: {
-                  disconnect: {
-                    id: member.userId,
-                  },
+                newMessagesCount: {
+                  increment: 1,
                 },
-                unreadFor: {
-                  connect: {
-                    id: member.userId,
-                  },
-                },
-                updatedAt: message.date,
               },
             });
-            if (
-              !(await this.chatService.isBlocked(member.userId, data.senderId))
-            ) {
-              await this.prisma.channelMember.update({
-                where: {
-                  userId_channelId: {
-                    userId: member.userId,
-                    channelId: data.receiverId,
-                  },
-                },
-                data: {
-                  newMessagesCount: {
-                    increment: 1,
-                  },
-                },
-              });
-            }
           }
-        }
-      });
+        }),
+      );
       return message;
     } catch (err) {
       throw new Error(err.message);
@@ -181,6 +182,7 @@ export class MessageService {
   async getMessagesByChannelId(
     channelId: number,
     userId: number,
+    options?: { take?: number; before?: string },
   ): Promise<Message[]> {
     await this.prisma.channel.findUnique({
       where: {
@@ -202,24 +204,33 @@ export class MessageService {
       return messages;
     }
 
+    const limit = Math.min(Math.max(options?.take ?? 80, 1), 200);
     const messages = await this.prisma.message.findMany({
       where: {
         receiverId: channelId,
+        ...(options?.before
+          ? {
+              date: {
+                lt: new Date(options.before),
+              },
+            }
+          : {}),
       },
       include: {
         sender: true,
         receiver: true,
       },
+      orderBy: {
+        date: 'desc',
+      },
+      take: limit,
     });
-    const filteredMessages = [];
-    for (const message of messages) {
-      if (!(await this.chatService.isBlocked(userId, message.senderId))) {
-        filteredMessages.push(message);
-      }
-    }
-    filteredMessages.sort((a, b) => {
-      return a.date.getTime() - b.date.getTime();
-    });
+
+    const blockedIds = new Set(await this.chatService.getBlockedUserIds(userId));
+    const filteredMessages = messages
+      .filter((message) => !blockedIds.has(message.senderId))
+      .sort((a, b) => a.date.getTime() - b.date.getTime());
+
     return filteredMessages;
   }
 }

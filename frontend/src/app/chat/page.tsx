@@ -1,8 +1,8 @@
 "use client";
 
-import { ChannelList, CreateGroupModal, MessageBubble } from "../../components";
+import { ChannelList, CreateGroupModal, MessageBubble, ChatV2 } from "../../components";
 import Welcome from "../../components/chat/welcome";
-import { useContext, useEffect, useRef, useState, useCallback } from "react";
+import { useContext, useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { useMedia } from "react-use";
 import { ChatContext, Ichannel, IchatContext, IchannelMember, Imessage } from "../../context/chat.context";
 import { AppContext, IAppContext, fetcher } from "../../context/app.context";
@@ -10,24 +10,29 @@ import Layout from "../layout/index";
 import IUser from "../../interfaces/user";
 
 export default function Chat() {
+  const isChatV2Enabled = process.env.NEXT_PUBLIC_CHAT_V2_ENABLED === "true";
   const [open, setOpen] = useState<boolean>(false);
   const [showModal, setShowModal] = useState<boolean>(false);
   const isMatch = useMedia("(min-width:1024px)", false);
   const [currentChannel, setCurrentChannel] = useState<Ichannel | undefined>({} as Ichannel);
   const { socket } = useContext<IchatContext>(ChatContext);
   const [messages, setMessages] = useState<Imessage[]>([]);
-  const [channelId, setChannelId] = useState<number | undefined>(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const { user } = useContext<IAppContext>(AppContext);
 
   const [blocking, setBlocking] = useState<any[]>(user?.blocking?.map((blocking) => { return blocking.blockerId }) as any[]);
   const [blocked, setBlocked] = useState<any[]>(user?.blockers?.map((blocker) => { return blocker.blockingId }) as any[]);
 
-  const isBlocked = (currentChannel?.type === "CONVERSATION" && blocked.includes(currentChannel?.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.id));
-  const isBlocking = (currentChannel?.type === "CONVERSATION" && blocking.includes(currentChannel?.channelMembers?.filter((member: IchannelMember) => member.userId !== user?.id)[0].user?.id));
+  const conversationTargetId = useMemo(() => {
+    if (currentChannel?.type !== "CONVERSATION") return undefined;
+    return currentChannel?.channelMembers?.find((member: IchannelMember) => member.userId !== user?.id)?.user?.id;
+  }, [currentChannel, user?.id]);
+
+  const isBlocked = currentChannel?.type === "CONVERSATION" && blocked.includes(conversationTargetId);
+  const isBlocking = currentChannel?.type === "CONVERSATION" && blocking.includes(conversationTargetId);
   const [users, setUsers] = useState<IUser[]>([]);
 
-  const fetchUsers = (async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       if (user === undefined) {
         return;
@@ -40,15 +45,14 @@ export default function Chat() {
     } catch (err) {
       throw new Error("Error while getting users");
     }
-  })
+  }, [user]);
 
   useEffect(() => {
     const getUsers = async () => {
       await fetchUsers();
     }
     getUsers();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [fetchUsers]);
 
   const getBlocking = useCallback(async () => {
     try {
@@ -100,106 +104,86 @@ export default function Chat() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentChannel]);
 
-  const handleSocketEvent = async () => {
+  const handleSocketEvent = useCallback(async () => {
     const [blockingUsers, blockedUsers] = await Promise.all([getBlocking(), getBlocked()]);
     setBlocking(blockingUsers || []);
     setBlocked(blockedUsers || []);
     socket?.emit("get_client_messages", { channelId: currentChannel?.id });
     await fetchUsers();
-  };
+  }, [getBlocking, getBlocked, socket, currentChannel?.id, fetchUsers]);
 
   useEffect(() => {
-    socket?.emit('reset_mssg_count', { channelId: currentChannel?.id });
-    socket?.on("getChannelMessages", (mssg: Imessage[]) => {
-      if (mssg[0]?.receiverId === currentChannel?.id) {
-        setMessages(mssg);
-      }
-      else
-        setMessages(messages);
-    });
+    if (!socket) return;
 
-    socket?.on('message', (data: Imessage) => {
-      if(data?.receiverId === currentChannel?.id && messages)
-        setMessages([...messages, data]);
+    if (currentChannel?.id) {
+      socket.emit("reset_mssg_count", { channelId: currentChannel.id });
     }
-    );
 
-
-    socket?.on("get_client_messages", (mssg: Imessage[]) => {
-      if (mssg[0]?.receiverId === currentChannel?.id) {
+    const handleChannelMessages = (mssg: Imessage[]) => {
+      if (mssg?.[0]?.receiverId === currentChannel?.id) {
         setMessages(mssg);
       }
-      else
-        setMessages(messages);
-    });
+    };
 
-    socket?.on('channel_leave', (data: Ichannel) => {
-      if (data?.id === currentChannel?.id) {
-        setCurrentChannel({} as Ichannel);
-        setOpen(false);
-      }
-    });
+    const handleMessage = (data: Imessage) => {
+      if (data?.receiverId !== currentChannel?.id) return;
+      setMessages((prev) => [...(prev || []), data]);
+    };
 
-    socket?.on('kick_user', (data: Ichannel) => {
-      if (data?.id === currentChannel?.id) {
-        setCurrentChannel({} as Ichannel);
-        setOpen(false);
-      }
-    });
+    const handleChannelExit = (data: Ichannel | { id: number }) => {
+      if (data?.id !== currentChannel?.id) return;
+      setCurrentChannel({} as Ichannel);
+      setOpen(false);
+    };
 
-    socket?.on('channel_join', (data: {channel : Ichannel, messages : Imessage[]}) => {
+    const handleChannelJoin = (data: { channel: Ichannel; messages: Imessage[] }) => {
       setCurrentChannel(data.channel);
       setMessages(data.messages);
-    });
+    };
 
-    socket?.on("channel_remove", (data: {id: number}) => {
-      if (data?.id === currentChannel?.id)
-      {
-        setCurrentChannel({} as Ichannel);
-        setOpen(false);
-      }
-    });
-
-    socket?.on("channel_create", () => {
-      if (!isMatch)
-        setOpen(true);
-      setMessages(null as any as Imessage[]);
+    const handleChannelCreate = () => {
+      if (!isMatch) setOpen(true);
       setMessages([]);
-    });
-    
-    socket?.on("dm_create", () => {
-      if (!isMatch)
-      setOpen(true);
-      setMessages(null as any as Imessage[]);
-      setMessages([]);
-    });
+    };
 
-    socket?.on('current_ch_update', (data: Ichannel) => {
-      setChannelId(data?.id);
-      if (channelId === currentChannel?.id) {
+    const handleCurrentChannelUpdate = (data: Ichannel) => {
+      if (data?.id === currentChannel?.id) {
         setCurrentChannel(data);
       }
-      else {
-        setCurrentChannel(currentChannel);
-      }
-    });
-    socket?.on("blockUser", handleSocketEvent);
-    return () => {
-      socket?.off("blockUser");
-      socket?.off('message');
-      socket?.off('channel_leave');
-      socket?.off('channel_join');
-      socket?.off('channel_remove');
-      socket?.off('channel_create');
-      socket?.off('dm_create');
-      socket?.off('current_ch_update');
-      socket?.off('getChannelMessages');
     };
-  });
+
+    socket.on("getChannelMessages", handleChannelMessages);
+    socket.on("get_client_messages", handleChannelMessages);
+    socket.on("message", handleMessage);
+    socket.on("channel_leave", handleChannelExit);
+    socket.on("kick_user", handleChannelExit);
+    socket.on("channel_remove", handleChannelExit);
+    socket.on("channel_join", handleChannelJoin);
+    socket.on("channel_create", handleChannelCreate);
+    socket.on("dm_create", handleChannelCreate);
+    socket.on("current_ch_update", handleCurrentChannelUpdate);
+    socket.on("blockUser", handleSocketEvent);
+
+    return () => {
+      socket.off("getChannelMessages", handleChannelMessages);
+      socket.off("get_client_messages", handleChannelMessages);
+      socket.off("message", handleMessage);
+      socket.off("channel_leave", handleChannelExit);
+      socket.off("kick_user", handleChannelExit);
+      socket.off("channel_remove", handleChannelExit);
+      socket.off("channel_join", handleChannelJoin);
+      socket.off("channel_create", handleChannelCreate);
+      socket.off("dm_create", handleChannelCreate);
+      socket.off("current_ch_update", handleCurrentChannelUpdate);
+      socket.off("blockUser", handleSocketEvent);
+    };
+  }, [socket, currentChannel?.id, isMatch, handleSocketEvent]);
 
   return (
     <Layout className="!py-0 !px-0 !overflow-y-hidden">
-      {
+      {isChatV2Enabled ? (
+        <ChatV2 />
+      ) : (
         !isMatch ?
           (
             <div className="grid grid-cols-10 h-full w-full ">
@@ -216,7 +200,7 @@ export default function Chat() {
               )}
               {
                 currentChannel && Object.keys(currentChannel!).length &&
-                <MessageBubble className="!mt-3 !mr-3 mb-4 ml-1" currentChannel={currentChannel} setOpen={setOpen} setCurrentChannel={setCurrentChannel}
+                <MessageBubble className="!mt-3 !mr-3 !mb-0 ml-1" currentChannel={currentChannel} setOpen={setOpen} setCurrentChannel={setCurrentChannel}
                   messages={messages} inputRef={inputRef} isBlocked={isBlocked} isBlocking={isBlocking} checkBlock={checkBlock} users={users} />
               }
               {showModal && <CreateGroupModal setShowModal={setShowModal} users={users} />}
@@ -233,7 +217,7 @@ export default function Chat() {
                 inputRef={inputRef}
                 checkBlock={checkBlock}
               />
-              {(currentChannel && Object.keys(currentChannel!).length) ? <MessageBubble className="!mt-3 !mr-3 mb-4 ml-1" setCurrentChannel={setCurrentChannel}
+              {(currentChannel && Object.keys(currentChannel!).length) ? <MessageBubble className="!mt-3 !mr-3 !mb-0 ml-1" setCurrentChannel={setCurrentChannel}
                 currentChannel={currentChannel} setOpen={setOpen} messages={messages} inputRef={inputRef} isBlocked={isBlocked} isBlocking={isBlocking} checkBlock={checkBlock} users={users} />
                 :
                 < Welcome className="mt-4 mb-4 pb-3 ml-1" setShowModal={setShowModal} />
@@ -241,7 +225,7 @@ export default function Chat() {
               {showModal && <CreateGroupModal setShowModal={setShowModal} users={users} />}
             </div>
           )
-      }
+      )}
     </Layout>
   );
 }

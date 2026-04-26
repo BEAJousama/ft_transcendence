@@ -530,42 +530,56 @@ export class ChannelService {
           const newMembers = [];
           for (let i = 0; i < members.length; i++) {
             const memberId = members[i];
+            if (memberId === userId) continue;
             const channelMember =
               await this.getChannelMemberByUserIdAndChannelId(
                 memberId,
                 channelData.id,
               );
-            if (channelMember && channelMember.status === MemberStatus.LEFT) {
-              await this.prisma.channelMember.update({
-                where: {
-                  userId_channelId: {
-                    userId: memberId,
-                    channelId: channelData.id,
+            if (channelMember) {
+              if (
+                channelMember.status === MemberStatus.LEFT ||
+                channelMember.status === MemberStatus.BANNED
+              ) {
+                await this.prisma.channelMember.update({
+                  where: {
+                    userId_channelId: {
+                      userId: memberId,
+                      channelId: channelData.id,
+                    },
                   },
-                },
-                data: {
-                  status: MemberStatus.ACTIVE,
-                },
-              });
+                  data: {
+                    status: MemberStatus.ACTIVE,
+                    role: Role.MEMEBER,
+                    banDuration: 0,
+                    banStartTime: null,
+                  },
+                });
 
-              await this.prisma.channel.update({
-                where: {
-                  id: channelData.id,
-                },
-                data: {
-                  kickedUsers: {
-                    disconnect: {
-                      id: memberId,
-                    },
+                await this.prisma.channel.update({
+                  where: {
+                    id: channelData.id,
                   },
-                  deletedFor: {
-                    disconnect: {
-                      id: memberId,
+                  data: {
+                    kickedUsers: {
+                      disconnect: {
+                        id: memberId,
+                      },
                     },
+                    bannedUsers: {
+                      disconnect: {
+                        id: memberId,
+                      },
+                    },
+                    deletedFor: {
+                      disconnect: {
+                        id: memberId,
+                      },
+                    },
+                    updatedAt: new Date(),
                   },
-                  updatedAt: new Date(),
-                },
-              });
+                });
+              }
             } else {
               newMembers.push(memberId);
             }
@@ -673,41 +687,27 @@ export class ChannelService {
     channelId: number,
   ): Promise<number> {
     try {
-      let updated;
-      const chMem = await this.prisma.channelMember.findUnique({
-        where: {
-          userId_channelId: {
-            userId: ownerId,
-            channelId,
-          },
-        },
-      });
-      const tokick = await this.prisma.channelMember.findUnique({
+      const actor = await this.getRequiredMember(ownerId, channelId);
+      const target = await this.getRequiredMember(userId, channelId);
+      this.assertCanModerate(actor, target, 'kick');
+      if (target.status === MemberStatus.LEFT) {
+        throw new Error('User already left this channel');
+      }
+      if (target.status === MemberStatus.BANNED) {
+        throw new Error('User is banned already');
+      }
+      await this.prisma.channelMember.update({
         where: {
           userId_channelId: {
             userId,
             channelId,
           },
         },
+        data: {
+          status: MemberStatus.LEFT,
+          role: Role.MEMEBER,
+        },
       });
-      if (tokick.role === Role.OWNER) {
-        throw new Error('You are not authorized to kick the owner');
-      } else if (chMem.role !== Role.OWNER && chMem.role !== Role.ADMIN) {
-        throw new Error('You are not authorized to kick a user');
-      } else {
-        updated = await this.prisma.channelMember.update({
-          where: {
-            userId_channelId: {
-              userId,
-              channelId,
-            },
-          },
-          data: {
-            status: MemberStatus.LEFT,
-            role: Role.MEMEBER,
-          },
-        });
-      }
       // add userId to bannedFor
       await this.prisma.channel.update({
         where: {
@@ -724,9 +724,14 @@ export class ChannelService {
               id: userId,
             },
           },
+          bannedUsers: {
+            disconnect: {
+              id: userId,
+            },
+          },
         },
       });
-      return updated.count;
+      return 1;
     } catch (error) {
       throw new Error(error.message);
     }
@@ -942,29 +947,22 @@ export class ChannelService {
     userId: number,
     channelId: number,
   ): Promise<ChannelMember> {
-    const owner = await this.prisma.channelMember.findUnique({
-      where: {
-        userId_channelId: {
-          userId: ownerId,
-          channelId,
-        },
-      },
-    });
-    const chMem = await this.prisma.channelMember.findUnique({
-      where: {
-        userId_channelId: {
-          userId,
-          channelId,
-        },
-      },
-    });
-    const newRole: Role = chMem.role === Role.ADMIN ? Role.MEMEBER : Role.ADMIN;
-    if (owner.role !== Role.OWNER) {
-      throw new Error(
-        'Cannot set user as admin : You are not Owner of the channel',
-      );
+    const actor = await this.getRequiredMember(ownerId, channelId);
+    const target = await this.getRequiredMember(userId, channelId);
+    if (actor.role !== Role.OWNER) {
+      throw new Error('Only the owner can change admin roles');
     }
-    await this.prisma.channelMember.update({
+    if (userId === ownerId) {
+      throw new Error('You cannot change your own admin role');
+    }
+    if (target.status !== MemberStatus.ACTIVE) {
+      throw new Error('Only active members can be promoted to admin');
+    }
+    if (target.role === Role.OWNER) {
+      throw new Error('Owner role cannot be changed here');
+    }
+    const newRole: Role = target.role === Role.ADMIN ? Role.MEMEBER : Role.ADMIN;
+    return await this.prisma.channelMember.update({
       where: {
         userId_channelId: {
           userId,
@@ -975,7 +973,6 @@ export class ChannelService {
         role: newRole,
       },
     });
-    return chMem;
   }
 
   async setAsOwner(
@@ -983,29 +980,29 @@ export class ChannelService {
     userId: number,
     channelId: number,
   ): Promise<ChannelMember> {
-    const owner = await this.prisma.channelMember.findUnique({
+    const actor = await this.getRequiredMember(ownerId, channelId);
+    const target = await this.getRequiredMember(userId, channelId);
+    if (actor.role !== Role.OWNER) {
+      throw new Error('Only the owner can transfer ownership');
+    }
+    if (userId === ownerId) {
+      throw new Error('You are already the owner');
+    }
+    if (target.status !== MemberStatus.ACTIVE) {
+      throw new Error('Ownership can only be transferred to active members');
+    }
+    await this.prisma.channelMember.update({
       where: {
         userId_channelId: {
           userId: ownerId,
           channelId,
         },
       },
-    });
-    const chMem = await this.prisma.channelMember.findUnique({
-      where: {
-        userId_channelId: {
-          userId,
-          channelId,
-        },
+      data: {
+        role: Role.ADMIN,
       },
     });
-    const newRole: Role = chMem.role === Role.OWNER ? Role.MEMEBER : Role.OWNER;
-    if (owner.role !== Role.OWNER) {
-      throw new Error(
-        'Cannot set user as owner : You are not Owner of the channel',
-      );
-    }
-    await this.prisma.channelMember.update({
+    return await this.prisma.channelMember.update({
       where: {
         userId_channelId: {
           userId,
@@ -1013,10 +1010,9 @@ export class ChannelService {
         },
       },
       data: {
-        role: newRole,
+        role: Role.OWNER,
       },
     });
-    return chMem;
   }
 
   async pinChannel(userId: number, channelId: number): Promise<ChannelMember> {
@@ -1267,43 +1263,29 @@ export class ChannelService {
     channelId: number,
     banDuration: number,
   ): Promise<number> {
-    let updated;
-    const chMem = await this.prisma.channelMember.findUnique({
-      where: {
-        userId_channelId: {
-          userId: ownerId,
-          channelId,
-        },
-      },
-    });
-    const tomute = await this.prisma.channelMember.findUnique({
+    if (!Number.isFinite(banDuration) || banDuration < 1) {
+      throw new Error('Mute duration must be at least 1 second');
+    }
+    const actor = await this.getRequiredMember(ownerId, channelId);
+    const target = await this.getRequiredMember(userId, channelId);
+    this.assertCanModerate(actor, target, 'mute');
+    if (target.status !== MemberStatus.ACTIVE) {
+      throw new Error('Only active members can be muted');
+    }
+    await this.prisma.channelMember.update({
       where: {
         userId_channelId: {
           userId,
           channelId,
         },
       },
+      data: {
+        status: MemberStatus.MUTED,
+        banDuration: banDuration,
+        banStartTime: new Date(),
+      },
     });
-    if (tomute.role === Role.OWNER) {
-      throw new Error('You are not authorized to mute the owner');
-    } else if (chMem.role !== Role.OWNER && chMem.role !== Role.ADMIN) {
-      throw new Error('You are not authorized to mute a user');
-    } else {
-      updated = await this.prisma.channelMember.update({
-        where: {
-          userId_channelId: {
-            userId,
-            channelId,
-          },
-        },
-        data: {
-          status: MemberStatus.MUTED,
-          banDuration: banDuration,
-          banStartTime: new Date(),
-        },
-      });
-    }
-    return updated.count;
+    return 1;
   }
 
   async unmuteUser(
@@ -1311,33 +1293,26 @@ export class ChannelService {
     userId: number,
     channelId: number,
   ): Promise<number> {
-    let updated;
-    const chMem = await this.prisma.channelMember.findUnique({
+    const actor = await this.getRequiredMember(ownerId, channelId);
+    const target = await this.getRequiredMember(userId, channelId);
+    this.assertCanModerate(actor, target, 'unmute');
+    if (target.status !== MemberStatus.MUTED) {
+      throw new Error('User is not muted');
+    }
+    await this.prisma.channelMember.update({
       where: {
         userId_channelId: {
-          userId: ownerId,
+          userId,
           channelId,
         },
       },
+      data: {
+        status: MemberStatus.ACTIVE,
+        banDuration: 0,
+        banStartTime: null,
+      },
     });
-    if (chMem.role !== Role.OWNER && chMem.role !== Role.ADMIN) {
-      throw new Error('You are not authorized to mute a user');
-    } else {
-      updated = await this.prisma.channelMember.update({
-        where: {
-          userId_channelId: {
-            userId,
-            channelId,
-          },
-        },
-        data: {
-          status: MemberStatus.ACTIVE,
-          banDuration: 0,
-          banStartTime: null,
-        },
-      });
-    }
-    return updated.count;
+    return 1;
   }
 
   async banUser(
@@ -1346,40 +1321,24 @@ export class ChannelService {
     channelId: number,
   ): Promise<number> {
     try {
-      let updated;
-      const chMem = await this.prisma.channelMember.findUnique({
-        where: {
-          userId_channelId: {
-            userId: ownerId,
-            channelId,
-          },
-        },
-      });
-      const toban = await this.prisma.channelMember.findUnique({
+      const actor = await this.getRequiredMember(ownerId, channelId);
+      const target = await this.getRequiredMember(userId, channelId);
+      this.assertCanModerate(actor, target, 'ban');
+      if (target.status !== MemberStatus.ACTIVE && target.status !== MemberStatus.MUTED) {
+        throw new Error('Only active or muted members can be banned');
+      }
+      await this.prisma.channelMember.update({
         where: {
           userId_channelId: {
             userId,
             channelId,
           },
         },
+        data: {
+          status: MemberStatus.BANNED,
+          role: Role.MEMEBER,
+        },
       });
-      if (toban.role === Role.OWNER) {
-        throw new Error('You are not authorized to ban the owner');
-      } else if (chMem.role !== Role.OWNER && chMem.role !== Role.ADMIN) {
-        throw new Error('You are not authorized to ban a user');
-      } else {
-        updated = await this.prisma.channelMember.update({
-          where: {
-            userId_channelId: {
-              userId,
-              channelId,
-            },
-          },
-          data: {
-            status: MemberStatus.BANNED,
-          },
-        });
-      }
       // add userId to bannedFor
       await this.prisma.channel.update({
         where: {
@@ -1396,9 +1355,14 @@ export class ChannelService {
               id: userId,
             },
           },
+          kickedUsers: {
+            disconnect: {
+              id: userId,
+            },
+          },
         },
       });
-      return updated.count;
+      return 1;
     } catch (error) {
       throw new Error(error.message);
     }
@@ -1409,31 +1373,24 @@ export class ChannelService {
     userId: number,
     channelId: number,
   ): Promise<number> {
-    let updated;
-    const chMem = await this.prisma.channelMember.findUnique({
+    const actor = await this.getRequiredMember(ownerId, channelId);
+    const target = await this.getRequiredMember(userId, channelId);
+    this.assertCanModerate(actor, target, 'unban');
+    if (target.status !== MemberStatus.BANNED) {
+      throw new Error('User is not banned');
+    }
+    await this.prisma.channelMember.update({
       where: {
         userId_channelId: {
-          userId: ownerId,
+          userId,
           channelId,
         },
       },
+      data: {
+        status: MemberStatus.LEFT,
+        role: Role.MEMEBER,
+      },
     });
-    if (chMem.role !== Role.OWNER && chMem.role !== Role.ADMIN) {
-      throw new Error('You are not authorized to ban a user');
-    } else {
-      updated = await this.prisma.channelMember.update({
-        where: {
-          userId_channelId: {
-            userId,
-            channelId,
-          },
-        },
-        data: {
-          status: MemberStatus.LEFT,
-          role: Role.MEMEBER,
-        },
-      });
-    }
     await this.prisma.channel.update({
       where: {
         id: channelId,
@@ -1444,14 +1401,9 @@ export class ChannelService {
             id: userId,
           },
         },
-        // deletedFor: {
-        //   disconnect: {
-        //     id: userId,
-        //   },
-        // },
       },
     });
-    return updated.count;
+    return 1;
   }
 
   async getProtectedChannels(): Promise<Channel[]> {
@@ -1477,5 +1429,49 @@ export class ChannelService {
     });
     if (!channelMember) return null;
     return channelMember;
+  }
+
+  private async getRequiredMember(
+    userId: number,
+    channelId: number,
+  ): Promise<ChannelMember> {
+    const member = await this.prisma.channelMember.findUnique({
+      where: { userId_channelId: { userId, channelId } },
+    });
+    if (!member) {
+      throw new Error('Channel member not found');
+    }
+    return member;
+  }
+
+  private roleRank(role: Role): number {
+    if (role === Role.OWNER) return 3;
+    if (role === Role.ADMIN) return 2;
+    return 1;
+  }
+
+  private assertCanModerate(
+    actor: ChannelMember,
+    target: ChannelMember,
+    action: 'kick' | 'ban' | 'unban' | 'mute' | 'unmute',
+  ) {
+    if (actor.userId === target.userId) {
+      throw new Error(`You cannot ${action} yourself`);
+    }
+    if (actor.status !== MemberStatus.ACTIVE) {
+      throw new Error('Only active members can manage group actions');
+    }
+    if (actor.role !== Role.OWNER && actor.role !== Role.ADMIN) {
+      throw new Error('You are not authorized to manage users');
+    }
+    if (target.role === Role.OWNER) {
+      throw new Error('Owner cannot be moderated');
+    }
+    if (
+      actor.role === Role.ADMIN &&
+      this.roleRank(target.role) >= this.roleRank(Role.ADMIN)
+    ) {
+      throw new Error('Admins cannot moderate other admins');
+    }
   }
 }

@@ -1,8 +1,8 @@
 "use client";
 
-import React, { use, useRef } from "react";
+import React, { useMemo, useRef } from "react";
 
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState, useCallback } from "react";
 
 import Channel from "./channel";
 import { IAppContext, fetcher } from "../../context/app.context";
@@ -42,7 +42,9 @@ const ChannelList: React.FC<ChannelListProps> = ({
 	checkBlock,
 }: ChannelListProps) => {
 	const [channels, setChannels] = useState<Ichannel[]>([]);
+	const [allChannels, setAllChannels] = useState<Ichannel[]>([]);
 	const [archiveChannels, setArchiveChannels] = useState<Ichannel[]>([]);
+	const [allArchiveChannels, setAllArchiveChannels] = useState<Ichannel[]>([]);
 	const [showArchive, setShowArchive] = useState<boolean>(false);
 	const [password, setPassword] = useState<string>("");
 	const [selectedChannel, setSelectedChannel] = useState<Ichannel | undefined>({} as Ichannel);
@@ -58,7 +60,7 @@ const ChannelList: React.FC<ChannelListProps> = ({
 
 	const loadMessages = async (channelId: number | undefined) => {
 		if (!user) return;
-		const messages = await fetcher(`api/messages/${channelId}/${user?.id}`);
+		const messages = await fetcher(`api/messages/${channelId}/${user?.id}?take=120`);
 		return messages;
 	};
 
@@ -114,129 +116,124 @@ const ChannelList: React.FC<ChannelListProps> = ({
 		}
 	};
 
+	const hydrateConversationFields = useCallback(
+		(inputChannels: Ichannel[] = []) => {
+			return inputChannels.map((channel: Ichannel) => {
+				if (channel.type !== "CONVERSATION") return channel;
+				const peer = channel.channelMembers?.find(
+					(member: IchannelMember) => member.userId !== user?.id
+				);
+				return {
+					...channel,
+					name: peer?.user?.username || channel.name,
+					avatar: peer?.user?.avatar || channel.avatar,
+				};
+			});
+		},
+		[user?.id]
+	);
+
 	useEffect(() => {
 		if (!user) return;
-		fetcher(`api/channels/${user?.id}`).then((channels: Ichannel[]) => {
-			channels.forEach((channel: Ichannel) => {
-				if (channel.type === "CONVERSATION") {
-					channel.name = channel.channelMembers?.filter(
-						(member: IchannelMember) => member.userId !== user?.id
-					)[0].user?.username;
-					channel.avatar = channel.channelMembers?.filter(
-						(member: IchannelMember) => member.userId !== user?.id
-					)[0].user?.avatar;
-				}
-			});
-			setChannels(channels);
+		fetcher(`api/channels/${user?.id}`).then((nextChannels: Ichannel[]) => {
+			const hydrated = hydrateConversationFields(nextChannels);
+			setAllChannels(hydrated);
+			setChannels(hydrated);
 		});
 
-		fetcher(`api/channels/archived/${user?.id}`).then((channels) => {
-			setArchiveChannels(channels);
+		fetcher(`api/channels/archived/${user?.id}`).then((nextChannels: Ichannel[]) => {
+			const hydrated = hydrateConversationFields(nextChannels);
+			setAllArchiveChannels(hydrated);
+			setArchiveChannels(hydrated);
 		});
-		//eslint-disable-next-line
-	}, [socket, user?.id]);
+	}, [user?.id, hydrateConversationFields]);
 
 	useEffect(() => {
-		if (search === "") {
-			getuserChannels();
-			getNewChannel();
-			getArchiveChannels();
-		}
-		socket?.on("channel_leave", () => {
+		if (!socket) return;
+
+		const onGetChannels = (nextChannels: Ichannel[]) => {
+			if (!nextChannels) return;
+			const hydrated = hydrateConversationFields(nextChannels);
+			setAllChannels(hydrated);
+			setChannels(hydrated);
+		};
+
+		const onGetArchiveChannels = (nextChannels: Ichannel[]) => {
+			if (!nextChannels) return;
+			const hydrated = hydrateConversationFields(nextChannels);
+			setAllArchiveChannels(hydrated);
+			setArchiveChannels(hydrated);
+		};
+
+		const onChannelLeave = () => {
 			setCurrentChannel({} as Ichannel);
 			inputRef?.current?.blur();
 			setOpen(false);
-		});
+		};
 
-		socket?.on("channel_access", (data: { channel: Ichannel; messages: Imessage[] }) => {
+		const onChannelAccess = (data: { channel: Ichannel; messages: Imessage[] }) => {
 			setOpen(true);
 			setCurrentChannel(data?.channel);
 			setSelectedChannel(data?.channel);
 			setMessages(data?.messages);
-			// inputRef?.current?.focus();
-		});
+		};
 
-		socket?.on("channel_delete", () => {
+		const onChannelDelete = () => {
 			setCurrentChannel({} as Ichannel);
 			inputRef?.current?.blur();
 			setOpen(false);
-		});
+		};
+
+		const onChannelCreate = (channel: Ichannel) => {
+			setCurrentChannel(channel);
+			setSelectedChannel(channel);
+			inputRef?.current?.focus();
+		};
+
+		socket.on("getChannels", onGetChannels);
+		socket.on("getArchiveChannels", onGetArchiveChannels);
+		socket.on("channel_leave", onChannelLeave);
+		socket.on("channel_access", onChannelAccess);
+		socket.on("channel_delete", onChannelDelete);
+		socket.on("channel_create", onChannelCreate);
+		socket.on("dm_create", onChannelCreate);
 
 		return () => {
-			socket?.off("channel_leave");
-			socket?.off("channel_delete");
-			socket?.off("getChannels");
-			socket?.off("getArchiveChannels");
-			socket?.off("channel_access");
+			socket.off("getChannels", onGetChannels);
+			socket.off("getArchiveChannels", onGetArchiveChannels);
+			socket.off("channel_leave", onChannelLeave);
+			socket.off("channel_access", onChannelAccess);
+			socket.off("channel_delete", onChannelDelete);
+			socket.off("channel_create", onChannelCreate);
+			socket.off("dm_create", onChannelCreate);
 		};
-		//eslint-disable-next-line
-	});
+	}, [socket, hydrateConversationFields, inputRef, setCurrentChannel, setMessages, setOpen]);
 
-	const fetchChannels = async () => {
-		const channels = await fetcher(`api/channels/${user?.id}`);
-		channels.forEach((channel: Ichannel) => {
-			if (channel.type === "CONVERSATION") {
-				channel.name = channel.channelMembers?.filter(
-					(member: IchannelMember) => member.userId !== user?.id
-				)[0].user?.username;
-				channel.avatar = channel.channelMembers?.filter(
-					(member: IchannelMember) => member.userId !== user?.id
-				)[0].user?.avatar;
-			}
-		});
-		setChannels(channels);
-	};
+	const normalizedSearch = useMemo(() => search.trim().toLowerCase(), [search]);
 
-	const getuserChannels = async () => {
-		socket?.on("getChannels", (channels: Ichannel[]) => {
-			if (!channels) return;
-			channels?.forEach((channel: Ichannel) => {
-				if (channel.type === "CONVERSATION") {
-					channel.name = channel.channelMembers?.filter(
-						(member: IchannelMember) => member.userId !== user?.id
-					)[0].user?.username;
-					channel.avatar = channel.channelMembers?.filter(
-						(member: IchannelMember) => member.userId !== user?.id
-					)[0].user?.avatar;
-				}
-			});
-			setChannels(channels);
-		});
-	};
+	useEffect(() => {
+		if (!normalizedSearch) {
+			setChannels(allChannels);
+			setArchiveChannels(allArchiveChannels);
+			return;
+		}
 
-	const getArchiveChannels = async () => {
-		socket?.on("getArchiveChannels", (channels: Ichannel[]) => {
-			if (!channels) return;
-			setArchiveChannels(channels);
-		});
-	};
-
-	const getNewChannel = async () => {
-		socket?.on("channel_create", (channel: Ichannel) => {
-			setCurrentChannel(channel);
-			setSelectedChannel(channel);
-			inputRef?.current?.focus();
-		});
-		socket?.on("dm_create", (channel: Ichannel) => {
-			setCurrentChannel(channel);
-			setSelectedChannel(channel);
-			inputRef?.current?.focus();
-		});
-	};
+		setChannels(
+			allChannels.filter((item: Ichannel) =>
+				item.name.toLowerCase().includes(normalizedSearch)
+			)
+		);
+		setArchiveChannels(
+			allArchiveChannels.filter((item: Ichannel) =>
+				item.name.toLowerCase().includes(normalizedSearch)
+			)
+		);
+	}, [normalizedSearch, allChannels, allArchiveChannels]);
 
 	const onChange = (e: any) => {
 		e.preventDefault();
 		const { value } = e.target;
 		setSearch(value);
-		if (value.trim().length > 0) {
-			setChannels(
-				channels.filter((item: Ichannel) =>
-					item.name.toLowerCase().includes(value.toLowerCase())
-				)
-			);
-		} else {
-			fetchChannels();
-		}
 	};
 
 	return (

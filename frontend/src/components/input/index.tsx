@@ -70,18 +70,17 @@ const Input = ({
 								: htmlType
 						}
 						className={twMerge(
-							`peer m-0 block h-14  w-full rounded border border-solid border-quaternary-200 bg-transparent bg-clip-padding px-3 py-4 text-lg font-semibold leading-tight text-quaternary-50 
-          transition ease-linear placeholder:text-transparent focus:border-primary focus:outline-none
-          focus:border-primary-500 focus:text-primary-500 focus:backdrop-blur-sm peer-focus:text-primary-500`,
+							`peer m-0 block h-[52px] w-full rounded-xl border border-white/[0.08] bg-secondary-800/80 bg-clip-padding px-3.5 py-3.5 text-[15px] font-medium leading-tight text-secondary-50
+          transition ease-out placeholder:text-transparent focus:outline-none
+          focus:border-primary-400/60 focus:text-secondary-50 focus:ring-1 focus:ring-primary-400/30 peer-focus:text-primary-400`,
 							label &&
-								`focus:pb-[0.625rem] focus:pt-[1.625rem] [&:not(:placeholder-shown)]:pb-[0.625rem] [&:not(:placeholder-shown)]:pt-[1.625rem]`,
-							isError && `border-red-700 text-red-700 animate-[pulse_1s]`,
+								`focus:pb-[0.5rem] focus:pt-[1.5rem] [&:not(:placeholder-shown)]:pb-[0.5rem] [&:not(:placeholder-shown)]:pt-[1.5rem]`,
+							isError && `border-red-500/60 text-red-400 animate-[pulse_1s]`,
 							value &&
-								`backdrop-blur-sm disabled:cursor-not-allowed disabled:border-primary-700 disabled:text-primary-700`,
-							!value &&
-								`disabled:cursor-not-allowed disabled:border-gray-500 disabled:text-gray-500`,
+								`disabled:cursor-not-allowed disabled:border-primary-700/40 disabled:text-primary-700`,
+							!value && `disabled:cursor-not-allowed disabled:border-white/[0.06] disabled:text-secondary-400`,
 							success &&
-								`border-green-700 text-green-700 disabled:border-green-700 disabled:text-green-700`,
+								`border-green-500/60 text-green-400 disabled:border-green-500/60 disabled:text-green-400`,
 							className
 						)}
 						id={id}
@@ -101,34 +100,34 @@ const Input = ({
 					{htmlType === "password" && (
 						<div
 							className={twMerge(
-								"absolute right-0 top-0 h-full flex items-center justify-center pr-3 cursor-pointer",
+								"absolute right-0 top-0 h-full flex items-center justify-center pr-3.5 cursor-pointer",
 								error && "-top-3"
 							)}
 							onClick={() => setShowPassword(!showPassword)}
 						>
 							{!showPassword && (
-								<EyeOff className="w-6 h-6 text-quaternary-50 opacity-50" />
+								<EyeOff className="w-5 h-5 text-secondary-400 opacity-70" />
 							)}
-							{showPassword && <Eye className="w-6 h-6 text-primary-500" />}
+							{showPassword && <Eye className="w-5 h-5 text-primary-400" />}
 						</div>
 					)}
 					{label && (
 						<label
 							htmlFor={id}
 							className={twMerge(
-								`pointer-events-none absolute left-0 top-0 origin-[0_0] border border-solid border-transparent px-3 py-4 transition-[opacity,_transform]
-     ease-linear peer-focus:-translate-y-2 peer-focus:translate-x-[0.15rem] peer-focus:scale-[0.85] peer-focus:text-primary-500 peer-[:not(:placeholder-shown)]:-translate-y-2
-        peer-[:not(:placeholder-shown)]:translate-x-[0.15rem] peer-[:not(:placeholder-shown)]:scale-[0.85] motion-reduce:transition-none text-quaternary-200`,
+								`pointer-events-none absolute left-0 top-0 origin-[0_0] border border-solid border-transparent px-3.5 py-3.5 transition-[opacity,_transform]
+     ease-out peer-focus:-translate-y-2 peer-focus:translate-x-[0.15rem] peer-focus:scale-[0.85] peer-focus:text-primary-400 peer-[:not(:placeholder-shown)]:-translate-y-2
+        peer-[:not(:placeholder-shown)]:translate-x-[0.15rem] peer-[:not(:placeholder-shown)]:scale-[0.85] motion-reduce:transition-none text-secondary-400 text-sm`,
 								disabled && value && "text-primary-700",
-								isError && "text-red-700",
-								success && `text-green-700`
+								isError && "text-red-400",
+								success && `text-green-400`
 							)}
 						>
 							{label}
 						</label>
 					)}
 					{error && (
-						<p className="mt-2 text-xs text-red-600">
+						<p className="mt-1.5 text-xs text-red-400">
 							<span className="font-medium">{error}</span>
 						</p>
 					)}
@@ -139,7 +138,7 @@ const Input = ({
 					{label && (
 						<label
 							htmlFor="countries"
-							className="block text-sm font-medium text-gray-900 dark:text-white"
+							className="block text-sm font-medium text-secondary-200"
 						>
 							{label}
 						</label>
@@ -147,7 +146,7 @@ const Input = ({
 					<select
 						id="countries"
 						className={twMerge(
-							"block w-full rounded-lg bg-transparent border-2 border-tertiary-200 text-white px-10 py-3",
+							"block w-full rounded-xl bg-secondary-800 border border-white/[0.08] text-secondary-50 px-4 py-3 text-sm focus:outline-none focus:border-primary-400/60 focus:ring-1 focus:ring-primary-400/30",
 							className
 						)}
 						value={value}

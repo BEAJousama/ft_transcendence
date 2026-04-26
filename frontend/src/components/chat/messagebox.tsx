@@ -1,5 +1,5 @@
 "use client";
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useRef, useState } from "react";
 import { useClickAway } from "react-use";
 import { IAppContext } from "../../context/app.context";
 import { AppContext } from "../../context/app.context";
@@ -10,17 +10,11 @@ import { twMerge } from "tailwind-merge";
 import { Trash } from "lucide-react";
 
 
-const MessageBox = ({ message, right, autoScroll }: { message: Imessage; right?: boolean, autoScroll: any }) => {
+const MessageBox = ({ message, right }: { message: Imessage; right?: boolean }) => {
   const [showMenu, setShowMenu] = useState(false);
   const { socket } = useContext<IchatContext>(ChatContext);
   const { user } = useContext<IAppContext>(AppContext);
   const ref = useRef(null);
-
-  useEffect(() => {
-    autoScroll();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
 
   useClickAway(ref, () => setShowMenu(false));
 

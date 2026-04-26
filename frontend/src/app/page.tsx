@@ -74,10 +74,7 @@ const LandingPage = () => {
 						Please enable cookies and refresh the page to use this website.
 					</div>
 				</Link>,
-				{
-					autoClose: false,
-					closeOnClick: false,
-				}
+				{ autoClose: false, closeOnClick: false }
 			);
 			setSelectable(false);
 			setDisabled(true);
@@ -112,26 +109,26 @@ const LandingPage = () => {
 		else if (state === "register") setSlide(1);
 		else {
 			setSelectable(false);
-			setTimeout(() => {
-				setSlide(2);
-			}, 1000);
+			setTimeout(() => setSlide(2), 1000);
 		}
 	}, [state]);
 
 	return (
-		<div className="overflow-auto scrollbar-hide flex flex-col items-center w-screen h-screen bg-secondary-700">
-			<div className="fixed inset-0 flex items-center justify-center opacity-30">
+		<div className="scrollbar-hide flex min-h-screen w-screen flex-col items-center overflow-x-hidden bg-secondary-900">
+			<div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_right,rgba(52,211,153,0.08),transparent_35%)]" />
+			<div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(100,116,139,0.1),transparent_40%)]" />
+			<div className="fixed inset-0 flex items-center justify-center opacity-20">
 				<LottiePlayer
 					loop
 					autoplay
 					src="/anim/handJoystick.json"
-					style={{ width: 100 + "%", height: 100 + "%", opacity: 0.3 }}
+					style={{ width: "100%", height: "100%", opacity: 0.3 }}
 				/>
 			</div>
-			<div className="grid w-full max-w-5xl h-fit grid-cols-1 place-items-center justify-center gap-8 md:gap-16 p-8 lg:grid-cols-2 z-10 backdrop-blur-sm backdrop-opacity-10">
-				<div className="flex w-full max-w-xs items-center justify-center lg:col-span-2 lg:max-w-xl py-16">
+			<div className="z-10 mt-8 grid h-fit w-[94%] max-w-6xl grid-cols-1 place-items-center justify-center gap-8 rounded-2xl border border-white/[0.06] bg-secondary-700/60 p-6 shadow-2xl shadow-black/30 backdrop-blur-xl md:mt-10 md:gap-10 md:p-8 lg:grid-cols-2">
+				<div className="flex w-full max-w-xs items-center justify-center py-8 lg:col-span-2 lg:max-w-xl">
 					<Image
-						src="/img/logo.svg"
+						src="/img/Logo.svg"
 						priority
 						alt="Pong Maters"
 						width={400}
@@ -139,8 +136,8 @@ const LandingPage = () => {
 						className="animate-fade"
 					/>
 				</div>
-				<div className="flex flex-col items-center justify-center w-full h-full">
-					<div className="flex flex-col items-center justify-center w-full h-full transition duration-500 ease-out">
+				<div className="flex h-full w-full flex-col items-center justify-center">
+					<div className="flex w-full max-w-xl flex-col items-center justify-center rounded-2xl border border-white/[0.06] bg-secondary-800/70 backdrop-blur-sm p-5 transition duration-500 ease-out md:p-6">
 						<LandingPageSelector
 							state={state}
 							setState={setState}
@@ -166,32 +163,26 @@ const LandingPage = () => {
 						</Carousel>
 					</div>
 				</div>
-				<div className="flex flex-col items-center justify-between w-full h-fit">
+				<div className="flex h-fit w-full max-w-xl flex-col items-center justify-between gap-5">
 					<div className="grid grid-cols-2 w-full place-items-end gap-4 px-4 py-2 text-right">
 						<CountUp end={numUsers} duration={4}>
 							{({ countUpRef }) => (
 								<div className="w-full">
-									<span
-										ref={countUpRef}
-										className="text-6xl font-semibold text-primary-400"
-									/>
-									<span className="text-base text-primary-600"> Users</span>
+									<span ref={countUpRef} className="text-5xl font-bold text-primary-400" />
+									<span className="text-sm text-secondary-300 ml-1">Users</span>
 								</div>
 							)}
 						</CountUp>
 						<CountUp end={numGames} duration={6}>
 							{({ countUpRef }) => (
 								<div className="w-full">
-									<span
-										ref={countUpRef}
-										className="text-6xl font-semibold text-primary-400"
-									/>
-									<span className="text-base text-primary-600"> Games</span>
+									<span ref={countUpRef} className="text-5xl font-bold text-primary-400" />
+									<span className="text-sm text-secondary-300 ml-1">Games</span>
 								</div>
 							)}
 						</CountUp>
 					</div>
-					<p className="text-primary-500 w-full text-lg">
+					<p className="w-full rounded-2xl border border-white/[0.06] bg-secondary-800/60 p-5 text-sm leading-relaxed text-secondary-200 md:text-base">
 						Pong Maters is a multiplayer online game that allows you to play Pong with
 						your friends and other players around the world. Our platform is designed to
 						provide you with a fun and competitive gaming experience. Our user-friendly
@@ -201,7 +192,7 @@ const LandingPage = () => {
 					</p>
 					<Link
 						href="https://github.com/Hicham-BelHoucin/ft_transcendence"
-						className="p-4"
+						className="rounded-xl border border-white/[0.06] bg-secondary-800 px-5 py-3 transition-all duration-200 hover:bg-secondary-700 hover:border-primary-400/20"
 						target="_blank"
 						rel="noopener noreferrer"
 					>
@@ -210,16 +201,16 @@ const LandingPage = () => {
 					<Image src="/img/tech.png" width={250} height={50} alt={"Technologies"} />
 				</div>
 			</div>
-			<div className="grid md:grid-cols-3 w-full max-w-5xl place-items-center justify-center px-8 pb-16 pt-4 gap-8">
-				<div className="flex flex-wrap justify-center text-justify md:col-span-3 z-20">
-					<h1 className="text-primary-400 text-4xl font-bold mb-8">Meet the Team</h1>
-					<p className="text-primary-600 w-full text-lg">
+			<div className="z-10 mt-8 grid w-[94%] max-w-6xl place-items-center justify-center gap-8 rounded-2xl border border-white/[0.06] bg-secondary-700/50 px-6 pb-12 pt-8 shadow-2xl shadow-black/25 backdrop-blur-xl md:grid-cols-3 md:px-8">
+				<div className="flex flex-wrap justify-center text-justify md:col-span-3">
+					<h1 className="mb-6 text-3xl font-bold text-primary-400 tracking-tight md:text-4xl">Meet the Team</h1>
+					<p className="w-full text-sm leading-relaxed text-secondary-200 md:text-base">
 						We are a vibrant group of talented students hailing from the prestigious{" "}
 						<Link
 							href={"https://1337.ma/"}
 							target={"_blank"}
 							rel={"noopener noreferrer"}
-							className="underline text-primary-500 font-semibold"
+							className="font-semibold text-primary-400 underline decoration-primary-400/30 underline-offset-2"
 						>
 							1337 Coding School
 						</Link>{" "}
@@ -228,7 +219,7 @@ const LandingPage = () => {
 							href={"https://42.fr/"}
 							target={"_blank"}
 							rel={"noopener noreferrer"}
-							className="underline text-primary-500 font-semibold"
+							className="font-semibold text-primary-400 underline decoration-primary-400/30 underline-offset-2"
 						>
 							42 Network
 						</Link>{" "}
@@ -245,8 +236,8 @@ const LandingPage = () => {
 					<Contributor key={index} {...contributor} />
 				))}
 			</div>
-			<div className="flex items-center justify-center h-16">
-				<p className="text-gray-200 text-lg font-medium z-10">Crafted with</p>
+			<div className="z-10 my-10 flex h-16 items-center justify-center">
+				<p className="text-secondary-200 text-base font-medium z-10">Crafted with</p>
 				<div className="-mx-12">
 					<LottiePlayer
 						autoplay
@@ -255,7 +246,7 @@ const LandingPage = () => {
 						style={{ width: "140px", height: "140px" }}
 					/>
 				</div>
-				<p className="text-gray-200 text-lg font-medium z-10">from</p>
+				<p className="text-secondary-200 text-base font-medium z-10">from</p>
 				<div className="px-2">
 					<LottiePlayer
 						autoplay

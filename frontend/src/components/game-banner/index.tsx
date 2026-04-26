@@ -13,7 +13,7 @@ const GameBanner = ({ player1, player2,
     player2Score?: number;
 }) => {
     return (
-        <div className="my-4 flex h-12 w-full items-center justify-center rounded-full bg-tertiary-500 text-white">
+        <div className="my-4 flex h-12 w-full items-center justify-center rounded-full bg-secondary-600 text-secondary-50">
             <div className="basis-[15%]">
                 <Avatar
                     src={player1?.avatar || ""}

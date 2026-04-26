@@ -111,6 +111,11 @@ const MessageBubble: React.FC<ChannelProps> = ({
 		}
 	};
 
+	useEffect(() => {
+		autoScroll();
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [messages?.length, currentChannel?.id]);
+
 	const handleMessage = useCallback(
 		(data: Imessage) => {
 			setMessageId(data?.receiverId);
@@ -495,17 +500,23 @@ const MessageBubble: React.FC<ChannelProps> = ({
 				</div>
 			</div>
 
-			{
+			<div className="flex min-h-0 flex-1 flex-col">
+				{
 				// !spinner ?
 				!messages ? (
-					<div className="mb-2 flex h-full flex-col  justify-end gap-2 z-[0] px-[10px] ">
+					<div className="mb-2 flex min-h-0 flex-1 flex-col justify-end gap-2 px-[10px] z-[0]">
 						<div className="flex justify-center items-center h-full">
 							<Spinner />
 						</div>
 					</div>
 				) : (
-					<div className="mb-2 flex flex-col overflow-y-scroll scroll-smooth scrollbar-hide h-full first:space-y-4 gap-2 z-[0] px-[10px] ">
+					<div className="mb-2 flex min-h-0 flex-1 flex-col overflow-y-auto scroll-smooth scrollbar-hide first:space-y-4 gap-2 px-[10px] z-[0]">
 						{messages?.map((message, index) => {
+							const previousMessage = index > 0 ? messages[index - 1] : undefined;
+							const shouldShowDateDivider =
+								!previousMessage ||
+								new Date(message.date).getDay() !==
+									new Date(previousMessage.date).getDay();
 							return index !== messages.length - 1 ? (
 								<div
 									key={message.id}
@@ -513,10 +524,7 @@ const MessageBubble: React.FC<ChannelProps> = ({
 										index > 0 ? "translate-y-2" : ""
 									}`}
 								>
-									{new Date(message.date).getDay() !==
-										new Date(
-											messages[messages.indexOf(message) - 1]?.date
-										).getDay() && (
+									{shouldShowDateDivider && (
 										<Divider
 											center
 											title={
@@ -534,12 +542,7 @@ const MessageBubble: React.FC<ChannelProps> = ({
 											}
 										/>
 									)}
-									<MessageBox
-										autoScroll={autoScroll}
-										key={message.id}
-										message={message}
-										right={message.senderId === user?.id}
-									/>
+									<MessageBox key={message.id} message={message} right={message.senderId === user?.id} />
 								</div>
 							) : (
 								<div
@@ -549,10 +552,7 @@ const MessageBubble: React.FC<ChannelProps> = ({
 										index > 0 ? "translate-y-2" : ""
 									}`}
 								>
-									{new Date(message.date).getDay() !==
-										new Date(
-											messages[messages.indexOf(message) - 1]?.date
-										).getDay() && (
+									{shouldShowDateDivider && (
 										<Divider
 											center
 											title={
@@ -570,20 +570,16 @@ const MessageBubble: React.FC<ChannelProps> = ({
 											}
 										/>
 									)}
-									<MessageBox
-										autoScroll={autoScroll}
-										key={message.id}
-										message={message}
-										right={message.senderId === user?.id}
-									/>
+									<MessageBox key={message.id} message={message} right={message.senderId === user?.id} />
 								</div>
 							);
 						})}
 						<div className="mt-5"></div>
 					</div>
 				)
-			}
-			<div className="flex w-full  items-center bg-secondary-700 sticky bottom-0 ">
+				}
+			</div>
+			<div className="sticky bottom-0 flex w-full items-center gap-1 border-t border-secondary-600 bg-secondary-700 px-2 py-1.5">
 				<Input
 					disabled={
 						currentChannel?.channelMembers?.filter(
@@ -612,6 +608,7 @@ const MessageBubble: React.FC<ChannelProps> = ({
 							: "type something"
 					}
 					value={value}
+					className="!h-11 !rounded-lg !py-2 !text-sm"
 					inputRef={inputRef}
 					onKeyDown={(event: any) => {
 						if (event.key === "Enter") {
@@ -626,7 +623,7 @@ const MessageBubble: React.FC<ChannelProps> = ({
 
 				<Button
 					variant="text"
-					className="!hover:bg-inherit !bg-inherit text-primary-500"
+					className="!bg-inherit !p-2 !text-primary-500 !hover:bg-secondary-600/60"
 					disabled={
 						currentChannel?.channelMembers?.filter(
 							(member: IchannelMember) => member.userId === user?.id
