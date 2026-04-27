@@ -36,7 +36,7 @@ const ChatBanner = ({ channel }: { channel?: Ichannel }) => {
 			inputRef?.current?.focus();
 		} else {
 			socket?.emit("channel_join", { channelId: channel?.id, userId: user?.id });
-			router.push(`/chat`);
+			router.push(`/chat?channelId=${channel?.id}`);
 		}
 	};
 
@@ -50,7 +50,7 @@ const ChatBanner = ({ channel }: { channel?: Ichannel }) => {
 				!channel?.isacessPassword
 			) {
 				socket?.emit("channel_access", { userId: user?.id, channelId: channel?.id });
-				router.push(`/chat`);
+				router.push(`/chat?channelId=${channel?.id}`);
 				return;
 			} else {
 				setAccessModal(true);
@@ -70,7 +70,7 @@ const ChatBanner = ({ channel }: { channel?: Ichannel }) => {
 			);
 			if (res.data === true) {
 				socket?.emit("channel_access", { userId: user?.id, channelId: channel?.id });
-				router.push(`/chat`);
+				router.push(`/chat?channelId=${channel?.id}`);
 			} else {
 				toast.error("Wrong access password !");
 			}
@@ -213,7 +213,7 @@ const ChatBanner = ({ channel }: { channel?: Ichannel }) => {
 									});
 									setshowModal(false);
 									setPassword("");
-									router.push(`/chat`);
+									router.push(`/chat?channelId=${channel?.id}`);
 								}
 							}}
 						/>
@@ -238,7 +238,7 @@ const ChatBanner = ({ channel }: { channel?: Ichannel }) => {
 									});
 									setshowModal(false);
 									setPassword("");
-									router.push(`/chat`);
+									router.push(`/chat?channelId=${channel?.id}`);
 								}}
 							>
 								<span className="text-xs">Join</span>

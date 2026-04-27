@@ -5,7 +5,7 @@ import { AppContext, fetcher } from "@/context/app.context";
 import { ChatContext, Ichannel, IchannelMember, Imessage } from "@/context/chat.context";
 import { GameContext } from "@/context/game.context";
 import IUser from "@/interfaces/user";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import axios from "axios";
 import { toast } from "react-toastify";
 import UpdateAvatar from "../update-avatar";
@@ -14,6 +14,7 @@ import {
 	SendHorizonal,
 	MessageSquare,
 	ChevronDown,
+	ChevronLeft,
 	UserCircle,
 	UserX,
 	Gamepad2,
@@ -61,6 +62,7 @@ const ChatV2 = () => {
 	const { socket } = useContext(ChatContext);
 	const { socket: gameSocket } = useContext(GameContext);
 	const router = useRouter();
+	const searchParams = useSearchParams();
 
 	const [channels, setChannels] = useState<Ichannel[]>([]);
 	const [archivedChannels, setArchivedChannels] = useState<Ichannel[]>([]);
@@ -100,6 +102,7 @@ const ChatV2 = () => {
 	const [loadingOlder, setLoadingOlder] = useState(false);
 	const [oldestDateByChannel, setOldestDateByChannel] = useState<Record<number, string>>({});
 	const [channelScrollTop, setChannelScrollTop] = useState(0);
+	const [isMobileView, setIsMobileView] = useState(false);
 
 	const channelListRef = useRef<HTMLDivElement>(null);
 	const messagesRef = useRef<HTMLDivElement>(null);
@@ -144,6 +147,15 @@ const ChatV2 = () => {
 		};
 		window.addEventListener("keydown", onShortcut);
 		return () => window.removeEventListener("keydown", onShortcut);
+	}, []);
+
+	useEffect(() => {
+		const syncViewport = () => {
+			setIsMobileView(window.innerWidth < 1024);
+		};
+		syncViewport();
+		window.addEventListener("resize", syncViewport);
+		return () => window.removeEventListener("resize", syncViewport);
 	}, []);
 
 	useEffect(() => {
@@ -205,12 +217,26 @@ const ChatV2 = () => {
 				[channelId]: incoming[0]?.date || prev[channelId],
 			}));
 		};
+		const onDmCreated = (channel: Ichannel) => {
+			if (!channel?.id) return;
+			setActiveChannel(channel);
+			setShowComposerModal(false);
+			setInboxMode("active");
+		};
+		const onGroupCreated = (channel: Ichannel) => {
+			if (!channel?.id) return;
+			setActiveChannel(channel);
+			setShowComposerModal(false);
+			setInboxMode("active");
+		};
 
 		socket.on("getChannels", onChannels);
 		socket.on("getArchiveChannels", onArchivedChannels);
 		socket.on("message", onMessage);
 		socket.on("getChannelMessages", onChannelMessages);
 		socket.on("get_client_messages", onChannelMessages);
+		socket.on("dm_create", onDmCreated);
+		socket.on("channel_create", onGroupCreated);
 
 		return () => {
 			socket.off("getChannels", onChannels);
@@ -218,8 +244,26 @@ const ChatV2 = () => {
 			socket.off("message", onMessage);
 			socket.off("getChannelMessages", onChannelMessages);
 			socket.off("get_client_messages", onChannelMessages);
+			socket.off("dm_create", onDmCreated);
+			socket.off("channel_create", onGroupCreated);
 		};
 	}, [socket, user?.id]);
+
+	useEffect(() => {
+		const fromQuery = searchParams.get("channelId");
+		if (!fromQuery) return;
+		const channelId = Number(fromQuery);
+		if (Number.isNaN(channelId)) return;
+		const nextChannel =
+			channels.find((channel) => channel.id === channelId) ||
+			archivedChannels.find((channel) => channel.id === channelId);
+		if (!nextChannel) return;
+		setActiveChannel(nextChannel);
+		setInboxMode(
+			channels.some((channel) => channel.id === channelId) ? "active" : "archived"
+		);
+		router.replace("/chat");
+	}, [searchParams, channels, archivedChannels, router]);
 
 	const filteredChannels = useMemo(() => {
 		const query = channelSearch.trim().toLowerCase();
@@ -707,16 +751,21 @@ const ChatV2 = () => {
 	};
 
 	return (
-		<div className="grid h-full w-full grid-cols-12 gap-3">
-			<aside className="col-span-12 rounded-3xl border border-secondary-700 bg-secondary-900 lg:col-span-4">
+		<div className="grid h-full w-full grid-cols-12 gap-3 p-2 md:p-3">
+			<aside
+				className={twMerge(
+					"col-span-12 rounded-3xl border border-secondary-700 bg-secondary-900 lg:col-span-4",
+					isMobileView && activeChannel ? "hidden" : "block"
+				)}
+			>
 				<div className="border-b border-secondary-700 p-4">
 					<div className="flex items-center justify-between">
 						<p className="text-xs uppercase tracking-[0.25em] text-secondary-400">Inbox</p>
 						<button
 							onClick={() => setShowComposerModal(true)}
-							className="inline-flex items-center gap-1 rounded-xl border border-secondary-600 bg-secondary-700 px-2 py-1 text-xs text-secondary-100 transition hover:bg-secondary-600"
+							className="inline-flex items-center gap-1 rounded-xl border border-secondary-600 bg-secondary-700 px-2 py-1 text-xs text-secondary-100 transition hover:bg-secondary-600 md:text-sm"
 						>
-							<Plus className="h-3 w-3" />
+							<Plus className="h-3.5 w-3.5 md:h-4 md:w-4" />
 							New
 						</button>
 					</div>
@@ -726,7 +775,7 @@ const ChatV2 = () => {
 							value={channelSearch}
 							onChange={(e) => setChannelSearch(e.target.value)}
 							placeholder="Search conversations..."
-							className="w-full rounded-xl border border-secondary-500 bg-secondary-800 py-2 pl-9 pr-3 text-sm text-secondary-50 outline-none transition focus:border-primary-300"
+							className="w-full rounded-xl border border-secondary-500 bg-secondary-800 py-2 pl-9 pr-3 text-sm text-secondary-50 outline-none transition focus:border-primary-300 md:text-base"
 						/>
 					</div>
 					<div className="mt-3 grid grid-cols-2 gap-2 rounded-xl bg-secondary-800 p-1">
@@ -776,14 +825,14 @@ const ChatV2 = () => {
 									setShowQuickSwitch(false);
 								}}
 								className={twMerge(
-									"my-1 flex h-[64px] w-full items-center gap-3 rounded-2xl px-3 text-left transition",
+									"my-1 flex h-[68px] w-full items-center gap-3 rounded-2xl px-3 text-left transition md:h-[64px]",
 									isActive ? "bg-secondary-700" : "hover:bg-secondary-800"
 								)}
 							>
-								<img src={avatar} alt={name} className="h-10 w-10 rounded-full object-cover" />
+								<img src={avatar} alt={name} className="h-11 w-11 rounded-full object-cover md:h-10 md:w-10" />
 								<div className="min-w-0 flex-1">
-									<p className="truncate text-sm font-semibold text-secondary-50">{name}</p>
-									<p className="truncate text-xs text-secondary-300">
+									<p className="truncate text-[15px] font-semibold text-secondary-50 md:text-sm">{name}</p>
+									<p className="truncate text-[12px] text-secondary-300 md:text-xs">
 										{channel.messages?.[0]?.content || "No messages yet"}
 									</p>
 								</div>
@@ -803,24 +852,40 @@ const ChatV2 = () => {
 				</div>
 			</aside>
 
-			<section className="col-span-12 flex h-[calc(100vh)] min-h-[78vh] flex-col overflow-hidden rounded-3xl border border-secondary-500 bg-secondary-700 lg:col-span-8">
-				<div className="flex items-center justify-between border-b border-secondary-500/70 bg-secondary-800/70 px-4 py-3 backdrop-blur-sm">
-					<div>
+			<section
+				className={twMerge(
+					"col-span-12 flex h-[calc(100vh)] min-h-[78vh] flex-col overflow-hidden rounded-3xl border border-secondary-500 bg-secondary-700 lg:col-span-8",
+					isMobileView && !activeChannel ? "hidden" : "flex"
+				)}
+			>
+				<div className="flex items-center justify-between border-b border-secondary-500/70 bg-secondary-800/70 px-3 py-3 backdrop-blur-sm md:px-4">
+					<div className="flex items-center gap-2">
+						{isMobileView && activeChannel && (
+							<button
+								onClick={() => setActiveChannel(null)}
+								className="rounded-lg border border-secondary-500 bg-secondary-800 p-1.5 text-secondary-100"
+								aria-label="Back to conversations"
+							>
+								<ChevronLeft className="h-4 w-4" />
+							</button>
+						)}
+						<div className="min-w-0">
 						<p className="text-xs uppercase tracking-[0.25em] text-secondary-300">Workspace</p>
-						<p className="text-lg font-semibold text-secondary-50">
+						<p className="truncate text-base font-semibold text-secondary-50 md:text-lg">
 							{activeChannel ? getChannelName(activeChannel, user?.id) : "Select a conversation"}
 						</p>
+						</div>
 					</div>
-					<div className="flex items-center gap-2">
+					<div className="ml-2 flex max-w-[60%] flex-wrap items-center justify-end gap-1.5 md:max-w-none md:gap-2">
 						{activeChannel && activeChannel.type !== "CONVERSATION" && (
 							<button
 								onClick={() => {
 									resetGroupSettingsState();
 									setShowGroupSettings(true);
 								}}
-								className="rounded-xl border border-secondary-500 bg-secondary-800 px-3 py-2 text-xs text-secondary-100"
+								className="rounded-xl border border-secondary-500 bg-secondary-800 px-2 py-1.5 text-[11px] text-secondary-100 md:px-3 md:py-2 md:text-xs"
 							>
-								<Settings className="mr-1 inline h-3 w-3" />
+								<Settings className="mr-1 inline h-3.5 w-3.5 md:h-3 md:w-3" />
 								Group settings
 							</button>
 						)}
@@ -828,30 +893,30 @@ const ChatV2 = () => {
 							<>
 								<button
 									onClick={() => handleInviteToGame(activeConversationPeer.id)}
-									className="rounded-xl border border-secondary-500 bg-secondary-800 px-3 py-2 text-xs text-secondary-100"
+									className="rounded-xl border border-secondary-500 bg-secondary-800 px-2 py-1.5 text-[11px] text-secondary-100 md:px-3 md:py-2 md:text-xs"
 								>
-									<Gamepad2 className="mr-1 inline h-3 w-3" />
+									<Gamepad2 className="mr-1 inline h-3.5 w-3.5 md:h-3 md:w-3" />
 									Invite
 								</button>
 								<button
 									onClick={() => handleGoToProfile(activeConversationPeer.id)}
-									className="rounded-xl border border-secondary-500 bg-secondary-800 px-3 py-2 text-xs text-secondary-100"
+									className="rounded-xl border border-secondary-500 bg-secondary-800 px-2 py-1.5 text-[11px] text-secondary-100 md:px-3 md:py-2 md:text-xs"
 								>
-									<UserCircle className="mr-1 inline h-3 w-3" />
+									<UserCircle className="mr-1 inline h-3.5 w-3.5 md:h-3 md:w-3" />
 									Profile
 								</button>
 								<button
 									onClick={() => handleToggleBlock(activeConversationPeer.id)}
-									className="rounded-xl border border-secondary-500 bg-secondary-800 px-3 py-2 text-xs text-secondary-100"
+									className="rounded-xl border border-secondary-500 bg-secondary-800 px-2 py-1.5 text-[11px] text-secondary-100 md:px-3 md:py-2 md:text-xs"
 								>
-									<UserX className="mr-1 inline h-3 w-3" />
+									<UserX className="mr-1 inline h-3.5 w-3.5 md:h-3 md:w-3" />
 									{isPeerBlockedByMe ? "Unblock" : "Block"}
 								</button>
 							</>
 						)}
 						<button
 							onClick={() => setShowQuickSwitch(true)}
-							className="rounded-xl border border-secondary-700 bg-secondary-500 px-3 py-2 text-xs text-secondary-100"
+							className="hidden rounded-xl border border-secondary-700 bg-secondary-500 px-2 py-1.5 text-[11px] text-secondary-100 md:inline-block md:px-3 md:py-2 md:text-xs"
 						>
 							Quick Switch (Cmd/Ctrl+K)
 						</button>
@@ -864,9 +929,9 @@ const ChatV2 = () => {
 							<button
 								onClick={handleLoadOlder}
 								disabled={loadingOlder}
-								className="flex items-center gap-1 rounded-full border border-secondary-700 px-3 py-1 text-xs text-secondary-100 disabled:opacity-60"
+								className="flex items-center gap-1 rounded-full border border-secondary-700 px-3 py-1 text-[11px] text-secondary-100 disabled:opacity-60 md:text-xs"
 							>
-								<ChevronDown className="h-3 w-3" />
+								<ChevronDown className="h-3.5 w-3.5 md:h-3 md:w-3" />
 								{loadingOlder ? "Loading..." : "Load older"}
 							</button>
 						</div>
@@ -888,7 +953,7 @@ const ChatV2 = () => {
 											)}
 										>
 											<p className="break-words">{message.content}</p>
-											<p className="mt-1 text-[10px] opacity-70">
+										<p className="mt-1 text-[11px] opacity-70 md:text-[10px]">
 												{new Date(message.date).toLocaleTimeString([], {
 													hour: "2-digit",
 													minute: "2-digit",
@@ -900,9 +965,9 @@ const ChatV2 = () => {
 							})}
 						</div>
 
-						<div className="mt-auto flex shrink-0 flex-col gap-2 border-t border-secondary-700 bg-secondary-700 p-2.5">
+						<div className="mt-auto flex shrink-0 flex-col gap-2 border-t border-secondary-700 bg-secondary-700 p-2.5 md:p-2.5">
 							{sendRestrictionMessage && (
-								<div className="w-full rounded-xl border border-amber-400/50 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
+								<div className="w-full rounded-xl border border-amber-400/50 bg-amber-500/10 px-3 py-2 text-[12px] text-amber-200 md:text-xs">
 									{sendRestrictionMessage}
 								</div>
 							)}
@@ -917,14 +982,14 @@ const ChatV2 = () => {
 								placeholder={
 									sendRestrictionMessage ? "Messaging disabled in this conversation." : "Write a message..."
 								}
-								className="flex-1 rounded-xl border border-secondary-500 bg-secondary-900 px-3 py-2 text-sm text-secondary-50 outline-none focus:border-primary-300 disabled:cursor-not-allowed disabled:opacity-60"
+								className="flex-1 rounded-xl border border-secondary-500 bg-secondary-900 px-3 py-2 text-[15px] text-secondary-50 outline-none focus:border-primary-300 disabled:cursor-not-allowed disabled:opacity-60 md:text-sm"
 							/>
 							<button
 								onClick={handleSend}
 								disabled={!!sendRestrictionMessage}
 								className="rounded-xl bg-primary-300 p-2 text-secondary-900 transition hover:bg-primary-200 disabled:cursor-not-allowed disabled:opacity-60"
 							>
-								<SendHorizonal className="h-4 w-4" />
+								<SendHorizonal className="h-5 w-5 md:h-4 md:w-4" />
 							</button>
 							</div>
 						</div>
