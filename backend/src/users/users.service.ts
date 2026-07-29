@@ -153,7 +153,8 @@ export class UsersService {
 
       return achievement;
     } catch (error) {
-      throw new NotFoundException('user or Achievement Not Found');
+      console.error(`assignAchievements failed for user ${userId} and achievement ${achievementName}:`, error.message);
+      return null;
     }
   }
 

@@ -1166,21 +1166,23 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const members = await this.channelService.getChannelMembersByChannelId(
         channelId,
       );
-      for (const member of members) {
-        if (member.status !== MemberStatus.ACTIVE) continue;
-        const sockets = this.getConnectedUsers(member.userId);
-        if (!sockets.length) continue;
-        const channels = await this.channelService.getChannelsByUserId(
-          member.userId,
-        );
-        const archived = await this.channelService.getArchivedChannelsByUserId(
-          member.userId,
-        );
-        for (const socket of sockets) {
-          this.server.to(socket.id).emit(EVENT.GET_CHANNELS, channels);
-          this.server.to(socket.id).emit(EVENT.GET_ARCHIVED_CHANNELS, archived);
-        }
-      }
+      await Promise.all(
+        members.map(async (member) => {
+          if (member.status !== MemberStatus.ACTIVE) return;
+          const sockets = this.getConnectedUsers(member.userId);
+          if (!sockets.length) return;
+          
+          const [channels, archived] = await Promise.all([
+            this.channelService.getChannelsByUserId(member.userId),
+            this.channelService.getArchivedChannelsByUserId(member.userId)
+          ]);
+          
+          for (const socket of sockets) {
+            this.server.to(socket.id).emit(EVENT.GET_CHANNELS, channels);
+            this.server.to(socket.id).emit(EVENT.GET_ARCHIVED_CHANNELS, archived);
+          }
+        })
+      );
     } catch (err) {
       throw new WsException({
         error: EVENT.ERROR,
@@ -1202,14 +1204,18 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const name =
         channel.type === ChannelType.CONVERSATION ? 'DM' : channel.name;
       let sockets;
-      members.forEach(async (member) => {
+      const blockedUserIds = await this.chatService.getBlockedUserIds(senderId);
+      
+      members.forEach((member) => {
         if (
           member.status === MemberStatus.BANNED ||
           member.status === MemberStatus.LEFT ||
-          (await this.chatService.isBlocked(senderId, member.userId))
+          blockedUserIds.includes(member.userId)
         )
           return;
         sockets = this.getConnectedUsers(member.userId);
+        if (!sockets.length) return;
+        
         const content =
           message.content.length > 40
             ? message.content.substring(1, 40) + '...'
@@ -1241,11 +1247,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   private getConnectedUsers(id: number): Socket[] {
     try {
-      const connectedUsers: Socket[] = [];
-      this.connectedClient.forEach((user) => {
-        if (user.data.sub === id) connectedUsers.push(user);
-      });
-      return connectedUsers;
+      return this.connectedClient.get(id) || [];
     } catch (err) {
       throw new WsException({
         error: EVENT.ERROR,
@@ -1305,31 +1307,36 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
           url: '/chat',
         };
       }
-      channelMembers
-        .filter(
-          (member) =>
-            member.status !== MemberStatus.BANNED &&
-            member.status !== MemberStatus.LEFT &&
-            member.userId !== userId,
-        )
-        .forEach(async (member) => {
-          if (
-            !channel.mutedFor.map((u) => u.id).includes(member.userId) &&
-            !(await this.chatService.isBlocked(userId, member.userId))
-          ) {
-            this.notificationService.createNotification(
-              userId,
-              member.userId,
-              data.title,
-              data.content,
-              data.url,
-            );
-            const sockets: Socket[] = this.getConnectedUsers(member.userId);
-            for (const socket of sockets) {
-              this.server.to(socket.id).emit(EVENT.NOTIFICATION, data);
+      const blockedUserIds = await this.chatService.getBlockedUserIds(userId);
+      const mutedUserIds = channel.mutedFor.map((u) => u.id);
+
+      await Promise.all(
+        channelMembers
+          .filter(
+            (member) =>
+              member.status !== MemberStatus.BANNED &&
+              member.status !== MemberStatus.LEFT &&
+              member.userId !== userId,
+          )
+          .map(async (member) => {
+            if (
+              !mutedUserIds.includes(member.userId) &&
+              !blockedUserIds.includes(member.userId)
+            ) {
+              await this.notificationService.createNotification(
+                userId,
+                member.userId,
+                data.title,
+                data.content,
+                data.url,
+              );
+              const sockets: Socket[] = this.getConnectedUsers(member.userId);
+              for (const socket of sockets) {
+                this.server.to(socket.id).emit(EVENT.NOTIFICATION, data);
+              }
             }
-          }
-        });
+          })
+      );
     } catch (err) {
       throw new Error(err);
     }
@@ -1371,16 +1378,19 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const members = await this.channelService.getChannelMembersByChannelId(
         channelId,
       );
-      for (const member of members) {
-        const messages = await this.messageService.getMessagesByChannelId(
-          channelId,
-          member.userId,
-        );
-        const sockets: Socket[] = this.getConnectedUsers(member.userId);
-        for (const socket of sockets) {
-          this.server.to(socket.id).emit(EVENT.GET_CH_MSSGS, messages);
-        }
-      }
+      await Promise.all(
+        members.map(async (member) => {
+          const sockets: Socket[] = this.getConnectedUsers(member.userId);
+          if (!sockets.length) return;
+          const messages = await this.messageService.getMessagesByChannelId(
+            channelId,
+            member.userId,
+          );
+          for (const socket of sockets) {
+            this.server.to(socket.id).emit(EVENT.GET_CH_MSSGS, messages);
+          }
+        })
+      );
     } catch (err) {
       throw new Error(err);
     }
