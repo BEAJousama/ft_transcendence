@@ -69,44 +69,36 @@ export class MessageService {
           member.userId !== data.senderId,
       );
 
-      await Promise.all(
-        activeMembers.map(async (member) => {
-          await this.prisma.channel.update({
-            where: {
-              id: data.receiverId,
-            },
+      if (activeMembers.length > 0) {
+        const blockedUserIds = await this.chatService.getBlockedUserIds(data.senderId);
+        const unblockedMemberIds = activeMembers
+          .map((m) => m.userId)
+          .filter((id) => !blockedUserIds.includes(id));
+
+        const connectDisconnectIds = activeMembers.map((m) => ({ id: m.userId }));
+
+        await Promise.all([
+          this.prisma.channel.update({
+            where: { id: data.receiverId },
             data: {
-              deletedFor: {
-                disconnect: {
-                  id: member.userId,
-                },
-              },
-              unreadFor: {
-                connect: {
-                  id: member.userId,
-                },
-              },
+              deletedFor: { disconnect: connectDisconnectIds },
+              unreadFor: { connect: connectDisconnectIds },
               updatedAt: message.date,
             },
-          });
-
-          if (!(await this.chatService.isBlocked(member.userId, data.senderId))) {
-            await this.prisma.channelMember.update({
-              where: {
-                userId_channelId: {
-                  userId: member.userId,
+          }),
+          unblockedMemberIds.length > 0
+            ? this.prisma.channelMember.updateMany({
+                where: {
                   channelId: data.receiverId,
+                  userId: { in: unblockedMemberIds },
                 },
-              },
-              data: {
-                newMessagesCount: {
-                  increment: 1,
+                data: {
+                  newMessagesCount: { increment: 1 },
                 },
-              },
-            });
-          }
-        }),
-      );
+              })
+            : Promise.resolve(),
+        ]);
+      }
       return message;
     } catch (err) {
       throw new Error(err.message);
