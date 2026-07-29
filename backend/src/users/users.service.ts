@@ -64,25 +64,26 @@ export class UsersService {
 
   async findStats() {
     try {
-      const users = await this.prisma.user.findMany({
+      const usersCount = await this.prisma.user.count();
+      const gamesCount = await this.prisma.game.count();
+      const topUser = await this.prisma.user.findFirst({
         orderBy: {
           rating: 'desc',
         },
       });
-      const games = await this.prisma.game.findMany({});
 
       return {
-        users: users.length,
-        games: games.length,
-        user: {
-          username: users[0].username,
-          rating: users[0].rating,
-          wins: users[0].wins,
-          losses: users[0].losses,
-          totalGames: users[0].totalGames,
-          winStreak: users[0].winStreak,
-          avatar: users[0].avatar,
-        },
+        users: usersCount,
+        games: gamesCount,
+        user: topUser ? {
+          username: topUser.username,
+          rating: topUser.rating,
+          wins: topUser.wins,
+          losses: topUser.losses,
+          totalGames: topUser.totalGames,
+          winStreak: topUser.winStreak,
+          avatar: topUser.avatar,
+        } : null,
       };
     } catch (_) {
       return null;
@@ -565,7 +566,15 @@ export class UsersService {
 
   async getFriendRequests(id: number) {
     try {
-      const requests = await this.prisma.friend.findMany();
+      const requests = await this.prisma.friend.findMany({
+        where: {
+          receiverId: id,
+          status: 'PENDING',
+        },
+        include: {
+          sender: true,
+        },
+      });
       return requests;
     } catch (error) {
       throw new InternalServerErrorException('Failed to get friend requests');
