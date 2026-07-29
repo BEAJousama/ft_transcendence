@@ -780,7 +780,7 @@ const ChatV2 = () => {
 		<div className="grid h-full w-full grid-cols-12 gap-3 p-2 md:p-3">
 			<aside
 				className={twMerge(
-					"col-span-12 rounded-3xl border border-secondary-700 bg-secondary-900 lg:col-span-4",
+					"col-span-12 rounded-3xl border border-secondary-700 bg-secondary-900 lg:col-span-4 flex flex-col h-full overflow-hidden",
 					isMobileView && activeChannel ? "hidden" : "block"
 				)}
 			>
@@ -832,7 +832,7 @@ const ChatV2 = () => {
 				<div
 					ref={channelListRef}
 					onScroll={() => setChannelScrollTop(channelListRef.current?.scrollTop || 0)}
-					className="h-[72vh] overflow-y-auto px-2 pb-2"
+					className="flex-1 overflow-y-auto px-2 pb-2"
 				>
 					<div style={{ height: channelWindow.offsetTop }} />
 					{visibleChannels.map((channel) => {
@@ -880,7 +880,7 @@ const ChatV2 = () => {
 
 			<section
 				className={twMerge(
-					"col-span-12 flex h-[calc(100vh)] min-h-[78vh] flex-col overflow-hidden rounded-3xl border border-secondary-500 bg-secondary-700 lg:col-span-8",
+					"col-span-12 flex h-full flex-col overflow-hidden rounded-3xl border border-secondary-500 bg-secondary-700 lg:col-span-8",
 					isMobileView && !activeChannel ? "hidden" : "flex"
 				)}
 			>
