@@ -164,7 +164,6 @@ export class MessageService {
       },
       include: {
         sender: true,
-        receiver: true,
       },
     });
 
@@ -210,7 +209,6 @@ export class MessageService {
       },
       include: {
         sender: true,
-        receiver: true,
       },
       orderBy: {
         date: 'desc',

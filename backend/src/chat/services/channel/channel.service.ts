@@ -94,20 +94,17 @@ export class ChannelService {
         },
       });
 
-      channels.forEach((channel) => {
-        if (
+      const filteredChannels = channels.filter((channel) => !(
           channel.userId != userId &&
           channel.type === ChannelType.CONVERSATION &&
           channel.updatedAt.toString() === channel.createAt.toString()
-        ) {
-          channels.splice(channels.indexOf(channel), 1);
-        }
-      });
+      ));
+
       // sort channels by updatedAt
-      channels.sort((a, b) => {
+      filteredChannels.sort((a, b) => {
         return b.updatedAt.getTime() - a.updatedAt.getTime();
       });
-      return channels;
+      return filteredChannels;
     } catch (error) {
       throw new Error(error.message);
     }
@@ -157,7 +154,12 @@ export class ChannelService {
               },
             },
           },
-          messages: true,
+          messages: {
+            orderBy: {
+              date: 'desc',
+            },
+            take: 1,
+          },
         },
       });
 
@@ -224,6 +226,10 @@ export class ChannelService {
                 },
               },
             },
+            orderBy: {
+              date: 'desc',
+            },
+            take: 1,
           },
           isacessPassword: true,
         },
@@ -283,7 +289,12 @@ export class ChannelService {
             },
           },
         },
-        messages: true,
+        messages: {
+          orderBy: {
+            date: 'desc',
+          },
+          take: 1,
+        },
         isacessPassword: true,
       },
     });
