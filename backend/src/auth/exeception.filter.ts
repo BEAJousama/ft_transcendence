@@ -20,7 +20,7 @@ export class FourtyTwoFilter implements ExceptionFilter {
       message = exception.message;
     }
 
-    response.redirect(process.env.FRONTEND_URL);
+    response.redirect(process.env.FRONTEND_URL ?? '/');
     // response.status(statusCode).json({
     //   statusCode,
     //   message,

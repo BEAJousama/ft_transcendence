@@ -8,6 +8,7 @@ export class PrismaService extends PrismaClient {
       datasources: {
         db: {
           url: process.env.DATABASE_URL,
+          directUrl: process.env.DATABASE_URL_UNPOOLED, // uncomment if you use Prisma <5.10
         },
       },
     });

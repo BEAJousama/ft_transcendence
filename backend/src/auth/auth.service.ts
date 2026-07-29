@@ -18,6 +18,20 @@ export class AuthService {
     private jwtService: JwtService,
     private usersService: UsersService,
   ) {}
+
+  private getFrontendUrl() {
+    return process.env.FRONTEND_URL ?? '/';
+  }
+
+  private getAuthCookieOptions() {
+    return {
+      sameSite:
+        process.env.NODE_ENV === 'production' ? ('none' as const) : ('lax' as const),
+      secure: process.env.NODE_ENV === 'production',
+      path: '/',
+    };
+  }
+
   private accessToken: {
     name: string;
     value: string;
@@ -107,7 +121,7 @@ export class AuthService {
   async callback(req, res) {
     try {
       if (!req.user) {
-        res.redirect(process.env.FRONTEND_URL);
+        res.redirect(this.getFrontendUrl());
         res.end();
       }
       const data = req.user;
@@ -131,8 +145,8 @@ export class AuthService {
           expiresIn: '24h',
         });
 
-        res.cookie('2fa_access_token', access_token);
-        res.redirect(process.env.FRONTEND_URL);
+        res.cookie('2fa_access_token', access_token, this.getAuthCookieOptions());
+        res.redirect(this.getFrontendUrl());
         res.end();
         return;
       }
@@ -142,10 +156,10 @@ export class AuthService {
         secret: process.env.JWT_SECRET,
         expiresIn: '7d',
       });
-      res.cookie('access_token', access_token);
+      res.cookie('access_token', access_token, this.getAuthCookieOptions());
       if (Math.abs(user.createdAt.getTime() - user.updatedAt.getTime()) <= 1500)
-        res.cookie('complete_info', 'complete_your_info');
-      res.redirect(process.env.FRONTEND_URL);
+        res.cookie('complete_info', 'complete_your_info', this.getAuthCookieOptions());
+      res.redirect(this.getFrontendUrl());
       res.end();
       return;
     } catch (error: any) {
@@ -225,7 +239,7 @@ export class AuthService {
           expiresIn: '7d',
         });
 
-        res.cookie('access_token', access_token);
+        res.cookie('access_token', access_token, this.getAuthCookieOptions());
         return {
           message: 'success',
         };
