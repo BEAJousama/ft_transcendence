@@ -78,13 +78,6 @@ export class ChannelService {
             },
           },
           messages: {
-            where: {
-              NOT: {
-                senderId: {
-                  in: await this.chatService.getBlockedUserIds(userId),
-                },
-              },
-            },
             orderBy: {
               date: 'desc',
             },
@@ -219,13 +212,6 @@ export class ChannelService {
             },
           },
           messages: {
-            where: {
-              NOT: {
-                senderId: {
-                  in: await this.chatService.getBlockedUserIds(userId),
-                },
-              },
-            },
             orderBy: {
               date: 'desc',
             },

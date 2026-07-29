@@ -43,8 +43,19 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     try {
       await this.verifyClient(client);
       this.connectedClient.put(client.data.sub, client);
-      await this.joinChannels(client);
-      await this.sendChannelsToClient(client);
+      
+      const [channels, archived] = await Promise.all([
+        this.channelService.getChannelsByUserId(client.data.sub),
+        this.channelService.getArchivedChannelsByUserId(client.data.sub),
+      ]);
+
+      channels.forEach((channel) => {
+        client.join(channel.id.toString());
+      });
+
+      client.emit(EVENT.GET_CHANNELS, channels);
+      client.emit(EVENT.GET_ARCHIVED_CHANNELS, archived);
+
       if (client.data.sub)
         await this.userService.updateStatus('ONLINE', client.data.sub);
       client.on('disconnect', () => {

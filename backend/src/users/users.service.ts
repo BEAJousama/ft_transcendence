@@ -335,9 +335,12 @@ export class UsersService {
             },
           },
         },
-        include: {
-          blockers: true,
-          blocking: true,
+        select: {
+          id: true,
+          username: true,
+          email: true,
+          avatar: true,
+          status: true,
         },
       });
       return users;
