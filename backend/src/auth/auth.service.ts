@@ -146,7 +146,9 @@ export class AuthService {
         });
 
         res.cookie('2fa_access_token', access_token, this.getAuthCookieOptions());
-        res.redirect(this.getFrontendUrl());
+        let redirectUrl = this.getFrontendUrl();
+        redirectUrl += (redirectUrl.includes('?') ? '&' : '?') + '2fa_access_token=' + access_token;
+        res.redirect(redirectUrl);
         res.end();
         return;
       }
@@ -157,9 +159,13 @@ export class AuthService {
         expiresIn: '7d',
       });
       res.cookie('access_token', access_token, this.getAuthCookieOptions());
-      if (Math.abs(user.createdAt.getTime() - user.updatedAt.getTime()) <= 1500)
+      let redirectUrl = this.getFrontendUrl();
+      redirectUrl += (redirectUrl.includes('?') ? '&' : '?') + 'access_token=' + access_token;
+      if (Math.abs(user.createdAt.getTime() - user.updatedAt.getTime()) <= 1500) {
         res.cookie('complete_info', 'complete_your_info', this.getAuthCookieOptions());
-      res.redirect(this.getFrontendUrl());
+        redirectUrl += '&complete_info=complete_your_info';
+      }
+      res.redirect(redirectUrl);
       res.end();
       return;
     } catch (error: any) {

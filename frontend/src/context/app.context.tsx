@@ -48,6 +48,14 @@ export const deleteCookieItem = (key: string, path = "/") => {
 	document.cookie = `${key}=;expires=Thu, 01 Jan 1970 00:00:01 GMT;path=${path}`;
 };
 
+axios.interceptors.request.use((config) => {
+	const token = getCookieItem("access_token") || getCookieItem("2fa_access_token");
+	if (token) {
+		config.headers.Authorization = `Bearer ${token}`;
+	}
+	return config;
+});
+
 export const AppContext = React.createContext<IAppContext>({
 	user: undefined,
 	loading: true,

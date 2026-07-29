@@ -34,9 +34,9 @@ const Contributors = [
 		name: "Oussama Beaj",
 		role: "Full Stack Developer",
 		image: "/img/obeaj.jpg",
-		linkedin: "ousama-b-a8a84a247",
+		linkedin: "ousama-beaj",
 		github: "BEAJousama",
-		instagram: "obeaj29",
+		instagram: "_obeaj",
 	},
 	{
 		name: "Soufiane El Marsi",

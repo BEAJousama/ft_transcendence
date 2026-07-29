@@ -84,6 +84,16 @@ const Login = ({
 				}
 				if (externalPopup.window.location.href.includes(`${process.env.FRONT_END_URL}`)) {
 					clearInterval(checkPopup);
+					
+					const popupUrl = new URL(externalPopup.window.location.href);
+					const token = popupUrl.searchParams.get("access_token");
+					const tfaToken = popupUrl.searchParams.get("2fa_access_token");
+					const completeInfo = popupUrl.searchParams.get("complete_info");
+
+					if (token) setCookieItem("access_token", token);
+					if (tfaToken) setCookieItem("2fa_access_token", tfaToken);
+					if (completeInfo) setCookieItem("complete_info", completeInfo);
+
 					externalPopup.close();
 					if (!getCookieItem("2fa_access_token") && !getCookieItem("access_token")) {
 						setSelectable(true);

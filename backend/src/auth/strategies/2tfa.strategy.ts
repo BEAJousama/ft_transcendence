@@ -11,16 +11,19 @@ export class Jwt2faStrategy extends PassportStrategy(Strategy, 'jwt-2fa') {
     private readonly usersService: UsersService,
   ) {
     super({
-      jwtFromRequest: (req: Request) => {
-        if (
-          req.cookies &&
-          '2fa_access_token' in req.cookies &&
-          req.cookies['2fa_access_token'].length > 0
-        ) {
-          return req.cookies['2fa_access_token'];
+      jwtFromRequest: ExtractJwt.fromExtractors([
+        ExtractJwt.fromAuthHeaderAsBearerToken(),
+        (req: Request) => {
+          if (
+            req.cookies &&
+            '2fa_access_token' in req.cookies &&
+            req.cookies['2fa_access_token'].length > 0
+          ) {
+            return req.cookies['2fa_access_token'];
+          }
+          return null;
         }
-        return null;
-      },
+      ]),
       ignoreExpiration: false,
       secretOrKey: process.env.TFA_JWT_SECRET,
     });
