@@ -4,7 +4,7 @@ import React, { useContext, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import Image from "next/image";
-import { AppContext, deleteCookieItem, getCookieItem } from "@/context/app.context";
+import { AppContext, deleteCookieItem, getCookieItem, setCookieItem } from "@/context/app.context";
 import CountUp from "react-countup";
 import axios from "axios";
 import { useRouter } from "next/navigation";
