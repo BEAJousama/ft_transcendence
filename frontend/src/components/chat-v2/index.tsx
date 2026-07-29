@@ -170,6 +170,32 @@ const ChatV2 = () => {
 
 		const onMessage = (message: Imessage) => {
 			if (!message?.receiverId) return;
+			
+			const updateChannels = (prevChannels: Ichannel[]) => {
+				const idx = prevChannels.findIndex((c) => c.id === message.receiverId);
+				if (idx !== -1) {
+					const channel = prevChannels[idx];
+					let newCount = 0;
+					const members = channel.channelMembers?.map(m => {
+						if (m.userId === user?.id) {
+							newCount = activeChannel?.id === message.receiverId ? 0 : (m.newMessagesCount || 0) + 1;
+							return { ...m, newMessagesCount: newCount };
+						}
+						return m;
+					});
+					const updated = { 
+						...channel, 
+						updatedAt: message.date, 
+						messages: [message],
+						channelMembers: members
+					};
+					return [updated, ...prevChannels.slice(0, idx), ...prevChannels.slice(idx + 1)].sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+				}
+				return prevChannels;
+			};
+			setChannels(updateChannels);
+			setArchivedChannels(updateChannels);
+
 			setMessagesByChannel((prev) => {
 				const current = prev[message.receiverId] || [];
 				const normalize = (value?: string) => (value || "").trim().replace(/\s+/g, " ");

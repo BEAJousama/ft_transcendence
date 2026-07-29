@@ -190,6 +190,35 @@ const ChannelList: React.FC<ChannelListProps> = ({
 			inputRef?.current?.focus();
 		};
 
+		const onMessage = (message: Imessage) => {
+			const updateChannels = (prev: Ichannel[]) => {
+				const idx = prev.findIndex((c) => c.id === message.receiverId);
+				if (idx !== -1) {
+					const channel = prev[idx];
+					let newCount = 0;
+					const members = channel.channelMembers?.map(m => {
+						if (m.userId === user?.id) {
+							newCount = selectedChannel?.id === message.receiverId ? 0 : (m.newMessagesCount || 0) + 1;
+							return { ...m, newMessagesCount: newCount };
+						}
+						return m;
+					});
+					const updated = { 
+						...channel, 
+						updatedAt: message.date, 
+						messages: [message],
+						channelMembers: members
+					};
+					return [updated, ...prev.slice(0, idx), ...prev.slice(idx + 1)].sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+				}
+				return prev;
+			};
+			setAllChannels(updateChannels);
+			setChannels(updateChannels);
+			setAllArchiveChannels(updateChannels);
+			setArchiveChannels(updateChannels);
+		};
+
 		socket.on("getChannels", onGetChannels);
 		socket.on("getArchiveChannels", onGetArchiveChannels);
 		socket.on("channel_leave", onChannelLeave);
@@ -197,6 +226,7 @@ const ChannelList: React.FC<ChannelListProps> = ({
 		socket.on("channel_delete", onChannelDelete);
 		socket.on("channel_create", onChannelCreate);
 		socket.on("dm_create", onChannelCreate);
+		socket.on("message", onMessage);
 
 		return () => {
 			socket.off("getChannels", onGetChannels);
@@ -206,6 +236,7 @@ const ChannelList: React.FC<ChannelListProps> = ({
 			socket.off("channel_delete", onChannelDelete);
 			socket.off("channel_create", onChannelCreate);
 			socket.off("dm_create", onChannelCreate);
+			socket.off("message", onMessage);
 		};
 	}, [socket, hydrateConversationFields, inputRef, setCurrentChannel, setMessages, setOpen]);
 

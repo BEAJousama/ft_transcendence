@@ -96,7 +96,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
           message: 'Cannot send message',
         });
       }
-      await this.sendChannelsToChannelMembers(payload.receiverId);
+      
+      // Removed this.sendChannelsToChannelMembers(payload.receiverId) to prevent N+1 queries and huge latency.
+      // The frontend now updates its channel list locally when it receives the 'message' event.
+      
       await this.sendMessageToChannelMembers(
         payload.senderId,
         payload.receiverId,
@@ -260,7 +263,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         client.data.sub,
         parseInt(payload.channelId),
       );
-      await this.sendChannelsToChannelMembers(parseInt(payload.channelId));
+      await this.sendChannels(client.data.sub);
     } catch (err) {
       throw new WsException({
         error: EVENT.ERROR,
