@@ -38,12 +38,9 @@ const Login = ({
 	const [success, setSuccess] = useState<"" | "internal" | "42" | "google">("");
 	const [error, setError] = useState<"" | "internal" | "42" | "google">("");
 	const [invalidCreds, setInvalidCreds] = useState<string>("");
-	const [externalPopup, setExternalPopup] = useState<Window | null>(null);
+
 
 	useEffect(() => {
-		if (externalPopup) {
-			externalPopup.close();
-		}
 		if (getCookieItem("2fa_access_token")) {
 			setSelectable(false);
 			setLoading("internal");
@@ -53,63 +50,10 @@ const Login = ({
 
 	const connectClick = (e: any, key: "42" | "google", url: string) => {
 		setLoading(key);
-		const width = 500;
-		const height = 700;
-		const left = window.screenX + (window.outerWidth - width) / 2;
-		const top = window.screenY + (window.outerHeight - height) / 2.5;
-		const title = "Sign In - Pong Masters";
-		const popup = window.open(
-			url,
-			title,
-			`popup=true,toolbar=0,scrollbars=1,status=1,resizable=1,location=1,menuBar=0,
-			width=${width},height=${height},left=${left},top=${top}`
-		);
-		setExternalPopup(popup);
+		window.location.href = url;
 	};
 
-	useEffect(() => {
-		if (!externalPopup) return;
-		setSelectable(false);
-		const checkPopup = setInterval(async () => {
-			try {
-				if (externalPopup.closed) {
-					clearInterval(checkPopup);
-					setError(loading);
-					setTimeout(() => {
-						setError("");
-					}, 2000);
-					setLoading("");
-					setSelectable(true);
-					return;
-				}
-				if (externalPopup.window.location.href.includes(`${process.env.FRONT_END_URL}`)) {
-					clearInterval(checkPopup);
-					
-					const popupUrl = new URL(externalPopup.window.location.href);
-					const token = popupUrl.searchParams.get("access_token");
-					const tfaToken = popupUrl.searchParams.get("2fa_access_token");
-					const completeInfo = popupUrl.searchParams.get("complete_info");
 
-					if (token) setCookieItem("access_token", token);
-					if (tfaToken) setCookieItem("2fa_access_token", tfaToken);
-					if (completeInfo) setCookieItem("complete_info", completeInfo);
-
-					externalPopup.close();
-					if (!getCookieItem("2fa_access_token") && !getCookieItem("access_token")) {
-						setSelectable(true);
-						setLoading("");
-						return;
-					}
-					setSuccess(loading);
-					updateAccessToken();
-					await updateUser();
-					if (getCookieItem("2fa_access_token")) setState("2fa");
-					else if (getCookieItem("complete_info")) setState("complete");
-					else loginOk();
-				}
-			} catch (_) {}
-		}, 500);
-	}, [externalPopup]);
 
 	const formik = useFormik({
 		initialValues: {

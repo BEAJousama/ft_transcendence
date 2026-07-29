@@ -51,7 +51,7 @@ const Contributors = [
 const LandingPage = () => {
 	const router = useRouter();
 	const [slide, setSlide] = useState(0);
-	const { user, authenticated } = useContext(AppContext);
+	const { user, authenticated, updateAccessToken, updateUser } = useContext(AppContext);
 	const [selectable, setSelectable] = useState(true);
 	const [numUsers, setNumUsers] = useState(0);
 	const [numGames, setNumGames] = useState(0);
@@ -60,6 +60,36 @@ const LandingPage = () => {
 	const [disabled, setDisabled] = useState(false);
 
 	useEffect(() => {
+		const searchParams = new URLSearchParams(window.location.search);
+		const token = searchParams.get("access_token");
+		const tfaToken = searchParams.get("2fa_access_token");
+		const completeInfo = searchParams.get("complete_info");
+
+		let hasTokens = false;
+		if (token) {
+			setCookieItem("access_token", token);
+			hasTokens = true;
+		}
+		if (tfaToken) {
+			setCookieItem("2fa_access_token", tfaToken);
+			hasTokens = true;
+		}
+		if (completeInfo) {
+			setCookieItem("complete_info", completeInfo);
+			hasTokens = true;
+		}
+
+		if (hasTokens) {
+			window.history.replaceState({}, document.title, window.location.pathname);
+			updateAccessToken();
+			updateUser().then(() => {
+				if (tfaToken) setState("2fa");
+				else if (completeInfo) setState("complete");
+				else setOk(true);
+			});
+			return;
+		}
+
 		if (navigator.cookieEnabled === false) {
 			toast.error(
 				<Link
