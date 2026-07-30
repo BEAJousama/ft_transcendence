@@ -983,26 +983,42 @@ const ChatV2 = () => {
 						<div ref={messagesRef} className="min-h-0 flex-1 space-y-2 overflow-y-auto px-4 pb-4">
 							{activeMessages.map((message) => {
 								const mine = message.senderId === user?.id;
+								const showSenderInfo = !mine && activeChannel?.type === "GROUP";
+								const senderAvatar = message.sender?.avatar || activeChannel?.channelMembers?.find(m => m.userId === message.senderId)?.user?.avatar || "/img/default-avatar.png";
+								const senderName = message.sender?.username || activeChannel?.channelMembers?.find(m => m.userId === message.senderId)?.user?.username || "Unknown";
+
 								return (
 									<div
 										key={`${message.id}-${message.date}`}
-										className={twMerge("flex", mine ? "justify-end" : "justify-start")}
+										className={twMerge("flex gap-2", mine ? "justify-end" : "justify-start")}
 									>
-										<div
-											className={twMerge(
-												"max-w-[75%] rounded-2xl px-3 py-2 text-sm",
-												mine
-													? "bg-primary-300 text-secondary-900 rounded-br-sm"
-													: "bg-secondary-800 text-secondary-100 rounded-bl-sm"
+										{showSenderInfo && (
+											<img 
+												src={senderAvatar} 
+												alt={senderName} 
+												className="h-7 w-7 shrink-0 rounded-full object-cover self-end mb-1"
+											/>
+										)}
+										<div className={twMerge("flex flex-col", mine ? "items-end" : "items-start", "max-w-[75%]")}>
+											{showSenderInfo && (
+												<span className="text-[10px] text-secondary-400 ml-1 mb-0.5 font-medium">{senderName}</span>
 											)}
-										>
-											<p className="break-words">{message.content}</p>
-										<p className="mt-1 text-[11px] opacity-70 md:text-[10px]">
-												{new Date(message.date).toLocaleTimeString([], {
-													hour: "2-digit",
-													minute: "2-digit",
-												})}
-											</p>
+											<div
+												className={twMerge(
+													"rounded-2xl px-3 py-2 text-sm",
+													mine
+														? "bg-primary-300 text-secondary-900 rounded-br-sm"
+														: "bg-secondary-800 text-secondary-100 rounded-bl-sm"
+												)}
+											>
+												<p className="break-words">{message.content}</p>
+												<p className={twMerge("mt-1 text-[11px] opacity-70 md:text-[10px]", mine ? "text-right" : "text-left")}>
+													{new Date(message.date).toLocaleTimeString([], {
+														hour: "2-digit",
+														minute: "2-digit",
+													})}
+												</p>
+											</div>
 										</div>
 									</div>
 								);
