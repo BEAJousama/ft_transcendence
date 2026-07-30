@@ -10,7 +10,7 @@ import { authenticator } from 'otplib';
 import { UsersService } from 'src/users/users.service';
 import { SignUpDto } from './dto/signup.dto';
 import { SignInDto } from './dto/signin.dto';
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 
 @Injectable()
 export class AuthService {

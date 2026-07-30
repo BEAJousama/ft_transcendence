@@ -8,7 +8,7 @@ import {
   Visiblity,
 } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 import { ChannelDto } from 'src/chat/dto';
 import { ChatService } from '../chat/chat.service';
 
