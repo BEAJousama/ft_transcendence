@@ -7,6 +7,7 @@ import { GameContext } from "@/context/game.context";
 import IUser from "@/interfaces/user";
 import { useRouter, useSearchParams } from "next/navigation";
 import axios from "axios";
+import useSWR from "swr";
 import { toast } from "react-toastify";
 import UpdateAvatar from "../update-avatar";
 import {
@@ -129,14 +130,23 @@ const ChatV2 = () => {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [user?.id]);
 
+	const { data: fetchedChannels } = useSWR(user?.id ? `api/channels/${user.id}` : null, fetcher);
+	const { data: fetchedArchivedChannels } = useSWR(user?.id ? `api/channels/archived/${user.id}` : null, fetcher);
+	const { data: fetchedChatUsers } = useSWR(user?.id ? `api/users/non-blocked-users/${user.id}` : null, fetcher);
+
 	useEffect(() => {
-		if (!user?.id) return;
-		fetcher(`api/channels/${user.id}`).then((data) => setChannels(data || []));
-		fetcher(`api/channels/archived/${user.id}`).then((data) => setArchivedChannels(data || []));
-		fetcher(`api/users/non-blocked-users/${user.id}`).then((data) =>
-			setChatUsers((data || []).filter((candidate: IUser) => candidate.id !== user.id))
-		);
-	}, [user?.id]);
+		if (fetchedChannels) setChannels(fetchedChannels);
+	}, [fetchedChannels]);
+
+	useEffect(() => {
+		if (fetchedArchivedChannels) setArchivedChannels(fetchedArchivedChannels);
+	}, [fetchedArchivedChannels]);
+
+	useEffect(() => {
+		if (fetchedChatUsers) {
+			setChatUsers((fetchedChatUsers || []).filter((candidate: IUser) => candidate.id !== user?.id));
+		}
+	}, [fetchedChatUsers, user?.id]);
 
 	useEffect(() => {
 		const onShortcut = (e: KeyboardEvent) => {
@@ -383,10 +393,14 @@ const ChatV2 = () => {
 		return null;
 	}, [activeChannel, activeGroupMember, isPeerBlockedByMe, isPeerBlockingMe]);
 
+	const { data: fetchedMessages } = useSWR(
+		activeChannel?.id && user?.id ? `api/messages/${activeChannel.id}/${user.id}?take=120` : null,
+		fetcher
+	);
+
 	useEffect(() => {
-		if (!activeChannel?.id || !user?.id) return;
-		fetcher(`api/messages/${activeChannel.id}/${user.id}?take=120`).then((data) => {
-			const nextMessages = data || [];
+		if (fetchedMessages && activeChannel?.id) {
+			const nextMessages = fetchedMessages || [];
 			setMessagesByChannel((prev) => ({
 				...prev,
 				[activeChannel.id as number]: nextMessages,
@@ -395,9 +409,13 @@ const ChatV2 = () => {
 				...prev,
 				[activeChannel.id as number]: nextMessages[0]?.date || prev[activeChannel.id as number],
 			}));
-		});
-		socket?.emit("reset_mssg_count", { channelId: activeChannel.id });
-	}, [activeChannel?.id, socket, user?.id]);
+		}
+	}, [fetchedMessages, activeChannel?.id]);
+
+	useEffect(() => {
+		if (!activeChannel?.id || !socket) return;
+		socket.emit("reset_mssg_count", { channelId: activeChannel.id });
+	}, [activeChannel?.id, socket]);
 
 	useEffect(() => {
 		if (!messagesRef.current) return;
