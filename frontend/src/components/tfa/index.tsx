@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useContext } from "react";
 import axios from "axios";
 import { Button, Input } from "@/components";
 import { twMerge } from "tailwind-merge";
-import { AppContext } from "@/context/app.context";
+import { AppContext, setCookieItem } from "@/context/app.context";
 
 const TwoFactorAuth = ({ tfaOk }: { tfaOk: () => void }) => {
 	const { updateUser, updateAccessToken } = useContext(AppContext);
@@ -67,13 +67,14 @@ const TwoFactorAuth = ({ tfaOk }: { tfaOk: () => void }) => {
 	const handleCodeSubmit = async () => {
 		try {
 			setLoading(true);
-			await axios.post(
+			const res = await axios.post(
 				`${process.env.BACK_END_URL}api/auth/2fa/verify`,
 				{ code },
 				{
 					withCredentials: true,
 				}
 			);
+			if (res.data?.name && res.data?.value) setCookieItem(res.data.name, res.data.value);
 			setError("");
 			setSuccess(true);
 			updateAccessToken();

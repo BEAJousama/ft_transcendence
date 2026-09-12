@@ -1,29 +1,13 @@
-import {
-  ExceptionFilter,
-  Catch,
-  ArgumentsHost,
-  HttpException,
-} from '@nestjs/common';
+import { ExceptionFilter, Catch, ArgumentsHost } from '@nestjs/common';
 import { Response } from 'express';
+import { getFrontendUrl } from './frontend-url';
 
+// Sends failed OAuth callbacks back to the frontend instead of leaving the
+// popup on an API error page.
 @Catch()
 export class FourtyTwoFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost) {
-    const ctx = host.switchToHttp();
-    const response = ctx.getResponse<Response>();
-
-    let statusCode = 401;
-    let message = 'Unauthorized';
-
-    if (exception instanceof HttpException) {
-      statusCode = exception.getStatus();
-      message = exception.message;
-    }
-
-    response.redirect(process.env.FRONTEND_URL ?? '/');
-    // response.status(statusCode).json({
-    //   statusCode,
-    //   message,
-    // });
+    const response = host.switchToHttp().getResponse<Response>();
+    response.redirect(getFrontendUrl());
   }
 }

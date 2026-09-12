@@ -48,6 +48,16 @@ export const deleteCookieItem = (key: string, path = "/") => {
 	document.cookie = `${key}=;expires=Thu, 01 Jan 1970 00:00:01 GMT;path=${path}`;
 };
 
+// Clears the session on both the frontend host and the API host (older
+// backends set cookies there, which silently re-authenticated users).
+export const logout = async () => {
+	["access_token", "2fa_access_token", "complete_info"].forEach((key) => deleteCookieItem(key));
+	try {
+		await axios.post(`${process.env.BACK_END_URL}api/auth/logout`, {}, { withCredentials: true });
+	} catch (_) {}
+	window.location.replace("/");
+};
+
 axios.interceptors.request.use((config) => {
 	const token = getCookieItem("access_token") || getCookieItem("2fa_access_token");
 	if (token) {
@@ -93,11 +103,18 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
 			setAccessToken("undefined");
 			setUser(undefined);
 			deleteCookieItem("access_token");
-			redirect("/");
 		}
 	};
 
 	const updateUser = async (): Promise<IUser | undefined> => {
+		// The frontend cookie is the session; without it, never let a cookie on
+		// the API host authenticate us, or "/" and "/home" redirect forever.
+		if (!getCookieItem("access_token")) {
+			setIsAuthenticated(false);
+			setUser(undefined);
+			setIsLoading(false);
+			return undefined;
+		}
 		try {
 			const data = await fetcher("api/auth/42");
 			if (data) {

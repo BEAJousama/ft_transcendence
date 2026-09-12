@@ -82,10 +82,12 @@ const Login = ({
 					setSelectable(true);
 					return;
 				}
-				if (externalPopup.window.location.href.includes(`${process.env.FRONT_END_URL}`)) {
+				// Reading the popup location throws while it is on the API or OAuth
+				// provider; once it is readable and on our origin, the callback is done.
+				const popupUrl = new URL(externalPopup.location.href);
+				if (popupUrl.origin === window.location.origin) {
 					clearInterval(checkPopup);
-					
-					const popupUrl = new URL(externalPopup.window.location.href);
+
 					const token = popupUrl.searchParams.get("access_token");
 					const tfaToken = popupUrl.searchParams.get("2fa_access_token");
 					const completeInfo = popupUrl.searchParams.get("complete_info");

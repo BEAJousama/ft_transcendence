@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import { Settings } from "lucide-react";
 import { Spinner, UpdateAvatar, UpdateInfo, ActivateTfa } from "@/components";
 import { useContext, useState } from "react";
-import { AppContext } from "../../context/app.context";
+import { AppContext, logout } from "../../context/app.context";
 import axios from "axios";
 import Layout from "../layout/index";
 import dynamic from "next/dynamic";
@@ -61,9 +61,7 @@ export default function SettingsPage() {
 													withCredentials: true,
 												}
 											);
-											document.cookie = `${"2fa_access_token"}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
-											document.cookie = `${"access_token"}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
-											window.location.reload();
+											await logout();
 										} catch (e) {
 											setShowmodal(false);
 											toast.error("Error: Could not delete Account");

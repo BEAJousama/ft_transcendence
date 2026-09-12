@@ -4,7 +4,7 @@ import Image from "next/image";
 import { twMerge } from "tailwind-merge";
 import { useContext } from "react";
 import { GameContext } from "@/context/game.context";
-import { AppContext } from "@/context/app.context";
+import { AppContext, logout } from "@/context/app.context";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -128,11 +128,7 @@ const Sidepanel = ({ className }: { className?: string }) => {
 			<div className="flex w-full flex-col items-center justify-center gap-4 px-2 md:px-3">
 				<SidePanelItem
 					className="text-secondary-400 hover:text-red-400 hover:bg-red-500/10"
-					onClick={() => {
-						document.cookie = `${"2fa_access_token"}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
-						document.cookie = `${"access_token"}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
-						window.location.reload();
-					}}
+					onClick={logout}
 				>
 					<LogOut size={18} />
 					<span className="hidden text-left text-sm font-medium md:block">Log Out</span>

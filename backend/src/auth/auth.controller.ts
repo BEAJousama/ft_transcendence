@@ -50,9 +50,16 @@ export class AuthController {
   @Public()
   @Get('google/callback')
   @GoogleCallbackDoc()
+  @UseFilters(FourtyTwoFilter)
   @UseGuards(GoogleGuard)
   async googleAuthRedirect(@Req() req, @Res() res) {
     await this.authService.callback(req, res);
+  }
+
+  @Public()
+  @Post('logout')
+  logout(@Res({ passthrough: true }) res: Response) {
+    return this.authService.logout(res);
   }
 
   @Public()
@@ -133,7 +140,7 @@ export class AuthController {
   async verifyTwoFactorAuthentication(@Req() req, @Res() res) {
     try {
       const _res = await this.authService.verify(req, res);
-      res.end(_res.message);
+      res.json(_res);
     } catch (e) {
       throw e;
     }

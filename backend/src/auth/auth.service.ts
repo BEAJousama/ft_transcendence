@@ -11,6 +11,9 @@ import { UsersService } from 'src/users/users.service';
 import { SignUpDto } from './dto/signup.dto';
 import { SignInDto } from './dto/signin.dto';
 import * as bcrypt from 'bcryptjs';
+import { getFrontendUrl, withQuery } from './frontend-url';
+
+export const AUTH_COOKIES = ['access_token', '2fa_access_token', 'complete_info'];
 
 @Injectable()
 export class AuthService {
@@ -19,17 +22,12 @@ export class AuthService {
     private usersService: UsersService,
   ) {}
 
-  private getFrontendUrl() {
-    return process.env.FRONTEND_URL ?? '/';
-  }
-
-  private getAuthCookieOptions() {
-    return {
-      sameSite:
-        process.env.NODE_ENV === 'production' ? ('none' as const) : ('lax' as const),
-      secure: process.env.NODE_ENV === 'production',
-      path: '/',
-    };
+  // The frontend owns the session cookies (set from the redirect query or the
+  // response body). Cookies set here would live on the API host, where the
+  // frontend cannot clear them, and would keep users signed in after logout.
+  logout(res: Response) {
+    for (const name of AUTH_COOKIES) res.clearCookie(name, { path: '/' });
+    return { message: 'success' };
   }
 
   private accessToken: {
@@ -121,8 +119,8 @@ export class AuthService {
   async callback(req, res) {
     try {
       if (!req.user) {
-        res.redirect(this.getFrontendUrl());
-        res.end();
+        res.redirect(getFrontendUrl());
+        return;
       }
       const data = req.user;
       let user: User = await this.usersService.findUserByLogin(data.login);
@@ -145,11 +143,10 @@ export class AuthService {
           expiresIn: '24h',
         });
 
-        res.cookie('2fa_access_token', access_token, this.getAuthCookieOptions());
-        let redirectUrl = this.getFrontendUrl();
-        redirectUrl += (redirectUrl.includes('?') ? '&' : '?') + '2fa_access_token=' + access_token;
-        res.redirect(redirectUrl);
-        res.end();
+        this.logout(res);
+        res.redirect(
+          withQuery(getFrontendUrl(), { '2fa_access_token': access_token }),
+        );
         return;
       }
 
@@ -158,18 +155,17 @@ export class AuthService {
         secret: process.env.JWT_SECRET,
         expiresIn: '7d',
       });
-      res.cookie('access_token', access_token, this.getAuthCookieOptions());
-      let redirectUrl = this.getFrontendUrl();
-      redirectUrl += (redirectUrl.includes('?') ? '&' : '?') + 'access_token=' + access_token;
+      const params: Record<string, string> = { access_token };
       if (Math.abs(user.createdAt.getTime() - user.updatedAt.getTime()) <= 1500) {
-        res.cookie('complete_info', 'complete_your_info', this.getAuthCookieOptions());
-        redirectUrl += '&complete_info=complete_your_info';
+        params.complete_info = 'complete_your_info';
       }
-      res.redirect(redirectUrl);
-      res.end();
+      this.logout(res);
+      res.redirect(withQuery(getFrontendUrl(), params));
       return;
     } catch (error: any) {
-      throw new InternalServerErrorException(error.response.message);
+      throw new InternalServerErrorException(
+        error?.response?.message ?? 'An internal server error occurred.',
+      );
     }
   }
 
@@ -245,9 +241,10 @@ export class AuthService {
           expiresIn: '7d',
         });
 
-        res.cookie('access_token', access_token, this.getAuthCookieOptions());
         return {
           message: 'success',
+          name: 'access_token',
+          value: access_token,
         };
       }
       throw new UnauthorizedException('Invalid credentials');
