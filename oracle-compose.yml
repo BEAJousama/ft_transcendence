@@ -40,10 +40,10 @@ services:
     env_file:
       - .env.oracle
     environment:
-      NEXT_PUBLIC_API_URL: https://pongmastersapi.obeaj.me
-      NEXT_PUBLIC_WS_URL: wss://pongmastersapi.obeaj.me
+      NEXT_PUBLIC_API_URL: https://pongmasters.obeaj.me
+      NEXT_PUBLIC_WS_URL: wss://pongmasters.obeaj.me
       NEXT_PUBLIC_FRONTEND_URL: https://pongmasters.obeaj.me
-      NEXT_PUBLIC_BACK_END_URL: https://pongmastersapi.obeaj.me/
+      NEXT_PUBLIC_BACK_END_URL: https://pongmasters.obeaj.me/
       NEXT_PUBLIC_FRONT_END_URL: https://pongmasters.obeaj.me
     depends_on:
       - backend

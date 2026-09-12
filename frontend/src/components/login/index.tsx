@@ -82,10 +82,13 @@ const Login = ({
 					setSelectable(true);
 					return;
 				}
-				// Reading the popup location throws while it is on the API or OAuth
-				// provider; once it is readable and on our origin, the callback is done.
+				// Reading the popup location throws while it is on the OAuth provider.
+				// The API shares our origin, so also wait until it has left /api/.
 				const popupUrl = new URL(externalPopup.location.href);
-				if (popupUrl.origin === window.location.origin) {
+				if (
+					popupUrl.origin === window.location.origin &&
+					!popupUrl.pathname.startsWith("/api/")
+				) {
 					clearInterval(checkPopup);
 
 					const token = popupUrl.searchParams.get("access_token");

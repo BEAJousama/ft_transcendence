@@ -1,6 +1,6 @@
 # Oracle Cloud deployment
 
-These instructions use an Ubuntu Always Free VM, Docker Compose, and Caddy. Oracle hosts the Next.js frontend at `https://pongmasters.obeaj.me`, the API at `https://pongmastersapi.obeaj.me`, and the PostgreSQL database.
+These instructions use an Ubuntu Always Free VM, Docker Compose, and Caddy. Oracle hosts everything on one domain, `https://pongmasters.obeaj.me`: Caddy sends `/api/*` and `/socket.io/*` to the NestJS backend and everything else to the Next.js frontend. PostgreSQL runs on the same VM.
 
 ## VM setup
 
@@ -44,11 +44,13 @@ Use this Caddy entry:
 
 ```text
 pongmasters.obeaj.me {
-    reverse_proxy 127.0.0.1:5000
-}
-
-pongmastersapi.obeaj.me {
-    reverse_proxy 127.0.0.1:3000
+    @backend path /api/* /socket.io/*
+    handle @backend {
+        reverse_proxy 127.0.0.1:3000
+    }
+    handle {
+        reverse_proxy 127.0.0.1:5000
+    }
 }
 ```
 
@@ -56,7 +58,7 @@ The frontend (port `5000`) and backend (port `3000`) are reachable only through 
 
 ## Cloudflare DNS and Caddy
 
-For the first certificate issuance, set the Cloudflare DNS record for `pongmastersapi.obeaj.me` to **DNS only** (grey cloud). It must have an `A` record pointing to the Oracle public IPv4 address. Remove any `AAAA` record unless the VM has working public IPv6. Cloudflare proxying can return `523` and prevents Let's Encrypt from reaching Caddy's HTTP-01 or TLS-ALPN challenge.
+For the first certificate issuance, set the Cloudflare DNS record for `pongmasters.obeaj.me` to **DNS only** (grey cloud). It must have an `A` record pointing to the Oracle public IPv4 address. Remove any `AAAA` record unless the VM has working public IPv6. Cloudflare proxying can return `523` and prevents Let's Encrypt from reaching Caddy's HTTP-01 or TLS-ALPN challenge.
 
 Before restarting Caddy, verify the origin locally:
 
@@ -78,16 +80,21 @@ After Caddy obtains the certificate, Cloudflare proxying may be enabled again us
 The `frontend` service in `oracle-compose.yml` sets these variables. Its container runs `next build` on startup, so recreate it after changing them:
 
 ```text
-NEXT_PUBLIC_API_URL=https://pongmastersapi.obeaj.me
-NEXT_PUBLIC_WS_URL=wss://pongmastersapi.obeaj.me
+NEXT_PUBLIC_API_URL=https://pongmasters.obeaj.me
+NEXT_PUBLIC_WS_URL=wss://pongmasters.obeaj.me
 NEXT_PUBLIC_FRONTEND_URL=https://pongmasters.obeaj.me
-NEXT_PUBLIC_BACK_END_URL=https://pongmastersapi.obeaj.me/
+NEXT_PUBLIC_BACK_END_URL=https://pongmasters.obeaj.me/
 NEXT_PUBLIC_FRONT_END_URL=https://pongmasters.obeaj.me
 ```
 
-Update Google and 42 OAuth callback URLs to the HTTPS values in `.env.oracle` before testing login.
+Register these OAuth redirect URIs before testing login (Google Cloud Console → APIs & Services → Credentials → OAuth client → Authorized redirect URIs, and the 42 intra application settings):
 
-`FRONTEND_URL` in `.env.oracle` must be the frontend origin (`https://pongmasters.obeaj.me`). If it is missing, OAuth login finishes on `pongmastersapi.obeaj.me` instead of the frontend. After changing it, recreate the backend container so it picks up the new value.
+```text
+https://pongmasters.obeaj.me/api/auth/google/callback
+https://pongmasters.obeaj.me/api/auth/42/callback
+```
+
+`FRONTEND_URL` in `.env.oracle` must be `https://pongmasters.obeaj.me`. If it is missing, OAuth login finishes on an API URL instead of the app. After changing it, recreate the backend container so it picks up the new value.
 
 If Google login returns to the login page with an error, check the backend logs for `TokenError: The provided client secret is invalid.` That means `GOOGLE_CLIENT_SECRET` does not belong to `GOOGLE_CLIENT_ID`; copy a current secret from Google Cloud Console → APIs & Services → Credentials, then recreate the backend container.
 
