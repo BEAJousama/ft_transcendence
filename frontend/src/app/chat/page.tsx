@@ -180,7 +180,8 @@ export default function Chat() {
   }, [socket, currentChannel?.id, isMatch, handleSocketEvent]);
 
   return (
-    <Layout className="!py-0 !px-0 !overflow-hidden !h-screen !max-h-screen">
+    <Layout className="!py-0 !px-0 !overflow-hidden !h-[calc(100dvh-3.5rem)] !min-h-0 md:!h-screen">
+
       {isChatV2Enabled ? (
         <ChatV2 />
       ) : (
