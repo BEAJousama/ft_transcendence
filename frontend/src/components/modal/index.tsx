@@ -15,7 +15,7 @@ const Modal = ({
   setShowModal?: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   return (
-    <div className={twMerge(`animation-fade fixed z-10 left-0 top-0 flex h-screen w-screen items-center justify-center animate-duration-500 overflow-hidden `, className2 && className2)}>
+    <div className={twMerge(`animation-fade fixed z-10 left-0 top-0 flex h-screen w-full items-center justify-center animate-duration-500 overflow-hidden `, className2 && className2)}>
       <div className="fixed inset-0 bg-secondary-900/80 backdrop-blur-md"></div>
       <Card
         setShowModal={setShowModal}

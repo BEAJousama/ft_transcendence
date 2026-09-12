@@ -8,7 +8,7 @@ const FourOFour = ({ show = true }: { show?: boolean }) => {
   return (
     <div
       tabIndex={0}
-      className="grid h-screen w-screen place-items-center bg-secondary-500"
+      className="grid h-screen w-full place-items-center bg-secondary-500"
     >
       <div className="relative grid w-full place-items-center">
         <Image

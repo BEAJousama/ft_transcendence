@@ -1,6 +1,14 @@
 @tailwind base;
 @tailwind components;
 @layer base {
+  /* Never scroll sideways. `clip` (unlike `hidden`) does not create a scroll
+     container, so `position: sticky` (the side panel) keeps working. */
+  html,
+  body {
+    max-width: 100%;
+    overflow-x: clip;
+  }
+
   html {
     @apply scroll-smooth antialiased;
   }

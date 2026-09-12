@@ -114,7 +114,7 @@ const LandingPage = () => {
 	}, [state]);
 
 	return (
-		<div className="scrollbar-hide flex min-h-screen w-screen flex-col items-center overflow-x-hidden bg-secondary-900">
+		<div className="scrollbar-hide flex min-h-screen w-full flex-col items-center overflow-x-hidden bg-secondary-900">
 			<div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_right,rgba(52,211,153,0.08),transparent_35%)]" />
 			<div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(100,116,139,0.1),transparent_40%)]" />
 			<div className="fixed inset-0 flex items-center justify-center opacity-20">

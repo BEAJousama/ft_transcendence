@@ -51,7 +51,7 @@ const CreateGroupModal = ({
     setShowModal(false);
   }
   return (
-    <div className="animation-fade animate-duration-500 absolute top-0 left-0 w-screen h-screen flex items-center justify-center">
+    <div className="animation-fade animate-duration-500 absolute top-0 left-0 w-full h-screen flex items-center justify-center">
       <div className="fixed inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm">
       </div>
       <Modal

@@ -11,9 +11,9 @@ const Layout = ({ children, className,
     onContextMenu?: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void;
 }) => {
     return (
-        <div className="grid min-h-screen w-screen grid-cols-10 2xl:grid-cols-12 bg-secondary-900" onContextMenu={onContextMenu}>
+        <div className="grid min-h-screen w-full grid-cols-10 2xl:grid-cols-12 bg-secondary-900" onContextMenu={onContextMenu}>
             <Sidepanel className="col-span-2" />
-            <div className={twMerge("col-span-8 2xl:col-span-10 min-h-screen overflow-y-auto px-5 py-8 md:px-8 md:py-10 scrollbar-hide", className)}>
+            <div className={twMerge("col-span-8 2xl:col-span-10 min-h-screen min-w-0 overflow-x-hidden overflow-y-auto px-5 py-8 md:px-8 md:py-10 scrollbar-hide", className)}>
                 {children}
             </div>
         </div>
