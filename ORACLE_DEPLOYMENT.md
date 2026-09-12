@@ -1,6 +1,6 @@
 # Oracle Cloud deployment
 
-These instructions use an Ubuntu Always Free VM, Docker Compose, and Caddy. The frontend is hosted on Vercel at `https://pongmasters.obeaj.me`; Oracle hosts the API and PostgreSQL database at `https://pongmastersapi.obeaj.me`.
+These instructions use an Ubuntu Always Free VM, Docker Compose, and Caddy. Oracle hosts the Next.js frontend at `https://pongmasters.obeaj.me`, the API at `https://pongmastersapi.obeaj.me`, and the PostgreSQL database.
 
 ## VM setup
 
@@ -43,12 +43,16 @@ The explicit network creation prevents `podman-compose` from regenerating the in
 Use this Caddy entry:
 
 ```text
+pongmasters.obeaj.me {
+    reverse_proxy 127.0.0.1:5000
+}
+
 pongmastersapi.obeaj.me {
-    reverse_proxy localhost:3000
+    reverse_proxy 127.0.0.1:3000
 }
 ```
 
-The backend listens only on `127.0.0.1:3000`; Caddy provides the public HTTPS API and WebSocket endpoint.
+The frontend (port `5000`) and backend (port `3000`) are reachable only through Caddy; the VM firewall allows only ports `22`, `80`, and `443`.
 
 ## Cloudflare DNS and Caddy
 
@@ -71,7 +75,7 @@ sudo journalctl -u caddy -f
 
 After Caddy obtains the certificate, Cloudflare proxying may be enabled again using **Full (strict)** SSL mode. If Cloudflare still returns `523`, leave the record DNS-only and check the Oracle security list and Ubuntu firewall for TCP ports `80` and `443`.
 
-In Vercel, set these frontend environment variables and redeploy:
+The `frontend` service in `oracle-compose.yml` sets these variables. Its container runs `next build` on startup, so recreate it after changing them:
 
 ```text
 NEXT_PUBLIC_API_URL=https://pongmastersapi.obeaj.me
@@ -84,6 +88,8 @@ NEXT_PUBLIC_FRONT_END_URL=https://pongmasters.obeaj.me
 Update Google and 42 OAuth callback URLs to the HTTPS values in `.env.oracle` before testing login.
 
 `FRONTEND_URL` in `.env.oracle` must be the frontend origin (`https://pongmasters.obeaj.me`). If it is missing, OAuth login finishes on `pongmastersapi.obeaj.me` instead of the frontend. After changing it, recreate the backend container so it picks up the new value.
+
+If Google login returns to the login page with an error, check the backend logs for `TokenError: The provided client secret is invalid.` That means `GOOGLE_CLIENT_SECRET` does not belong to `GOOGLE_CLIENT_ID`; copy a current secret from Google Cloud Console → APIs & Services → Credentials, then recreate the backend container.
 
 The backend no longer sets session cookies on the API host; the frontend stores them and `POST /api/auth/logout` clears any cookies left on the API host by older builds. Deploy the backend and frontend together.
 
