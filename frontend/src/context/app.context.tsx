@@ -141,7 +141,7 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
 	}, []);
 
 	React.useEffect(() => {
-		if (location === "/") return;
+		if (location === "/" || location === "/auth/callback") return;
 		checkConnection();
 	}, [location]);
 
@@ -163,7 +163,10 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
 		);
 	}
 
-	if (!isAuthenticated && !isLoading && location !== "/") redirect("/");
+	// /auth/callback is where an unauthenticated visitor turns an OAuth code
+	// into a session, so it must not bounce to "/" (that would drop the code).
+	const isPublicRoute = location === "/" || location === "/auth/callback";
+	if (!isAuthenticated && !isLoading && !isPublicRoute) redirect("/");
 
 	const appContextValue: IAppContext = {
 		user,
