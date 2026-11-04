@@ -145,4 +145,10 @@ export class AuthController {
       throw e;
     }
   }
+
+  @Public()
+  @Post('exchange')
+  exchange(@Body('code') code: string) {
+    return this.authService.exchangeCode(code);
+  }
 }

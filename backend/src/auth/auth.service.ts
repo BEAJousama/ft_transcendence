@@ -11,6 +11,7 @@ import { UsersService } from 'src/users/users.service';
 import { SignUpDto } from './dto/signup.dto';
 import { SignInDto } from './dto/signin.dto';
 import * as bcrypt from 'bcryptjs';
+import { randomBytes } from 'crypto';
 import { getFrontendUrl, withQuery } from './frontend-url';
 
 export const AUTH_COOKIES = ['access_token', '2fa_access_token', 'complete_info'];
@@ -28,6 +29,29 @@ export class AuthService {
   logout(res: Response) {
     for (const name of AUTH_COOKIES) res.clearCookie(name, { path: '/' });
     return { message: 'success' };
+  }
+
+  // OAuth hand-off: the callback redirects with a short-lived, single-use code
+  // instead of the JWT itself, so tokens never appear in URLs (history, logs,
+  // Referer). The frontend trades the code for the tokens via POST /auth/exchange.
+  private static readonly CODE_TTL_MS = 60_000;
+  private oauthCodes = new Map<string, { params: Record<string, string>; expires: number }>();
+
+  private redirectWithCode(res: Response, params: Record<string, string>) {
+    const now = Date.now();
+    for (const [k, v] of this.oauthCodes) if (v.expires < now) this.oauthCodes.delete(k);
+    const code = randomBytes(32).toString('base64url');
+    this.oauthCodes.set(code, { params, expires: now + AuthService.CODE_TTL_MS });
+    res.redirect(withQuery(`${getFrontendUrl()}/auth/callback`, { code }));
+  }
+
+  exchangeCode(code: string): Record<string, string> {
+    const entry = typeof code === 'string' ? this.oauthCodes.get(code) : undefined;
+    if (entry) this.oauthCodes.delete(code);
+    if (!entry || entry.expires < Date.now()) {
+      throw new UnauthorizedException('Invalid or expired login code');
+    }
+    return entry.params;
   }
 
   private accessToken: {
@@ -144,9 +168,7 @@ export class AuthService {
         });
 
         this.logout(res);
-        res.redirect(
-          withQuery(getFrontendUrl(), { '2fa_access_token': access_token }),
-        );
+        this.redirectWithCode(res, { '2fa_access_token': access_token });
         return;
       }
 
@@ -160,7 +182,7 @@ export class AuthService {
         params.complete_info = 'complete_your_info';
       }
       this.logout(res);
-      res.redirect(withQuery(getFrontendUrl(), params));
+      this.redirectWithCode(res, params);
       return;
     } catch (error: any) {
       throw new InternalServerErrorException(
